@@ -1,0 +1,92 @@
+/* hide popup via hidden attribute */
+
+[data-anim-popup][hidden] {
+	display: none !important;
+}
+
+/* overlay */
+
+body::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+
+	background: rgba(0, 0, 0, 0.5);
+
+	opacity: 0;
+	pointer-events: none;
+
+	transition: opacity 0.35s ease;
+
+	z-index: 149;
+}
+
+html[data-anim-popup-open] body::after {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+/* popup container */
+
+[data-anim-popup] {
+	position: fixed;
+	inset: 0;
+
+	padding: 30px 10px;
+
+	visibility: hidden;
+	pointer-events: none;
+
+	display: flex;
+
+	&[data-anim-popup-active] {
+		visibility: visible;
+		pointer-events: auto;
+		z-index: 150;
+		overflow-y: auto;
+	}
+}
+
+/* popup wrapper */
+
+[data-anim-popup-wrapper] {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	width: 100%;
+	min-height: 100%;
+}
+
+/* popup content */
+
+[data-anim-popup-body] {
+	background: #eee;
+
+	padding: 20px;
+
+	width: 100%;
+	max-width: 900px;
+
+	border-radius: 20px;
+
+	transform: scale(0.96);
+	opacity: 0;
+
+	transition:
+		transform 0.35s ease,
+		opacity 0.35s ease;
+}
+
+[data-anim-popup-active] [data-anim-popup-body] {
+	transform: scale(1);
+	opacity: 1;
+}
+
+/* youtube responsive */
+
+[data-anim-popup-youtube-place] iframe {
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	border: 0;
+}

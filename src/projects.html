@@ -1,0 +1,22 @@
+<template src="@components/templates/main/main.html" locals='{
+		"title":"Projects — Isaac Adjei",
+		"lang":"en",
+		"preloader": {
+			"enable":"false",
+			"once":"false"
+		},
+		"keywords":"projects, embedded systems, electronics, PCB design, Arduino, portfolio",
+		"description":"Engineering projects by Isaac Adjei — from LED cubes to audio amplifiers, CNC control systems and CAD portfolios."
+	}'>
+	<block name="header">
+		<include src="@components/layout/header/header.html" locals='{"active":"Projects"}'></include>
+	</block>
+	<block name="main">
+		<include src="@components/pages/projects/projects.html" locals='{}'></include>
+	</block>
+	<block name="footer">
+		<include src="@components/layout/footer/footer.html" locals='{}'></include>
+	</block>
+	<block name="popup">
+	</block>
+</template>

@@ -1,0 +1,31 @@
+/*
+================================================
+ANIM ZOOM STYLES
+================================================
+*/
+
+[data-anim-zoom] {
+	position: relative;
+	overflow: hidden;
+	cursor: zoom-in;
+}
+
+[data-anim-zoom] img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+[data-anim-zoom-image] {
+	position: absolute;
+	top: 0;
+	left: 0;
+
+	pointer-events: none;
+
+	transform-origin: top left;
+
+	will-change: transform;
+
+	user-select: none;
+}

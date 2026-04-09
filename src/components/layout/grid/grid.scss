@@ -1,0 +1,343 @@
+@use "sass:map";
+
+/*
+========================================================
+ANIM GRID SYSTEM
+========================================================
+
+Lightweight CSS Grid layout system controlled via HTML attributes.
+
+No classes required.
+
+
+--------------------------------------------------------
+BASIC USAGE
+--------------------------------------------------------
+
+<div data-anim-grid>
+
+	<div data-anim-grid-col="4"></div>
+
+	<div data-anim-grid-col="4"></div>
+
+	<div data-anim-grid-col="4"></div>
+
+</div>
+
+
+
+--------------------------------------------------------
+GRID CONTAINER
+--------------------------------------------------------
+
+data-anim-grid
+
+Creates a 12 column grid.
+
+
+Alignment
+
+data-anim-grid="start"
+data-anim-grid="center"
+data-anim-grid="end"
+data-anim-grid="stretch"
+
+Axis alignment
+
+data-anim-grid="y-start"
+data-anim-grid="y-center"
+data-anim-grid="y-end"
+
+data-anim-grid="x-start"
+data-anim-grid="x-center"
+data-anim-grid="x-end"
+
+
+
+--------------------------------------------------------
+GRID ITEM
+--------------------------------------------------------
+
+Column span
+
+data-anim-grid-col="6"
+
+
+Column start
+
+data-anim-grid-col-start="2"
+
+
+Column end
+
+data-anim-grid-col-end="8"
+
+
+
+--------------------------------------------------------
+RESPONSIVE GRID
+--------------------------------------------------------
+
+Breakpoints
+
+desktop
+tablet
+mobile
+small
+
+
+Example
+
+data-anim-grid-col="4"
+data-anim-grid-col-tablet="6"
+data-anim-grid-col-mobile="12"
+
+
+
+--------------------------------------------------------
+FULL SPAN
+--------------------------------------------------------
+
+data-anim-grid-col-full
+data-anim-grid-row-full
+
+
+Responsive
+
+data-anim-grid-col-full-tablet
+data-anim-grid-row-full-mobile
+
+
+
+--------------------------------------------------------
+SELF ALIGNMENT
+--------------------------------------------------------
+
+data-anim-grid-self="center"
+data-anim-grid-self="start"
+data-anim-grid-self="end"
+data-anim-grid-self="stretch"
+
+
+
+--------------------------------------------------------
+FEATURES
+--------------------------------------------------------
+
+✔ 12 column grid
+✔ responsive attributes
+✔ zero classes
+✔ mobile breakpoints
+✔ item alignment
+✔ auto rows / columns
+
+
+========================================================
+*/
+
+// ------------------ Settings ------------------
+
+$grid-columns: 12;
+
+$gap-sizes: (
+	desktop: 28,
+	tablet: 24,
+	mobile: 20,
+	small: 16
+);
+
+$breakpoints: (
+	desktop: toRem($pc),
+	tablet: toRem($tablet),
+	mobile: toRem($mobile),
+	small: toRem($mobileSmall)
+);
+
+// ------------------ Mixins -------------------------
+
+@mixin media($breakpoint) {
+	@media (max-width: map.get($breakpoints, $breakpoint)) {
+		@content;
+	}
+}
+
+// ------------------ GRID Container ------------------
+
+[data-anim-grid] {
+	display: grid;
+	grid-template-columns: repeat($grid-columns, 1fr);
+
+	@if ($responsiveType==1) {
+		@include adaptiveValue("gap", map.get($gap-sizes, desktop), map.get($gap-sizes, small));
+	} @else {
+		gap: toRem(map.get($gap-sizes, desktop));
+		@each $bp, $gap in $gap-sizes {
+			@if ($bp != "desktop") {
+				@include media($bp) {
+					gap: toRem($gap);
+				}
+			}
+		}
+	}
+}
+
+// Alignment
+[data-anim-grid="y-start"] {
+	align-items: start;
+}
+[data-anim-grid="y-center"] {
+	align-items: center;
+}
+[data-anim-grid="y-end"] {
+	align-items: end;
+}
+[data-anim-grid="x-start"] {
+	justify-items: start;
+}
+[data-anim-grid="x-center"] {
+	justify-items: center;
+}
+[data-anim-grid="x-end"] {
+	justify-items: end;
+}
+[data-anim-grid="x-stretch"] {
+	justify-items: stretch;
+}
+[data-anim-grid="start"] {
+	place-items: start;
+}
+[data-anim-grid="center"] {
+	place-items: center;
+}
+[data-anim-grid="end"] {
+	place-items: end;
+}
+[data-anim-grid="stretch"] {
+	place-items: stretch;
+}
+
+// Auto-flow control
+[data-anim-grid-flow="row"] {
+	grid-auto-flow: row;
+}
+[data-anim-grid-flow="column"] {
+	grid-auto-flow: column;
+}
+[data-anim-grid-flow="dense"] {
+	grid-auto-flow: dense;
+}
+[data-anim-grid-flow="row-dense"] {
+	grid-auto-flow: row dense;
+}
+[data-anim-grid-flow="column-dense"] {
+	grid-auto-flow: column dense;
+}
+
+// Same rows and columns
+[data-anim-grid-samerows] {
+	grid-auto-rows: 1fr;
+}
+[data-anim-grid-samecols] {
+	grid-auto-columns: 1fr;
+}
+
+// ------------------ GRID Item ------------------
+
+@for $i from 1 through $grid-columns {
+	[data-anim-grid-col="#{$i}"] {
+		grid-column: span $i;
+	}
+	[data-anim-grid-col-start="#{$i}"] {
+		grid-column-start: $i;
+	}
+	[data-anim-grid-col-end="#{$i}"] {
+		grid-column-end: $i + 1;
+	}
+	[data-anim-grid-row="#{$i}"] {
+		grid-row: span $i;
+	}
+	[data-anim-grid-row-start="#{$i}"] {
+		grid-row-start: $i;
+	}
+	[data-anim-grid-row-end="#{$i}"] {
+		grid-row-end: $i + 1;
+	}
+}
+
+// By breakpoints
+@each $bp, $val in $breakpoints {
+	@if ($bp != "desktop") {
+		@include media($bp) {
+			@for $i from 1 through $grid-columns {
+				[data-anim-grid-col-#{$bp}="#{$i}"] {
+					grid-column: span $i;
+				}
+				[data-anim-grid-col-start-#{$bp}="#{$i}"] {
+					grid-column-start: $i;
+				}
+				[data-anim-grid-col-end-#{$bp}="#{$i}"] {
+					grid-column-end: $i + 1;
+				}
+				[data-anim-grid-row-#{$bp}="#{$i}"] {
+					grid-row: span $i;
+				}
+				[data-anim-grid-row-start-#{$bp}="#{$i}"] {
+					grid-row-start: $i;
+				}
+				[data-anim-grid-row-end-#{$bp}="#{$i}"] {
+					grid-row-end: $i + 1;
+				}
+			}
+			[data-anim-grid-row-full-#{$bp}] {
+				grid-row: 1 / -1;
+			}
+			[data-anim-grid-col-full-#{$bp}] {
+				grid-column: 1 / -1;
+			}
+		}
+	}
+}
+
+// Full grid span
+[data-anim-grid-row-full] {
+	grid-row: 1 / -1;
+}
+[data-anim-grid-col-full] {
+	grid-column: 1 / -1;
+}
+
+// Self-alignment
+[data-anim-grid-self="y-start"] {
+	align-self: start;
+}
+[data-anim-grid-self="y-center"] {
+	align-self: center;
+}
+[data-anim-grid-self="y-end"] {
+	align-self: end;
+}
+[data-anim-grid-self="x-start"] {
+	justify-self: start;
+}
+[data-anim-grid-self="x-center"] {
+	justify-self: center;
+}
+[data-anim-grid-self="x-end"] {
+	justify-self: end;
+}
+[data-anim-grid-self="x-stretch"] {
+	justify-self: stretch;
+}
+
+[data-anim-grid-self="stretch"] {
+	place-self: stretch;
+}
+[data-anim-grid-self="end"] {
+	place-self: end;
+}
+[data-anim-grid-self="start"] {
+	place-self: start;
+}
+[data-anim-grid-self="center"] {
+	place-self: center;
+}

@@ -1,0 +1,1245 @@
+{
+  "Rating": {
+    "scope": "html",
+    "prefix": "rating",
+    "body": [
+      "<div data-anim-rating=\"set\" class=\"rating\"></div>"
+    ],
+    "description": "Adds basic HTML rating code"
+  },
+  "Spollers": {
+    "scope": "html",
+    "prefix": "spollers",
+    "body": [
+      "<div data-anim-spollers class=\"spollers\">\n\t<details class=\"spollers__item\">\n\t\t<summary class=\"spollers__title\">Spoiler title</summary>\n\t\t<div class=\"spollers__body\">Spoiler content</div>\n\t</details>\n</div>"
+    ],
+    "description": "Adds basic HTML spoiler code"
+  },
+  "Keywords": {
+    "scope": "html",
+    "prefix": "keywords",
+    "body": [
+      "<div data-grid-keywords-wrapper>\n\t<div data-grid-keywords>\n\t\t<span data-grid-keywords-sizer>First Text</span>\n\t\t<span>Second Text</span>\n\t\t<span>Third Text</span>\n\t</div>\n</div>"
+    ],
+    "description": "Adds the basic HTML code for the scroll bar"
+  },
+  "BeforeAfter": {
+    "scope": "html",
+    "prefix": "ba",
+    "body": [
+      "<div data-anim-beforeafter class=\"${1:before-after}\">",
+      "\t<div data-anim-beforeafter-before class=\"${1:before-after}__item\">",
+      "\t</div>",
+      "\t<div data-anim-beforeafter-after class=\"${1:before-after}__item\">",
+      "\t</div>",
+      "\t<div data-anim-beforeafter-arrow class=\"${1:before-after}__arrow\"></div>",
+      "</div>"
+    ],
+    "description": "Before After module"
+  },
+  "Add PUG file": {
+    "scope": "html",
+    "prefix": "pug",
+    "body": [
+      "<pug src=\"@pug${1}\"></pug>"
+    ],
+    "description": "Adds PUG file to HTML"
+  },
+  "Tabs": {
+    "scope": "html",
+    "prefix": "tabs",
+    "body": [
+      "<div data-anim-tabs class=\"${1:tabs}\">\n\t<div data-anim-tabs-titles class=\"${1:tabs}__navigation\">\n\t\t<button type=\"button\" class=\"${1:tabs}__title --tab-active\">Tab #1</button>\n\t\t<button type=\"button\" class=\"${1:tabs}__title\">Tab #2</button>\n\t\t<button type=\"button\" class=\"${1:tabs}__title\">Tab #3</button>\n\t</div>\n\t<div data-anim-tabs-body class=\"${1:tabs}__content\">\n\t\t<div class=\"${1:tabs}__body\">\n\t\t\tContent of the first tab\n\t\t</div>\n\t\t<div class=\"${1:tabs}__body\">\n\t\t\tContent of the second tab\n\t\t</div>\n\t\t<div class=\"${1:tabs}__body\">\n\t\t\tContent of the third tab\n\t\t</div>\n\t</div>\n</div>"
+    ],
+    "description": "Adds basic HTML code to tabs"
+  },
+  "Show More": {
+    "scope": "html",
+    "prefix": "showmore",
+    "body": [
+      "<div data-anim-showmore class=\"${1:block}\">\n\t<div data-anim-showmore-content class=\"${1:block}__content\"></div>\n\t<button hidden data-anim-showmore-button type=\"button\" class=\"${1:block}__more\"><span>Show more</span><span>Hide</span></button>\n</div>"
+    ],
+    "description": "Adds basic HTML code to the 'show more' block'"
+  },
+  "Swiper": {
+    "scope": "html",
+    "prefix": "swiper",
+    "body": [
+      "<div data-anim-slider class=\"${1:name}__slider swiper\">\n\t<div class=\"${1:name}__wrapper swiper-wrapper\">\n\t\t<div class=\"${1:name}__slide swiper-slide\"></div>\n\t</div>\n</div>"
+    ],
+    "description": "Adds basic Swiper slider HTML code"
+  },
+  "Swiper Full": {
+    "scope": "html",
+    "prefix": "swiperfull",
+    "body": [
+      "<!-- Slider wrapper -->\n<div data-anim-slider class=\"${1:block-name}__slider swiper\">\n\t<!-- Moving part of the slider -->\n\t<div class=\"${1:block-name}__wrapper swiper-wrapper\">\n\t\t<!-- Slide -->\n\t\t<div class=\"${1:block-name}__slide swiper-slide\"></div>\n\t</div>\n\t<!-- If pagination is needed -->\n\t<div class=\"swiper-pagination\"></div>\n\t<!-- If navigation is needed (left/right) -->\n\t<button type=\"button\" class=\"swiper-button-prev\"></button>\n\t<button type=\"button\" class=\"swiper-button-next\"></button>\n\t<!-- If a scrollbar is needed -->\n\t<div class=\"swiper-scrollbar\"></div>\n</div>"
+    ],
+    "description": "Adds basic Swiper slider HTML code"
+  },
+  "Quantity": {
+    "scope": "html",
+    "prefix": "quantity",
+    "body": "<div data-anim-quantity class=\"quantity\">\n\t<button data-anim-quantity-minus type=\"button\" class=\"quantity__button quantity__button--minus\"></button>\n\t<div class=\"quantity__input\">\n\t\t<input data-anim-quantity-value autocomplete=\"off\" type=\"text\" name=\"form[]\" value=\"1\">\n\t</div>\n\t<button data-anim-quantity-plus type=\"button\" class=\"quantity__button quantity__button--plus\"></button>\n</div>",
+    "description": "Adds HTML forms with quantity"
+  },
+  "masonry": {
+    "scope": "html",
+    "prefix": "masonry",
+    "body": [
+      "<div class=\"masonry\">",
+      "\t<ul class=\"masonry__filter filter-masonry\">",
+      "\t\t<li class=\"filter-masonry__item\"><a href=\"#\" data-anim-masonry-filter-link=\"*\" class=\"filter-masonry__link\">All</a></li>",
+      "\t\t<li class=\"filter-masonry__item\"><a href=\"#\" data-anim-masonry-filter-link=\"a\" class=\"filter-masonry__link\">Filter A</a></li>",
+      "\t\t<li class=\"filter-masonry__item\"><a href=\"#\" data-anim-masonry-filter-link=\"b\" class=\"filter-masonry__link\">Filter B</a></li>",
+      "\t\t<li class=\"filter-masonry__item\"><a href=\"#\" data-anim-masonry-filter-link=\"c\" class=\"filter-masonry__link\">Filter C</a></li>",
+      "\t</ul>",
+      "\t<div data-anim-masonry class=\"masonry__items\">",
+      "\t\t<div data-anim-masonry-item data-anim-masonry-filter=\"a\" class=\"masonry__item\">A</div>",
+      "\t\t<div data-anim-masonry-item data-anim-masonry-filter=\"b\" class=\"masonry__item\">B</div>",
+      "\t\t<div data-anim-masonry-item data-anim-masonry-filter=\"c\" class=\"masonry__item\">C</div>",
+      "\t</div>",
+      "</div>"
+    ]
+  },
+  "Marquee": {
+    "scope": "html",
+    "prefix": "mar",
+    "body": [
+      "<div data-anim-marquee>",
+      "\t<div>element one</div>",
+      "\t<div>element two</div>",
+      "\t<div>element three</div>",
+      "</div>"
+    ],
+    "description": "Running line"
+  },
+  "Digital counter": {
+    "scope": "html",
+    "prefix": "digcounter",
+    "body": [
+      "<div data-anim-watcher class=\"${1:block-name}\">",
+      "\t<div data-anim-digcounter class=\"${1:block-name}__item\">1500</div>",
+      "\t<div data-anim-digcounter class=\"${1:block-name}__item\">500</div>",
+      "\t<div data-anim-digcounter class=\"${1:block-name}__item\">800</div>",
+      "</div>"
+    ],
+    "description": "Digital counter"
+  },
+  "Map": {
+    "scope": "html",
+    "prefix": "map",
+    "body": [
+      "<div data-anim-map class=\"map\">",
+      "\t<div data-anim-map-marker class=\"map__marker\" data-anim-map-lat=\"50.449688\" data-anim-map-lng=\"30.52348\" data-anim-map-title=\"Title 1\"></div>",
+      "\t<div data-anim-map-body class=\"map__body\" data-anim-map-lat=\"50.449688\" data-anim-map-lng=\"30.52348\"></div>",
+      "</div>"
+    ]
+  },
+  "FullPage": {
+    "scope": "html",
+    "prefix": "fullpage",
+    "body": "<div data-anim-fullpage class=\"${1:block-name}\">\n\t<div data-anim-fullpage-section class=\"${1:block-name}__section\"></div>\n</div>",
+    "description": "Adds the structure for full-screen page scrolling"
+  },
+  "Include": {
+    "scope": "html",
+    "prefix": "inc",
+    "body": "<include src=\"@components$1\"></include>",
+    "description": "Adds an element to include a separate HTML file"
+  },
+  "Add tooltip": {
+    "scope": "html",
+    "prefix": "tip",
+    "body": [
+      "data-anim-tippy-content=\"Tooltip\""
+    ],
+    "description": "Adds tooltip text (Tippy)"
+  },
+  "Add data-required": {
+    "scope": "html",
+    "prefix": "req",
+    "body": [
+      "data-required"
+    ],
+    "description": "Adds an attribute to a form field"
+  },
+  "Add dynamic adapt": {
+    "scope": "html",
+    "prefix": "da",
+    "body": [
+      "data-anim-dynamic=\".${1:block-name}, 768\""
+    ],
+    "description": "Adds a dynamic adaptive attribute"
+  },
+  "Add image IBG": {
+    "scope": "html",
+    "prefix": "ibg",
+    "body": [
+      "<img class=\"${1:block-name}__image ibg\" src=\"@img$2\" alt=\"Image\">"
+    ],
+    "description": "Adds an image element with the IBG class"
+  },
+  "Add Link with image IBG": {
+    "scope": "html",
+    "prefix": "ibga",
+    "body": [
+      "<a href=\"#\" class=\"${1:block-name}__link\" ><img class=\"${1:block-name}__image ibg\" src=\"@img$2\" alt=\"Image\"></a>"
+    ],
+    "description": "Adds a link with an image and the IBG class"
+  },
+  "Add input tag": {
+    "scope": "html",
+    "prefix": "inp",
+    "body": "<input data-anim-input autocomplete=\"off\" type=\"text\" name=\"form[]\" data-error=\"Error\" placeholder=\"\" class=\"input\">",
+    "description": "Adds an input with settings"
+  },
+  "Add container": {
+    "scope": "html",
+    "prefix": "cnt",
+    "body": "<div class=\"${1:name}__container\">\n\t$2\n</div>",
+    "description": "Adds a limiting container"
+  },
+  "Chart": {
+    "scope": "html",
+    "prefix": "chart",
+    "body": "<canvas data-anim-chart class=\"$1\"></canvas>",
+    "description": "Adds a chart"
+  },
+  "Add grid-container": {
+    "scope": "scss",
+    "prefix": "gc",
+    "body": "@include gridContainer();",
+    "description": "Adds a grid container"
+  },
+  "Adaptive Value": {
+    "scope": "scss",
+    "prefix": "av",
+    "body": [
+      "@include adaptiveValue(\"${1:font-size}\", $2, $3);"
+    ],
+    "description": "Adaptive property (clamp): CSS property, start value, end value, start width, end width"
+  },
+  "Each List": {
+    "scope": "html",
+    "prefix": "eachlist",
+    "body": [
+      "<ul class=\"$1\">",
+      "\t<each loop='item in [",
+      "\t{\"href\": \"#\",\"ancor\": \"Home\"},",
+      "\t{\"href\": \"#\",\"ancor\": \"About\"},",
+      "\t{\"href\": \"#\",\"ancor\": \"Blog\"},",
+      "\t{\"href\": \"#\",\"ancor\": \"Contacts\"}",
+      "\t]'>",
+      "\t\t<li class=\"$1__item\">",
+      "\t\t\t<a href=\"[[item.href]]\" class=\"$1__link\">[[item.ancor]]</a>",
+      "\t\t</li>",
+      "\t</each>",
+      "</ul>"
+    ],
+    "description": ""
+  },
+  "EM": {
+    "scope": "scss",
+    "prefix": "em",
+    "body": [
+      "toEm($1,$2)"
+    ],
+    "description": "Calls the mixin to convert to EM"
+  },
+  "REM": {
+    "scope": "scss",
+    "prefix": "r",
+    "body": [
+      "toRem($1)"
+    ],
+    "description": "Calls the mixin to convert to REM"
+  },
+  "Percent": {
+    "scope": "scss",
+    "prefix": "prc",
+    "body": [
+      "percent($1,$2)"
+    ],
+    "description": "Calls the mixin to convert to %"
+  },
+  "Percent padding": {
+    "scope": "scss",
+    "prefix": "pbp",
+    "body": [
+      "padding-bottom: percent($1,$2);"
+    ],
+    "description": "Bottom padding in %"
+  },
+  "Paragraph": {
+    "scope": "html,js",
+    "prefix": "p",
+    "body": [
+      "<p>$1</p>"
+    ],
+    "description": "Text paragraph"
+  },
+  "Link": {
+    "scope": "html,js",
+    "prefix": "a",
+    "body": [
+      "<a href=\"$1\">$2</a>"
+    ],
+    "description": "Link"
+  },
+  "Divide": {
+    "scope": "scss",
+    "prefix": "di",
+    "body": [
+      "math.div($1,$2)"
+    ],
+    "description": "Divide numbers"
+  },
+  "Margin bottom with EM": {
+    "scope": "scss",
+    "prefix": "mbe",
+    "body": "margin-bottom: toEm($1, $2);",
+    "description": "Adds bottom margin converted to EM"
+  },
+  "Margin Bottom not last-child": {
+    "scope": "scss",
+    "prefix": "mbl",
+    "body": [
+      "&:not(:last-child) {margin-bottom: $1px;}"
+    ],
+    "description": "Adds bottom margin except the last element"
+  },
+  "Margin Bottom not last-child with EM": {
+    "scope": "scss",
+    "prefix": "mble",
+    "body": [
+      "&:not(:last-child) {margin-bottom: toEm($1, $2);}"
+    ],
+    "description": "Adds bottom margin except the last element, converted to EM"
+  },
+  "Not last-child": {
+    "scope": "scss",
+    "prefix": "nlc",
+    "body": [
+      "&:not(:last-child) {\n\t$1\n}"
+    ],
+    "description": "Except the last element"
+  },
+  "Gap": {
+    "scope": "scss,css",
+    "prefix": "g",
+    "body": "gap: $1px;",
+    "description": "Gap"
+  },
+  "Column Gap": {
+    "scope": "scss,css",
+    "prefix": "cg",
+    "body": "column-gap: $1px;",
+    "description": "Column gap"
+  },
+  "Row Gap": {
+    "scope": "scss,css",
+    "prefix": "rg",
+    "body": "row-gap: $1px;",
+    "description": "Row gap"
+  },
+  "Opacity": {
+    "scope": "scss,css",
+    "prefix": "op",
+    "body": "opacity: ${1:0};",
+    "description": "Adds relative opacity"
+  },
+  "Line height": {
+    "scope": "scss",
+    "prefix": "lh",
+    "body": "line-height: $1;",
+    "description": "Adds relative line-height"
+  },
+  "Line height Divide": {
+    "scope": "scss",
+    "prefix": "lhd",
+    "body": "line-height: math.div($1 , $2);",
+    "description": "Adds relative line-height"
+  },
+  "Align items center": {
+    "scope": "scss,css",
+    "prefix": "aic",
+    "body": "align-items: center;",
+    "description": "Align items center"
+  },
+  "Max width": {
+    "scope": "scss",
+    "prefix": "mw",
+    "body": "max-width: $1px;",
+    "description": "Max width"
+  },
+  "Form Email": {
+    "scope": "html",
+    "prefix": "formemail",
+    "body": "<form action=\"files/sendmail/sendmail.php\" method=\"POST\">\n\t<input type=\"text\" name=\"form[email]\" data-error=\"Error\" placeholder=\"E-mail\" class=\"input\">\n\t<button type=\"submit\" class=\"button\">Send</button>\n</form>",
+    "description": "Email form"
+  },
+  "@media max": {
+    "scope": "scss",
+    "prefix": "md",
+    "body": [
+      "@media (width <= toEm($1)){\n\t $2 \n}"
+    ],
+    "description": "Adds a width media query with conversion to EM"
+  },
+  "@media max (CSS)": {
+    "scope": "css",
+    "prefix": "md",
+    "body": [
+      "@media (width <= $1px){\n\t $2 \n}"
+    ],
+    "description": "Adds a max-width media query"
+  },
+  "@media min": {
+    "scope": "scss",
+    "prefix": "mmd",
+    "body": [
+      "@media (width > toEm($1)){\n\t $2 \n}"
+    ],
+    "description": "Adds a min-width media query with conversion to EM"
+  },
+  "@media min (CSS)": {
+    "scope": "css",
+    "prefix": "mmd",
+    "body": [
+      "@media (width > $1px){\n\t $2 \n}"
+    ],
+    "description": "Adds a min-width media query"
+  },
+  "Add data-popup": {
+    "scope": "html",
+    "prefix": "pl",
+    "body": [
+      "data-anim-popup-link=\"$1\""
+    ],
+    "description": "Adds an attribute to open a popup"
+  },
+  "JS Click": {
+    "scope": "javascript,typescript",
+    "prefix": "click",
+    "body": [
+      "${1:document}.addEventListener(\"click\", function (e) {\n\t$2\n});"
+    ],
+    "description": "Click event listener"
+  },
+  "document.querySelector": {
+    "scope": "javascript,typescript",
+    "prefix": "dq",
+    "body": [
+      "const ${1:var} = document.querySelector('.$2');"
+    ],
+    "description": "document.querySelector"
+  },
+  "document.querySelectorAll": {
+    "scope": "javascript,typescript",
+    "prefix": "dqa",
+    "body": [
+      "const ${1:var} =document.querySelectorAll('.$2');"
+    ],
+    "description": "document.querySelectorAll"
+  },
+  "Print to console": {
+    "scope": "javascript,typescript",
+    "prefix": "log",
+    "body": [
+      "console.log('$1')"
+    ],
+    "description": "Log output to console"
+  },
+  "z-index": {
+    "scope": "scss,css",
+    "prefix": "zi",
+    "body": [
+      "z-index: ${1:1};"
+    ],
+    "description": "z-index"
+  },
+  "fbpp": {
+    "scope": "scss",
+    "prefix": "fbpp",
+    "body": [
+      "flex: 0 0 percent($1, $2);"
+    ],
+    "description": "fbpp"
+  },
+  "Padding left and right": {
+    "scope": "scss,css",
+    "prefix": "ppp",
+    "body": [
+      "padding: 0 $1px;"
+    ],
+    "description": "Padding left and right"
+  },
+  "Padding top": {
+    "scope": "scss,css",
+    "prefix": "pt",
+    "body": [
+      "padding-top: $1px;"
+    ],
+    "description": "Padding top"
+  },
+  "Padding bottom": {
+    "scope": "scss,css",
+    "prefix": "pb",
+    "body": [
+      "padding-bottom: $1px;"
+    ],
+    "description": "Padding bottom"
+  },
+  "Padding left": {
+    "scope": "scss,css",
+    "prefix": "pl",
+    "body": [
+      "padding-left: $1px;"
+    ],
+    "description": "Padding left"
+  },
+  "Padding right": {
+    "scope": "scss,css",
+    "prefix": "pr",
+    "body": [
+      "padding-right: $1px;"
+    ],
+    "description": "Padding right"
+  },
+  "Margin bottom": {
+    "scope": "css,scss",
+    "prefix": "mb",
+    "body": "margin-bottom: $1px;",
+    "description": "Adds bottom margin"
+  },
+  "Margin top": {
+    "scope": "css,scss",
+    "prefix": "mt",
+    "body": "margin-top: $1px;",
+    "description": "Adds top margin"
+  },
+  "Margin left": {
+    "scope": "scss,css",
+    "prefix": "ml",
+    "body": [
+      "margin-left:  $1px;"
+    ],
+    "description": "Margin left"
+  },
+  "Margin right": {
+    "scope": "scss,css",
+    "prefix": "mr",
+    "body": [
+      "margin-right: $1px;"
+    ],
+    "description": "Margin right"
+  },
+  "Margin left and right": {
+    "scope": "scss,css",
+    "prefix": "mmm",
+    "body": [
+      "margin: 0 $1px;"
+    ],
+    "description": "Margin left and right"
+  },
+  "Margin 0 auto": {
+    "scope": "scss,css",
+    "prefix": "mu",
+    "body": [
+      "margin: 0 auto;"
+    ],
+    "description": "Centered margin"
+  },
+  "mwn": {
+    "prefix": "mwn",
+    "body": [
+      "max-width: none;"
+    ],
+    "description": "max-width none"
+  },
+  "ps": {
+    "prefix": "ps",
+    "body": [
+      "position: absolute;width: 100%;height: 100%;top: 0;left: 0;"
+    ],
+    "description": "position absolute"
+  },
+  "art": {
+    "prefix": "art",
+    "body": [
+      "width: 0;height: 0;border-left: 50px solid transparent;border-right: 50px solid transparent;border-bottom: 100px solid red;"
+    ],
+    "description": "art"
+  },
+  "arb": {
+    "prefix": "arb",
+    "body": [
+      "width: 0;height: 0;border-left: 50px solid transparent;border-right: 50px solid transparent;border-top: 100px solid red;"
+    ],
+    "description": "arb"
+  },
+  "arl": {
+    "prefix": "arl",
+    "body": [
+      "width: 0;height: 0;border-top: 50px solid transparent;border-right: 100px solid red;border-bottom: 50px solid transparent;"
+    ],
+    "description": "arl"
+  },
+  "arr": {
+    "prefix": "arr",
+    "body": [
+      "width: 0;height: 0;border-top: 50px solid transparent;border-left: 100px solid red;border-bottom: 50px solid transparent;"
+    ],
+    "description": "arr"
+  },
+  "drt": {
+    "prefix": "drt",
+    "body": [
+      "direction: rtl;"
+    ],
+    "description": "drt"
+  },
+  "br5": {
+    "scope": "css,scss",
+    "prefix": "br5",
+    "body": [
+      "border-radius: 50%;"
+    ],
+    "description": "br5"
+  },
+  "bs": {
+    "prefix": "bs",
+    "body": [
+      "box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);"
+    ],
+    "description": "bs"
+  },
+  "c0": {
+    "prefix": "c0",
+    "body": [
+      "color:#000;"
+    ],
+    "description": "c0"
+  },
+  "wa": {
+    "prefix": "wa",
+    "body": [
+      "width: auto;"
+    ],
+    "description": "wa"
+  },
+  "ha": {
+    "prefix": "ha",
+    "body": [
+      "height: auto;"
+    ],
+    "description": "ha"
+  },
+  "color": {
+    "prefix": "c",
+    "body": [
+      "color: #${1:fff};"
+    ],
+    "description": "color"
+  },
+  "c1": {
+    "prefix": "c1",
+    "body": [
+      "color: #fff;"
+    ],
+    "description": "c1"
+  },
+  "an": {
+    "prefix": "an",
+    "body": [
+      "animation:${1:name} 1s infinite linear;"
+    ],
+    "description": "aa"
+  },
+  "Transition": {
+    "prefix": "aa",
+    "body": [
+      "transition: all 0.${1:3}s;$2"
+    ],
+    "description": "aa"
+  },
+  "ar": {
+    "prefix": "ar",
+    "body": [
+      "transform: rotate(-${1:180}deg);"
+    ],
+    "description": "ar"
+  },
+  "as": {
+    "prefix": "as",
+    "body": [
+      "transform: scale(${1:1});"
+    ],
+    "description": "as"
+  },
+  "at": {
+    "prefix": "at",
+    "body": [
+      "transform: translate(${1:0}px,${2:0}px);$3"
+    ],
+    "description": "at"
+  },
+  "att": {
+    "prefix": "att",
+    "body": [
+      "transform: translate(0px,0px) rotate(0deg) scale(1) skew(0,0);"
+    ],
+    "description": "at"
+  },
+  "ex": {
+    "prefix": "ex",
+    "body": [
+      "@extend %${1:};"
+    ],
+    "description": "ex"
+  },
+  "ic": {
+    "prefix": "ic",
+    "body": [
+      "@extend %ic;"
+    ],
+    "description": "ic"
+  },
+  "is": {
+    "prefix": "is",
+    "body": [
+      "img{max-width: 100%;}"
+    ],
+    "description": "is"
+  },
+  "lc": {
+    "prefix": "lc",
+    "body": [
+      "&:last-child{\n\t$0\n}"
+    ],
+    "description": "lc"
+  },
+  "fc": {
+    "prefix": "fc",
+    "body": [
+      "&:first-child{\n\t$0\n}"
+    ],
+    "description": "fc"
+  },
+  "nc": {
+    "scope": "scss",
+    "prefix": "nc",
+    "body": [
+      "&:nth-child($0){}"
+    ],
+    "description": "nc"
+  },
+  "Before After": {
+    "scope": "scss",
+    "prefix": "ba",
+    "body": [
+      "&::before,&::after{\n\tcontent:'';\n\t$0\n}"
+    ],
+    "description": "ba"
+  },
+  "After": {
+    "scope": "scss",
+    "prefix": "a",
+    "body": [
+      "&::after{\n\tcontent:'';\n\t$0\n}"
+    ],
+    "description": "after"
+  },
+  "Before": {
+    "scope": "scss",
+    "prefix": "b",
+    "body": [
+      "&::before{\n\tcontent:'';\n\t$0\n}"
+    ],
+    "description": "before"
+  },
+  "Text Align Center": {
+    "prefix": "tac",
+    "body": [
+      "text-align: center;"
+    ],
+    "description": "text-align: center;"
+  },
+  "hv": {
+    "prefix": "hv",
+    "body": [
+      "&:hover{\n\t$0\n}"
+    ],
+    "description": "hv"
+  },
+  "hhv": {
+    "prefix": "hhv",
+    "body": [
+      "html:not([data-anim-touch]) &{\n\t@media (any-hover: hover), (pointer: fine) {\n\t\t&:hover{\n\t\t\t$0\n\t\t}\n\t}\n}"
+    ],
+    "description": "hhv"
+  },
+  "acc": {
+    "prefix": "acc",
+    "body": [
+      "&:active{\n\t$0\n}"
+    ],
+    "description": "acc"
+  },
+  "ac_css": {
+    "scope": "scss,css",
+    "prefix": "ac",
+    "body": [
+      "&._active{\n\t$0\n}"
+    ],
+    "description": "ac_css"
+  },
+  "ac_html": {
+    "scope": "html,kit,javascript",
+    "prefix": "ac",
+    "body": [
+      "_active"
+    ],
+    "description": "ac_html"
+  },
+  "bg+ @img": {
+    "scope": "scss",
+    "prefix": "bg+",
+    "body": [
+      "background: url('@img$0') 0 0 no-repeat;"
+    ],
+    "description": "bg+"
+  },
+  "bg+": {
+    "scope": "css",
+    "prefix": "bg+",
+    "body": [
+      "background: url('../img$0') 0 0 no-repeat;"
+    ],
+    "description": "bg+"
+  },
+  "md1": {
+    "prefix": "md1",
+    "body": [
+      "@media (max-width:toEm(\\$pc)){\n\t $0 \n}"
+    ],
+    "description": "md1"
+  },
+  "mmd1": {
+    "prefix": "mmd1",
+    "body": [
+      "@media (min-width:toEm(\\$pc)){\n\t $0 \n}"
+    ],
+    "description": "md1"
+  },
+  "md2": {
+    "prefix": "md2",
+    "body": [
+      "@media (max-width:toEm(\\$tablet)){\n\t$0\n}"
+    ],
+    "description": "md2"
+  },
+  "mmd2": {
+    "prefix": "mmd2",
+    "body": [
+      "@media (min-width:toEm(\\$tablet)){\n\t $0 \n}"
+    ],
+    "description": "md1"
+  },
+  "md3": {
+    "prefix": "md3",
+    "body": [
+      "@media (max-width:toEm(\\$mobile)){\n\t $0 \n}"
+    ],
+    "description": "md3"
+  },
+  "mmd3": {
+    "prefix": "mmd3",
+    "body": [
+      "@media (min-width:toEm(\\$mobile)){\n\t $0 \n}"
+    ],
+    "description": "md1"
+  },
+  "md4": {
+    "prefix": "md4",
+    "body": [
+      "@media (max-width:toEm(\\$mobileSmall)){\n\t $0 \n}"
+    ],
+    "description": "md4"
+  },
+  "mmd4": {
+    "prefix": "mmd4",
+    "body": [
+      "@media (min-width:toEm(\\$mobileSmall)){\n\t $0 \n}"
+    ],
+    "description": "md1"
+  },
+  "fb": {
+    "prefix": "fb",
+    "body": [
+      "display: flex;"
+    ],
+    "description": "fb"
+  },
+  "fbi": {
+    "prefix": "fbi",
+    "body": [
+      "display: inline-flex;"
+    ],
+    "description": "fbi"
+  },
+  "fbo": {
+    "prefix": "fbo",
+    "body": [
+      "order:${1:1};"
+    ],
+    "description": "fbo"
+  },
+  "fbs": {
+    "prefix": "fbs",
+    "body": [
+      "justify-content:${1:space-between};"
+    ],
+    "description": "fbs"
+  },
+  "fbai": {
+    "prefix": "fbai",
+    "body": [
+      "align-items:${1:center};"
+    ],
+    "description": "fbai"
+  },
+  "fbw": {
+    "prefix": "fbw",
+    "body": [
+      "flex-wrap: wrap;"
+    ],
+    "description": "fbw"
+  },
+  "fbd": {
+    "prefix": "fbd",
+    "body": [
+      "flex-direction: column;"
+    ],
+    "description": "fbd"
+  },
+  "fbg": {
+    "prefix": "fbg",
+    "body": [
+      "flex: 1 1 100%;"
+    ],
+    "description": "fbg"
+  },
+  "fbga": {
+    "prefix": "fbga",
+    "body": [
+      "flex: 1 1 auto;"
+    ],
+    "description": "fbga"
+  },
+  "fbgh": {
+    "prefix": "fbgh",
+    "body": [
+      "flex: 0 1 50%;"
+    ],
+    "description": "fbgh"
+  },
+  "fbgt": {
+    "prefix": "fbgt",
+    "body": [
+      "flex: 0 1 33.333%;"
+    ],
+    "description": "fbgt"
+  },
+  "fbgq": {
+    "prefix": "fbgq",
+    "body": [
+      "flex: 0 1 25%;"
+    ],
+    "description": "fbgq"
+  },
+  "fbp CSS": {
+    "scope": "css",
+    "prefix": "fbp",
+    "body": [
+      "flex: 0 0 $1px;"
+    ],
+    "description": "fbp"
+  },
+  "fbc": {
+    "prefix": "fbc",
+    "body": [
+      "justify-content:center;align-items: center;"
+    ],
+    "description": "fbc"
+  },
+  "lcm": {
+    "prefix": "lcm",
+    "body": [
+      "&:last-child{margin:0px 0px 0px 0px;}"
+    ],
+    "description": "lcm"
+  },
+  "hvu": {
+    "prefix": "hvu",
+    "body": [
+      "&:hover{text-decoration: underline;}"
+    ],
+    "description": "hvu"
+  },
+  "hvn": {
+    "prefix": "hvn",
+    "body": [
+      "&:hover{text-decoration: none;}"
+    ],
+    "description": "hvn"
+  },
+  "bt": {
+    "prefix": "bt",
+    "body": [
+      "body.touch &{\n\t$1\n}"
+    ],
+    "description": "bt"
+  },
+  "kf": {
+    "prefix": "kf",
+    "body": "@keyframes ${1:name} {\n\t0% {\n\t\t$2\n\t}\n\t100% {\n\t\t$3\n\t}\n}",
+    "description": "kf"
+  },
+  "qa": {
+    "scope": "html,kit",
+    "prefix": "qa",
+    "body": "<div class=\"quantity\"><div class=\"quantity__button quantity__button_plus _icon-plus\"></div><div class=\"quantity__input\"><input autocomplete=\"off\" type=\"text\" name=\"form[]\" value=\"1\"></div><div class=\"quantity__button quantity__button_minus _icon-minus\"></div></div>",
+    "description": "qa"
+  },
+  "Textarea": {
+    "scope": "html",
+    "prefix": "txta",
+    "body": "<textarea data-anim-input autocomplete=\"off\" name=\"form[]\" placeholder=\"$1\" data-error=\"Error\" class=\"input\"></textarea>",
+    "description": "txta"
+  },
+  "Select": {
+    "prefix": "sel",
+    "body": "<select name=\"form[]\" data-anim-select data-anim-select-modif=\"form\">\n\t<option value=\"1\" selected>Item #1</option>\n\t<option value=\"2\">Item #2</option>\n\t<option value=\"3\">Item #3</option>\n\t<option value=\"4\">Item #4</option>\n</select>",
+    "description": "sel"
+  },
+  "Radio buttons": {
+    "prefix": "opt",
+    "body": "<div data-anim-radio class=\"options\">\n\t<label class=\"options__item\">\n\t\t<input class=\"options__input\" checked type=\"radio\" value=\"1\" name=\"option\">\n\t\t<span class=\"options__text\">Text</span>\n\t</label>\n\t<label class=\"options__item\">\n\t\t<input class=\"options__input\" type=\"radio\" value=\"2\" name=\"option\">\n\t\t<span class=\"options__text\">Text</span>\n\t</label>\n</div>",
+    "description": ""
+  },
+  "CheckBox": {
+    "prefix": "chk",
+    "body": "<label data-anim-checkbox class=\"checkbox\">\n\t<input data-error=\"Error\" class=\"checkbox__input\" type=\"checkbox\" value=\"1\" name=\"form[]\">\n\t<span class=\"checkbox__text\">Checkbox text</span>\n</label>",
+    "description": ""
+  },
+  "Button": {
+    "prefix": "btn",
+    "body": "<button data-anim-button type=\"submit\" class=\"button\">${1:Send}</button>",
+    "description": ""
+  },
+  "Button Link": {
+    "prefix": "abtn",
+    "body": "<a data-anim-button href=\"#\" class=\"button\">${1:Text}</a>",
+    "description": ""
+  },
+  "str": {
+    "prefix": "str",
+    "body": "<div class=\"${1:block}\">\n\t<div class='${1:block}__container'>\n\t\t<div class=\"${1:block}__title\"></div>\n\t\t<div class=\"${1:block}__row\">\n\t\t\t<div class=\"${1:block}__column\">\n\t\t\t\t$2\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>",
+    "description": "str"
+  },
+  "menu": {
+    "prefix": "menu",
+    "body": "<div class=\"header__menu menu\">\n\t<button type=\"button\" data-anim-menu class=\"menu__icon icon-menu\"><span></span></button>\n\t<nav class=\"menu__body\">\n\t\t<ul class=\"menu__list\">\n\t\t\t<li class=\"menu__item\"><a href=\"\" class=\"menu__link\"></a></li>\n\t\t</ul>\n\t</nav>\n</div>",
+    "description": "menu"
+  },
+  "logo": {
+    "prefix": "logo",
+    "body": "<a href=\"\" class=\"header__logo\"><img src=\"@img/logo.svg\" alt=\"\"></a>",
+    "description": "logo"
+  },
+  "Image @img": {
+    "prefix": "img",
+    "body": "<img src=\"@img$0\" alt=\"Image\">",
+    "description": "img"
+  },
+  "Image": {
+    "prefix": "im",
+    "body": "<img src=\"img$0\" alt=\"Image\">",
+    "description": "img"
+  },
+  "Image Lazy": {
+    "prefix": "imgl",
+    "body": "<img data-anim-lazy=\"@img$0\" alt=\"Image\">",
+    "description": "img lazy load"
+  },
+  "sp": {
+    "prefix": "sp",
+    "body": "// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- \n$1",
+    "description": "sp"
+  },
+  "nowrap": {
+    "prefix": "wsnw",
+    "body": "white-space: nowrap;",
+    "description": "nowrap"
+  },
+  "vc1": {
+    "prefix": "vc1",
+    "body": "color: #794f45;",
+    "description": "vc1"
+  },
+  "vc2": {
+    "prefix": "vc2",
+    "body": "color: #77608d;",
+    "description": "vc2"
+  },
+  "vc3": {
+    "prefix": "vc3",
+    "body": "color: #7A956B;",
+    "description": "vc3"
+  },
+  "bc1": {
+    "prefix": "bc1",
+    "body": "background-color: #794f45;",
+    "description": "bc1"
+  },
+  "bc2": {
+    "prefix": "bc2",
+    "body": "background-color: #77608d;",
+    "description": "bc2"
+  },
+  "bc3": {
+    "prefix": "bc3",
+    "body": "background-color: #7A956B;",
+    "description": "bc3"
+  },
+  "Adaptive Value margin": {
+    "scope": "scss",
+    "prefix": "avm",
+    "body": [
+      "@include adaptiveValue(\"${1:margin}\", $2, $3);"
+    ],
+    "description": "Adaptive property (clamp): CSS property, start value, end value, start width, end width"
+  },
+  "Adaptive Value margin top": {
+    "scope": "scss",
+    "prefix": "avmt",
+    "body": [
+      "@include adaptiveValue(\"${1:margin-top}\", $2, $3);"
+    ],
+    "description": "Adaptive property (clamp): CSS property, start value, end value, start width, end width"
+  },
+  "Adaptive Value margin bottom": {
+    "scope": "scss",
+    "prefix": "avmb",
+    "body": [
+      "@include adaptiveValue(\"${1:margin-bottom}\", $2, $3);"
+    ],
+    "description": "Adaptive property (clamp): CSS property, start value, end value, start width, end width"
+  },
+  "Adaptive Value margin right": {
+    "scope": "scss",
+    "prefix": "avmr",
+    "body": [
+      "@include adaptiveValue(\"${1:margin-right}\", $2, $3);"
+    ],
+    "description": "Adaptive property (clamp): CSS property, start value, end value, start width, end width"
+  },
+  "Adaptive Value margin left": {
+    "scope": "scss",
+    "prefix": "avml",
+    "body": [
+      "@include adaptiveValue(\"${1:margin-left}\", $2, $3);"
+    ],
+    "description": "Adaptive property (clamp): CSS property, start value, end value, start width, end width"
+  },
+  "Adaptive Value padding": {
+    "scope": "scss",
+    "prefix": "avp",
+    "body": [
+      "@include adaptiveValue(\"${1:padding}\", $2, $3);"
+    ],
+    "description": "Adaptive property (clamp): CSS property, start value, end value, start width, end width"
+  },
+  "Adaptive Value padding top": {
+    "scope": "scss",
+    "prefix": "avpt",
+    "body": [
+      "@include adaptiveValue(\"${1:padding-top}\", $2, $3);"
+    ],
+    "description": "Adaptive property (clamp): CSS property, start value, end value, start width, end width"
+  },
+  "Adaptive Value padding bottom": {
+    "scope": "scss",
+    "prefix": "avpb",
+    "body": [
+      "@include adaptiveValue(\"${1:padding-bottom}\", $2, $3);"
+    ],
+    "description": "Adaptive property (clamp): CSS property, start value, end value, start width, end width"
+  },
+  "Adaptive Value padding right": {
+    "scope": "scss",
+    "prefix": "avpr",
+    "body": [
+      "@include adaptiveValue(\"${1:padding-right}\", $2, $3);"
+    ],
+    "description": "Adaptive property (clamp): CSS property, start value, end value, start width, end width"
+  },
+  "Adaptive Value padding left": {
+    "scope": "scss",
+    "prefix": "avpl",
+    "body": [
+      "@include adaptiveValue(\"${1:padding-left}\", $2, $3);"
+    ],
+    "description": "Adaptive property (clamp): CSS property, start value, end value, start width, end width"
+  },
+  "Padding CSS": {
+    "scope": "scss,css",
+    "prefix": "pp",
+    "body": [
+      "padding: 0px 0px 0px 0px;"
+    ],
+    "description": "padding"
+  },
+  "Margin CSS": {
+    "scope": "scss,css",
+    "prefix": "mm",
+    "body": [
+      "margin: 0px 0px 0px 0px;"
+    ],
+    "description": "margin"
+  },
+  "Add Preloader": {
+    "scope": "html",
+    "prefix": "prl",
+    "body": [
+      "<include src=\"@components/layout/preloader/preloader.html\" locals='{\"once\":\"false\"}'></include>"
+    ],
+    "description": "Adds preloader include"
+  },
+  "Add popup": {
+    "scope": "html, htm",
+    "prefix": "pop",
+    "body": [
+      "<include src=\"@components/layout/popup/popup.html\" locals='{}'></include>"
+    ],
+    "description": "Adds popup HTML"
+  },
+  "Use SVG Element": {
+    "prefix": "usvg",
+    "body": [
+      "<svg>",
+      "\t<use xlink:href=\"__spritemap#sprite-${1:icon}\"></use>",
+      "</svg>"
+    ],
+    "description": "Insert SVG with use"
+  },
+  "Use SVG as Image": {
+    "prefix": "usvgi",
+    "body": [
+      "<img src=\"__spritemap#sprite-${1:icon}-view\" alt=\"Image\">"
+    ],
+    "description": "Insert SVG as an image"
+  }
+}

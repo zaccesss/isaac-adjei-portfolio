@@ -1,0 +1,140 @@
+// <SELECT>
+// Snippet (HTML): sel
+
+// ======================================================
+// CUSTOM SELECT
+// ======================================================
+
+.select {
+	position: relative;
+	font-size: 14px;
+	min-width: 200px;
+
+	// =============================
+	// BODY
+	// =============================
+
+	&__body {
+		position: relative;
+	}
+
+	// =============================
+	// TITLE (closed select)
+	// =============================
+
+	&__title {
+		background: #f2f2f2;
+		border: 1px solid #d0d0d0;
+		border-radius: 10px;
+		cursor: pointer;
+
+		transition: 0.25s ease;
+
+		@media (any-hover: hover) {
+			&:hover {
+				background: #e6e6e6;
+			}
+		}
+	}
+
+	// =============================
+	// VALUE AREA
+	// =============================
+
+	&__value {
+		display: flex;
+		align-items: center;
+		height: 44px;
+		padding: 0 16px;
+
+		// Arrow icon
+		&::after {
+			content: "";
+			margin-left: auto;
+			width: 8px;
+			height: 8px;
+
+			border-right: 2px solid #000;
+			border-bottom: 2px solid #000;
+
+			transform: rotate(45deg);
+
+			transition: 0.2s;
+		}
+
+		// Rotate arrow when open
+		.--select-open &::after {
+			transform: rotate(-135deg);
+		}
+	}
+
+	// =============================
+	// SELECT TEXT
+	// =============================
+
+	&__content {
+		flex: 1;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	// =============================
+	// DROPDOWN
+	// =============================
+
+	&__options {
+		position: absolute;
+		top: calc(100% + 6px);
+		left: 0;
+
+		width: 100%;
+
+		background: #f7f7f7;
+
+		border-radius: 12px;
+		border: 1px solid #d0d0d0;
+
+		padding: 6px;
+
+		box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+
+		z-index: 10;
+	}
+
+	// =============================
+	// OPTION
+	// =============================
+
+	&__option {
+		padding: 10px;
+		border-radius: 6px;
+		cursor: pointer;
+
+		transition: 0.2s;
+
+		@media (any-hover: hover) {
+			&:hover {
+				background: #e0e0e0;
+			}
+		}
+
+		&.--select-selected {
+			background: #d9d9d9;
+			font-weight: 500;
+		}
+	}
+
+	// =============================
+	// STATES
+	// =============================
+
+	&.--select-open {
+		z-index: 20;
+	}
+
+	&.--select-disabled {
+		opacity: 0.4;
+		pointer-events: none;
+	}
+}

@@ -1,0 +1,88 @@
+// Templates (placeholders)
+// Usage: @extend %template-name;
+// Snippet (SCSS): ex
+
+// Styles for responsive images (IBG)
+%ibg {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+// List counter
+%listCounter {
+	list-style-type: none;
+	counter-reset: item;
+	li {
+		position: relative;
+		&:before {
+			counter-increment: item;
+			content: counter(item);
+			position: absolute;
+			left: 0;
+			top: 0;
+		}
+	}
+}
+
+// Responsive video
+%responsiveVideo {
+	video,
+	iframe,
+	object,
+	embed {
+		aspect-ratio: 16 / 9;
+	}
+}
+
+// Video as background
+%videoBackground {
+	video,
+	iframe,
+	object,
+	embed {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		min-width: 100%;
+		min-height: 100%;
+		width: auto;
+		height: auto;
+		z-index: -100;
+		transform: translateX(-50%) translateY(-50%);
+		object-fit: cover;
+	}
+}
+
+// Grayscale filter
+%grayfilter {
+	transition: all 0.3s ease 0s;
+	filter: grayscale(1);
+	@media (any-hover: hover) {
+		&:hover {
+			filter: grayscale(0);
+		}
+	}
+}
+
+// Disable text selection
+%noselect {
+	user-select: none;
+}
+
+// Mirror reflection
+%mirror {
+	transform: scale(-1, 1);
+}
+
+// Smooth scrolling
+%smoothscroll {
+	-webkit-overflow-scrolling: touch;
+}
+
+// Hide scrollbar
+%hidescroll {
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}

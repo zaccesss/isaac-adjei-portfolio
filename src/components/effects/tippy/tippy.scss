@@ -1,0 +1,62 @@
+[data-tippy-root] {
+	max-width: calc(100vw - 10px);
+}
+
+/* BOX */
+.tippy-box {
+	position: relative;
+	background-color: #333;
+	color: #fff;
+	border-radius: 10px;
+	font-size: 14px;
+	line-height: 1.4;
+	outline: 0;
+	font-weight: 600;
+	transition:
+		opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+		transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+
+	will-change: transform, opacity;
+}
+
+/* HIDDEN */
+.tippy-box[data-state='hidden'] {
+	opacity: 0;
+	transform: translateY(8px) scale(0.95);
+}
+
+/* VISIBLE */
+.tippy-box[data-state='visible'] {
+	opacity: 1;
+	transform: translateY(0) scale(1);
+}
+
+/* CONTENT */
+.tippy-content {
+	padding: 6px 10px;
+}
+
+/* ARROW */
+.tippy-arrow {
+	width: 16px;
+	height: 16px;
+	color: #333;
+}
+
+.tippy-arrow:before {
+	content: '';
+	position: absolute;
+	border-style: solid;
+	border-color: transparent;
+}
+
+/* BOTTOM (наш випадок) */
+.tippy-box[data-placement^='bottom'] > .tippy-arrow {
+	top: 0;
+}
+
+.tippy-box[data-placement^='bottom'] > .tippy-arrow:before {
+	top: -7px;
+	border-width: 0 8px 8px 8px;
+	border-bottom-color: #333;
+}

@@ -1,0 +1,21 @@
+{
+  "viteHtmlComponentCreator.defaultImports": {
+    "html_imports": [
+      "<link rel='stylesheet' href='@components/{component}/{component}.scss'>"
+    ],
+    "scss_imports": [
+      ""
+    ]
+  },
+  "path-autocomplete.pathMappings": {
+    "@components": "${folder}/src/components",
+    "@js": "${folder}/src/js",
+    "@styles": "${folder}/src/styles",
+    "@svg": "${folder}/src/assets/svgicons",
+    "@fonts": "${folder}/src/assets/fonts",
+    "@img": "${folder}/src/assets/img",
+    "@video": "${folder}/src/assets/video",
+    "@files": "${folder}/src/files",
+    "@pug": "${folder}/src/pug"
+  }
+}

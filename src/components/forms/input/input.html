@@ -1,0 +1,23 @@
+<!-- Snippet HTML: formemail -->
+<form action="files/sendmail/sendmail.php" method="POST">
+
+	<input type="text" name="form[email]" data-error="Error" placeholder="E-mail" class="input">
+
+	<button type="submit" class="button">Send</button>
+
+</form>
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+
+<form data-anim-form action="files/sendmail/sendmail.php" method="POST">
+	<input class="input" data-anim-input data-anim-form-validatenow required autocomplete="off" type="text" name="form[]" data-anim-form-errtext="Error" placeholder="Enter..." >
+	<input class="input" data-anim-input data-anim-input-mask="+38(999) 999-9999" autocomplete="off" type="text" name="form[]" data-anim-form-errtext="Error" placeholder placeholder="Enter..." >
+	<textarea class="input" data-anim-input autocomplete="off" name="form[]" placeholder="Enter..." data-anim-form-errtext="Error" ></textarea>
+	<textarea class="input" data-anim-input data-anim-input-autoheight autocomplete="off" name="form[]" placeholder="Enter..." data-anim-form-errtext="Error" ></textarea>
+	<div>
+		<input class="input" data-anim-input autocomplete="off" type="password" name="form[]" data-anim-form-errtext="Error" value="123456" placeholder="Enter..." >
+		<button data-anim-input-viewpass>Viewpass</button>
+	</div>
+	<button class="button" type="submit" >Send</button>
+</form>

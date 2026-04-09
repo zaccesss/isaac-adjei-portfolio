@@ -1,0 +1,39 @@
+/* Main block */
+.anim-preloader {
+	pointer-events: none;
+	z-index: -1;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	transition: all 0.8s 0.3s;
+}
+/* Block with elements */
+.anim-preloader__body {
+	padding: 0.93rem;
+	max-width: 31.25rem;
+	display: flex;
+	flex-direction: column;
+}
+/* Counter block */
+.anim-preloader__counter {
+	font-size: 10rem;
+}
+/* Progress bar */
+.anim-preloader__line {
+}
+/* Progress bar line */
+.anim-preloader__line span {
+	display: inline-block;
+	transition: width 0.2s ease;
+	height: 0.8rem;
+	background-color: #7a956b;
+}
+[data-anim-preloader-loaded] .anim-preloader {
+	opacity: 0;
+	visibility: hidden;
+}

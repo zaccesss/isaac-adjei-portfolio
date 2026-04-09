@@ -1,0 +1,214 @@
+// ────────────────────────────────────────────────────────────
+// PROJECTS PAGE HERO
+// ────────────────────────────────────────────────────────────
+.projects-hero {
+	padding: 160px 0 72px;
+	border-bottom: 1px solid var(--border);
+
+	&__container {}
+
+	&__title {
+		font-size: clamp(44px, 7vw, 80px);
+		font-weight: 800;
+		letter-spacing: -0.03em;
+		margin: 8px 0 16px;
+	}
+
+	&__sub {
+		font-size: 17px;
+		color: var(--text-muted);
+		max-width: 480px;
+		line-height: 1.5;
+	}
+}
+
+// ────────────────────────────────────────────────────────────
+// PROJECTS LIST
+// ────────────────────────────────────────────────────────────
+.projects-list {
+	padding: 80px 0;
+
+	&__container {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+}
+
+// ────────────────────────────────────────────────────────────
+// INDIVIDUAL PROJECT (pj)
+// ────────────────────────────────────────────────────────────
+.pj {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	overflow: hidden;
+	background: var(--surface);
+	margin-bottom: 24px;
+	transition: border-color var(--trans);
+
+	&:hover {
+		border-color: rgba(59, 130, 246, 0.2);
+	}
+
+	// Alternate image/content sides
+	&:nth-child(even) {
+		direction: rtl;
+
+		> * {
+			direction: ltr;
+		}
+	}
+
+	@media (max-width: #{$tablet}px) {
+		grid-template-columns: 1fr;
+		direction: ltr !important;
+
+		> * {
+			direction: ltr !important;
+		}
+	}
+
+	// ── Images panel ──────────────────────────────────────
+	&__images {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		background: var(--bg);
+	}
+
+	&__img {
+		width: 100%;
+		display: block;
+		object-fit: cover;
+		background: var(--surface-2);
+
+		&--main {
+			flex: 1;
+			min-height: 260px;
+			max-height: 380px;
+		}
+	}
+
+	&__thumbs {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 2px;
+		flex-shrink: 0;
+
+		.pj__img {
+			height: 120px;
+			object-fit: cover;
+		}
+	}
+
+	// ── Content panel ─────────────────────────────────────
+	&__content {
+		padding: 40px 44px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		justify-content: center;
+
+		@media (max-width: #{$mobile}px) {
+			padding: 28px 24px;
+		}
+	}
+
+	&__meta {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	&__number {
+		font-family: "Syne", sans-serif;
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--accent);
+		opacity: 0.7;
+	}
+
+	&__year {
+		font-size: 12px;
+		color: var(--text-muted);
+	}
+
+	&__title {
+		font-size: clamp(20px, 2.5vw, 28px);
+		font-weight: 700;
+		margin: 0;
+		line-height: 1.2;
+	}
+
+	&__tags {
+		margin: 0;
+	}
+
+	&__desc {
+		font-size: 15px;
+		color: var(--text-muted);
+		line-height: 1.65;
+	}
+
+	&__highlights {
+		padding-left: 0;
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		margin: 0;
+
+		li {
+			font-size: 13px;
+			color: rgba(240, 240, 240, 0.55);
+			padding-left: 16px;
+			position: relative;
+			line-height: 1.5;
+
+			&::before {
+				content: '/';
+				position: absolute;
+				left: 0;
+				color: var(--accent);
+				opacity: 0.6;
+			}
+
+			code {
+				font-family: "Courier New", monospace;
+				background: var(--surface-2);
+				padding: 1px 5px;
+				border-radius: 4px;
+				font-size: 12px;
+				color: var(--accent);
+			}
+		}
+	}
+
+	&__link {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--accent);
+		margin-top: 4px;
+		transition: gap var(--trans), opacity var(--trans);
+
+		svg {
+			width: 16px;
+			height: 16px;
+			transition: transform var(--trans);
+		}
+
+		&:hover {
+			opacity: 0.8;
+
+			svg {
+				transform: translateX(3px);
+			}
+		}
+	}
+}

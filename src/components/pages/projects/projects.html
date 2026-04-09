@@ -1,0 +1,253 @@
+<div class="projects-page" data-anim-projects>
+	<script type="module" src="@components/layout/header/header.js"></script>
+	<script type="module" src="@components/pages/projects/projects.js"></script>
+
+	<!-- Page hero -->
+	<section class="projects-hero">
+		<div class="projects-hero__container">
+			<span class="section-label">Portfolio</span>
+			<h1 class="projects-hero__title">Projects</h1>
+			<p class="projects-hero__sub">Engineering work across embedded systems, electronics, software, and CAD design.</p>
+		</div>
+	</section>
+
+	<!-- Projects list -->
+	<section class="projects-list">
+		<div class="projects-list__container">
+
+			<!-- ── PROJECT 1 ─────────────────────────────────── -->
+			<article class="pj section-reveal">
+				<div class="pj__images">
+					<img src="@img/project1a.png" alt="NeoPixel LED Cube illuminated with colourful RGB patterns" class="pj__img pj__img--main" loading="lazy">
+					<div class="pj__thumbs">
+						<img src="@img/project1b.png" alt="NeoPixel LED Cube wire frame structure" class="pj__img" loading="lazy">
+						<img src="@img/project1c.png" alt="NeoPixel LED Cube with Arduino and breadboard" class="pj__img" loading="lazy">
+					</div>
+				</div>
+				<div class="pj__content">
+					<div class="pj__meta">
+						<span class="pj__number">01</span>
+						<span class="pj__year">2025</span>
+					</div>
+					<h2 class="pj__title">NeoPixel LED Cube (4×4×4)</h2>
+					<div class="tags pj__tags">
+						<span class="tag">Arduino Uno</span>
+						<span class="tag">C++</span>
+						<span class="tag">WS2812B LEDs</span>
+						<span class="tag">KiCad</span>
+						<span class="tag">PCB Design</span>
+						<span class="tag">LDR Sensor</span>
+					</div>
+					<p class="pj__desc">Fully-engineered 64-LED programmable cube featuring modular animation patterns, adaptive brightness control via LDR sensor, and comprehensive technical documentation. Demonstrates embedded systems design, firmware development, power electronics, and professional engineering practices.</p>
+					<ul class="pj__highlights">
+						<li>Non-blocking firmware using <code>millis()</code> for smooth multi-pattern animations</li>
+						<li>LDR sensor dynamically adjusts brightness in real-time</li>
+						<li>5 animation modes: RGB Fade, Fire Effect, Rainbow, Color Wipe, Rain</li>
+						<li>Custom PCB designed in KiCad with power distribution and trace width calculations</li>
+						<li>PROGMEM memory optimisation to maximise available RAM</li>
+					</ul>
+					<a href="https://github.com/zaccesss/neopixel-led-cube" target="_blank" rel="noopener noreferrer" class="pj__link">
+						View on GitHub
+						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					</a>
+				</div>
+			</article>
+
+			<!-- ── PROJECT 2 ─────────────────────────────────── -->
+			<article class="pj section-reveal">
+				<div class="pj__images">
+					<img src="@img/project2a.png" alt="Audio amplifier circuit with oscilloscope testing setup" class="pj__img pj__img--main" loading="lazy">
+					<div class="pj__thumbs">
+						<img src="@img/project2b.png" alt="Audio amplifier PCB showing op-amps" class="pj__img" loading="lazy">
+						<img src="@img/project2c.png" alt="Frequency response testing with oscilloscope waveforms" class="pj__img" loading="lazy">
+					</div>
+				</div>
+				<div class="pj__content">
+					<div class="pj__meta">
+						<span class="pj__number">02</span>
+						<span class="pj__year">2026</span>
+					</div>
+					<h2 class="pj__title">Two-Stage Audio Amplifier</h2>
+					<div class="tags pj__tags">
+						<span class="tag">TL071 Op-Amp</span>
+						<span class="tag">OPA551</span>
+						<span class="tag">PCB Design</span>
+						<span class="tag">Proteus</span>
+						<span class="tag">Oscilloscope</span>
+					</div>
+					<p class="pj__desc">Professional two-stage audio amplifier capable of driving an 8Ω speaker from smartphone audio input. Designed, simulated, built, and tested against full specification, showcasing analog circuit design, active filtering, power electronics, and PCB layout.</p>
+					<ul class="pj__highlights">
+						<li>Stage 1: TL071 active bandpass filter: 9 Hz to 24.1 kHz</li>
+						<li>Stage 2: OPA551 power amplifier, up to 200 mA, 0.56 W into 8Ω</li>
+						<li>Single-supply (+9 to 12 V) with virtual ground biasing</li>
+						<li>Simulation-to-hardware correlation within ±0.5 dB across audio band</li>
+						<li>Compact 80 mm × 50 mm PCB with reverse-polarity protection</li>
+					</ul>
+					<a href="https://github.com/zaccesss/neopixel-led-cube" target="_blank" rel="noopener noreferrer" class="pj__link">
+						View on GitHub
+						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					</a>
+				</div>
+			</article>
+
+			<!-- ── PROJECT 3 ─────────────────────────────────── -->
+			<article class="pj section-reveal">
+				<div class="pj__images">
+					<img src="@img/project3a.png" alt="Interactive web terminal portfolio interface" class="pj__img pj__img--main" loading="lazy">
+					<div class="pj__thumbs">
+						<img src="@img/project3b.png" alt="Terminal portfolio command output" class="pj__img" loading="lazy">
+						<img src="@img/project3c.png" alt="Terminal portfolio mobile view" class="pj__img" loading="lazy">
+					</div>
+				</div>
+				<div class="pj__content">
+					<div class="pj__meta">
+						<span class="pj__number">03</span>
+						<span class="pj__year">2024</span>
+					</div>
+					<h2 class="pj__title">Interactive Web Terminal Portfolio</h2>
+					<div class="tags pj__tags">
+						<span class="tag">HTML5</span>
+						<span class="tag">CSS3</span>
+						<span class="tag">JavaScript</span>
+						<span class="tag">DOM Manipulation</span>
+						<span class="tag">Terminal UI</span>
+					</div>
+					<p class="pj__desc">Sophisticated web-based terminal interface that simulates a command-line portfolio experience directly in the browser. Built with vanilla JavaScript, featuring custom command parsing, animated output, and a full suite of navigable portfolio commands.</p>
+					<ul class="pj__highlights">
+						<li>Custom command parser with tab-completion and command history</li>
+						<li>Animated typewriter output for an authentic terminal feel</li>
+						<li>Fully keyboard-navigable with accessible markup</li>
+						<li>Zero dependencies. Pure HTML, CSS, and vanilla JavaScript</li>
+					</ul>
+					<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="pj__link">
+						View on GitHub
+						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					</a>
+				</div>
+			</article>
+
+			<!-- ── PROJECT 4 ─────────────────────────────────── -->
+			<article class="pj section-reveal">
+				<div class="pj__images">
+					<img src="@img/project4a.png" alt="CNC control system circuit board on veroboard" class="pj__img pj__img--main" loading="lazy">
+					<div class="pj__thumbs">
+						<img src="@img/project4b.png" alt="CNC control system LCD display" class="pj__img" loading="lazy">
+						<img src="@img/project4c.png" alt="CNC control system wiring diagram" class="pj__img" loading="lazy">
+					</div>
+				</div>
+				<div class="pj__content">
+					<div class="pj__meta">
+						<span class="pj__number">04</span>
+						<span class="pj__year">2024</span>
+					</div>
+					<h2 class="pj__title">CNC Milling Machine Control System</h2>
+					<div class="tags pj__tags">
+						<span class="tag">Arduino</span>
+						<span class="tag">C++</span>
+						<span class="tag">TL071 Op-Amp</span>
+						<span class="tag">LCD 16×2</span>
+						<span class="tag">Safety Systems</span>
+					</div>
+					<p class="pj__desc">Safety-critical control system for a CNC milling machine featuring door interlocks, emergency stop functionality, LCD user feedback, and precise timing control. Designed to industrial safety standards with fail-safe logic throughout.</p>
+					<ul class="pj__highlights">
+						<li>Hardware and software door interlock with fail-safe logic</li>
+						<li>Emergency stop with immediate motor cutoff and alarm</li>
+						<li>Real-time 16×2 LCD status display for operator feedback</li>
+						<li>Debounced multi-button interface with state machine architecture</li>
+					</ul>
+					<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="pj__link">
+						View on GitHub
+						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					</a>
+				</div>
+			</article>
+
+			<!-- ── PROJECT 5 ─────────────────────────────────── -->
+			<article class="pj section-reveal">
+				<div class="pj__images">
+					<img src="@img/project5a.png" alt="Goods lift Arduino system with LCD floor display" class="pj__img pj__img--main" loading="lazy">
+					<div class="pj__thumbs">
+						<img src="@img/project5b.png" alt="Goods lift control panel" class="pj__img" loading="lazy">
+						<img src="@img/project5c.png" alt="Goods lift system wiring" class="pj__img" loading="lazy">
+					</div>
+				</div>
+				<div class="pj__content">
+					<div class="pj__meta">
+						<span class="pj__number">05</span>
+						<span class="pj__year">2025 to 2026</span>
+					</div>
+					<h2 class="pj__title">Goods Lift Control System</h2>
+					<div class="tags pj__tags">
+						<span class="tag">Arduino</span>
+						<span class="tag">C++</span>
+						<span class="tag">LCD 16×2</span>
+						<span class="tag">DC Motor Control</span>
+						<span class="tag">Safety Sensors</span>
+					</div>
+					<p class="pj__desc">Microcontroller-based goods lift (elevator) system featuring multi-floor navigation, safety sensors, real-time LCD feedback, and robust emergency procedures. Designed with a full state-machine architecture and priority-based floor request handling.</p>
+					<ul class="pj__highlights">
+						<li>Multi-floor navigation with priority-queue request handling</li>
+						<li>Limit switches and safety sensors prevent over-travel</li>
+						<li>Real-time LCD floor indicator and direction display</li>
+						<li>Emergency stop with door-open interlock safety logic</li>
+					</ul>
+					<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="pj__link">
+						View on GitHub
+						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					</a>
+				</div>
+			</article>
+
+			<!-- ── PROJECT 6 ─────────────────────────────────── -->
+			<article class="pj section-reveal">
+				<div class="pj__images">
+					<img src="@img/project6a.png" alt="CAD technical drawing with dimensions" class="pj__img pj__img--main" loading="lazy">
+					<div class="pj__thumbs">
+						<img src="@img/project6b.png" alt="3D CAD model render" class="pj__img" loading="lazy">
+						<img src="@img/project6c.png" alt="Engineering drawing with GD&T annotations" class="pj__img" loading="lazy">
+					</div>
+				</div>
+				<div class="pj__content">
+					<div class="pj__meta">
+						<span class="pj__number">06</span>
+						<span class="pj__year">2024 to 2025</span>
+					</div>
+					<h2 class="pj__title">CAD Engineering Design Portfolio</h2>
+					<div class="tags pj__tags">
+						<span class="tag">AutoCAD</span>
+						<span class="tag">2D Technical Drawing</span>
+						<span class="tag">3D Modelling</span>
+						<span class="tag">BS 8888</span>
+						<span class="tag">GD&amp;T</span>
+					</div>
+					<p class="pj__desc">Three CAD projects demonstrating proficiency in 2D technical drawing and 3D modelling to industry-standard AutoCAD software. Work conforms to BS 8888 engineering drawing standards with full dimensioning and geometric tolerancing.</p>
+					<ul class="pj__highlights">
+						<li>Full orthographic projection drawings with section views</li>
+						<li>3D parametric models with assembly constraints</li>
+						<li>Dimensioning and GD&amp;T annotations to BS 8888</li>
+						<li>Bill of materials and title block documentation</li>
+					</ul>
+					<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="pj__link">
+						View on GitHub
+						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					</a>
+				</div>
+			</article>
+
+		</div>
+	</section>
+
+	<!-- Bottom CTA -->
+	<section class="cta-band section-reveal">
+		<div class="cta-band__container">
+			<span class="section-label">Contact</span>
+			<h2 class="cta-band__heading">Interested in working together?</h2>
+			<p class="cta-band__sub">Open to internships, placements, and project collaborations.</p>
+			<div class="cta-band__actions">
+				<a href="/contact.html" class="btn btn--primary">Get In Touch</a>
+				<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="btn btn--ghost">View GitHub</a>
+			</div>
+		</div>
+	</section>
+
+</div>

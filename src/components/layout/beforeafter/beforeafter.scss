@@ -1,0 +1,131 @@
+/*
+================================================
+ANIM BEFORE / AFTER STYLES
+================================================
+
+Structure
+
+[data-anim-beforeafter]
+	container
+
+[data-anim-beforeafter-before]
+	before image
+
+[data-anim-beforeafter-after]
+	after image overlay
+
+[data-anim-beforeafter-arrow]
+	drag handle
+
+================================================
+*/
+
+
+/* ----------------------------------------------
+Main container
+---------------------------------------------- */
+
+[data-anim-beforeafter] {
+	position: relative;
+}
+
+
+/* ----------------------------------------------
+Prevent image selection
+---------------------------------------------- */
+
+[data-anim-beforeafter-before],
+[data-anim-beforeafter-after] {
+	img {
+		user-select: none;
+	}
+}
+
+
+/* ----------------------------------------------
+Before image (base layer)
+---------------------------------------------- */
+
+[data-anim-beforeafter-before] {
+
+	img {
+		width: 100%;
+	}
+
+}
+
+
+/* ----------------------------------------------
+After image (overlay)
+---------------------------------------------- */
+
+[data-anim-beforeafter-after] {
+
+	position: absolute;
+	transition: width .15s ease;
+	width: 50%;
+
+	height: 100%;
+
+	top: 0;
+
+	right: 0;
+
+	overflow: hidden;
+
+	img {
+
+		max-width: none;
+
+		height: 100%;
+
+		position: absolute;
+
+		top: 0;
+
+		right: 0;
+
+	}
+
+}
+
+
+/* ----------------------------------------------
+Drag handle
+---------------------------------------------- */
+
+[data-anim-beforeafter-arrow] {
+
+	cursor: grab;
+
+	position: absolute;
+
+	left: 50%;
+
+	top: 0;
+
+	height: 100%;
+
+	width: 0.188rem;
+
+	z-index: 2;
+
+	background-color: #7a956b;
+
+
+	/* arrow decorative elements */
+
+	&::before,
+	&::after {
+		content: "";
+	}
+
+	&::before {}
+
+	&::after {}
+
+}
+
+[data-anim-beforeafter-arrow]:active {
+	cursor: grabbing;
+}

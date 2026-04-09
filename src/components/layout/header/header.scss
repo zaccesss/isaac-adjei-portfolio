@@ -1,0 +1,208 @@
+.header {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 100;
+	padding: 0;
+	transition: background var(--trans), border-color var(--trans), box-shadow var(--trans);
+	border-bottom: 1px solid transparent;
+
+	&--scrolled {
+		background: var(--header-bg);
+		backdrop-filter: blur(24px) saturate(160%);
+		-webkit-backdrop-filter: blur(24px) saturate(160%);
+		border-bottom-color: var(--border);
+	}
+
+	&__container {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 24px;
+		height: 64px;
+	}
+
+	&__logo {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		flex-shrink: 0;
+		text-decoration: none;
+	}
+
+	&__logo-mark {
+		width: 32px;
+		height: 32px;
+		background: var(--accent);
+		border-radius: 8px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-family: $fontHeading, sans-serif;
+		font-weight: 700;
+		font-size: 12px;
+		color: #fff;
+		flex-shrink: 0;
+		letter-spacing: 0;
+	}
+
+	&__logo-name {
+		font-family: $fontHeading, sans-serif;
+		font-weight: 600;
+		font-size: 15px;
+		color: var(--text);
+		letter-spacing: -0.01em;
+
+		@media (max-width: 480px) {
+			display: none;
+		}
+	}
+
+	&__nav {
+		@media (max-width: #{$mobile}px) {
+			position: fixed;
+			inset: 0;
+			background: var(--nav-mobile-bg);
+			backdrop-filter: blur(20px);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity var(--trans);
+			z-index: 50;
+
+			[data-anim-menu-open] & {
+				opacity: 1;
+				pointer-events: all;
+			}
+		}
+	}
+
+	&__list {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+
+		@media (max-width: #{$mobile}px) {
+			flex-direction: column;
+			gap: 4px;
+		}
+	}
+
+	&__link {
+		display: block;
+		padding: 6px 14px;
+		border-radius: 7px;
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--text-2);
+		transition: all var(--trans);
+		font-family: $fontFamily, sans-serif;
+
+		@media (max-width: #{$mobile}px) {
+			font-size: 28px;
+			font-family: $fontHeading, sans-serif;
+			font-weight: 700;
+			padding: 10px 28px;
+		}
+
+		&:hover {
+			color: var(--text);
+			background: var(--surface-2);
+		}
+
+		&--active {
+			color: var(--text);
+			background: var(--surface-2);
+		}
+	}
+
+	&__actions {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex-shrink: 0;
+		position: relative;
+		z-index: 60;
+	}
+
+	&__cta {
+		@media (max-width: #{$mobile}px) {
+			display: none;
+		}
+	}
+
+	// Theme toggle
+	&__theme {
+		width: 36px;
+		height: 36px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--surface-2);
+		border: 1px solid var(--border-2);
+		border-radius: var(--radius-sm);
+		cursor: pointer;
+		color: var(--text-2);
+		transition: all var(--trans);
+		flex-shrink: 0;
+
+		&:hover {
+			color: var(--accent);
+			border-color: var(--accent);
+			background: var(--accent-dim);
+		}
+
+		svg {
+			width: 16px;
+			height: 16px;
+		}
+	}
+
+	// In dark mode: show moon (option to go light), hide sun
+	// In light mode: show sun (option to go dark), hide moon
+	[data-theme="dark"] &__theme-icon--sun   { display: none; }
+	[data-theme="light"] &__theme-icon--moon { display: none; }
+
+	&__burger {
+		display: none;
+		flex-direction: column;
+		justify-content: center;
+		gap: 4px;
+		width: 36px;
+		height: 36px;
+		background: var(--surface-2);
+		border: 1px solid var(--border-2);
+		border-radius: var(--radius-sm);
+		cursor: pointer;
+		padding: 9px 8px;
+
+		@media (max-width: #{$mobile}px) {
+			display: flex;
+		}
+
+		span {
+			display: block;
+			height: 1.5px;
+			background: var(--text);
+			border-radius: 2px;
+			transition: all var(--trans);
+			transform-origin: center;
+
+			&:first-child  { width: 100%; }
+			&:nth-child(2) { width: 65%; }
+			&:last-child   { width: 40%; }
+		}
+
+		[data-anim-menu-open] & {
+			span:first-child  { transform: translateY(5.5px) rotate(45deg); width: 100%; }
+			span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+			span:last-child   { transform: translateY(-5.5px) rotate(-45deg); width: 100%; }
+		}
+	}
+}
