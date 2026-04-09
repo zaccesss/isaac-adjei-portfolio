@@ -49,7 +49,7 @@
 				</div>
 				<div class="hero__stats">
 					<div class="hero__stat">
-						<span class="hero__stat-val">6+</span>
+						<span class="hero__stat-val" data-count="6+">6+</span>
 						<span class="hero__stat-key">Projects</span>
 					</div>
 					<div class="hero__stat">
@@ -78,10 +78,16 @@
 			<div class="about__top">
 				<span class="section-label">01 &nbsp; About</span>
 				<div class="about__bio">
-					<h2 class="about__heading">Hardware instinct.<br>Software precision.</h2>
-					<div class="about__text-col">
-						<p class="about__text">I'm a first-year Electronic Engineering and Computer Science student at Aston University, on track for a First Class degree. I build things that sit at the intersection of circuits and code: from 64-LED programmable cubes to audio amplifiers and safety-critical control systems.</p>
-						<p class="about__text">Beyond the coursework, I'm an active member of the Aston Computer and Electronics Society, a student member of the IET, and working toward Chartered Engineer status.</p>
+					<div class="about__bio-text">
+						<h2 class="about__heading">Hardware instinct.<br>Software precision.</h2>
+						<div class="about__text-col">
+							<p class="about__text">Originally from Ghana, I moved to the UK in 2022 and am now studying Electronic Engineering and Computer Science at Aston University, on track for a First Class degree. I build at the intersection of circuits and code: from 64-LED programmable cubes to full-stack web platforms with 11-layer security.</p>
+							<p class="about__text">Beyond the coursework, I'm a student member of the IET, active in the Aston Computer and Electronics Society, and working toward Chartered Engineer status. Outside engineering, I play piano, go to the gym, cycle, and cook.</p>
+						<blockquote class="about__motto">&quot;Engineering that thinks. Technology that serves. Growth as a lifestyle.&quot;</blockquote>
+						</div>
+					</div>
+					<div class="about__photo">
+						<img src="@img/profile.jpg" alt="Isaac Adjei" class="about__photo-img">
 					</div>
 				</div>
 			</div>
@@ -112,28 +118,95 @@
 						<span class="tag">Python</span>
 						<span class="tag">C / C++</span>
 						<span class="tag">JavaScript</span>
+						<span class="tag">TypeScript</span>
 						<span class="tag">HTML / CSS</span>
 						<span class="tag">Java</span>
+						<span class="tag">MATLAB</span>
+					</div>
+				</div>
+				<div class="stack__row">
+					<span class="stack__cat">Web and Frameworks</span>
+					<div class="stack__items">
+						<span class="tag">React</span>
+						<span class="tag">Node.js</span>
+						<span class="tag">Django</span>
+						<span class="tag">Flask</span>
+						<span class="tag">PHP 8.2</span>
+						<span class="tag">Vite</span>
+						<span class="tag">SCSS</span>
+					</div>
+				</div>
+				<div class="stack__row">
+					<span class="stack__cat">AI and Data</span>
+					<div class="stack__items">
+						<span class="tag">TensorFlow</span>
+						<span class="tag">PyTorch</span>
+						<span class="tag">NumPy</span>
+						<span class="tag">Pandas</span>
+						<span class="tag">Scikit-Learn</span>
+						<span class="tag">Jupyter</span>
 					</div>
 				</div>
 				<div class="stack__row">
 					<span class="stack__cat">Hardware and EE</span>
 					<div class="stack__items">
 						<span class="tag">Arduino</span>
+						<span class="tag">Raspberry Pi</span>
+						<span class="tag">ESP32</span>
 						<span class="tag">KiCad</span>
 						<span class="tag">Proteus</span>
+						<span class="tag">LTspice</span>
 						<span class="tag">PCB Design</span>
-						<span class="tag">Oscilloscope</span>
 						<span class="tag">AutoCAD</span>
+						<span class="tag">Fusion 360</span>
 					</div>
 				</div>
 				<div class="stack__row">
 					<span class="stack__cat">Tools and Dev</span>
 					<div class="stack__items">
 						<span class="tag">Git / GitHub</span>
-						<span class="tag">VS Code</span>
-						<span class="tag">Vite</span>
+						<span class="tag">Docker</span>
 						<span class="tag">Linux</span>
+						<span class="tag">AWS</span>
+						<span class="tag">Google Cloud</span>
+						<span class="tag">Figma</span>
+						<span class="tag">Blender</span>
+					</div>
+				</div>
+			</div>
+				</div>
+				<div class="stack__row">
+					<span class="stack__cat">Web and Frameworks</span>
+					<div class="stack__items">
+						<span class="tag">React</span>
+						<span class="tag">Node.js</span>
+						<span class="tag">Vite</span>
+						<span class="tag">SCSS</span>
+					</div>
+				</div>
+				<div class="stack__row">
+					<span class="stack__cat">Hardware and EE</span>
+					<div class="stack__items">
+						<span class="tag">Arduino</span>
+						<span class="tag">Raspberry Pi</span>
+						<span class="tag">ESP32</span>
+						<span class="tag">KiCad</span>
+						<span class="tag">Proteus</span>
+						<span class="tag">LTspice</span>
+						<span class="tag">PCB Design</span>
+						<span class="tag">Oscilloscope</span>
+						<span class="tag">AutoCAD</span>
+						<span class="tag">Fusion 360</span>
+					</div>
+				</div>
+				<div class="stack__row">
+					<span class="stack__cat">Tools and Dev</span>
+					<div class="stack__items">
+						<span class="tag">Git / GitHub</span>
+						<span class="tag">Docker</span>
+						<span class="tag">VS Code</span>
+						<span class="tag">Linux</span>
+						<span class="tag">Google Cloud</span>
 					</div>
 				</div>
 			</div>
@@ -195,6 +268,20 @@
 					<span class="proj-item__arrow">→</span>
 				</a>
 
+				<a href="https://github.com/zaccesss/astoncv" target="_blank" rel="noopener noreferrer" class="proj-item">
+					<div class="proj-item__num">04</div>
+					<div class="proj-item__body">
+						<h3 class="proj-item__title">AstonCV - Full-Stack CV Platform</h3>
+						<p class="proj-item__desc">Live CV database with user auth, PDF export, and 11 security layers (bcrypt, CSRF, PDO). Built with PHP 8.2 and MySQL. Deployed at astoncv.zacess.com.</p>
+						<div class="tags">
+							<span class="tag">PHP 8.2</span>
+							<span class="tag">MySQL</span>
+							<span class="tag">Security</span>
+						</div>
+					</div>
+					<span class="proj-item__arrow">→</span>
+				</a>
+
 			</div>
 		</div>
 	</section>
@@ -226,6 +313,12 @@
 						<h3 class="tl-item__role">Consular Intern</h3>
 						<p class="tl-item__org">Ghana High Commission UK · London</p>
 						<p class="tl-item__desc">Consular documentation, visa processing, and administrative coordination.</p>
+					</div>
+					<div class="tl-item">
+						<span class="tl-item__date">Mar 2024</span>
+						<h3 class="tl-item__role">Diplomatic Admin and Estates Intern</h3>
+						<p class="tl-item__org">Ghana High Commission UK · London</p>
+						<p class="tl-item__desc">Office management, protocol, and estate coordination within a diplomatic mission.</p>
 					</div>
 				</div>
 

@@ -29,20 +29,13 @@
 		text-decoration: none;
 	}
 
-	&__logo-icon {
+	&__logo-img {
 		width: 30px;
 		height: 30px;
-		background: var(--accent);
 		border-radius: 7px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-family: $fontHeading, sans-serif;
-		font-weight: 700;
-		font-size: 11px;
-		color: #fff;
+		object-fit: cover;
 		flex-shrink: 0;
-		letter-spacing: 0;
+		display: block;
 	}
 
 	&__logo-name {

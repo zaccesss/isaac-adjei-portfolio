@@ -217,3 +217,49 @@ img {
 	border: none;
 	border-top: 1px solid var(--border);
 }
+
+// ── SCROLL PROGRESS BAR ─────────────────────────
+.scroll-progress {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 2px;
+	background: var(--accent);
+	z-index: 200;
+	width: 0%;
+	transition: width 0.08s linear;
+	pointer-events: none;
+}
+
+// ── CUSTOM CURSOR ────────────────────────────────
+.cursor {
+	position: fixed;
+	top: 0;
+	left: 0;
+	pointer-events: none;
+	z-index: 9998;
+	will-change: transform;
+
+	&__dot {
+		width: 8px;
+		height: 8px;
+		background: var(--accent);
+		border-radius: 50%;
+		transform: translate(-50%, -50%);
+		transition: width 0.18s ease, height 0.18s ease, opacity 0.18s ease;
+	}
+
+	&--hover &__dot {
+		width: 28px;
+		height: 28px;
+		opacity: 0.25;
+	}
+
+	@media (pointer: coarse) { display: none; }
+}
+
+body:has(.cursor) {
+	cursor: none;
+
+	a, button { cursor: none; }
+}
