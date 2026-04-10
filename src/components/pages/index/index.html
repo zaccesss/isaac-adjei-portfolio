@@ -1,68 +1,53 @@
-<div class="index" data-anim-index>
+<div class="home" data-anim-index>
 	<script type="module" src="@components/layout/header/header.js"></script>
 	<script type="module" src="@components/pages/index/index.js"></script>
 
-	<!-- ══════════════════════════════════════════
+	<!-- ═══════════════════════════════════════════
 	     HERO
-	══════════════════════════════════════════ -->
+	═══════════════════════════════════════════ -->
 	<section class="hero">
 		<div class="hero__container">
 
 			<div class="hero__badge">
 				<span class="hero__badge-dot"></span>
-				Available for internships and placements
+				Open to internships and placements — 2025/26
 			</div>
 
-			<div class="hero__split">
-				<div class="hero__left">
-					<h1 class="hero__name">
-						<span class="hero__name-line">Isaac</span>
-						<span class="hero__name-line hero__name-line--accent">Adjei.</span>
-					</h1>
-				</div>
-				<div class="hero__right">
-					<p class="hero__tagline">Building at the boundary of<br><strong>hardware and software.</strong></p>
-					<p class="hero__degree">BEng Electronic Engineering and CS · Aston University</p>
+			<div class="hero__body">
+				<h1 class="hero__name">
+					<span class="hero__name-first">Isaac</span>
+					<span class="hero__name-last">Adjei.</span>
+				</h1>
+				<div class="hero__aside">
+					<p class="hero__role">Electronic Engineering and Computer Science</p>
+					<p class="hero__bio">I study at Aston University and build things with circuits and code. Embedded systems, analog electronics, full-stack platforms. Sometimes all three in the same project.</p>
 					<div class="hero__actions">
-						<a href="/projects.html" class="btn btn--primary">View My Work</a>
-						<a href="/contact.html" class="btn btn--outline">Get In Touch</a>
+						<a href="/projects.html" class="btn btn--primary">My projects</a>
+						<a href="/about.html" class="btn btn--outline">About me</a>
 					</div>
 				</div>
 			</div>
 
-			<div class="hero__bar">
-				<div class="hero__socials">
-					<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="hero__social">
-						<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-						GitHub
-					</a>
-					<span class="hero__sep">·</span>
-					<a href="https://linkedin.com/in/isaacadjei" target="_blank" rel="noopener noreferrer" class="hero__social">
-						<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-						LinkedIn
-					</a>
-					<span class="hero__sep">·</span>
-					<a href="mailto:contact@zacess.com" class="hero__social">
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>
-						Email
-					</a>
+			<div class="hero__foot">
+				<div class="hero__links">
+					<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="hero__link">GitHub</a>
+					<span class="hero__sep" aria-hidden="true">/</span>
+					<a href="https://linkedin.com/in/isaacadjei" target="_blank" rel="noopener noreferrer" class="hero__link">LinkedIn</a>
+					<span class="hero__sep" aria-hidden="true">/</span>
+					<a href="mailto:contact@zacess.com" class="hero__link">contact@zacess.com</a>
 				</div>
 				<div class="hero__stats">
 					<div class="hero__stat">
-						<span class="hero__stat-val" data-count="6+">6+</span>
-						<span class="hero__stat-key">Projects</span>
+						<span class="hero__stat-n">6+</span>
+						<span class="hero__stat-l">Projects</span>
 					</div>
 					<div class="hero__stat">
-						<span class="hero__stat-val">D*DD</span>
-						<span class="hero__stat-key">BTEC</span>
+						<span class="hero__stat-n">D*DD</span>
+						<span class="hero__stat-l">BTEC</span>
 					</div>
 					<div class="hero__stat">
-						<span class="hero__stat-val">IET</span>
-						<span class="hero__stat-key">Member</span>
-					</div>
-					<div class="hero__stat">
-						<span class="hero__stat-val">1st</span>
-						<span class="hero__stat-key">Predicted</span>
+						<span class="hero__stat-n">1st</span>
+						<span class="hero__stat-l">Predicted</span>
 					</div>
 				</div>
 			</div>
@@ -70,295 +55,128 @@
 		</div>
 	</section>
 
-	<!-- ══════════════════════════════════════════
-	     ABOUT
-	══════════════════════════════════════════ -->
-	<section class="about section section-reveal">
-		<div class="about__container">
-			<div class="about__top">
-				<span class="section-label">01 &nbsp; About</span>
-				<div class="about__bio">
-					<div class="about__bio-text">
-						<h2 class="about__heading">Hardware instinct.<br>Software precision.</h2>
-						<div class="about__text-col">
-							<p class="about__text">Originally from Ghana, I moved to the UK in 2022 and am now studying Electronic Engineering and Computer Science at Aston University, on track for a First Class degree. I build at the intersection of circuits and code: from 64-LED programmable cubes to full-stack web platforms with 11-layer security.</p>
-							<p class="about__text">Beyond the coursework, I'm a student member of the IET, active in the Aston Computer and Electronics Society, and working toward Chartered Engineer status. Outside engineering, I play piano, go to the gym, cycle, and cook.</p>
-						<blockquote class="about__motto">&quot;Engineering that thinks. Technology that serves. Growth as a lifestyle.&quot;</blockquote>
-						</div>
-					</div>
-					<div class="about__photo">
-						<img src="@img/profile.jpg" alt="Isaac Adjei" class="about__photo-img">
-					</div>
-				</div>
-			</div>
-			<div class="about__bottom">
-				<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="about__link">
-					<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-					github.com/zaccesss
-				</a>
-				<a href="https://linkedin.com/in/isaacadjei" target="_blank" rel="noopener noreferrer" class="about__link">
-					<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-					linkedin.com/in/isaacadjei
-				</a>
-			</div>
-		</div>
-	</section>
+	<!-- ═══════════════════════════════════════════
+	     SELECTED WORK
+	═══════════════════════════════════════════ -->
+	<section class="sel section-reveal">
+		<div class="sel__container">
 
-	<!-- ══════════════════════════════════════════
-	     TECH STACK
-	══════════════════════════════════════════ -->
-	<section class="stack section section-reveal">
-		<div class="stack__container">
-			<span class="section-label">02 &nbsp; Skills</span>
-			<h2 class="stack__heading">My toolkit</h2>
-			<div class="stack__rows">
-				<div class="stack__row">
-					<span class="stack__cat">Languages</span>
-					<div class="stack__items">
-						<span class="tag">Python</span>
-						<span class="tag">C / C++</span>
-						<span class="tag">JavaScript</span>
-						<span class="tag">TypeScript</span>
-						<span class="tag">HTML / CSS</span>
-						<span class="tag">Java</span>
-						<span class="tag">MATLAB</span>
-					</div>
-				</div>
-				<div class="stack__row">
-					<span class="stack__cat">Web and Frameworks</span>
-					<div class="stack__items">
-						<span class="tag">React</span>
-						<span class="tag">Node.js</span>
-						<span class="tag">Django</span>
-						<span class="tag">Flask</span>
-						<span class="tag">PHP 8.2</span>
-						<span class="tag">Vite</span>
-						<span class="tag">SCSS</span>
-					</div>
-				</div>
-				<div class="stack__row">
-					<span class="stack__cat">AI and Data</span>
-					<div class="stack__items">
-						<span class="tag">TensorFlow</span>
-						<span class="tag">PyTorch</span>
-						<span class="tag">NumPy</span>
-						<span class="tag">Pandas</span>
-						<span class="tag">Scikit-Learn</span>
-						<span class="tag">Jupyter</span>
-					</div>
-				</div>
-				<div class="stack__row">
-					<span class="stack__cat">Hardware and EE</span>
-					<div class="stack__items">
-						<span class="tag">Arduino</span>
-						<span class="tag">Raspberry Pi</span>
-						<span class="tag">ESP32</span>
-						<span class="tag">KiCad</span>
-						<span class="tag">Proteus</span>
-						<span class="tag">LTspice</span>
-						<span class="tag">PCB Design</span>
-						<span class="tag">AutoCAD</span>
-						<span class="tag">Fusion 360</span>
-					</div>
-				</div>
-				<div class="stack__row">
-					<span class="stack__cat">Tools and Dev</span>
-					<div class="stack__items">
-						<span class="tag">Git / GitHub</span>
-						<span class="tag">Docker</span>
-						<span class="tag">Linux</span>
-						<span class="tag">AWS</span>
-						<span class="tag">Google Cloud</span>
-						<span class="tag">Figma</span>
-						<span class="tag">Blender</span>
-					</div>
-				</div>
+			<div class="sel__head">
+				<span class="pg-label">Selected work</span>
+				<a href="/projects.html" class="sel__all">All projects &rarr;</a>
 			</div>
-				</div>
-				<div class="stack__row">
-					<span class="stack__cat">Web and Frameworks</span>
-					<div class="stack__items">
-						<span class="tag">React</span>
-						<span class="tag">Node.js</span>
-						<span class="tag">Vite</span>
-						<span class="tag">SCSS</span>
-					</div>
-				</div>
-				<div class="stack__row">
-					<span class="stack__cat">Hardware and EE</span>
-					<div class="stack__items">
-						<span class="tag">Arduino</span>
-						<span class="tag">Raspberry Pi</span>
-						<span class="tag">ESP32</span>
-						<span class="tag">KiCad</span>
-						<span class="tag">Proteus</span>
-						<span class="tag">LTspice</span>
-						<span class="tag">PCB Design</span>
-						<span class="tag">Oscilloscope</span>
-						<span class="tag">AutoCAD</span>
-						<span class="tag">Fusion 360</span>
-					</div>
-				</div>
-				<div class="stack__row">
-					<span class="stack__cat">Tools and Dev</span>
-					<div class="stack__items">
-						<span class="tag">Git / GitHub</span>
-						<span class="tag">Docker</span>
-						<span class="tag">VS Code</span>
-						<span class="tag">Linux</span>
-						<span class="tag">Google Cloud</span>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
 
-	<!-- ══════════════════════════════════════════
-	     FEATURED PROJECTS
-	══════════════════════════════════════════ -->
-	<section class="featured section section-reveal">
-		<div class="featured__container">
-			<div class="featured__header">
-				<span class="section-label">03 &nbsp; Work</span>
-				<a href="/projects.html" class="featured__all">All projects →</a>
-			</div>
-			<h2 class="featured__heading">Featured projects</h2>
+			<div class="sel__list">
 
-			<div class="proj-list">
-
-				<a href="https://github.com/zaccesss/neopixel-led-cube" target="_blank" rel="noopener noreferrer" class="proj-item">
-					<div class="proj-item__num">01</div>
-					<div class="proj-item__body">
-						<h3 class="proj-item__title">NeoPixel LED Cube (4x4x4)</h3>
-						<p class="proj-item__desc">Fully-engineered 64-LED programmable cube with modular animation patterns, adaptive brightness via LDR sensor, and custom PCB design.</p>
-						<div class="tags">
+				<a href="https://github.com/zaccesss/neopixel-led-cube" target="_blank" rel="noopener noreferrer" class="sel-item">
+					<span class="sel-item__n">01</span>
+					<div class="sel-item__body">
+						<h3 class="sel-item__title">NeoPixel LED Cube (4x4x4)</h3>
+						<p class="sel-item__desc">64-LED programmable cube with 5 animation modes, adaptive brightness via LDR, and a custom PCB. Fully documented from schematic to firmware.</p>
+						<div class="sel-item__tags">
 							<span class="tag">Arduino</span>
 							<span class="tag">C++</span>
 							<span class="tag">KiCad</span>
+							<span class="tag">PCB Design</span>
 						</div>
 					</div>
-					<span class="proj-item__arrow">→</span>
+					<svg class="sel-item__arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
 				</a>
 
-				<a href="/projects.html" class="proj-item">
-					<div class="proj-item__num">02</div>
-					<div class="proj-item__body">
-						<h3 class="proj-item__title">Two-Stage Audio Amplifier</h3>
-						<p class="proj-item__desc">Professional two-stage amplifier (TL071 + OPA551) driving an 8-ohm speaker. Designed, simulated, built, and tested against full audio specification.</p>
-						<div class="tags">
-							<span class="tag">Analog</span>
-							<span class="tag">PCB</span>
-							<span class="tag">Proteus</span>
-						</div>
-					</div>
-					<span class="proj-item__arrow">→</span>
-				</a>
-
-				<a href="/projects.html" class="proj-item">
-					<div class="proj-item__num">03</div>
-					<div class="proj-item__body">
-						<h3 class="proj-item__title">CNC Milling Machine Control</h3>
-						<p class="proj-item__desc">Safety-critical control system with door interlocks, emergency stop, LCD feedback, and precise timing for a CNC milling machine.</p>
-						<div class="tags">
-							<span class="tag">Arduino</span>
-							<span class="tag">C++</span>
-							<span class="tag">Safety Systems</span>
-						</div>
-					</div>
-					<span class="proj-item__arrow">→</span>
-				</a>
-
-				<a href="https://github.com/zaccesss/astoncv" target="_blank" rel="noopener noreferrer" class="proj-item">
-					<div class="proj-item__num">04</div>
-					<div class="proj-item__body">
-						<h3 class="proj-item__title">AstonCV - Full-Stack CV Platform</h3>
-						<p class="proj-item__desc">Live CV database with user auth, PDF export, and 11 security layers (bcrypt, CSRF, PDO). Built with PHP 8.2 and MySQL. Deployed at astoncv.zacess.com.</p>
-						<div class="tags">
+				<a href="https://astoncv.zacess.com" target="_blank" rel="noopener noreferrer" class="sel-item">
+					<span class="sel-item__n">02</span>
+					<div class="sel-item__body">
+						<h3 class="sel-item__title">AstonCV</h3>
+						<p class="sel-item__desc">Full-stack CV platform with user auth, PDF export, and 11 security layers including bcrypt, CSRF protection, and PDO. Live at astoncv.zacess.com.</p>
+						<div class="sel-item__tags">
 							<span class="tag">PHP 8.2</span>
 							<span class="tag">MySQL</span>
 							<span class="tag">Security</span>
 						</div>
 					</div>
-					<span class="proj-item__arrow">→</span>
+					<svg class="sel-item__arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+				</a>
+
+				<a href="/projects.html" class="sel-item">
+					<span class="sel-item__n">03</span>
+					<div class="sel-item__body">
+						<h3 class="sel-item__title">Two-Stage Audio Amplifier</h3>
+						<p class="sel-item__desc">Analog amplifier driving an 8-ohm speaker from smartphone input. Designed, simulated in Proteus, laid out on PCB, and tested against full audio spec.</p>
+						<div class="sel-item__tags">
+							<span class="tag">Analog</span>
+							<span class="tag">TL071 / OPA551</span>
+							<span class="tag">Proteus</span>
+							<span class="tag">PCB</span>
+						</div>
+					</div>
+					<svg class="sel-item__arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
 				</a>
 
 			</div>
 		</div>
 	</section>
 
-	<!-- ══════════════════════════════════════════
-	     EXPERIENCE AND EDUCATION
-	══════════════════════════════════════════ -->
-	<section class="timeline section section-reveal">
-		<div class="timeline__container">
-			<span class="section-label">04 &nbsp; Background</span>
-			<div class="timeline__grid">
-
-				<div class="timeline__col">
-					<h2 class="timeline__col-title">Experience</h2>
-					<div class="tl-item">
-						<span class="tl-item__date">Oct 2025</span>
-						<h3 class="tl-item__role">Engineering Operations Simulation</h3>
-						<p class="tl-item__org">British Airways · Virtual</p>
-						<p class="tl-item__desc">A320 maintenance planning, risk assessment and regulatory compliance (CAA/EASA).</p>
-					</div>
-					<div class="tl-item">
-						<span class="tl-item__date">Aug 2025</span>
-						<h3 class="tl-item__role">Smart Mobility Work Experience</h3>
-						<p class="tl-item__org">Yunex Traffic · Virtual</p>
-						<p class="tl-item__desc">Intelligent transport systems, IoT traffic management, and smart city sensor integration.</p>
-					</div>
-					<div class="tl-item">
-						<span class="tl-item__date">Jul to Aug 2024</span>
-						<h3 class="tl-item__role">Consular Intern</h3>
-						<p class="tl-item__org">Ghana High Commission UK · London</p>
-						<p class="tl-item__desc">Consular documentation, visa processing, and administrative coordination.</p>
-					</div>
-					<div class="tl-item">
-						<span class="tl-item__date">Mar 2024</span>
-						<h3 class="tl-item__role">Diplomatic Admin and Estates Intern</h3>
-						<p class="tl-item__org">Ghana High Commission UK · London</p>
-						<p class="tl-item__desc">Office management, protocol, and estate coordination within a diplomatic mission.</p>
+	<!-- ═══════════════════════════════════════════
+	     SKILLS (compact)
+	═══════════════════════════════════════════ -->
+	<section class="cskills section-reveal">
+		<div class="cskills__container">
+			<span class="pg-label">Skills and tools</span>
+			<div class="cskills__grid">
+				<div class="cskills__group">
+					<span class="cskills__cat">Languages</span>
+					<div class="cskills__items">
+						<span class="tag">Python</span>
+						<span class="tag">C / C++</span>
+						<span class="tag">JavaScript</span>
+						<span class="tag">Java</span>
+						<span class="tag">MATLAB</span>
 					</div>
 				</div>
-
-				<div class="timeline__col">
-					<h2 class="timeline__col-title">Education</h2>
-					<div class="tl-item">
-						<span class="tl-item__date">2024 to 2028</span>
-						<h3 class="tl-item__role">BEng Electronic Engineering and CS</h3>
-						<p class="tl-item__org">Aston University · Predicted First Class</p>
-						<p class="tl-item__desc">Embedded systems, digital electronics, software development, and engineering mathematics.</p>
-					</div>
-					<div class="tl-item">
-						<span class="tl-item__date">2022 to 2024</span>
-						<h3 class="tl-item__role">BTEC Level 3 Extended Diploma</h3>
-						<p class="tl-item__org">Stanmore College · D*DD (Triple Distinction)</p>
-						<p class="tl-item__desc">Engineering. Awarded Best and Most Hardworking Engineering Student 2024.</p>
-					</div>
-					<div class="tl-item">
-						<span class="tl-item__date">2019 to 2022</span>
-						<h3 class="tl-item__role">WASSCE, General Arts</h3>
-						<p class="tl-item__org">Adisadel College · Cape Coast, Ghana</p>
-						<p class="tl-item__desc">Robotics Club, Scripture Union, Debate Society. APOSA Secretary.</p>
+				<div class="cskills__group">
+					<span class="cskills__cat">Web and frameworks</span>
+					<div class="cskills__items">
+						<span class="tag">React</span>
+						<span class="tag">Node.js</span>
+						<span class="tag">PHP 8.2</span>
+						<span class="tag">Django</span>
+						<span class="tag">SCSS</span>
 					</div>
 				</div>
-
+				<div class="cskills__group">
+					<span class="cskills__cat">Hardware and EE</span>
+					<div class="cskills__items">
+						<span class="tag">Arduino</span>
+						<span class="tag">ESP32</span>
+						<span class="tag">KiCad</span>
+						<span class="tag">LTspice</span>
+						<span class="tag">PCB Design</span>
+					</div>
+				</div>
+				<div class="cskills__group">
+					<span class="cskills__cat">Tools</span>
+					<div class="cskills__items">
+						<span class="tag">Git / GitHub</span>
+						<span class="tag">Linux</span>
+						<span class="tag">Docker</span>
+						<span class="tag">Figma</span>
+						<span class="tag">AWS</span>
+					</div>
+				</div>
 			</div>
 		</div>
 	</section>
 
-	<!-- ══════════════════════════════════════════
-	     CTA BAND
-	══════════════════════════════════════════ -->
-	<section class="cta-band section-reveal">
-		<div class="cta-band__container">
-			<span class="section-label">05 &nbsp; Contact</span>
-			<h2 class="cta-band__heading">Let's build something.</h2>
-			<p class="cta-band__sub">Open to internships, placements, and project collaborations.</p>
-			<div class="cta-band__actions">
-				<a href="/contact.html" class="btn btn--primary">Send a Message</a>
-				<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="btn btn--outline">View GitHub</a>
+	<!-- ═══════════════════════════════════════════
+	     CONTACT TEASER
+	═══════════════════════════════════════════ -->
+	<section class="home-cta section-reveal">
+		<div class="home-cta__container">
+			<h2 class="home-cta__heading">Working on something interesting?</h2>
+			<p class="home-cta__sub">Open to internships, placements, and engineering collaborations from 2025 onwards.</p>
+			<div class="home-cta__actions">
+				<a href="mailto:contact@zacess.com" class="btn btn--primary">contact@zacess.com</a>
+				<a href="/contact.html" class="btn btn--outline">Send a message</a>
 			</div>
 		</div>
 	</section>
