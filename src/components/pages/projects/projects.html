@@ -2,250 +2,298 @@
 	<script type="module" src="@components/layout/header/header.js"></script>
 	<script type="module" src="@components/pages/projects/projects.js"></script>
 
-	<!-- Page hero -->
-	<section class="projects-hero">
-		<div class="projects-hero__container">
-			<span class="section-label">Portfolio</span>
-			<h1 class="projects-hero__title">Projects</h1>
-			<p class="projects-hero__sub">Engineering work across embedded systems, electronics, software, and CAD design.</p>
+	<!-- ═══════════════════════════════════════════
+	     PAGE INTRO
+	═══════════════════════════════════════════ -->
+	<section class="pj-intro">
+		<div class="pj-intro__container">
+			<span class="pj-label">Projects</span>
+			<h1 class="pj-intro__title">Things I have built</h1>
+			<p class="pj-intro__sub">Engineering work across embedded systems, electronics, and full-stack software. Each project has a real problem behind it.</p>
 		</div>
 	</section>
 
-	<!-- Projects list -->
-	<section class="projects-list">
-		<div class="projects-list__container">
+	<!-- ═══════════════════════════════════════════
+	     PROJECT LIST
+	═══════════════════════════════════════════ -->
+	<section class="pj-list">
+		<div class="pj-list__container">
 
-			<!-- ── PROJECT 1 ─────────────────────────────────── -->
-			<article class="pj section-reveal">
-				<div class="pj__images">
-					<img src="@img/project1a.png" alt="NeoPixel LED Cube illuminated with colourful RGB patterns" class="pj__img pj__img--main" loading="lazy">
-					<div class="pj__thumbs">
-						<img src="@img/project1b.png" alt="NeoPixel LED Cube wire frame structure" class="pj__img" loading="lazy">
-						<img src="@img/project1c.png" alt="NeoPixel LED Cube with Arduino and breadboard" class="pj__img" loading="lazy">
+			<!-- PROJECT 01 -->
+			<article class="pj-card section-reveal" id="led-cube">
+				<div class="pj-card__head">
+					<span class="pj-card__num">01</span>
+					<div class="pj-card__meta">
+						<h2 class="pj-card__title">NeoPixel LED Cube (4x4x4)</h2>
+						<div class="pj-card__tags">
+							<span class="tag">Arduino Uno</span>
+							<span class="tag">C++</span>
+							<span class="tag">WS2812B</span>
+							<span class="tag">KiCad</span>
+							<span class="tag">PCB Design</span>
+							<span class="tag">LDR Sensor</span>
+						</div>
 					</div>
-				</div>
-				<div class="pj__content">
-					<div class="pj__meta">
-						<span class="pj__number">01</span>
-						<span class="pj__year">2025</span>
-					</div>
-					<h2 class="pj__title">NeoPixel LED Cube (4×4×4)</h2>
-					<div class="tags pj__tags">
-						<span class="tag">Arduino Uno</span>
-						<span class="tag">C++</span>
-						<span class="tag">WS2812B LEDs</span>
-						<span class="tag">KiCad</span>
-						<span class="tag">PCB Design</span>
-						<span class="tag">LDR Sensor</span>
-					</div>
-					<p class="pj__desc">Fully-engineered 64-LED programmable cube featuring modular animation patterns, adaptive brightness control via LDR sensor, and comprehensive technical documentation. Demonstrates embedded systems design, firmware development, power electronics, and professional engineering practices.</p>
-					<ul class="pj__highlights">
-						<li>Non-blocking firmware using <code>millis()</code> for smooth multi-pattern animations</li>
-						<li>LDR sensor dynamically adjusts brightness in real-time</li>
-						<li>5 animation modes: RGB Fade, Fire Effect, Rainbow, Color Wipe, Rain</li>
-						<li>Custom PCB designed in KiCad with power distribution and trace width calculations</li>
-						<li>PROGMEM memory optimisation to maximise available RAM</li>
-					</ul>
-					<a href="https://github.com/zaccesss/neopixel-led-cube" target="_blank" rel="noopener noreferrer" class="pj__link">
-						View on GitHub
-						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					<a href="https://github.com/zaccesss/neopixel-led-cube" target="_blank" rel="noopener noreferrer" class="pj-card__link">
+						GitHub
+						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
 					</a>
+				</div>
+
+				<div class="pj-card__body">
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Problem</span>
+						<p>I wanted to build something that combined hardware design, PCB layout, and firmware in one project. Most LED projects online are wired point-to-point and fall apart quickly. I wanted something properly engineered.</p>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">What I built</span>
+						<p>A 4x4x4 cube of 64 WS2812B LEDs on a custom PCB designed in KiCad. The firmware runs 5 animation modes using non-blocking <code>millis()</code> timing, so modes run smoothly without freezing the controller. An LDR sensor reads ambient light and adjusts brightness in real time.</p>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Key decisions</span>
+						<ul class="pj-card__list">
+							<li>Non-blocking animation loop using <code>millis()</code> instead of <code>delay()</code> for smooth multi-pattern switching</li>
+							<li>PROGMEM storage for animation data to keep RAM available for runtime logic</li>
+							<li>PCB trace width calculated for 5V / 500mA supply to prevent thermal issues</li>
+							<li>LDR calibrated against measured lux values for meaningful brightness response</li>
+						</ul>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">What I learned</span>
+						<p>Power distribution matters more than I expected at this scale. I also learned how quickly a bad PCB layout can create noise that affects the timing of addressable LEDs. The full schematic-to-firmware process taught me to think in terms of the whole system, not just the code.</p>
+					</div>
 				</div>
 			</article>
 
-			<!-- ── PROJECT 2 ─────────────────────────────────── -->
-			<article class="pj section-reveal">
-				<div class="pj__images">
-					<img src="@img/project2a.png" alt="Audio amplifier circuit with oscilloscope testing setup" class="pj__img pj__img--main" loading="lazy">
-					<div class="pj__thumbs">
-						<img src="@img/project2b.png" alt="Audio amplifier PCB showing op-amps" class="pj__img" loading="lazy">
-						<img src="@img/project2c.png" alt="Frequency response testing with oscilloscope waveforms" class="pj__img" loading="lazy">
+			<!-- PROJECT 02 -->
+			<article class="pj-card section-reveal" id="astoncv">
+				<div class="pj-card__head">
+					<span class="pj-card__num">02</span>
+					<div class="pj-card__meta">
+						<h2 class="pj-card__title">AstonCV</h2>
+						<div class="pj-card__tags">
+							<span class="tag">PHP 8.2</span>
+							<span class="tag">MySQL</span>
+							<span class="tag">bcrypt</span>
+							<span class="tag">CSRF</span>
+							<span class="tag">PDO</span>
+							<span class="tag">PDF Export</span>
+						</div>
 					</div>
-				</div>
-				<div class="pj__content">
-					<div class="pj__meta">
-						<span class="pj__number">02</span>
-						<span class="pj__year">2026</span>
-					</div>
-					<h2 class="pj__title">Two-Stage Audio Amplifier</h2>
-					<div class="tags pj__tags">
-						<span class="tag">TL071 Op-Amp</span>
-						<span class="tag">OPA551</span>
-						<span class="tag">PCB Design</span>
-						<span class="tag">Proteus</span>
-						<span class="tag">Oscilloscope</span>
-					</div>
-					<p class="pj__desc">Professional two-stage audio amplifier capable of driving an 8Ω speaker from smartphone audio input. Designed, simulated, built, and tested against full specification, showcasing analog circuit design, active filtering, power electronics, and PCB layout.</p>
-					<ul class="pj__highlights">
-						<li>Stage 1: TL071 active bandpass filter: 9 Hz to 24.1 kHz</li>
-						<li>Stage 2: OPA551 power amplifier, up to 200 mA, 0.56 W into 8Ω</li>
-						<li>Single-supply (+9 to 12 V) with virtual ground biasing</li>
-						<li>Simulation-to-hardware correlation within ±0.5 dB across audio band</li>
-						<li>Compact 80 mm × 50 mm PCB with reverse-polarity protection</li>
-					</ul>
-					<a href="https://github.com/zaccesss/neopixel-led-cube" target="_blank" rel="noopener noreferrer" class="pj__link">
-						View on GitHub
-						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					<a href="https://astoncv.zacess.com" target="_blank" rel="noopener noreferrer" class="pj-card__link">
+						Live site
+						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
 					</a>
+				</div>
+
+				<div class="pj-card__body">
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Problem</span>
+						<p>Students at my university had no standard place to store and share their CVs. Sending PDF files around by email is messy and doesn't version well. I wanted something functional, not just a course project.</p>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">What I built</span>
+						<p>A full-stack CV platform at astoncv.zacess.com. Users register, create their CV through a structured form, and export it as a formatted PDF. It runs on PHP 8.2 with MySQL, deployed on a VPS with Nginx.</p>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Key decisions</span>
+						<ul class="pj-card__list">
+							<li>11 security layers: bcrypt password hashing, CSRF tokens, PDO prepared statements, input sanitisation, rate limiting, session security, and more</li>
+							<li>PDF generation handled server-side to avoid client-side library inconsistencies</li>
+							<li>Role-based access so users can only view and edit their own data</li>
+							<li>Deployed to a real VPS, not shared hosting, to get production experience</li>
+						</ul>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">What I learned</span>
+						<p>Security cannot be an afterthought. I added authentication after the initial build and it cost me twice as long as building it in from the start would have. Building something live also taught me server configuration, Nginx, and debugging in production.</p>
+					</div>
 				</div>
 			</article>
 
-			<!-- ── PROJECT 3 ─────────────────────────────────── -->
-			<article class="pj section-reveal">
-				<div class="pj__images">
-					<img src="@img/project3a.png" alt="Interactive web terminal portfolio interface" class="pj__img pj__img--main" loading="lazy">
-					<div class="pj__thumbs">
-						<img src="@img/project3b.png" alt="Terminal portfolio command output" class="pj__img" loading="lazy">
-						<img src="@img/project3c.png" alt="Terminal portfolio mobile view" class="pj__img" loading="lazy">
+			<!-- PROJECT 03 -->
+			<article class="pj-card section-reveal" id="amplifier">
+				<div class="pj-card__head">
+					<span class="pj-card__num">03</span>
+					<div class="pj-card__meta">
+						<h2 class="pj-card__title">Two-Stage Audio Amplifier</h2>
+						<div class="pj-card__tags">
+							<span class="tag">TL071 Op-Amp</span>
+							<span class="tag">OPA551</span>
+							<span class="tag">Proteus</span>
+							<span class="tag">PCB Layout</span>
+							<span class="tag">Oscilloscope</span>
+						</div>
 					</div>
-				</div>
-				<div class="pj__content">
-					<div class="pj__meta">
-						<span class="pj__number">03</span>
-						<span class="pj__year">2024</span>
-					</div>
-					<h2 class="pj__title">Interactive Web Terminal Portfolio</h2>
-					<div class="tags pj__tags">
-						<span class="tag">HTML5</span>
-						<span class="tag">CSS3</span>
-						<span class="tag">JavaScript</span>
-						<span class="tag">DOM Manipulation</span>
-						<span class="tag">Terminal UI</span>
-					</div>
-					<p class="pj__desc">Sophisticated web-based terminal interface that simulates a command-line portfolio experience directly in the browser. Built with vanilla JavaScript, featuring custom command parsing, animated output, and a full suite of navigable portfolio commands.</p>
-					<ul class="pj__highlights">
-						<li>Custom command parser with tab-completion and command history</li>
-						<li>Animated typewriter output for an authentic terminal feel</li>
-						<li>Fully keyboard-navigable with accessible markup</li>
-						<li>Zero dependencies. Pure HTML, CSS, and vanilla JavaScript</li>
-					</ul>
-					<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="pj__link">
-						View on GitHub
-						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					<a href="/projects.html" class="pj-card__link pj-card__link--dim">
+						University project
 					</a>
+				</div>
+
+				<div class="pj-card__body">
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Problem</span>
+						<p>Drive an 8-ohm speaker from a smartphone line-level output. The signal needs to be filtered, amplified to usable power levels, and the circuit needs to run from a single supply.</p>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">What I built</span>
+						<p>A two-stage amplifier: Stage 1 is a TL071-based active bandpass filter (9 Hz to 24.1 kHz). Stage 2 is an OPA551 power amplifier capable of delivering up to 0.56 W into 8 ohms. The circuit runs from a single +9 to 12 V supply using a virtual ground mid-rail.</p>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Key decisions</span>
+						<ul class="pj-card__list">
+							<li>Simulation in Proteus before building to validate component values and catch issues</li>
+							<li>Virtual ground biasing to run both op-amp stages from a single supply</li>
+							<li>PCB at 80mm x 50mm with reverse-polarity protection diode</li>
+							<li>Hardware results within plus or minus 0.5 dB of simulated response across the audio band</li>
+						</ul>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">What I learned</span>
+						<p>Simulation and physical builds differ more than textbook examples suggest. Ground planes, component placement, and lead resistance all affect measured results. Getting within 0.5 dB of the simulated response required careful PCB layout.</p>
+					</div>
 				</div>
 			</article>
 
-			<!-- ── PROJECT 4 ─────────────────────────────────── -->
-			<article class="pj section-reveal">
-				<div class="pj__images">
-					<img src="@img/project4a.png" alt="CNC control system circuit board on veroboard" class="pj__img pj__img--main" loading="lazy">
-					<div class="pj__thumbs">
-						<img src="@img/project4b.png" alt="CNC control system LCD display" class="pj__img" loading="lazy">
-						<img src="@img/project4c.png" alt="CNC control system wiring diagram" class="pj__img" loading="lazy">
+			<!-- PROJECT 04 -->
+			<article class="pj-card section-reveal" id="cnc">
+				<div class="pj-card__head">
+					<span class="pj-card__num">04</span>
+					<div class="pj-card__meta">
+						<h2 class="pj-card__title">CNC Milling Machine Control System</h2>
+						<div class="pj-card__tags">
+							<span class="tag">Arduino</span>
+							<span class="tag">C++</span>
+							<span class="tag">Safety Logic</span>
+							<span class="tag">LCD 16x2</span>
+							<span class="tag">State Machine</span>
+						</div>
 					</div>
-				</div>
-				<div class="pj__content">
-					<div class="pj__meta">
-						<span class="pj__number">04</span>
-						<span class="pj__year">2024</span>
-					</div>
-					<h2 class="pj__title">CNC Milling Machine Control System</h2>
-					<div class="tags pj__tags">
-						<span class="tag">Arduino</span>
-						<span class="tag">C++</span>
-						<span class="tag">TL071 Op-Amp</span>
-						<span class="tag">LCD 16×2</span>
-						<span class="tag">Safety Systems</span>
-					</div>
-					<p class="pj__desc">Safety-critical control system for a CNC milling machine featuring door interlocks, emergency stop functionality, LCD user feedback, and precise timing control. Designed to industrial safety standards with fail-safe logic throughout.</p>
-					<ul class="pj__highlights">
-						<li>Hardware and software door interlock with fail-safe logic</li>
-						<li>Emergency stop with immediate motor cutoff and alarm</li>
-						<li>Real-time 16×2 LCD status display for operator feedback</li>
-						<li>Debounced multi-button interface with state machine architecture</li>
-					</ul>
-					<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="pj__link">
-						View on GitHub
-						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					<a href="/projects.html" class="pj-card__link pj-card__link--dim">
+						University project
 					</a>
+				</div>
+
+				<div class="pj-card__body">
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Problem</span>
+						<p>CNC machines are safety-critical. The control system needed to prevent operation when the door is open, respond immediately to emergency stops, and give the operator real-time feedback throughout.</p>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">What I built</span>
+						<p>A microcontroller-based control system with a hardware and software door interlock, emergency stop with immediate motor cutoff, debounced multi-button input, and a 16x2 LCD display showing machine state in real time.</p>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Key decisions</span>
+						<ul class="pj-card__list">
+							<li>State machine architecture to make every possible transition explicit and testable</li>
+							<li>Hardware interlock as the primary safety mechanism, not software</li>
+							<li>Input debouncing handled in firmware to prevent phantom triggers</li>
+							<li>Alarm output on emergency stop that cannot be cleared without a reset sequence</li>
+						</ul>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">What I learned</span>
+						<p>State machines are genuinely useful for safety-critical code. They force you to be explicit about what is allowed in each state, which makes edge cases visible before they become bugs. I also learned that fail-safe logic means defaulting to the safe state, not the convenient one.</p>
+					</div>
 				</div>
 			</article>
 
-			<!-- ── PROJECT 5 ─────────────────────────────────── -->
-			<article class="pj section-reveal">
-				<div class="pj__images">
-					<img src="@img/project5a.png" alt="Goods lift Arduino system with LCD floor display" class="pj__img pj__img--main" loading="lazy">
-					<div class="pj__thumbs">
-						<img src="@img/project5b.png" alt="Goods lift control panel" class="pj__img" loading="lazy">
-						<img src="@img/project5c.png" alt="Goods lift system wiring" class="pj__img" loading="lazy">
+			<!-- PROJECT 05 -->
+			<article class="pj-card section-reveal" id="goods-lift">
+				<div class="pj-card__head">
+					<span class="pj-card__num">05</span>
+					<div class="pj-card__meta">
+						<h2 class="pj-card__title">Goods Lift Control System</h2>
+						<div class="pj-card__tags">
+							<span class="tag">Arduino</span>
+							<span class="tag">C++</span>
+							<span class="tag">DC Motor Control</span>
+							<span class="tag">LCD 16x2</span>
+							<span class="tag">Priority Queue</span>
+						</div>
 					</div>
-				</div>
-				<div class="pj__content">
-					<div class="pj__meta">
-						<span class="pj__number">05</span>
-						<span class="pj__year">2025 to 2026</span>
-					</div>
-					<h2 class="pj__title">Goods Lift Control System</h2>
-					<div class="tags pj__tags">
-						<span class="tag">Arduino</span>
-						<span class="tag">C++</span>
-						<span class="tag">LCD 16×2</span>
-						<span class="tag">DC Motor Control</span>
-						<span class="tag">Safety Sensors</span>
-					</div>
-					<p class="pj__desc">Microcontroller-based goods lift (elevator) system featuring multi-floor navigation, safety sensors, real-time LCD feedback, and robust emergency procedures. Designed with a full state-machine architecture and priority-based floor request handling.</p>
-					<ul class="pj__highlights">
-						<li>Multi-floor navigation with priority-queue request handling</li>
-						<li>Limit switches and safety sensors prevent over-travel</li>
-						<li>Real-time LCD floor indicator and direction display</li>
-						<li>Emergency stop with door-open interlock safety logic</li>
-					</ul>
-					<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="pj__link">
-						View on GitHub
-						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					<a href="/projects.html" class="pj-card__link pj-card__link--dim">
+						University project
 					</a>
+				</div>
+
+				<div class="pj-card__body">
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Problem</span>
+						<p>Build a functional multi-floor lift controller. It needs to accept floor requests, travel to them in the right order, prevent over-travel, and respond correctly to safety conditions.</p>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">What I built</span>
+						<p>A microcontroller-based lift (elevator) system with multi-floor navigation, a priority-queue request handler, limit switches to prevent over-travel, real-time LCD floor and direction display, and door-open interlock logic.</p>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Key decisions</span>
+						<ul class="pj-card__list">
+							<li>Priority queue for floor requests, serving requests in travel direction before reversing</li>
+							<li>Limit switches as hardware-level safety, triggering hard stops independently of firmware</li>
+							<li>Emergency stop clears the queue and holds until manually reset</li>
+							<li>LCD updates on every state change, not on a timer, for accurate real-time feedback</li>
+						</ul>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">What I learned</span>
+						<p>Queue-based scheduling is much cleaner than if-else chains for multi-stop navigation. I also learned that physical motor control introduces timing considerations that simulation does not capture well.</p>
+					</div>
 				</div>
 			</article>
 
-			<!-- ── PROJECT 6 ─────────────────────────────────── -->
-			<article class="pj section-reveal">
-				<div class="pj__images">
-					<img src="@img/project6a.png" alt="CAD technical drawing with dimensions" class="pj__img pj__img--main" loading="lazy">
-					<div class="pj__thumbs">
-						<img src="@img/project6b.png" alt="3D CAD model render" class="pj__img" loading="lazy">
-						<img src="@img/project6c.png" alt="Engineering drawing with GD&T annotations" class="pj__img" loading="lazy">
+			<!-- PROJECT 06 -->
+			<article class="pj-card section-reveal" id="cad">
+				<div class="pj-card__head">
+					<span class="pj-card__num">06</span>
+					<div class="pj-card__meta">
+						<h2 class="pj-card__title">CAD Engineering Design Portfolio</h2>
+						<div class="pj-card__tags">
+							<span class="tag">AutoCAD</span>
+							<span class="tag">2D Technical Drawing</span>
+							<span class="tag">3D Modelling</span>
+							<span class="tag">BS 8888</span>
+							<span class="tag">GD&amp;T</span>
+						</div>
 					</div>
-				</div>
-				<div class="pj__content">
-					<div class="pj__meta">
-						<span class="pj__number">06</span>
-						<span class="pj__year">2024 to 2025</span>
-					</div>
-					<h2 class="pj__title">CAD Engineering Design Portfolio</h2>
-					<div class="tags pj__tags">
-						<span class="tag">AutoCAD</span>
-						<span class="tag">2D Technical Drawing</span>
-						<span class="tag">3D Modelling</span>
-						<span class="tag">BS 8888</span>
-						<span class="tag">GD&amp;T</span>
-					</div>
-					<p class="pj__desc">Three CAD projects demonstrating proficiency in 2D technical drawing and 3D modelling to industry-standard AutoCAD software. Work conforms to BS 8888 engineering drawing standards with full dimensioning and geometric tolerancing.</p>
-					<ul class="pj__highlights">
-						<li>Full orthographic projection drawings with section views</li>
-						<li>3D parametric models with assembly constraints</li>
-						<li>Dimensioning and GD&amp;T annotations to BS 8888</li>
-						<li>Bill of materials and title block documentation</li>
-					</ul>
-					<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="pj__link">
-						View on GitHub
-						<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
+					<a href="/projects.html" class="pj-card__link pj-card__link--dim">
+						University project
 					</a>
+				</div>
+
+				<div class="pj-card__body">
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Overview</span>
+						<p>Three CAD projects demonstrating 2D technical drawing and 3D parametric modelling to industry-standard AutoCAD. Work conforms to BS 8888 engineering drawing standards with full dimensioning, section views, and geometric tolerancing annotations.</p>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">Key features</span>
+						<ul class="pj-card__list">
+							<li>Full orthographic projection drawings with section and auxiliary views</li>
+							<li>3D parametric models with proper assembly constraints</li>
+							<li>GD&amp;T annotations to BS 8888 for manufacturing tolerances</li>
+							<li>Bill of materials and title block documentation to professional standard</li>
+						</ul>
+					</div>
+					<div class="pj-card__section">
+						<span class="pj-card__section-label">What I learned</span>
+						<p>Engineering drawings are a language. Every line, symbol, and annotation has a specific meaning. Getting comfortable with GD&amp;T in particular changed how I think about physical tolerances when designing PCBs and enclosures.</p>
+					</div>
 				</div>
 			</article>
 
 		</div>
 	</section>
 
-	<!-- Bottom CTA -->
-	<section class="cta-band section-reveal">
-		<div class="cta-band__container">
-			<span class="section-label">Contact</span>
-			<h2 class="cta-band__heading">Interested in working together?</h2>
-			<p class="cta-band__sub">Open to internships, placements, and project collaborations.</p>
-			<div class="cta-band__actions">
-				<a href="/contact.html" class="btn btn--primary">Get In Touch</a>
-				<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="btn btn--ghost">View GitHub</a>
+	<!-- CTA -->
+	<section class="pj-cta section-reveal">
+		<div class="pj-cta__container">
+			<h2 class="pj-cta__heading">Interested in working together?</h2>
+			<p class="pj-cta__sub">Open to internships, placements, and engineering collaborations.</p>
+			<div class="pj-cta__actions">
+				<a href="/contact.html" class="btn btn--primary">Get in touch</a>
+				<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="btn btn--outline">View GitHub</a>
 			</div>
 		</div>
 	</section>

@@ -1,16 +1,32 @@
 import './projects.scss'
 
 // Scroll reveal
-const revealObserver = new IntersectionObserver(
-	entries => {
-		entries.forEach(entry => {
-			if (entry.isIntersecting) {
-				entry.target.classList.add('is-visible')
-				revealObserver.unobserve(entry.target)
-			}
-		})
-	},
-	{ threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+const revealObs = new IntersectionObserver(
+	entries => entries.forEach(e => {
+		if (e.isIntersecting) {
+			e.target.classList.add('is-visible')
+			revealObs.unobserve(e.target)
+		}
+	}),
+	{ threshold: 0.05, rootMargin: '0px 0px -40px 0px' }
 )
 
-document.querySelectorAll('.section-reveal').forEach(el => revealObserver.observe(el))
+document.querySelectorAll('.section-reveal').forEach(el => revealObs.observe(el))
+
+// Scroll progress
+const bar = document.createElement('div')
+bar.className = 'scroll-progress'
+document.body.appendChild(bar)
+
+window.addEventListener('scroll', () => {
+	const max = document.documentElement.scrollHeight - window.innerHeight
+	bar.style.width = max > 0 ? (window.scrollY / max * 100) + '%' : '0%'
+}, { passive: true })
+
+// Header scroll state
+const header = document.querySelector('.header')
+if (header) {
+	window.addEventListener('scroll', () => {
+		header.classList.toggle('header--scrolled', window.scrollY > 20)
+	}, { passive: true })
+}

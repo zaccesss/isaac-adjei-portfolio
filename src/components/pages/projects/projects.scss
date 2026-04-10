@@ -1,214 +1,237 @@
-// ────────────────────────────────────────────────────────────
-// PROJECTS PAGE HERO
-// ────────────────────────────────────────────────────────────
-.projects-hero {
-	padding: 160px 0 72px;
+// ────────────────────────────────────────────────
+// PROJECTS PAGE
+// ────────────────────────────────────────────────
+
+// ── SHARED LABEL ─────────────────────────────────
+.pj-label {
+	display: block;
+	font-family: $fontMono, monospace;
+	font-size: 11px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+	margin-bottom: 32px;
+}
+
+// ── PAGE INTRO ────────────────────────────────────
+.pj-intro {
+	padding: 140px 0 80px;
 	border-bottom: 1px solid var(--border);
 
-	&__container {}
-
 	&__title {
-		font-size: clamp(44px, 7vw, 80px);
+		font-family: $fontHeading, sans-serif;
+		font-size: clamp(44px, 7vw, 88px);
 		font-weight: 800;
-		letter-spacing: -0.03em;
-		margin: 8px 0 16px;
+		letter-spacing: -0.04em;
+		line-height: 0.95;
+		margin: 0 0 20px;
 	}
 
 	&__sub {
 		font-size: 17px;
 		color: var(--text-muted);
 		max-width: 480px;
-		line-height: 1.5;
+		line-height: 1.6;
+		margin: 0;
 	}
 }
 
-// ────────────────────────────────────────────────────────────
-// PROJECTS LIST
-// ────────────────────────────────────────────────────────────
-.projects-list {
-	padding: 80px 0;
+// ── PROJECT LIST ──────────────────────────────────
+.pj-list {
+	padding: 0 0 80px;
 
 	&__container {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: 0;
 	}
 }
 
-// ────────────────────────────────────────────────────────────
-// INDIVIDUAL PROJECT (pj)
-// ────────────────────────────────────────────────────────────
-.pj {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 0;
-	border: 1px solid var(--border);
-	border-radius: var(--radius);
-	overflow: hidden;
-	background: var(--surface);
-	margin-bottom: 24px;
-	transition: border-color var(--trans);
+// ── PROJECT CARD ──────────────────────────────────
+.pj-card {
+	padding: 64px 0;
+	border-bottom: 1px solid var(--border);
 
-	&:hover {
-		border-color: var(--accent-dim);
-	}
+	&:first-child { border-top: 1px solid var(--border); margin-top: 64px; }
 
-	// Alternate image/content sides
-	&:nth-child(even) {
-		direction: rtl;
-
-		> * {
-			direction: ltr;
-		}
-	}
-
-	@media (max-width: #{$tablet}px) {
-		grid-template-columns: 1fr;
-		direction: ltr !important;
-
-		> * {
-			direction: ltr !important;
-		}
-	}
-
-	// ── Images panel ──────────────────────────────────────
-	&__images {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		background: var(--bg);
-	}
-
-	&__img {
-		width: 100%;
-		display: block;
-		object-fit: cover;
-		background: var(--surface-2);
-
-		&--main {
-			flex: 1;
-			min-height: 260px;
-			max-height: 380px;
-		}
-	}
-
-	&__thumbs {
+	&__head {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 2px;
-		flex-shrink: 0;
-
-		.pj__img {
-			height: 120px;
-			object-fit: cover;
-		}
-	}
-
-	// ── Content panel ─────────────────────────────────────
-	&__content {
-		padding: 40px 44px;
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-		justify-content: center;
+		grid-template-columns: 56px 1fr auto;
+		gap: 0 24px;
+		align-items: start;
+		margin-bottom: 40px;
 
 		@media (max-width: #{$mobile}px) {
-			padding: 28px 24px;
+			grid-template-columns: 40px 1fr;
+			gap: 0 16px;
 		}
+	}
+
+	&__num {
+		font-family: $fontMono, monospace;
+		font-size: 13px;
+		color: var(--text-muted);
+		padding-top: 6px;
 	}
 
 	&__meta {
 		display: flex;
-		align-items: center;
+		flex-direction: column;
 		gap: 12px;
 	}
 
-	&__number {
-		font-family: $fontMono, monospace;
-		font-size: 12px;
-		font-weight: 700;
-		color: var(--accent);
-		opacity: 0.7;
-	}
-
-	&__year {
-		font-size: 12px;
-		color: var(--text-muted);
-	}
-
 	&__title {
-		font-size: clamp(20px, 2.5vw, 28px);
-		font-weight: 700;
+		font-family: $fontHeading, sans-serif;
+		font-size: clamp(22px, 3vw, 32px);
+		font-weight: 800;
+		letter-spacing: -0.03em;
+		line-height: 1.1;
 		margin: 0;
-		line-height: 1.2;
 	}
 
 	&__tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+
+	&__link {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-family: $fontMono, monospace;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--accent);
+		letter-spacing: 0.02em;
+		white-space: nowrap;
+		transition: gap var(--trans), opacity var(--trans);
+		padding-top: 6px;
+
+		svg {
+			width: 14px;
+			height: 14px;
+			transition: transform var(--trans);
+		}
+
+		&:hover {
+			gap: 10px;
+
+			svg { transform: translateX(2px); }
+		}
+
+		&--dim {
+			color: var(--text-muted);
+
+			&:hover { color: var(--text-2); }
+		}
+
+		@media (max-width: #{$mobile}px) {
+			display: none;
+		}
+	}
+
+	// Body: sections
+	&__body {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 32px 48px;
+		padding-left: 80px;
+
+		@media (max-width: #{$tablet}px) {
+			grid-template-columns: 1fr;
+			padding-left: 0;
+		}
+	}
+
+	&__section {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	&__section-label {
+		font-family: $fontMono, monospace;
+		font-size: 10px;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--accent);
+	}
+
+	p {
+		font-size: 14px;
+		line-height: 1.75;
+		color: var(--text-2);
 		margin: 0;
+
+		code {
+			font-family: $fontMono, monospace;
+			font-size: 12px;
+			background: var(--surface-2);
+			color: var(--accent);
+			padding: 1px 6px;
+			border-radius: 4px;
+		}
 	}
 
-	&__desc {
-		font-size: 15px;
-		color: var(--text-muted);
-		line-height: 1.65;
-	}
-
-	&__highlights {
-		padding-left: 0;
+	&__list {
 		list-style: none;
+		padding: 0;
+		margin: 0;
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
-		margin: 0;
 
 		li {
-			font-size: 13px;
-			color: var(--text-3);
-			padding-left: 16px;
+			font-size: 14px;
+			line-height: 1.6;
+			color: var(--text-2);
+			padding-left: 14px;
 			position: relative;
-			line-height: 1.5;
 
 			&::before {
 				content: '/';
 				position: absolute;
 				left: 0;
 				color: var(--accent);
-				opacity: 0.6;
+				opacity: 0.7;
+				font-family: $fontMono, monospace;
+				font-size: 12px;
 			}
 
 			code {
 				font-family: $fontMono, monospace;
-				background: var(--surface-2);
-				padding: 1px 5px;
-				border-radius: 4px;
 				font-size: 12px;
+				background: var(--surface-2);
 				color: var(--accent);
+				padding: 1px 6px;
+				border-radius: 4px;
 			}
 		}
 	}
+}
 
-	&__link {
-		display: inline-flex;
-		align-items: center;
-		gap: 8px;
-		font-size: 14px;
-		font-weight: 600;
-		color: var(--accent);
-		margin-top: 4px;
-		transition: gap var(--trans), opacity var(--trans);
+// ── PROJECTS CTA ──────────────────────────────────
+.pj-cta {
+	padding: 100px 0;
 
-		svg {
-			width: 16px;
-			height: 16px;
-			transition: transform var(--trans);
-		}
+	&__heading {
+		font-family: $fontHeading, sans-serif;
+		font-size: clamp(26px, 4vw, 40px);
+		font-weight: 800;
+		letter-spacing: -0.03em;
+		margin: 0 0 14px;
+	}
 
-		&:hover {
-			opacity: 0.8;
+	&__sub {
+		font-size: 16px;
+		color: var(--text-muted);
+		margin: 0 0 32px;
+	}
 
-			svg {
-				transform: translateX(3px);
-			}
-		}
+	&__actions {
+		display: flex;
+		gap: 12px;
+		flex-wrap: wrap;
 	}
 }
