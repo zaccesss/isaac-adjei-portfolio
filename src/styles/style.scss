@@ -11,6 +11,7 @@
 	--text:         #f0f0f0;
 	--text-2:       #848484;
 	--text-3:       #404040;
+	--text-muted:   #848484;
 	--accent:       #f97316;
 	--accent-2:     #fb923c;
 	--accent-dim:   rgba(249, 115, 22, 0.1);
@@ -36,6 +37,7 @@
 	--text:         #111111;
 	--text-2:       #555555;
 	--text-3:       #999999;
+	--text-muted:   #555555;
 	--accent:       #c2410c;
 	--accent-2:     #ea580c;
 	--accent-dim:   rgba(194, 65, 12, 0.08);
@@ -138,6 +140,18 @@ img {
 	}
 
 	&--outline {
+		background: transparent;
+		color: var(--text-2);
+		border-color: var(--border-2);
+
+		&:hover {
+			border-color: var(--text-3);
+			color: var(--text);
+			transform: translateY(-2px);
+		}
+	}
+
+	&--ghost {
 		background: transparent;
 		color: var(--text-2);
 		border-color: var(--border-2);

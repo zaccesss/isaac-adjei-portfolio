@@ -50,7 +50,7 @@
 	transition: border-color var(--trans);
 
 	&:hover {
-		border-color: rgba(59, 130, 246, 0.2);
+		border-color: var(--accent-dim);
 	}
 
 	// Alternate image/content sides
@@ -124,7 +124,7 @@
 	}
 
 	&__number {
-		font-family: "Syne", sans-serif;
+		font-family: $fontMono, monospace;
 		font-size: 12px;
 		font-weight: 700;
 		color: var(--accent);
@@ -163,7 +163,7 @@
 
 		li {
 			font-size: 13px;
-			color: rgba(240, 240, 240, 0.55);
+			color: var(--text-3);
 			padding-left: 16px;
 			position: relative;
 			line-height: 1.5;
@@ -177,7 +177,7 @@
 			}
 
 			code {
-				font-family: "Courier New", monospace;
+				font-family: $fontMono, monospace;
 				background: var(--surface-2);
 				padding: 1px 5px;
 				border-radius: 4px;
