@@ -1,184 +1,248 @@
 <div class="home" data-anim-index>
-	<script type="module" src="@components/layout/header/header.js"></script>
-	<script type="module" src="@components/pages/index/index.js"></script>
+  <script type="module" src="@components/layout/header/header.js"></script>
+  <script type="module" src="@components/pages/index/index.js"></script>
 
-	<!-- ═══════════════════════════════════════════
+  <!-- ═══════════════════════════════════════════
 	     HERO
 	═══════════════════════════════════════════ -->
-	<section class="hero">
-		<div class="hero__container">
+  <section class="hero">
+    <div class="hero__container">
+      <div class="hero__badge">
+        <span class="hero__badge-dot"></span>
+        Open to internships and placements - 2025/26
+      </div>
 
-			<div class="hero__badge">
-				<span class="hero__badge-dot"></span>
-				Open to internships and placements — 2025/26
-			</div>
+      <div class="hero__body">
+        <h1 class="hero__name">
+          <span class="hero__name-first">Isaac</span>
+          <span class="hero__name-last">Adjei.</span>
+        </h1>
+        <div class="hero__aside">
+          <p class="hero__role">Electronic Engineering and Computer Science</p>
+          <p class="hero__bio">
+            I study at Aston University and build things with circuits and code.
+            Embedded systems, analog electronics, full-stack platforms. Sometimes all
+            three in the same project.
+          </p>
+          <div class="hero__actions">
+            <a href="/projects.html" class="btn btn--primary">My projects</a>
+            <a href="/about.html" class="btn btn--outline">About me</a>
+          </div>
+        </div>
+      </div>
 
-			<div class="hero__body">
-				<h1 class="hero__name">
-					<span class="hero__name-first">Isaac</span>
-					<span class="hero__name-last">Adjei.</span>
-				</h1>
-				<div class="hero__aside">
-					<p class="hero__role">Electronic Engineering and Computer Science</p>
-					<p class="hero__bio">I study at Aston University and build things with circuits and code. Embedded systems, analog electronics, full-stack platforms. Sometimes all three in the same project.</p>
-					<div class="hero__actions">
-						<a href="/projects.html" class="btn btn--primary">My projects</a>
-						<a href="/about.html" class="btn btn--outline">About me</a>
-					</div>
-				</div>
-			</div>
+      <div class="hero__foot">
+        <div class="hero__links">
+          <a
+            href="https://github.com/zaccesss"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hero__link"
+            >GitHub</a
+          >
+          <span class="hero__sep" aria-hidden="true">/</span>
+          <a
+            href="https://linkedin.com/in/isaacadjei"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hero__link"
+            >LinkedIn</a
+          >
+          <span class="hero__sep" aria-hidden="true">/</span>
+          <a href="mailto:contact@zacess.com" class="hero__link">contact@zacess.com</a>
+        </div>
+        <div class="hero__stats">
+          <div class="hero__stat">
+            <span class="hero__stat-n">6+</span>
+            <span class="hero__stat-l">Projects</span>
+          </div>
+          <div class="hero__stat">
+            <span class="hero__stat-n">D*DD</span>
+            <span class="hero__stat-l">BTEC</span>
+          </div>
+          <div class="hero__stat">
+            <span class="hero__stat-n">1st</span>
+            <span class="hero__stat-l">Predicted</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-			<div class="hero__foot">
-				<div class="hero__links">
-					<a href="https://github.com/zaccesss" target="_blank" rel="noopener noreferrer" class="hero__link">GitHub</a>
-					<span class="hero__sep" aria-hidden="true">/</span>
-					<a href="https://linkedin.com/in/isaacadjei" target="_blank" rel="noopener noreferrer" class="hero__link">LinkedIn</a>
-					<span class="hero__sep" aria-hidden="true">/</span>
-					<a href="mailto:contact@zacess.com" class="hero__link">contact@zacess.com</a>
-				</div>
-				<div class="hero__stats">
-					<div class="hero__stat">
-						<span class="hero__stat-n">6+</span>
-						<span class="hero__stat-l">Projects</span>
-					</div>
-					<div class="hero__stat">
-						<span class="hero__stat-n">D*DD</span>
-						<span class="hero__stat-l">BTEC</span>
-					</div>
-					<div class="hero__stat">
-						<span class="hero__stat-n">1st</span>
-						<span class="hero__stat-l">Predicted</span>
-					</div>
-				</div>
-			</div>
-
-		</div>
-	</section>
-
-	<!-- ═══════════════════════════════════════════
+  <!-- ═══════════════════════════════════════════
 	     SELECTED WORK
 	═══════════════════════════════════════════ -->
-	<section class="sel section-reveal">
-		<div class="sel__container">
+  <section class="sel section-reveal">
+    <div class="sel__container">
+      <div class="sel__head">
+        <span class="pg-label">Selected work</span>
+        <a href="/projects.html" class="sel__all">All projects &rarr;</a>
+      </div>
 
-			<div class="sel__head">
-				<span class="pg-label">Selected work</span>
-				<a href="/projects.html" class="sel__all">All projects &rarr;</a>
-			</div>
+      <div class="sel__list">
+        <a
+          href="https://github.com/zaccesss/neopixel-led-cube"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="sel-item"
+        >
+          <span class="sel-item__n">01</span>
+          <div class="sel-item__body">
+            <h3 class="sel-item__title">NeoPixel LED Cube (4x4x4)</h3>
+            <p class="sel-item__desc">
+              64-LED programmable cube with 5 animation modes, adaptive brightness via
+              LDR, and a custom PCB. Fully documented from schematic to firmware.
+            </p>
+            <div class="sel-item__tags">
+              <span class="tag">Arduino</span>
+              <span class="tag">C++</span>
+              <span class="tag">KiCad</span>
+              <span class="tag">PCB Design</span>
+            </div>
+          </div>
+          <svg
+            class="sel-item__arrow"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 10h12M10 4l6 6-6 6" />
+          </svg>
+        </a>
 
-			<div class="sel__list">
+        <a
+          href="https://astoncv.zacess.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="sel-item"
+        >
+          <span class="sel-item__n">02</span>
+          <div class="sel-item__body">
+            <h3 class="sel-item__title">AstonCV</h3>
+            <p class="sel-item__desc">
+              Full-stack CV platform with user auth, PDF export, and 11 security layers
+              including bcrypt, CSRF protection, and PDO. Live at astoncv.zacess.com.
+            </p>
+            <div class="sel-item__tags">
+              <span class="tag">PHP 8.2</span>
+              <span class="tag">MySQL</span>
+              <span class="tag">Security</span>
+            </div>
+          </div>
+          <svg
+            class="sel-item__arrow"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 10h12M10 4l6 6-6 6" />
+          </svg>
+        </a>
 
-				<a href="https://github.com/zaccesss/neopixel-led-cube" target="_blank" rel="noopener noreferrer" class="sel-item">
-					<span class="sel-item__n">01</span>
-					<div class="sel-item__body">
-						<h3 class="sel-item__title">NeoPixel LED Cube (4x4x4)</h3>
-						<p class="sel-item__desc">64-LED programmable cube with 5 animation modes, adaptive brightness via LDR, and a custom PCB. Fully documented from schematic to firmware.</p>
-						<div class="sel-item__tags">
-							<span class="tag">Arduino</span>
-							<span class="tag">C++</span>
-							<span class="tag">KiCad</span>
-							<span class="tag">PCB Design</span>
-						</div>
-					</div>
-					<svg class="sel-item__arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
-				</a>
+        <a href="/projects.html" class="sel-item">
+          <span class="sel-item__n">03</span>
+          <div class="sel-item__body">
+            <h3 class="sel-item__title">Two-Stage Audio Amplifier</h3>
+            <p class="sel-item__desc">
+              Analog amplifier driving an 8-ohm speaker from smartphone input. Designed,
+              simulated in Proteus, laid out on PCB, and tested against full audio spec.
+            </p>
+            <div class="sel-item__tags">
+              <span class="tag">Analog</span>
+              <span class="tag">TL071 / OPA551</span>
+              <span class="tag">Proteus</span>
+              <span class="tag">PCB</span>
+            </div>
+          </div>
+          <svg
+            class="sel-item__arrow"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 10h12M10 4l6 6-6 6" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
 
-				<a href="https://astoncv.zacess.com" target="_blank" rel="noopener noreferrer" class="sel-item">
-					<span class="sel-item__n">02</span>
-					<div class="sel-item__body">
-						<h3 class="sel-item__title">AstonCV</h3>
-						<p class="sel-item__desc">Full-stack CV platform with user auth, PDF export, and 11 security layers including bcrypt, CSRF protection, and PDO. Live at astoncv.zacess.com.</p>
-						<div class="sel-item__tags">
-							<span class="tag">PHP 8.2</span>
-							<span class="tag">MySQL</span>
-							<span class="tag">Security</span>
-						</div>
-					</div>
-					<svg class="sel-item__arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
-				</a>
-
-				<a href="/projects.html" class="sel-item">
-					<span class="sel-item__n">03</span>
-					<div class="sel-item__body">
-						<h3 class="sel-item__title">Two-Stage Audio Amplifier</h3>
-						<p class="sel-item__desc">Analog amplifier driving an 8-ohm speaker from smartphone input. Designed, simulated in Proteus, laid out on PCB, and tested against full audio spec.</p>
-						<div class="sel-item__tags">
-							<span class="tag">Analog</span>
-							<span class="tag">TL071 / OPA551</span>
-							<span class="tag">Proteus</span>
-							<span class="tag">PCB</span>
-						</div>
-					</div>
-					<svg class="sel-item__arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
-				</a>
-
-			</div>
-		</div>
-	</section>
-
-	<!-- ═══════════════════════════════════════════
+  <!-- ═══════════════════════════════════════════
 	     SKILLS (compact)
 	═══════════════════════════════════════════ -->
-	<section class="cskills section-reveal">
-		<div class="cskills__container">
-			<span class="pg-label">Skills and tools</span>
-			<div class="cskills__grid">
-				<div class="cskills__group">
-					<span class="cskills__cat">Languages</span>
-					<div class="cskills__items">
-						<span class="tag">Python</span>
-						<span class="tag">C / C++</span>
-						<span class="tag">JavaScript</span>
-						<span class="tag">Java</span>
-						<span class="tag">MATLAB</span>
-					</div>
-				</div>
-				<div class="cskills__group">
-					<span class="cskills__cat">Web and frameworks</span>
-					<div class="cskills__items">
-						<span class="tag">React</span>
-						<span class="tag">Node.js</span>
-						<span class="tag">PHP 8.2</span>
-						<span class="tag">Django</span>
-						<span class="tag">SCSS</span>
-					</div>
-				</div>
-				<div class="cskills__group">
-					<span class="cskills__cat">Hardware and EE</span>
-					<div class="cskills__items">
-						<span class="tag">Arduino</span>
-						<span class="tag">ESP32</span>
-						<span class="tag">KiCad</span>
-						<span class="tag">LTspice</span>
-						<span class="tag">PCB Design</span>
-					</div>
-				</div>
-				<div class="cskills__group">
-					<span class="cskills__cat">Tools</span>
-					<div class="cskills__items">
-						<span class="tag">Git / GitHub</span>
-						<span class="tag">Linux</span>
-						<span class="tag">Docker</span>
-						<span class="tag">Figma</span>
-						<span class="tag">AWS</span>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
+  <section class="cskills section-reveal">
+    <div class="cskills__container">
+      <span class="pg-label">Skills and tools</span>
+      <div class="cskills__grid">
+        <div class="cskills__group">
+          <span class="cskills__cat">Languages</span>
+          <div class="cskills__items">
+            <span class="tag">Python</span>
+            <span class="tag">C / C++</span>
+            <span class="tag">JavaScript</span>
+            <span class="tag">Java</span>
+            <span class="tag">MATLAB</span>
+          </div>
+        </div>
+        <div class="cskills__group">
+          <span class="cskills__cat">Web and frameworks</span>
+          <div class="cskills__items">
+            <span class="tag">React</span>
+            <span class="tag">Node.js</span>
+            <span class="tag">PHP 8.2</span>
+            <span class="tag">Django</span>
+            <span class="tag">SCSS</span>
+          </div>
+        </div>
+        <div class="cskills__group">
+          <span class="cskills__cat">Hardware and EE</span>
+          <div class="cskills__items">
+            <span class="tag">Arduino</span>
+            <span class="tag">ESP32</span>
+            <span class="tag">KiCad</span>
+            <span class="tag">LTspice</span>
+            <span class="tag">PCB Design</span>
+          </div>
+        </div>
+        <div class="cskills__group">
+          <span class="cskills__cat">Tools</span>
+          <div class="cskills__items">
+            <span class="tag">Git / GitHub</span>
+            <span class="tag">Linux</span>
+            <span class="tag">Docker</span>
+            <span class="tag">Figma</span>
+            <span class="tag">AWS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-	<!-- ═══════════════════════════════════════════
+  <!-- ═══════════════════════════════════════════
 	     CONTACT TEASER
 	═══════════════════════════════════════════ -->
-	<section class="home-cta section-reveal">
-		<div class="home-cta__container">
-			<h2 class="home-cta__heading">Working on something interesting?</h2>
-			<p class="home-cta__sub">Open to internships, placements, and engineering collaborations from 2025 onwards.</p>
-			<div class="home-cta__actions">
-				<a href="mailto:contact@zacess.com" class="btn btn--primary">contact@zacess.com</a>
-				<a href="/contact.html" class="btn btn--outline">Send a message</a>
-			</div>
-		</div>
-	</section>
-
+  <section class="home-cta section-reveal">
+    <div class="home-cta__container">
+      <h2 class="home-cta__heading">Working on something interesting?</h2>
+      <p class="home-cta__sub">
+        Open to internships, placements, and engineering collaborations from 2025
+        onwards.
+      </p>
+      <div class="home-cta__actions">
+        <a href="mailto:contact@zacess.com" class="btn btn--primary"
+          >contact@zacess.com</a
+        >
+        <a href="/contact.html" class="btn btn--outline">Send a message</a>
+      </div>
+    </div>
+  </section>
 </div>

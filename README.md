@@ -1,6 +1,6 @@
 # zacess-portfolio
 
-Personal portfolio website for Isaac Adjei — Electronic Engineering and Computer Science student at Aston University.
+Personal portfolio website for Isaac Adjei - Electronic Engineering and Computer Science student at Aston University.
 
 ## Live
 
@@ -8,10 +8,10 @@ Personal portfolio website for Isaac Adjei — Electronic Engineering and Comput
 
 ## Pages
 
-- **Home** — Hero, featured projects, skills overview, contact CTA
-- **About** — Personal story, education timeline, work experience
-- **Projects** — 6 engineering projects with problem/solution breakdowns
-- **Contact** — Contact form and social links
+- **Home** - Hero, featured projects, skills overview, contact CTA
+- **About** - Personal story, education timeline, work experience
+- **Projects** - 6 engineering projects with problem/solution breakdowns
+- **Contact** - Contact form and social links
 
 ## Tech Stack
 
