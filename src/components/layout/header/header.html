@@ -17,6 +17,14 @@
 					</else>
 				</li>
 				<li>
+					<if condition="'[[active]]' === 'About'">
+						<a href="/about.html" class="header__link header__link--active">About</a>
+					</if>
+					<else>
+						<a href="/about.html" class="header__link">About</a>
+					</else>
+				</li>
+				<li>
 					<if condition="'[[active]]' === 'Projects'">
 						<a href="/projects.html" class="header__link header__link--active">Projects</a>
 					</if>
