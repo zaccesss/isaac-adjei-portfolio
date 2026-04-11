@@ -9,7 +9,7 @@ Personal portfolio website for Isaac Adjei - Electronic Engineering and Computer
 ## Pages
 
 - **Home** - Hero, featured projects, skills overview, contact CTA
-- **About** - Personal story, education timeline, work experience
+- **About** - Personal story/historys, education timeline, work experience
 - **Projects** - 6 engineering projects with problem/solution breakdowns
 - **Contact** - Contact form and social links
 
