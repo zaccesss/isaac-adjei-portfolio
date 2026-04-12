@@ -1,0 +1,31 @@
+import type { Metadata } from "next"
+import ContactForm from "@/components/forms/ContactForm"
+import SocialLinks from "@/components/shared/SocialLinks"
+import { Mail } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "Contact",
+  description: "Get in touch with Isaac Adjei.",
+}
+
+export default function ContactPage() {
+  return (
+    <div className="container max-w-2xl py-24 space-y-10">
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <Mail className="h-8 w-8 text-primary" />
+          <h1 className="text-4xl font-bold tracking-tight">Get in Touch</h1>
+        </div>
+        <p className="text-lg text-muted-foreground">
+          Whether it&apos;s an internship, a collaboration, a project idea, or just a conversation —
+          I&apos;m always open to hearing from you.
+        </p>
+      </div>
+      <ContactForm />
+      <div className="pt-4">
+        <p className="text-sm text-muted-foreground mb-4">Or find me on:</p>
+        <SocialLinks />
+      </div>
+    </div>
+  )
+}

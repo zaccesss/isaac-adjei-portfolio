@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 282 44% 31%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 282 44% 31%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 282 44% 45%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 282 44% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s ease-out;
+}
+
+/* Skills icon grid — auto-fills 88px columns, centered */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 88px);
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+/* Staggered entrance for skill categories */
+.animate-fade-up.stagger-0  { animation-delay: 0.00s; animation-fill-mode: both; }
+.animate-fade-up.stagger-1  { animation-delay: 0.07s; animation-fill-mode: both; }
+.animate-fade-up.stagger-2  { animation-delay: 0.14s; animation-fill-mode: both; }
+.animate-fade-up.stagger-3  { animation-delay: 0.21s; animation-fill-mode: both; }
+.animate-fade-up.stagger-4  { animation-delay: 0.28s; animation-fill-mode: both; }
+.animate-fade-up.stagger-5  { animation-delay: 0.35s; animation-fill-mode: both; }
+.animate-fade-up.stagger-6  { animation-delay: 0.42s; animation-fill-mode: both; }
+.animate-fade-up.stagger-7  { animation-delay: 0.49s; animation-fill-mode: both; }
+.animate-fade-up.stagger-8  { animation-delay: 0.56s; animation-fill-mode: both; }
+.animate-fade-up.stagger-9  { animation-delay: 0.63s; animation-fill-mode: both; }

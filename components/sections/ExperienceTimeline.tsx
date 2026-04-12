@@ -1,0 +1,79 @@
+"use client"
+
+import { motion } from "framer-motion"
+import { type Experience } from "@/data/experience"
+import { Badge } from "@/components/ui/badge"
+import { staggerContainer, fadeUp } from "@/lib/animations"
+import { cn } from "@/lib/utils"
+
+const typeLabel: Record<Experience["type"], string> = {
+  work: "Work",
+  internship: "Internship",
+  virtual: "Virtual",
+}
+
+interface Props {
+  experiences: Experience[]
+}
+
+export default function ExperienceTimeline({ experiences }: Props) {
+  return (
+    <motion.div
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+      className="relative space-y-8"
+    >
+      {/* Vertical line */}
+      <div className="absolute left-3.5 top-2 bottom-2 w-px bg-border" aria-hidden="true" />
+
+      {experiences.map((exp, i) => (
+        <motion.div key={exp.id} variants={fadeUp} className="relative flex gap-6 pl-10">
+          {/* Dot */}
+          <div
+            className={cn(
+              "absolute left-0 mt-1.5 h-7 w-7 rounded-full border-2 border-background flex items-center justify-center text-xs font-bold",
+              exp.type === "work"
+                ? "bg-primary text-primary-foreground"
+                : exp.type === "internship"
+                ? "bg-secondary text-secondary-foreground"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {i + 1}
+          </div>
+
+          <div className="flex-1 space-y-2 pb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+              <div>
+                <h3 className="font-semibold">{exp.role}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {exp.company} · {exp.location}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Badge variant="outline" className="text-xs">
+                  {typeLabel[exp.type]}
+                </Badge>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  {exp.startDate} – {exp.endDate}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground">{exp.description}</p>
+
+            <ul className="space-y-1">
+              {exp.achievements.map((a) => (
+                <li key={a} className="text-sm text-muted-foreground flex gap-2">
+                  <span className="text-primary mt-0.5 shrink-0">·</span>
+                  {a}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </motion.div>
+      ))}
+    </motion.div>
+  )
+}

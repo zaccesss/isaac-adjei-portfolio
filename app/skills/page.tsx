@@ -1,0 +1,93 @@
+"use client"
+
+import { useEffect, useRef, useState } from "react"
+import { skillCategories, type Skill } from "@/data/skills"
+import { cn } from "@/lib/utils"
+
+function SkillCard({ skill }: { skill: Skill }) {
+  return (
+    <div className="group flex flex-col items-center gap-2 p-3 w-[88px] rounded-xl border bg-card hover:border-primary/50 hover:shadow-lg hover:-translate-y-1.5 hover:scale-105 transition-all duration-200 cursor-default">
+      {skill.icon ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={skill.icon}
+          alt={skill.name}
+          width={36}
+          height={36}
+          className="w-9 h-9 object-contain"
+          loading="lazy"
+        />
+      ) : (
+        <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
+          {skill.name.slice(0, 2).toUpperCase()}
+        </div>
+      )}
+      <span className="text-[10px] font-medium text-center leading-tight text-muted-foreground group-hover:text-foreground transition-colors">
+        {skill.name}
+      </span>
+    </div>
+  )
+}
+
+function CategorySection({ cat }: { cat: (typeof skillCategories)[0] }) {
+  const ref = useRef<HTMLElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <section
+      ref={ref}
+      className={cn(
+        "transition-all duration-700",
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      )}
+    >
+      <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-5 text-center">
+        {cat.category}
+      </h2>
+      <div className="skills-grid">
+        {cat.skills.map((skill) => (
+          <SkillCard key={skill.name} skill={skill} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+export default function SkillsPage() {
+  return (
+    <div className="container py-24 space-y-14">
+      <div className="space-y-3 animate-fade-up text-center">
+        <h1 className="text-4xl font-bold tracking-tight">Tech Stack</h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Technologies I work with and am actively learning. Some are daily tools, others I&apos;m still developing.
+        </p>
+      </div>
+
+      <div className="space-y-12">
+        {skillCategories.map((cat) => (
+          <CategorySection key={cat.category} cat={cat} />
+        ))}
+      </div>
+
+      <p className="text-xs text-muted-foreground text-center">
+        This is a living document — reflects active use and ongoing learning.
+      </p>
+    </div>
+  )
+}

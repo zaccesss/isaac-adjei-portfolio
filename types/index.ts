@@ -1,0 +1,6 @@
+export type { Project } from "@/data/projects"
+export type { Experience } from "@/data/experience"
+export type { Education } from "@/data/education"
+export type { Skill, SkillCategory } from "@/data/skills"
+export type { Society } from "@/data/societies"
+export type { SocialLink } from "@/data/social"
