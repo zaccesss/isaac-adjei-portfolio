@@ -67,7 +67,7 @@ export default function LinksPage() {
       {/* Profile header */}
       <div className="text-center mb-12 space-y-3 animate-fade-up">
         <div className="w-20 h-20 rounded-full border-2 border-primary/30 overflow-hidden mx-auto">
-          <Image src="/avatar.png" alt="Isaac Adjei" width={80} height={80} className="object-cover w-full h-full" />
+          <Image src="/images/avatar.png" alt="Isaac Adjei" width={80} height={80} className="object-cover w-full h-full" />
         </div>
         <div className="space-y-1">
           <h1 className="text-2xl font-bold">Isaac Adjei</h1>

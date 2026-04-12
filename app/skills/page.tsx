@@ -60,7 +60,7 @@ function CategorySection({ cat }: { cat: (typeof skillCategories)[0] }) {
       <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-5 text-center">
         {cat.category}
       </h2>
-      <div className="skills-grid">
+      <div className={cn("skills-grid", `skills-cols-${cat.columns}`)}>
         {cat.skills.map((skill) => (
           <SkillCard key={skill.name} skill={skill} />
         ))}
@@ -85,8 +85,10 @@ export default function SkillsPage() {
         ))}
       </div>
 
-      <p className="text-xs text-muted-foreground text-center">
-        This is a living document — reflects active use and ongoing learning.
+      <p className="text-xs text-muted-foreground text-center max-w-xl mx-auto leading-relaxed">
+        <strong>NB:</strong> I am not an expert in all these technologies yet. This is a living document that reflects
+        what I am actively using and what I am learning. Some tools are part of my daily workflow, others are at
+        beginner level. The process of continuous learning is what drives my interest in technology and innovation.
       </p>
     </div>
   )

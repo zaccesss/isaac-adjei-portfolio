@@ -19,7 +19,7 @@ export default function Hero() {
       >
         <motion.div variants={fadeUp} className="space-y-4">
           <div className="w-24 h-24 rounded-full border-2 border-primary/30 overflow-hidden mx-auto">
-            <Image src="/zac_profile.jpg" alt="Isaac Adjei" width={96} height={96} className="object-cover w-full h-full" priority />
+            <Image src="/images/zac_profile.jpg" alt="Isaac Adjei" width={96} height={96} className="object-cover w-full h-full" priority />
           </div>
           <p className="text-sm font-mono text-primary uppercase tracking-widest">
             Electronic Engineering &amp; Computer Science

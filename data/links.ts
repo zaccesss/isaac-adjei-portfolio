@@ -21,7 +21,7 @@ export const profileLinks: LinkItem[] = [
     description: "My personal website & digital home",
     url: "https://zacess.com",
     icon: "globe",
-    iconImage: "/zacess_logo.png",
+    iconImage: "/images/zacess_logo.png",
     category: "professional",
   },
   {

@@ -73,12 +73,21 @@
   animation: fade-up 0.6s ease-out;
 }
 
-/* Skills icon grid — auto-fills 88px columns, centered */
+/* Skills icon grid — fixed columns, centered */
 .skills-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 88px);
   justify-content: center;
   gap: 0.75rem;
+  margin: 0 auto;
+}
+/* Desktop: lock to exact column count (N×88px + (N-1)×12px gap) */
+@media (min-width: 640px) {
+  .skills-cols-2 { grid-template-columns: repeat(2, 88px); }
+  .skills-cols-3 { grid-template-columns: repeat(3, 88px); }
+  .skills-cols-4 { grid-template-columns: repeat(4, 88px); }
+  .skills-cols-5 { grid-template-columns: repeat(5, 88px); }
+  .skills-cols-6 { grid-template-columns: repeat(6, 88px); }
 }
 
 /* Staggered entrance for skill categories */

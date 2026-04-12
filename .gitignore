@@ -16,16 +16,30 @@
 # misc
 .DS_Store
 Thumbs.db
-*.pem
 
-# debug
+# env / secrets — never commit these
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.staging
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+secrets.yaml
+secrets.yml
+*secret*
+*password*
+*credential*
+
+# debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# local env files
-.env*.local
-.env
+*.log
 
 # vercel
 .vercel
@@ -33,3 +47,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Code local settings (tool config, not for version control)
+.claude/
+
+# IDE / editor
+.vscode/settings.json
+*.swp
+*.swo

@@ -1,49 +1,48 @@
-const DEV = "https://cdn.jsdelivr.net/gh/devicons/devicon/icons"
+const DEV  = "https://cdn.jsdelivr.net/gh/devicons/devicon/icons"
+const TSG  = "https://techstack-generator.vercel.app"
+const SKI  = "https://skillicons.dev/icons?i"
+const WIKI = "https://upload.wikimedia.org/wikipedia/commons"
 
-export interface Skill {
-  name: string
-  icon?: string
-}
-
-export interface SkillCategory {
-  category: string
-  columns: number   // icons per row on desktop
-  skills: Skill[]
-}
+export interface Skill { name: string; icon?: string }
+export interface SkillCategory { category: string; columns: number; skills: Skill[] }
 
 export const skillCategories: SkillCategory[] = [
-  // --- Languages & Software (README row: 8 cols + TypeScript = 9 → 5+4) ---
   {
     category: "Languages & Software",
     columns: 5,
     skills: [
       { name: "C",          icon: `${DEV}/c/c-original.svg` },
-      { name: "C++",        icon: "https://techstack-generator.vercel.app/cpp-icon.svg" },
-      { name: "Python",     icon: "https://techstack-generator.vercel.app/python-icon.svg" },
-      { name: "Java",       icon: "https://techstack-generator.vercel.app/java-icon.svg" },
-      { name: "TypeScript", icon: `${DEV}/typescript/typescript-original.svg` },
-      { name: "JavaScript", icon: "https://techstack-generator.vercel.app/js-icon.svg" },
+      { name: "C++",        icon: `${TSG}/cpp-icon.svg` },
+      { name: "C#",         icon: `${TSG}/csharp-icon.svg` },
+      { name: "Python",     icon: `${TSG}/python-icon.svg` },
+      { name: "Java",       icon: `${TSG}/java-icon.svg` },
+      { name: "TypeScript", icon: `${TSG}/ts-icon.svg` },
+      { name: "JavaScript", icon: `${TSG}/js-icon.svg` },
       { name: "HTML",       icon: `${DEV}/html5/html5-original.svg` },
       { name: "CSS",        icon: `${DEV}/css3/css3-original.svg` },
       { name: "MATLAB",     icon: `${DEV}/matlab/matlab-original.svg` },
+      { name: "SQL",        icon: `${DEV}/azuresqldatabase/azuresqldatabase-original.svg` },
+      { name: "Go",         icon: `${DEV}/go/go-original.svg` },
+      { name: "Markdown",   icon: `${DEV}/markdown/markdown-original.svg` },
+      { name: "Rust",       icon: `${DEV}/rust/rust-original.svg` },
+      { name: "Assembly",   icon: `${DEV}/embeddedc/embeddedc-original.svg` },
+      { name: "JSON",       icon: `${DEV}/json/json-original.svg` },
     ],
   },
-
-  // --- Core Tools (README: 6 cols) ---
   {
     category: "Core Tools",
-    columns: 6,
+    columns: 4,
     skills: [
-      { name: "Git",     icon: `${DEV}/git/git-original.svg` },
-      { name: "GitHub",  icon: "https://techstack-generator.vercel.app/github-icon.svg" },
-      { name: "VS Code", icon: `${DEV}/vscode/vscode-original.svg` },
-      { name: "Eclipse", icon: `${DEV}/eclipse/eclipse-original.svg` },
-      { name: "Postman", icon: `${DEV}/postman/postman-original.svg` },
-      { name: "Gradle",  icon: `${DEV}/gradle/gradle-original.svg` },
+      { name: "Git",            icon: `${DEV}/git/git-original.svg` },
+      { name: "GitHub",         icon: `${TSG}/github-icon.svg` },
+      { name: "VS Code",        icon: `${DEV}/vscode/vscode-original.svg` },
+      { name: "Visual Studio",  icon: `${DEV}/visualstudio/visualstudio-plain.svg` },
+      { name: "Eclipse",        icon: `${DEV}/eclipse/eclipse-original.svg` },
+      { name: "Postman",        icon: `${DEV}/postman/postman-original.svg` },
+      { name: "Slack",          icon: `${DEV}/slack/slack-original.svg` },
+      { name: "Gradle",         icon: `${DEV}/gradle/gradle-original.svg` },
     ],
   },
-
-  // --- JetBrains Ecosystem (README: 5+4+2 across sub-tables → 5 cols gives 5+4) ---
   {
     category: "JetBrains Ecosystem",
     columns: 5,
@@ -59,18 +58,14 @@ export const skillCategories: SkillCategory[] = [
       { name: "GoLand",     icon: `${DEV}/goland/goland-original.svg` },
     ],
   },
-
-  // --- Mobile (README: 2 cols) ---
   {
-    category: "Mobile & Languages",
+    category: "Mobile Development",
     columns: 2,
     skills: [
       { name: "Android Studio", icon: `${DEV}/androidstudio/androidstudio-original.svg` },
       { name: "Kotlin",         icon: `${DEV}/kotlin/kotlin-original.svg` },
     ],
   },
-
-  // --- AI/ML & Data (README: 6+3) ---
   {
     category: "AI / ML & Data",
     columns: 6,
@@ -79,69 +74,69 @@ export const skillCategories: SkillCategory[] = [
       { name: "PyTorch",      icon: `${DEV}/pytorch/pytorch-original.svg` },
       { name: "NumPy",        icon: `${DEV}/numpy/numpy-original.svg` },
       { name: "Pandas",       icon: `${DEV}/pandas/pandas-original.svg` },
-      { name: "Scikit-Learn", icon: "https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg" },
+      { name: "Scikit-Learn", icon: `${WIKI}/0/05/Scikit_learn_logo_small.svg` },
       { name: "Jupyter",      icon: `${DEV}/jupyter/jupyter-original.svg` },
       { name: "OpenCV",       icon: `${DEV}/opencv/opencv-original.svg` },
-      { name: "Matplotlib",   icon: "https://upload.wikimedia.org/wikipedia/commons/8/84/Matplotlib_icon.svg" },
-      { name: "CUDA",         icon: "https://www.svgrepo.com/download/373541/cuda.svg" },
+      { name: "Matplotlib",   icon: `${WIKI}/8/84/Matplotlib_icon.svg` },
+      { name: "CUDA",         icon: "/images/Nvidia_CUDA_Logo.jpg" },
     ],
   },
-
-  // --- Web: Frontend (README: 3 cols) ---
   {
     category: "Frontend",
-    columns: 3,
+    columns: 5,
     skills: [
       { name: "Next.js",      icon: `${DEV}/nextjs/nextjs-original.svg` },
-      { name: "React",        icon: "https://techstack-generator.vercel.app/react-icon.svg" },
-      { name: "Tailwind CSS", icon: `${DEV}/tailwindcss/tailwindcss-original.svg` },
-      { name: "Bootstrap",    icon: `${DEV}/bootstrap/bootstrap-original.svg` },
+      { name: "React",        icon: `${TSG}/react-icon.svg` },
+      { name: "Vue",          icon: `${SKI}=vue` },
+      { name: "Tailwind CSS", icon: `${SKI}=tailwind` },
+      { name: "Bootstrap",    icon: `${SKI}=bootstrap` },
+      { name: "Sass",         icon: `${SKI}=sass` },
+      { name: "jQuery",       icon: `${SKI}=jquery` },
+      { name: "Webpack",      icon: `${TSG}/webpack-icon.svg` },
+      { name: "Electron",     icon: `${SKI}=electron` },
     ],
   },
-
-  // --- Web: Backend (README: 7 cols + WordPress = 8 → 4+4) ---
   {
     category: "Backend",
-    columns: 4,
+    columns: 5,
     skills: [
       { name: "Node.js",    icon: `${DEV}/nodejs/nodejs-original.svg` },
       { name: "Express",    icon: `${DEV}/express/express-original.svg` },
-      { name: "Django",     icon: `${DEV}/django/django-plain.svg` },
+      { name: "Django",     icon: `${TSG}/django-icon.svg` },
       { name: "Flask",      icon: `${DEV}/flask/flask-original.svg` },
+      { name: "Laravel",    icon: `${SKI}=laravel` },
       { name: "PHP",        icon: `${DEV}/php/php-original.svg` },
       { name: "WordPress",  icon: `${DEV}/wordpress/wordpress-original.svg` },
       { name: "Apache",     icon: `${DEV}/apache/apache-original.svg` },
       { name: "Composer",   icon: `${DEV}/composer/composer-original.svg` },
+      { name: "GraphQL",    icon: `${SKI}=graphql` },
     ],
   },
-
-  // --- Databases (README: 4 cols) ---
   {
     category: "Databases",
     columns: 4,
     skills: [
-      { name: "MySQL",      icon: "https://techstack-generator.vercel.app/mysql-icon.svg" },
+      { name: "MySQL",      icon: `${TSG}/mysql-icon.svg` },
       { name: "PostgreSQL", icon: `${DEV}/postgresql/postgresql-original.svg` },
       { name: "MongoDB",    icon: `${DEV}/mongodb/mongodb-original.svg` },
       { name: "Firebase",   icon: `${DEV}/firebase/firebase-plain.svg` },
     ],
   },
-
-  // --- Cloud & DevOps (README: 6 cols) ---
   {
     category: "Cloud & DevOps",
-    columns: 6,
+    columns: 5,
     skills: [
-      { name: "AWS",            icon: "https://techstack-generator.vercel.app/aws-icon.svg" },
-      { name: "Azure",          icon: `${DEV}/azure/azure-original.svg` },
-      { name: "Google Cloud",   icon: `${DEV}/googlecloud/googlecloud-original.svg` },
-      { name: "Docker",         icon: "https://techstack-generator.vercel.app/docker-icon.svg" },
-      { name: "Kubernetes",     icon: "https://techstack-generator.vercel.app/kubernetes-icon.svg" },
+      { name: "AWS",          icon: `${TSG}/aws-icon.svg` },
+      { name: "Azure",        icon: `${DEV}/azure/azure-original.svg` },
+      { name: "Google Cloud", icon: `${DEV}/googlecloud/googlecloud-original.svg` },
+      { name: "Docker",       icon: `${TSG}/docker-icon.svg` },
+      { name: "Kubernetes",   icon: `${TSG}/kubernetes-icon.svg` },
+      { name: "Vercel",         icon: `${SKI}=vercel` },
+      { name: "Cloudflare",     icon: `${SKI}=cloudflare` },
+      { name: "GitHub Pages",   icon: `${TSG}/github-icon.svg` },
       { name: "GitHub Actions", icon: `${DEV}/githubactions/githubactions-original.svg` },
     ],
   },
-
-  // --- Cyber Security (README: 6 cols) ---
   {
     category: "Cyber Security",
     columns: 6,
@@ -149,73 +144,67 @@ export const skillCategories: SkillCategory[] = [
       { name: "Bash",       icon: `${DEV}/bash/bash-original.svg` },
       { name: "Linux",      icon: `${DEV}/linux/linux-original.svg` },
       { name: "Kali Linux", icon: "https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/kalilinux.svg" },
-      { name: "PowerShell", icon: "https://upload.wikimedia.org/wikipedia/commons/2/2f/PowerShell_5.0_icon.png" },
-      { name: "Wireshark",  icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Wireshark_icon.svg/200px-Wireshark_icon.svg.png" },
+      { name: "PowerShell", icon: `${WIKI}/2/2f/PowerShell_5.0_icon.png` },
+      { name: "Wireshark",  icon: `${WIKI}/thumb/d/df/Wireshark_icon.svg/200px-Wireshark_icon.svg.png` },
       { name: "Nmap",       icon: "https://nmap.org/images/nmap-logo-256x256.png" },
     ],
   },
-
-  // --- Embedded & Hardware (README: 6+4) ---
   {
     category: "Embedded & Hardware",
     columns: 6,
     skills: [
+      { name: "Atmel AVR",    icon: "/images/atmelavr.png" },
       { name: "Arduino",      icon: `${DEV}/arduino/arduino-original.svg` },
       { name: "Raspberry Pi", icon: `${DEV}/raspberrypi/raspberrypi-original.svg` },
       { name: "Embedded C",   icon: `${DEV}/embeddedc/embeddedc-original.svg` },
-      { name: "KiCad",        icon: "https://upload.wikimedia.org/wikipedia/commons/5/59/KiCad-Logo.svg" },
-      { name: "Eagle",        icon: "https://www.svgrepo.com/download/436018/eagle.svg" },
-      { name: "Proteus",      icon: "https://upload.wikimedia.org/wikipedia/commons/4/4f/ProteusLogo.svg" },
-      { name: "SolidWorks",   icon: "https://upload.wikimedia.org/wikipedia/en/d/d2/SolidWorks_Logo.svg" },
-      { name: "Simulink",     icon: "https://upload.wikimedia.org/wikipedia/commons/3/36/Simulink_Logo_%28non-wordmark%29.png" },
-      { name: "Fusion 360",   icon: "https://seeklogo.com/images/A/autodesk-fusion-360-logo-7F72A76397-seeklogo.com.png" },
-      { name: "AutoCAD",      icon: "https://seeklogo.com/images/A/autocad-logo-C9817CB828-seeklogo.com.png" },
+      { name: "KiCad",        icon: `${WIKI}/5/59/KiCad-Logo.svg` },
+      { name: "Eagle",        icon: "https://cdn.simpleicons.org/eagle" },
+      { name: "Proteus",      icon: "/images/proteus.jpg" },
+      { name: "SolidWorks",   icon: "/images/solidworks.png" },
+      { name: "Simulink",     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Simulink_Logo_%28non-wordmark%29.png/200px-Simulink_Logo_%28non-wordmark%29.png" },
+      { name: "Fusion 360",   icon: "https://cdn.simpleicons.org/autodesk" },
+      { name: "AutoCAD",      icon: "https://cdn.simpleicons.org/autocad" },
     ],
   },
-
-  // --- Robotics (README: 4 cols) ---
   {
     category: "Robotics",
     columns: 4,
     skills: [
       { name: "ROS",           icon: `${DEV}/ros/ros-original.svg` },
-      { name: "NVIDIA Jetson", icon: "https://www.svgrepo.com/download/373541/cuda.svg" },
+      { name: "NVIDIA Jetson", icon: "https://cdn.simpleicons.org/nvidia" },
       { name: "Gazebo",        icon: `${DEV}/gazebo/gazebo-original.svg` },
-      { name: "PyBullet",      icon: "https://raw.githubusercontent.com/bulletphysics/bullet3/master/docs/pybullet_logo.png" },
+      { name: "PyBullet",      icon: "/images/pybullet.png" },
     ],
   },
-
-  // --- Gaming Ecosystem (README: 5+4) ---
   {
     category: "Gaming Ecosystem",
     columns: 5,
     skills: [
       { name: "Unity",         icon: `${DEV}/unity/unity-original.svg` },
       { name: "Unreal Engine", icon: `${DEV}/unrealengine/unrealengine-original.svg` },
-      { name: "NVIDIA",        icon: "https://www.svgrepo.com/download/373541/cuda.svg" },
-      { name: "Intel",         icon: "https://upload.wikimedia.org/wikipedia/commons/8/85/Intel_logo_2023.svg" },
-      { name: "AMD",           icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/AMD_Logo.svg/200px-AMD_Logo.svg.png" },
-      { name: "Steam",         icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Steam_icon_logo.svg/200px-Steam_icon_logo.svg.png" },
-      { name: "PlayStation",   icon: "https://www.svgrepo.com/download/452087/playstation.svg" },
-      { name: "EA",            icon: "https://www.svgrepo.com/download/330343/ea.svg" },
-      { name: "Ubisoft",       icon: "https://www.svgrepo.com/download/349545/ubisoft.svg" },
+      { name: "NVIDIA",        icon: "https://cdn.simpleicons.org/nvidia" },
+      { name: "Intel",         icon: `${WIKI}/8/85/Intel_logo_2023.svg` },
+      { name: "AMD",           icon: `${WIKI}/thumb/7/7c/AMD_Logo.svg/200px-AMD_Logo.svg.png` },
+      { name: "Steam",         icon: `${WIKI}/thumb/8/83/Steam_icon_logo.svg/200px-Steam_icon_logo.svg.png` },
+      { name: "PlayStation",   icon: "https://cdn.simpleicons.org/playstation" },
+      { name: "EA",            icon: "https://cdn.simpleicons.org/ea" },
+      { name: "Ubisoft",       icon: "https://cdn.simpleicons.org/ubisoft" },
     ],
   },
-
-  // --- Creative & Productivity (README: 5+4) ---
   {
     category: "Creative & Productivity",
     columns: 5,
     skills: [
-      { name: "Photoshop",    icon: "https://cdn.worldvectorlogo.com/logos/adobe-photoshop-2.svg" },
+      { name: "Photoshop",    icon: `${DEV}/photoshop/photoshop-plain.svg` },
       { name: "Illustrator",  icon: `${DEV}/illustrator/illustrator-plain.svg` },
-      { name: "After Effects",icon: "https://cdn.worldvectorlogo.com/logos/after-effects-1.svg" },
+      { name: "After Effects",icon: `${DEV}/aftereffects/aftereffects-original.svg` },
       { name: "Premiere Pro", icon: `${DEV}/premierepro/premierepro-original.svg` },
       { name: "Blender",      icon: `${DEV}/blender/blender-original.svg` },
       { name: "Figma",        icon: `${DEV}/figma/figma-original.svg` },
       { name: "Canva",        icon: `${DEV}/canva/canva-original.svg` },
-      { name: "Notion",       icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Notion-logo.svg/200px-Notion-logo.svg.png" },
-      { name: "Obsidian",     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/2023_Obsidian_logo.svg/200px-2023_Obsidian_logo.svg.png" },
+      { name: "Notion",       icon: `${WIKI}/thumb/e/e9/Notion-logo.svg/200px-Notion-logo.svg.png` },
+      { name: "Obsidian",     icon: `${WIKI}/thumb/1/10/2023_Obsidian_logo.svg/200px-2023_Obsidian_logo.svg.png` },
+      { name: "OBS Studio",   icon: "https://cdn.simpleicons.org/obsstudio" },
     ],
   },
 ]

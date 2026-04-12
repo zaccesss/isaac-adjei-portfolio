@@ -24,7 +24,7 @@ export const projects: Project[] = [
     category: "embedded",
     featured: true,
     images: ["/images/projects/led-cube/main.jpg"],
-    github: "https://github.com/zaccesss/led-cube",
+    github: "https://github.com/zaccesss/neopixel-led-cube-project",
     date: "2024",
     highlights: [
       "Non-blocking state machine architecture using millis()",
@@ -32,6 +32,27 @@ export const projects: Project[] = [
       "LDR adaptive brightness control",
       "Multiple programmable animation patterns",
       "Serial diagnostic interface",
+    ],
+  },
+  {
+    id: "astoncv",
+    title: "AstonCV – Full-Stack CV Database",
+    description: "Full-stack CV database website built from scratch with PHP 8.2, MySQL and custom CSS — no frameworks",
+    longDescription:
+      "A full-stack CV database website built at Aston University entirely from scratch — no frameworks. Features public browsing, searching and viewing of CVs, user registration, login, CV management and logout. Implements 11 security measures including bcrypt hashing, CSRF protection, PDO prepared statements and brute-force protection. Includes server-side PDF export via mPDF/Composer and a custom domain redirect via Cloudflare. Deployed live on Aston University's internal server.",
+    technologies: ["PHP 8.2", "MySQL", "CSS", "Apache", "Composer", "mPDF", "Cloudflare"],
+    category: "web",
+    featured: true,
+    images: ["/images/projects/astoncv/main.jpg"],
+    github: "https://github.com/zaccesss/astoncv",
+    demo: "https://astoncv.zacess.com",
+    date: "2024",
+    highlights: [
+      "Built from scratch with no frameworks — pure PHP 8.2, MySQL, CSS",
+      "11 security measures: bcrypt, CSRF, PDO, brute-force protection",
+      "PDF export via mPDF (server-side generation with Composer)",
+      "Custom domain via Cloudflare (astoncv.zacess.com)",
+      "Deployed live on Aston University internal server",
     ],
   },
   {
