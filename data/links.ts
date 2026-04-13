@@ -118,6 +118,13 @@ export const profileLinks: LinkItem[] = [
     category: "content",
   },
   {
+    title: "PlayStation",
+    description: "Add me on PlayStation",
+    url: "https://psnprofiles.com/zac_cess",
+    icon: "gamepad2",
+    category: "social",
+  },
+  {
     title: "Spotify",
     description: "Follow on Spotify - see what I'm listening to",
     url: "https://open.spotify.com/user/31ft5mriyu5bwmavvevqs2qsrsmm",
