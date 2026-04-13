@@ -298,7 +298,7 @@ export default function BlogPage() {
           <div className="flex justify-center">
             <div className="rounded-lg border border-border/60 overflow-hidden">
               <Image
-                src="/media/giphy.gif"
+                src="/Media/giphy.gif"
                 alt="Under construction"
                 width={320}
                 height={200}
@@ -369,7 +369,7 @@ export default function BlogPage() {
                     />
                     {/* Visual mirror */}
                     <span className="text-green-300 font-mono text-xs whitespace-pre">{inputVal}</span>
-                    <span className="inline-block w-[7px] h-[13px] bg-zinc-300 animate-pulse ml-px shrink-0" />
+                    <span className="inline-block w-[7px] h-[13px] bg-zinc-300 ml-px shrink-0 animate-[blink_1s_step-end_infinite]" />
                   </div>
                 </div>
               )}
