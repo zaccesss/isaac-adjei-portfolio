@@ -17,6 +17,19 @@ export default function ProjectsPage() {
         </p>
       </div>
       <ProjectGrid projects={projects} />
+
+      <p className="text-sm text-muted-foreground text-center pt-4">
+        More projects and courses available on{" "}
+        <a
+          href="https://github.com/zaccesss"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline font-medium"
+        >
+          GitHub
+        </a>
+        .
+      </p>
     </div>
   )
 }
