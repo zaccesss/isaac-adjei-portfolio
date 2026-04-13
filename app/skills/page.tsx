@@ -77,7 +77,7 @@ export default function SkillsPage() {
       <div className="space-y-3 animate-fade-up text-center">
         <h1 className="text-4xl font-bold tracking-tight">Skills</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          A full picture of what I bring — professional skills, hardware experience and the tech stack I work with.
+          A full picture of what I bring - professional skills, hardware experience and the tech stack I work with.
         </p>
       </div>
 
@@ -115,8 +115,8 @@ export default function SkillsPage() {
         ))}
       </div>
 
-      <p className="text-xs text-muted-foreground text-center max-w-xl mx-auto leading-relaxed">
-        <strong>NB:</strong> I am not an expert in all these technologies yet. This is a living document that reflects
+      <p className="text-xs text-center max-w-xl mx-auto leading-relaxed text-primary/80">
+        <strong className="text-primary">NB:</strong> I am not an expert in all these technologies yet. This is a living document that reflects
         what I am actively using and what I am learning. Some tools are part of my daily workflow, others are at
         beginner level. The process of continuous learning is what drives my interest in technology and innovation.
       </p>

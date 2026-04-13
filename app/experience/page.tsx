@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
   title: "Experience",
-  description: "My work experience, internships, and virtual programmes.",
+  description: "My work experience, internships and virtual programmes.",
 }
 
 export default function ExperiencePage() {
@@ -15,7 +15,7 @@ export default function ExperiencePage() {
       <div className="space-y-4">
         <h1 className="text-4xl font-bold tracking-tight">Experience</h1>
         <p className="text-lg text-muted-foreground">
-          Work history, internships, and professional programmes.
+          Work history, internships and professional programmes.
         </p>
         <div className="pt-2">
           <Button asChild className="bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">

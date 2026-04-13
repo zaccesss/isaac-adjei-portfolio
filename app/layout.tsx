@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     template: "%s | Isaac Adjei",
   },
   description:
-    "Electronic Engineering and Computer Science student at Aston University. Passionate about embedded systems, IoT, and accessible technology.",
+    "Electronic Engineering and Computer Science student at Aston University. Passionate about embedded systems, IoT and accessible technology.",
   keywords: [
     "Isaac Adjei",
     "Zac",

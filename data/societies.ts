@@ -7,29 +7,35 @@ export interface Society {
 
 export const societies: Society[] = [
   {
-    name: "Aston Computing and Electronics Society",
-    role: "Member & Student Representative",
-    period: "2024 -Present",
-    description:
-      "Active member and course representative. Stood for President and Treasurer positions.",
-  },
-  {
-    name: "IET (Institution of Engineering and Technology)",
+    name: "Institution of Engineering and Technology (IET)",
     role: "Student Member",
-    period: "October 2025 -Present",
+    period: "2024 - Present",
     description:
       "Professional engineering institution membership focused on advancing engineering knowledge and skills.",
   },
   {
-    name: "African-Caribbean Society",
+    name: "Aston Computing and Electronics Society (ESOC)",
+    role: "Member & Student Representative",
+    period: "2024 - Present",
+    description:
+      "Active member and course representative. Stood for President and Treasurer positions.",
+  },
+  {
+    name: "Aston African-Caribbean Society (ACS)",
     role: "Member",
-    period: "2024 -Present",
+    period: "2024 - Present",
     description: "Active participation in cultural and community events.",
   },
   {
-    name: "Aston Ghana Society",
+    name: "Aston Ghana Society (AGS)",
     role: "Member",
-    period: "2024 -Present",
+    period: "2024 - Present",
     description: "Connecting with Ghanaian students and promoting cultural heritage.",
+  },
+  {
+    name: "Aston Gaming Society",
+    role: "Member",
+    period: "2024 - Present",
+    description: "Participating in gaming events, tournaments and community activities.",
   },
 ]

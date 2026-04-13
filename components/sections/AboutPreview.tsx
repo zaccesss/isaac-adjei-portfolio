@@ -26,13 +26,13 @@ export default function AboutPreview() {
 
           <motion.div variants={fadeUp} className="space-y-4">
             <p className="text-muted-foreground leading-relaxed">
-              I&apos;m Zac — an Electronic Engineering and Computer Science student at Aston
+              I&apos;m Zac, an Electronic Engineering and Computer Science student at Aston
               University. I care about systems that bridge the gap between the physical world and
               software.
             </p>
             <p className="text-muted-foreground leading-relaxed">
               From building a 4x4x4 LED cube with adaptive brightness control, to standing for
-              leadership in my computing society — I look for ways to build and contribute.
+              leadership in my computing society - I look for ways to build and contribute.
             </p>
             <Button asChild variant="ghost" className="pl-0">
               <Link href="/about">

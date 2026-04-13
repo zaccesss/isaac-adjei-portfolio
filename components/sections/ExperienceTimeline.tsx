@@ -31,14 +31,7 @@ export default function ExperienceTimeline({ experiences }: Props) {
         <motion.div key={exp.id} variants={fadeUp} className="relative flex gap-6 pl-10">
           {/* Dot */}
           <div
-            className={cn(
-              "absolute left-0 mt-1.5 h-7 w-7 rounded-full border-2 border-background flex items-center justify-center text-xs font-bold",
-              exp.type === "work"
-                ? "bg-primary text-primary-foreground"
-                : exp.type === "internship"
-                ? "bg-secondary text-secondary-foreground"
-                : "bg-muted text-muted-foreground"
-            )}
+            className="absolute left-0 mt-1.5 h-7 w-7 rounded-full border-2 border-background bg-muted text-muted-foreground flex items-center justify-center text-xs font-bold"
           >
             {i + 1}
           </div>
@@ -52,11 +45,14 @@ export default function ExperienceTimeline({ experiences }: Props) {
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <Badge variant="outline" className="text-xs">
+                <Badge
+                  variant={exp.type === "work" || exp.type === "internship" ? "default" : "outline"}
+                  className={cn("text-xs", exp.type === "internship" && "bg-amber-500 hover:bg-amber-500 text-white border-amber-500")}
+                >
                   {typeLabel[exp.type]}
                 </Badge>
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {exp.startDate} – {exp.endDate}
+                  {exp.startDate} - {exp.endDate}
                 </span>
               </div>
             </div>

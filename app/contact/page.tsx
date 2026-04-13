@@ -17,7 +17,7 @@ export default function ContactPage() {
           <h1 className="text-4xl font-bold tracking-tight">Get in Touch</h1>
         </div>
         <p className="text-lg text-muted-foreground">
-          Whether it&apos;s an internship, a collaboration, a project idea, or just a conversation —
+          Whether it&apos;s an internship, a collaboration, a project idea or just a conversation -
           I&apos;m always open to hearing from you.
         </p>
       </div>

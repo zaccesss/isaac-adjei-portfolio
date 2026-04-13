@@ -36,7 +36,7 @@ export default function Hero() {
         >
           Electronic Engineering &amp; Computer Science student at Aston University.
           Passionate about embedded systems, PCB design, IoT, AI&nbsp;&amp;&nbsp;ML, web development,
-          and accessible technology. Open to internships, placements, and professional opportunities
+          and accessible technology. Open to internships, placements and professional opportunities
           in engineering and tech.
         </motion.p>
 

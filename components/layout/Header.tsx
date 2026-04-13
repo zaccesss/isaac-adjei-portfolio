@@ -15,8 +15,8 @@ export default function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 w-full transition-all duration-200",
-        isScrolled ? "border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" : "bg-transparent"
+        "sticky top-0 z-40 w-full transition-all duration-200 border-b",
+        isScrolled ? "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" : "bg-transparent"
       )}
     >
       <div className="container flex h-16 items-center justify-between">

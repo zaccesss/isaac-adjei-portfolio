@@ -29,17 +29,17 @@ const COMMANDS: Record<string, () => Line[]> = {
   help: () => [
     { type: "info",   text: "available commands:" },
     { type: "blank",  text: "" },
-    { type: "output", text: "  help      —  list available commands" },
-    { type: "output", text: "  about     —  who is isaac adjei" },
-    { type: "output", text: "  blog      —  upcoming posts and drafts" },
-    { type: "output", text: "  projects  —  featured engineering work" },
-    { type: "output", text: "  skills    —  technical stack overview" },
-    { type: "output", text: "  contact   —  how to get in touch" },
-    { type: "output", text: "  links     —  social and professional links" },
-    { type: "output", text: "  cv        —  curriculum vitae" },
-    { type: "output", text: "  motto     —  a word of motivation" },
-    { type: "output", text: "  status    —  blog build status" },
-    { type: "output", text: "  clear     —  clear the terminal" },
+    { type: "output", text: "  help      -  list available commands" },
+    { type: "output", text: "  about     -  who is isaac adjei" },
+    { type: "output", text: "  blog      -  upcoming posts and drafts" },
+    { type: "output", text: "  projects  -  featured engineering work" },
+    { type: "output", text: "  skills    -  technical stack overview" },
+    { type: "output", text: "  contact   -  how to get in touch" },
+    { type: "output", text: "  links     -  social and professional links" },
+    { type: "output", text: "  cv        -  curriculum vitae" },
+    { type: "output", text: "  motto     -  a word of motivation" },
+    { type: "output", text: "  status    -  blog build status" },
+    { type: "output", text: "  clear     -  clear the terminal" },
   ],
 
   about: () => [
@@ -66,7 +66,7 @@ const COMMANDS: Record<string, () => Line[]> = {
       text: `  [${TYPE_LABEL[p.type]}]  ${p.title}${p.published ? "  ● live" : ""}`,
     })),
     { type: "blank",  text: "" },
-    { type: "output", text: "  blog is under construction — posts coming soon" },
+    { type: "output", text: "  blog is under construction - posts coming soon" },
   ],
 
   projects: () => [
@@ -75,10 +75,10 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "output", text: "  [embedded]     4x4x4 NeoPixel LED Cube" },
     { type: "output", text: "                 Arduino · C++ · WS2812B" },
     { type: "blank",  text: "" },
-    { type: "output", text: "  [open-source]  git-unlocked — complete Git course" },
+    { type: "output", text: "  [open-source]  git-unlocked - complete Git course" },
     { type: "output", text: "                 Git · GitHub · GitLab · Markdown" },
     { type: "blank",  text: "" },
-    { type: "output", text: "  [web]          AstonCV — full-stack CV database" },
+    { type: "output", text: "  [web]          AstonCV - full-stack CV database" },
     { type: "output", text: "                 PHP 8.2 · MySQL · CSS · Apache" },
     { type: "blank",  text: "" },
     { type: "output", text: "  → view all at /projects" },
@@ -107,7 +107,7 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "blank",  text: "" },
     { type: "output", text: "  open to internships, placements & professional" },
     { type: "output", text: "  roles in engineering and tech" },
-    { type: "output", text: "  response within 24–48 hours" },
+    { type: "output", text: "  response within 24-48 hours" },
   ],
 
   links: () => [
@@ -136,13 +136,13 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "info",   text: '  "The people who are crazy enough to think they' },
     { type: "info",   text: '   can change the world are the ones who do."' },
     { type: "blank",  text: "" },
-    { type: "output", text: "                                        — Steve Jobs" },
+    { type: "output", text: "                                        - Steve Jobs" },
     { type: "blank",  text: "" },
   ],
 
   status: () => [
     { type: "info",   text: "system:  ZacessOS v1.0-beta" },
-    { type: "output", text: "build:   blog v0.1.0-alpha — in progress" },
+    { type: "output", text: "build:   blog v0.1.0-alpha - in progress" },
     { type: "blank",  text: "" },
     { type: "info",   text: "ready now:" },
     { type: "output", text: "  → portfolio at isaacadjei.me" },
@@ -286,14 +286,14 @@ export default function BlogPage() {
   return (
     <div className="container max-w-3xl py-24 space-y-8">
 
-      {/* Banner + GIF — hidden when maximised or closed */}
+      {/* Banner + GIF - hidden when maximised or closed */}
       {!isMaximized && !isClosed && (
         <>
           <div className="text-center space-y-1">
             <p className="font-mono text-sm font-semibold tracking-widest uppercase text-yellow-500">
               ⚠️ blog // under construction ⚠️
             </p>
-            <p className="font-mono text-xs text-muted-foreground">writing module is being built — check back soon</p>
+            <p className="font-mono text-xs text-muted-foreground">writing module is being built - check back soon</p>
           </div>
           <div className="flex justify-center">
             <div className="rounded-lg border border-border/60 overflow-hidden">
@@ -319,7 +319,7 @@ export default function BlogPage() {
               : "rounded-lg border border-zinc-700 overflow-hidden shadow-xl font-mono"
           }
         >
-          {/* Title bar — always dark */}
+          {/* Title bar - always dark */}
           <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-800 border-b border-zinc-700 shrink-0">
             <div className="flex items-center gap-1.5">
               <button type="button" title="Close"
@@ -332,11 +332,11 @@ export default function BlogPage() {
                 onClick={() => setWinState(isMaximized ? "normal" : "maximized")}
                 className="h-3 w-3 rounded-full bg-green-500 hover:brightness-125 transition-all cursor-pointer" />
             </div>
-            <span className="text-xs text-zinc-400">zacess@portfolio — blog — 80x24</span>
+            <span className="text-xs text-zinc-400">zacess@portfolio - blog - 80x24</span>
             <span className="w-14" />
           </div>
 
-          {/* Body — always dark, collapses when minimised */}
+          {/* Body - always dark, collapses when minimised */}
           {!isMinimized && (
             <div
               ref={bodyRef}
@@ -388,7 +388,7 @@ export default function BlogPage() {
         </div>
       )}
 
-      {/* Motivation — below terminal, hidden when maximised */}
+      {/* Motivation - below terminal, hidden when maximised */}
       {!isMaximized && (
         <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-2">
           <p className="text-xs font-mono text-primary uppercase tracking-widest">motivation</p>
@@ -402,7 +402,7 @@ export default function BlogPage() {
       {/* Footer hint */}
       {!isMaximized && (
         <p className="text-center text-xs text-muted-foreground font-mono">
-          writing is being rebuilt — use{" "}
+          writing is being rebuilt - use{" "}
           <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">Ctrl</kbd>
           {" "}+{" "}
           <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">I</kbd>
