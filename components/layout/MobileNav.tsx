@@ -19,25 +19,30 @@ export default function MobileNav() {
       </Button>
 
       {open && (
-        <div className="fixed inset-0 top-16 z-50 bg-background border-t">
-          <nav className="container flex flex-col gap-1 py-6">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "px-4 py-3 text-base font-medium rounded-md transition-colors hover:bg-accent",
-                  pathname === link.href
-                    ? "bg-accent text-foreground"
-                    : "text-muted-foreground"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
+        <>
+          {/* Backdrop */}
+          <div className="fixed inset-0 top-16 z-40 bg-black/60" onClick={() => setOpen(false)} />
+          {/* Menu panel */}
+          <div className="fixed inset-x-0 top-16 z-50 bg-background border-t shadow-xl">
+            <nav className="container flex flex-col gap-1 py-6">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "px-4 py-3 text-base font-medium rounded-md transition-colors hover:bg-accent",
+                    pathname === link.href
+                      ? "bg-accent text-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </>
       )}
     </div>
   )

@@ -28,23 +28,17 @@ export default function ExperienceTimeline({ experiences }: Props) {
       <div className="absolute left-3.5 top-2 bottom-2 w-px bg-border" aria-hidden="true" />
 
       {experiences.map((exp, i) => (
-        <motion.div key={exp.id} variants={fadeUp} className="relative flex gap-6 pl-10">
+        <motion.div key={exp.id} variants={fadeUp} className="relative flex gap-4 pl-10">
           {/* Dot */}
           <div
-            className="absolute left-0 mt-1.5 h-7 w-7 rounded-full border-2 border-background bg-muted text-muted-foreground flex items-center justify-center text-xs font-bold"
+            className="absolute left-0 mt-1.5 h-7 w-7 rounded-full border-2 border-background bg-muted text-muted-foreground flex items-center justify-center text-xs font-bold shrink-0"
           >
             {i + 1}
           </div>
 
-          <div className="flex-1 space-y-2 pb-2">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-              <div>
-                <h3 className="font-semibold">{exp.role}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {exp.company} · {exp.location}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
+          <div className="flex-1 min-w-0 space-y-2 pb-2">
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   variant={exp.type === "work" || exp.type === "internship" ? "default" : "outline"}
                   className={cn("text-xs", exp.type === "internship" && "bg-amber-500 hover:bg-amber-500 text-white border-amber-500")}
@@ -55,6 +49,10 @@ export default function ExperienceTimeline({ experiences }: Props) {
                   {exp.startDate} - {exp.endDate}
                 </span>
               </div>
+              <h3 className="font-semibold leading-snug">{exp.role}</h3>
+              <p className="text-sm text-muted-foreground">
+                {exp.company} · {exp.location}
+              </p>
             </div>
 
             <p className="text-sm text-muted-foreground">{exp.description}</p>
@@ -63,7 +61,7 @@ export default function ExperienceTimeline({ experiences }: Props) {
               {exp.achievements.map((a) => (
                 <li key={a} className="text-sm text-muted-foreground flex gap-2">
                   <span className="text-primary mt-0.5 shrink-0">·</span>
-                  {a}
+                  <span>{a}</span>
                 </li>
               ))}
             </ul>
