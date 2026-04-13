@@ -34,8 +34,10 @@ export default function Hero() {
           variants={fadeUp}
           className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
         >
-          Electronic Engineering &amp; Computer Science student at Aston University.
-          Passionate about embedded systems, PCB design, IoT, AI&nbsp;&amp;&nbsp;ML, web development,
+          Electronic Engineering &amp; Computer Science student at Aston University. Top 40 Finalist,
+          Black Heritage Undergraduate of the Year 2026, and named Best and Most Hardworking Student
+          at Stanmore College. I build across the full stack of engineering, from bare-metal firmware and PCB
+          design to AI&nbsp;&amp;&nbsp;ML and full-stack web. Passionate about embedded systems, IoT
           and accessible technology. Open to internships, placements and professional opportunities
           in engineering and tech.
         </motion.p>

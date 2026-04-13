@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { ExternalLink, Github } from "lucide-react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +13,18 @@ interface Props {
 export default function ProjectCard({ project }: Props) {
   return (
     <Card className="flex flex-col h-full hover:shadow-md transition-shadow">
+      {project.images[0] && (
+        <Link href={`/projects/${project.id}`} className="block overflow-hidden rounded-t-lg">
+          <div className="relative h-48 w-full bg-muted">
+            <Image
+              src={project.images[0]}
+              alt={project.title}
+              fill
+              className="object-cover transition-transform duration-300 hover:scale-105"
+            />
+          </div>
+        </Link>
+      )}
       <CardHeader className="space-y-3">
         <div className="flex items-start justify-between gap-2">
           <Badge variant="outline" className="capitalize text-xs">

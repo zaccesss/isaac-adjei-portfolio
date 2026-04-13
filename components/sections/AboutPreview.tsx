@@ -26,13 +26,16 @@ export default function AboutPreview() {
 
           <motion.div variants={fadeUp} className="space-y-4">
             <p className="text-muted-foreground leading-relaxed">
-              I&apos;m Zac, an Electronic Engineering and Computer Science student at Aston
-              University. I care about systems that bridge the gap between the physical world and
-              software.
+              I&apos;m Zac - a Top 40 Finalist for Black Heritage Undergraduate of the Year 2026
+              and Best and Most Hardworking Student at Stanmore College. I relocated from Ghana to
+              the UK in 2022, earned a triple Distinction in engineering and now study Electronic
+              Engineering and Computer Science at Aston University.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              From building a 4x4x4 LED cube with adaptive brightness control, to standing for
-              leadership in my computing society - I look for ways to build and contribute.
+              My late father was a mechanical engineer. His words - &ldquo;Always strive to make
+              things better&rdquo; - still drive everything I build. I work across the full stack:
+              from bare-metal firmware and PCB design to AI/ML and full-stack web, with a particular
+              focus on accessible technology and systems that matter in the real world.
             </p>
             <Button asChild variant="ghost" className="pl-0">
               <Link href="/about">

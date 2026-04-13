@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { ArrowLeft, Github, ExternalLink } from "lucide-react"
+import ImageGallery from "./ImageGallery"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -65,7 +66,9 @@ export default function ProjectDetail({ project }: Props) {
       <motion.div variants={fadeUp} className="space-y-6">
         <div className="space-y-3">
           <h2 className="text-xl font-semibold">Overview</h2>
-          <p className="text-muted-foreground leading-relaxed">{project.longDescription}</p>
+          {project.longDescription.split("\n\n").map((para, i) => (
+            <p key={i} className="text-muted-foreground leading-relaxed">{para}</p>
+          ))}
         </div>
 
         <div className="space-y-3">
@@ -91,6 +94,16 @@ export default function ProjectDetail({ project }: Props) {
           </div>
         </div>
       </motion.div>
+
+      {project.images.length > 0 && (
+        <>
+          <Separator />
+          <motion.div variants={fadeUp} className="space-y-4">
+            <h2 className="text-xl font-semibold">Gallery</h2>
+            <ImageGallery images={project.images} title={project.title} />
+          </motion.div>
+        </>
+      )}
     </motion.div>
   )
 }

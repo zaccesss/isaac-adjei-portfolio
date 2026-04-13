@@ -55,59 +55,71 @@ export default function AboutPage() {
           <p>
             I&apos;m Isaac Adjei - most people know me as Zac. I&apos;m an Electronic Engineering
             and Computer Science student at Aston University, Birmingham, working towards a First
-            Class degree. I am an aspiring engineer and technologist with interests spanning
-            electronics, embedded systems, software development, cyber security, cloud computing,
-            AI/ML and hardware-software integration. My goal is to build a career where intelligent
-            software and efficient hardware come together to solve real problems.
+            Class BEng degree. I am a Top 40 Finalist for the Black Heritage Undergraduate of the
+            Year Award 2026 and was named Best and Most Hardworking Student at Stanmore College.
+            My goal is to build a career at the intersection of intelligent software and efficient
+            hardware - systems that solve real problems for real people.
           </p>
           <p>
-            My journey began in Ghana where curiosity and hands-on problem-solving shaped me from
-            an early age. I spent most of my senior high school years at Adisadel College in Cape
-            Coast - one of the most prestigious boys&apos; schools in Ghana, guided by the motto
-            &ldquo;Vel Primus, Vel Cum Primis&rdquo; (Either the first or with the first). I lived
+            My journey began in Ghana, where curiosity and hands-on problem-solving shaped me from
+            an early age. I spent my senior high school years at Adisadel College in Cape Coast -
+            one of the most prestigious boys&apos; schools in Ghana, guided by the motto
+            &ldquo;Vel Primus, Vel Cum Primis&rdquo; (Either the first, or with the first). I lived
             in Thomas Jonah House and was active in Robotics, Scripture Union, PENSA, Debate
-            Society and Sports &amp; Athletics. I served as APOSA Secretary (Apostolic Students
-            &amp; Associates) and was an aspiring Dispensary Prefect. Adisadel instilled in me
-            resilience, discipline and values that continue to guide everything I do.
+            Society and Sports &amp; Athletics, serving as APOSA Secretary. Adisadel instilled in
+            me resilience, discipline and a standard of excellence that continues to guide
+            everything I do.
           </p>
           <p>
-            In April 2022 I relocated to the UK during my final year. I initially enrolled in a
-            business course at Stanmore College in London, but after two months I knew engineering
-            was where I belonged. I approached the college, took the necessary exams to demonstrate
-            my commitment and aptitude, and was transferred onto the engineering programme. I went
-            on to achieve a D*DD (Distinction*, Distinction, Distinction) in the Pearson BTEC
-            Level 3 National Extended Diploma in Engineering. That decision - to take a risk, back
-            myself and change course - shaped how I approach challenges to this day.
+            In April 2022 I relocated to the UK. I initially enrolled in a business course at
+            Stanmore College in London, but after two months I knew engineering was where I
+            belonged. I approached the college, sat the necessary exams to demonstrate my aptitude
+            and commitment, and transferred onto the engineering programme. I graduated with D*DD
+            (Distinction*, Distinction, Distinction) in the Pearson BTEC Level 3 National Extended
+            Diploma in Engineering. That decision - to take a risk, back myself and change course
+            entirely - shaped how I approach every challenge since.
           </p>
           <p>
-            My engineering journey had roots even earlier. Between 2019 and 2021 I worked as a
+            My hands-on engineering roots go back further. Between 2019 and 2021 I worked as a
             Junior Apprentice HVAC Technician in Accra, Ghana, servicing and installing over 50
-            air conditioning units, using diagnostic tools and learning the discipline of real
-            on-site technical work. That hands-on foundation, combined with the legacy of my late
-            father who was a mechanical engineer, drives my determination every day. He used to
-            say &ldquo;Always strive to make things better&rdquo; and during school vacations I
-            would accompany him to work and watch engineering come to life. His passion, his
-            knowledge and the impact of his work are a constant source of motivation.
+            air conditioning units on-site, using diagnostic equipment and learning the discipline
+            of real field technical work. That foundation, combined with the legacy of my late
+            father who was a mechanical engineer, drives my determination every single day. He used
+            to say &ldquo;Always strive to make things better.&rdquo; During school vacations I
+            would accompany him to work and watch engineering come to life in his hands. His
+            passion and the impact of his work are a constant source of motivation.
           </p>
           <p>
             I have been partially sighted since the age of two due to suspected retinoblastoma,
             which resulted in blindness in my right eye. This also meant I missed approximately
-            five years of early education. Rather than letting either be a limitation, they
-            sharpened my focus, consistency and determination to succeed. Overcoming those early
-            challenges only deepened my commitment to accessible technology - building things that
-            genuinely work for everyone. I am a Student Representative at Aston Students&apos;
-            Union and a Student Member of the IET.
+            five years of early education. Rather than letting either be a limitation, those
+            experiences sharpened my focus, consistency and determination to succeed. They also
+            deepened my commitment to accessible technology - building things that genuinely work
+            for everyone, not just the majority. I am a Student Representative at Aston
+            Students&apos; Union, a Student Member of the IET, and a member of the Aston Computing
+            Society, Aston Ghana Society and Aston Gaming Society.
+          </p>
+          <p>
+            Beyond university I have gained professional experience across different sectors. In
+            2024 I completed internships at the Ghana High Commission London - first as a Consular
+            Intern supporting visa processing and public-facing enquiries, then as an Admin and
+            Estates Intern managing facilities and administrative operations. Between 2022 and 2025
+            I worked as a Waiter and Food Runner at Casa do Frango Piccadilly, developing
+            communication, composure under pressure and customer service skills alongside my
+            studies.
           </p>
           <p>
             Technically I work across the full stack: bare-metal C and C++ on microcontrollers,
-            PCB design in KiCad, full-stack web applications with Next.js, PHP 8.2 and MySQL,
-            and AI/ML pipelines with Python, TensorFlow and PyTorch. I am also expanding into
-            cloud computing, cyber security and game development. My projects include a 4x4x4
-            NeoPixel LED Cube with adaptive brightness, remote control and dynamic animations,
-            an open-source Git course with 100+ structured files and a full-stack CV database
-            with 11 production security measures deployed live at Aston University. I enjoy
-            understanding how systems work internally and building things that move from concept
-            to code to real output.
+            PCB design in KiCad and Proteus, full-stack web with Next.js, PHP 8.2 and MySQL, and
+            AI/ML with Python, TensorFlow and PyTorch. I am also expanding into cloud computing,
+            cyber security and game development. My projects include a two-stage audio amplifier
+            designed and manufactured as a PCB from scratch, a 4x4x4 NeoPixel LED Cube with
+            adaptive brightness and four animation modes, a full-stack CV database with 11
+            production security measures deployed live at Aston University, a terminal-style
+            personal site at zacess.com built with Next.js, safety-critical control systems for
+            CNC and lift machinery, and an open-source Git course with 138 structured topic files.
+            I enjoy understanding how systems work at every layer and building things that move
+            from concept to code to real, tangible output.
           </p>
         </div>
       </section>
