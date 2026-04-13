@@ -32,11 +32,4 @@ export const societies: Society[] = [
     period: "2024 -Present",
     description: "Connecting with Ghanaian students and promoting cultural heritage.",
   },
-  {
-    name: "The Apostolic Church UK",
-    role: "Youth Secretary",
-    period: "2023 -Present",
-    description:
-      "Leadership role involving financial management and youth programme coordination.",
-  },
 ]

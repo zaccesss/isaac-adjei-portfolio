@@ -1,10 +1,8 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ArrowRight, Download } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import SocialLinks from "@/components/shared/SocialLinks"
 import { fadeUp, staggerContainer } from "@/lib/animations"
 
@@ -36,30 +34,30 @@ export default function Hero() {
           variants={fadeUp}
           className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
         >
-          Second-year student at Aston University. Passionate about embedded systems, IoT, and
-          accessible technology. Seeking internship opportunities.
+          Electronic Engineering &amp; Computer Science student at Aston University.
+          Passionate about embedded systems, PCB design, IoT, AI&nbsp;&amp;&nbsp;ML, web development,
+          and accessible technology. Open to internships, placements, and professional opportunities
+          in engineering and tech.
         </motion.p>
-
-        <motion.div
-          variants={fadeUp}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-        >
-          <Button asChild size="lg">
-            <Link href="/projects">
-              View My Work
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <a href="/resume/Isaac_Adjei_CV.pdf" download>
-              <Download className="mr-2 h-4 w-4" />
-              Download CV
-            </a>
-          </Button>
-        </motion.div>
 
         <motion.div variants={fadeUp} className="flex justify-center">
           <SocialLinks iconSize="h-5 w-5" />
+        </motion.div>
+
+        <motion.div variants={fadeUp} className="flex justify-center">
+          <button
+            type="button"
+            onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "i", ctrlKey: true, bubbles: true }))}
+            className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/50 px-4 py-1.5 text-xs text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors cursor-pointer group"
+          >
+            <span>Quick navigate</span>
+            <span className="flex items-center gap-1">
+              <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] font-medium shadow-sm">Ctrl</kbd>
+              <span>+</span>
+              <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] font-medium shadow-sm">I</kbd>
+            </span>
+            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+          </button>
         </motion.div>
       </motion.div>
     </section>

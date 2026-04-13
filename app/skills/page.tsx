@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { skillCategories, type Skill } from "@/data/skills"
+import { skillCategories, professionalSkillGroups, type Skill } from "@/data/skills"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
 function SkillCard({ skill }: { skill: Skill }) {
@@ -73,8 +75,36 @@ export default function SkillsPage() {
   return (
     <div className="container py-24 space-y-14">
       <div className="space-y-3 animate-fade-up text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Tech Stack</h1>
+        <h1 className="text-4xl font-bold tracking-tight">Skills</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          A full picture of what I bring — professional skills, hardware experience and the tech stack I work with.
+        </p>
+      </div>
+
+      {/* Professional & Hardware Skills */}
+      <div className="space-y-8 animate-fade-up">
+        {professionalSkillGroups.map((group) => (
+          <section key={group.label} className="space-y-4">
+            <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest text-center">
+              {group.label}
+            </h2>
+            <div className="flex flex-wrap justify-center gap-2">
+              {group.skills.map((skill) => (
+                <Badge key={skill} variant="secondary" className="text-sm px-3 py-1">
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      <Separator />
+
+      {/* Tech Stack heading */}
+      <div className="space-y-3 text-center">
+        <h2 className="text-2xl font-bold tracking-tight">Tech Stack</h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
           Technologies I work with and am actively learning. Some are daily tools, others I&apos;m still developing.
         </p>
       </div>

@@ -4,6 +4,7 @@ export const ROUTES = {
   projects: "/projects",
   experience: "/experience",
   skills: "/skills",
+  blog: "/blog",
   contact: "/contact",
   links: "/links",
 } as const
@@ -13,6 +14,7 @@ export const NAV_LINKS = [
   { label: "Projects", href: ROUTES.projects },
   { label: "Experience", href: ROUTES.experience },
   { label: "Skills", href: ROUTES.skills },
+  { label: "Blog", href: ROUTES.blog },
   { label: "Contact", href: ROUTES.contact },
   { label: "Links", href: ROUTES.links },
 ] as const

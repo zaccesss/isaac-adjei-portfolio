@@ -1,3 +1,43 @@
+export interface SkillGroup { label: string; skills: string[] }
+
+export const professionalSkillGroups: SkillGroup[] = [
+  {
+    label: "Professional & Soft Skills",
+    skills: [
+      "Problem Solving",
+      "Critical Thinking",
+      "Communication",
+      "Teamwork & Collaboration",
+      "Adaptability",
+      "Time Management",
+      "Attention to Detail",
+      "Leadership",
+      "Resilience",
+      "Multitasking",
+      "Organisation",
+      "Customer Service",
+      "Working Under Pressure",
+    ],
+  },
+  {
+    label: "Hardware & Lab Skills",
+    skills: [
+      "Circuit Design",
+      "PCB Layout",
+      "Soldering",
+      "Breadboarding & Prototyping",
+      "Oscilloscope",
+      "Function Generator",
+      "Bench Power Supply",
+      "Logic Analyser",
+      "I2C / UART / SPI / CAN",
+      "PWM Control",
+      "Debugging & Fault Finding",
+      "Technical CAD Drawing",
+    ],
+  },
+]
+
 const DEV  = "https://cdn.jsdelivr.net/gh/devicons/devicon/icons"
 const TSG  = "https://techstack-generator.vercel.app"
 const SKI  = "https://skillicons.dev/icons?i"

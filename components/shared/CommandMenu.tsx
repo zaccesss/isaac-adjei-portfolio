@@ -11,7 +11,7 @@ import {
   CommandList,
   CommandShortcut,
 } from "@/components/ui/command"
-import { Home, User, Briefcase, Code, Mail, Cpu } from "lucide-react"
+import { Home, User, Briefcase, Code, Mail, Cpu, BookOpen } from "lucide-react"
 
 export default function CommandMenu() {
   const [open, setOpen] = useState(false)
@@ -19,7 +19,7 @@ export default function CommandMenu() {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if (e.key === "i" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setOpen((o) => !o)
       }
@@ -39,28 +39,32 @@ export default function CommandMenu() {
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Navigation">
-          <CommandItem onSelect={() => go("/")}>
+          <CommandItem value="home" onSelect={() => go("/")}>
             <Home className="mr-2 h-4 w-4" />
             Home
             <CommandShortcut>⌘H</CommandShortcut>
           </CommandItem>
-          <CommandItem onSelect={() => go("/about")}>
+          <CommandItem value="about" onSelect={() => go("/about")}>
             <User className="mr-2 h-4 w-4" />
             About
           </CommandItem>
-          <CommandItem onSelect={() => go("/projects")}>
+          <CommandItem value="projects" onSelect={() => go("/projects")}>
             <Code className="mr-2 h-4 w-4" />
             Projects
           </CommandItem>
-          <CommandItem onSelect={() => go("/experience")}>
+          <CommandItem value="experience" onSelect={() => go("/experience")}>
             <Briefcase className="mr-2 h-4 w-4" />
             Experience
           </CommandItem>
-          <CommandItem onSelect={() => go("/skills")}>
+          <CommandItem value="skills" onSelect={() => go("/skills")}>
             <Cpu className="mr-2 h-4 w-4" />
             Skills
           </CommandItem>
-          <CommandItem onSelect={() => go("/contact")}>
+          <CommandItem value="blog" onSelect={() => go("/blog")}>
+            <BookOpen className="mr-2 h-4 w-4" />
+            Blog
+          </CommandItem>
+          <CommandItem value="contact" onSelect={() => go("/contact")}>
             <Mail className="mr-2 h-4 w-4" />
             Contact
           </CommandItem>

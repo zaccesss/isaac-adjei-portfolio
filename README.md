@@ -3,12 +3,12 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=600&height=45&lines=Personal+Portfolio+Website;Built+with+Next.js+14+%2B+TypeScript;Dark+%2F+Light+Mode+%7C+Fully+Responsive;Skills+%7C+Projects+%7C+Experience+%7C+Contact" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=600&height=45&lines=Personal+Portfolio+Website;Built+with+Next.js+14+%2B+TypeScript;Dark+%2F+Light+Mode+%7C+Fully+Responsive;Skills+%7C+Projects+%7C+Experience+%7C+Blog" />
 </p>
 
 <p align="center">
-  <a href="https://zacess.com">
-    <img src="https://img.shields.io/badge/Live-zacess.com-000000?style=for-the-badge&logo=googlechrome&logoColor=06ffa5" />
+  <a href="https://isaacadjei.me">
+    <img src="https://img.shields.io/badge/Live-isaacadjei.me-000000?style=for-the-badge&logo=googlechrome&logoColor=06ffa5" />
   </a>
   <a href="https://github.com/zaccesss/isaac-adjei-portfolio">
     <img src="https://img.shields.io/badge/Repo-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
@@ -21,7 +21,7 @@
 
 ## Overview
 
-Personal portfolio website for **Isaac Adjei** — Electronic Engineering & Computer Science student at Aston University. Built to showcase projects, skills, experience and provide a contact point. Designed to be fast, clean and fully responsive with dark/light mode support.
+Personal portfolio website for **Isaac Adjei (Zac)** — Electronic Engineering & Computer Science student at Aston University (Predicted First Class). Built to showcase projects, skills, experience, and writing. Designed to be fast, clean and fully responsive with dark/light mode support.
 
 ---
 
@@ -29,11 +29,12 @@ Personal portfolio website for **Isaac Adjei** — Electronic Engineering & Comp
 
 | Route | Description |
 |---|---|
-| `/` | Hero landing with profile image, tagline and CTA |
+| `/` | Hero landing with profile image, tagline, social links and quick-nav pill |
 | `/about` | Background, education and personal story |
-| `/projects` | Project cards with problem/solution/learnings format |
-| `/experience` | Work experience and internships timeline |
-| `/skills` | Full tech stack with animated icon grid |
+| `/projects` | Project cards with problem / solution / learnings format |
+| `/experience` | Work experience, internships and virtual placements timeline |
+| `/skills` | Full tech stack with animated icon grid across 14 categories |
+| `/blog` | Interactive terminal blog — type commands to explore content |
 | `/contact` | Contact form (name, email, subject, message) |
 | `/links` | Linktree-style page with all social and professional links |
 
@@ -70,12 +71,14 @@ Personal portfolio website for **Isaac Adjei** — Electronic Engineering & Comp
 ## Features
 
 - **Dark / Light mode** — system preference detection with manual toggle via `next-themes`
-- **Animated skills grid** — scroll-triggered fade-in with `IntersectionObserver`, icons from devicons / skillicons / simpleicons
+- **Interactive terminal blog** — fully functional terminal emulator with 10+ commands, blinking cursor, command history, macOS-style window controls (close / minimise / maximise)
+- **Command palette** — `Ctrl+I` global keyboard shortcut to navigate anywhere on the site
+- **Animated skills grid** — scroll-triggered fade-in with `IntersectionObserver`, icons from devicons / skillicons / simpleicons across 14 categories
 - **Responsive layout** — mobile-first, adapts from single column to multi-column on desktop
 - **Contact form** — client-side form with API route handler (`/api/contact`)
 - **Links page** — Linktree-style page with categorised professional, social and content links
-- **CV download** — direct PDF download button on hero
-- **Smooth animations** — `framer-motion` for hero section, CSS keyframes for scroll-triggered sections
+- **CV download** — direct PDF download from the contact CTA section
+- **Smooth animations** — `framer-motion` for entrance animations, CSS keyframes for scroll-triggered sections
 - **Projects** — problem / solution / key decisions / learnings format per project
 
 ---
@@ -86,8 +89,9 @@ Personal portfolio website for **Isaac Adjei** — Electronic Engineering & Comp
 ├── app/
 │   ├── about/          # About page
 │   ├── api/contact/    # Contact form API route
+│   ├── blog/           # Terminal blog page + [slug] post pages
 │   ├── contact/        # Contact page
-│   ├── experience/     # Experience page
+│   ├── experience/     # Experience timeline page
 │   ├── links/          # Links / Linktree page
 │   ├── projects/       # Projects page
 │   ├── skills/         # Skills page
@@ -95,21 +99,29 @@ Personal portfolio website for **Isaac Adjei** — Electronic Engineering & Comp
 │   ├── layout.tsx      # Root layout (font, theme, header, footer)
 │   └── page.tsx        # Home / Hero
 ├── components/
-│   ├── layout/         # Header, Footer, ThemeToggle
-│   ├── sections/       # Hero, etc.
-│   ├── shared/         # SocialLinks, reusable bits
+│   ├── blog/           # PostCard component
+│   ├── layout/         # Header, Footer, Navigation, MobileNav
+│   ├── sections/       # Hero, ContactCTA, etc.
+│   ├── shared/         # SocialLinks, CommandMenu
 │   └── ui/             # shadcn/ui components (Button, Card, etc.)
 ├── data/
+│   ├── blog.ts         # Blog posts, types and helpers
+│   ├── education.ts    # Education history
+│   ├── experience.ts   # Work experience and internships
 │   ├── links.ts        # Links page data
 │   ├── projects.ts     # Projects data
-│   └── skills.ts       # Tech stack data (icons + categories)
+│   ├── skills.ts       # Tech stack (icons + categories)
+│   └── societies.ts    # University societies and memberships
 ├── lib/
 │   ├── animations.ts   # Framer-motion variants
-│   ├── constants.ts    # Nav links, routes
+│   ├── constants.ts    # Nav links, routes, site URL
 │   └── utils.ts        # cn() utility
+├── styles/
+│   └── animations.css  # Custom CSS keyframe animations
 └── public/
-    ├── images/         # Profile photos, local skill icons
-    └── resume/         # CV PDF
+    ├── images/         # Profile photo, project images, skill icons
+    ├── media/          # GIFs and media assets
+    └── resume/         # CV PDF (Isaac_Adjei_CV.pdf)
 ```
 
 ---
@@ -139,10 +151,23 @@ npm start
 
 # Lint
 npm run lint
-
-# Format
-npm run format
 ```
+
+---
+
+## Environment Variables
+
+Create a `.env.local` file in the root for local development:
+
+```env
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+RESEND_API_KEY=your_resend_api_key_here
+```
+
+| Variable | Required | Description |
+|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | No | Public site URL (defaults to `https://isaacadjei.me`) |
+| `RESEND_API_KEY` | Yes (contact form) | API key from [resend.com](https://resend.com) for email sending |
 
 ---
 
@@ -154,13 +179,13 @@ npm run format
 | `react` / `react-dom` 18 | UI rendering |
 | `typescript` 5 | Type safety |
 | `tailwindcss` 3 | Utility-first styling |
-| `framer-motion` 11 | Hero animations |
+| `framer-motion` 11 | Page and section entrance animations |
 | `next-themes` | Dark / light mode |
 | `lucide-react` | Icon set |
 | `react-icons` | Brand icons (GitHub, LinkedIn, etc.) |
 | `@radix-ui/*` | Accessible UI primitives (Dialog, Tabs, Tooltip) |
 | `class-variance-authority` | Component variant styling |
-| `geist` | Vercel Geist font |
+| `geist` | Vercel Geist font (sans + mono) |
 
 ---
 
@@ -168,16 +193,16 @@ npm run format
 
 Deployed on **Vercel** via GitHub integration. Every push to `main` triggers an automatic production deploy.
 
-Custom domain: **[zacess.com](https://zacess.com)**
+Custom domain: **[isaacadjei.me](https://isaacadjei.me)**
 
 ---
 
 ## Author
 
-**Isaac Adjei** — [@zaccesss](https://github.com/zaccesss)
+**Isaac Adjei (Zac)** — [@zaccesss](https://github.com/zaccesss)
 
 <p align="center">
-  <a href="https://zacess.com"><img src="https://img.shields.io/badge/Portfolio-zacess.com-000000?style=flat-square&logo=googlechrome&logoColor=white" /></a>
+  <a href="https://isaacadjei.me"><img src="https://img.shields.io/badge/Portfolio-isaacadjei.me-000000?style=flat-square&logo=googlechrome&logoColor=white" /></a>
   <a href="https://www.linkedin.com/in/isaacadjei"><img src="https://img.shields.io/badge/LinkedIn-isaacadjei-0a66c2?style=flat-square&logo=linkedin&logoColor=white" /></a>
   <a href="mailto:contact@zacess.com"><img src="https://img.shields.io/badge/Email-contact@zacess.com-ff6f61?style=flat-square&logo=gmail&logoColor=white" /></a>
 </p>

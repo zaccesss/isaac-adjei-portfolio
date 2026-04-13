@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useScrollPosition } from "@/hooks/useScrollPosition"
 import { cn } from "@/lib/utils"
 import Navigation from "./Navigation"
@@ -19,8 +20,19 @@ export default function Header() {
       )}
     >
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="font-mono text-sm font-semibold tracking-tight hover:text-primary transition-colors">
-          zaccess
+        <Link href="/" className="flex flex-col items-center gap-0.5 group">
+          <div className="w-7 h-7 rounded-full overflow-hidden border border-primary/30 group-hover:border-primary/70 transition-colors">
+            <Image
+              src="/images/avatar.png"
+              alt="Isaac Adjei"
+              width={28}
+              height={28}
+              className="object-cover w-full h-full"
+            />
+          </div>
+          <span className="font-mono text-[10px] font-semibold tracking-tight text-muted-foreground group-hover:text-primary transition-colors leading-none">
+            zaccess
+          </span>
         </Link>
         <div className="flex items-center gap-4">
           <Navigation />

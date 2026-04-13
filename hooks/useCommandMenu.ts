@@ -5,7 +5,7 @@ import { useEffect, useCallback } from "react"
 export function useCommandMenuShortcut(onToggle: () => void) {
   const handler = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if (e.key === "i" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         onToggle()
       }
