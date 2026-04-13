@@ -105,6 +105,13 @@ export const profileLinks: LinkItem[] = [
   },
   {
     title: "Discord",
+    description: "Add me on Discord - zac.cess",
+    url: "https://discord.com/users/zac.cess",
+    icon: "discord",
+    category: "social",
+  },
+  {
+    title: "Discord Community",
     description: "Join the ZACCESS community - it's free",
     url: "https://discord.gg/habvhrGX4s",
     icon: "discord",
