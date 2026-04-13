@@ -198,8 +198,25 @@ export default function BlogPage() {
   const [histIdx,    setHistIdx]    = useState(-1)
   const [winState,   setWinState]   = useState<WindowState>("normal")
 
+  const [quote, setQuote] = useState<{ quote: string; author: string } | null>(null)
   const inputRef  = useRef<HTMLInputElement>(null)
   const bodyRef   = useRef<HTMLDivElement>(null)
+
+  // Fetch quote on mount and refresh every 30 minutes
+  useEffect(() => {
+    const fetchQuote = async () => {
+      try {
+        const res = await fetch("/api/quote")
+        const data = await res.json()
+        setQuote(data)
+      } catch {
+        // silently keep previous quote
+      }
+    }
+    fetchQuote()
+    const interval = setInterval(fetchQuote, 30 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Boot sequence then auto-run help
   useEffect(() => {
@@ -391,11 +408,29 @@ export default function BlogPage() {
       {/* Motivation - below terminal, hidden when maximised */}
       {!isMaximized && (
         <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-2">
-          <p className="text-xs font-mono text-primary uppercase tracking-widest">motivation</p>
-          <p className="text-base font-medium leading-relaxed">
-            &ldquo;The people who are crazy enough to think they can change the world are the ones who do.&rdquo;
-          </p>
-          <p className="text-xs text-muted-foreground">— Steve Jobs</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-mono text-primary uppercase tracking-widest">motivation</p>
+            <button
+              type="button"
+              onClick={async () => {
+                setQuote(null)
+                const res = await fetch("/api/quote")
+                const data = await res.json()
+                setQuote(data)
+              }}
+              className="text-[10px] font-mono text-muted-foreground hover:text-primary transition-colors"
+            >
+              refresh ↻
+            </button>
+          </div>
+          {quote ? (
+            <>
+              <p className="text-base font-medium leading-relaxed">&ldquo;{quote.quote}&rdquo;</p>
+              <p className="text-xs text-muted-foreground">- {quote.author}</p>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground font-mono animate-pulse">loading quote...</p>
+          )}
         </div>
       )}
 
