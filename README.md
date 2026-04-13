@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=120&section=header&text=Isaac%20Adjei%20%E2%80%94%20Portfolio&fontSize=36&fontAlignY=32&fontColor=ffffff&animation=bounce" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=120&section=header&text=Isaac%20Adjei%20Portfolio&fontSize=36&fontAlignY=32&fontColor=ffffff&animation=bounce" />
 </p>
 
 <p align="center">
@@ -21,7 +21,7 @@
 
 ## Overview
 
-Personal portfolio website for **Isaac Adjei (Zac)** — Electronic Engineering & Computer Science student at Aston University (Predicted First Class). Built to showcase projects, skills, experience, and writing. Designed to be fast, clean and fully responsive with dark/light mode support.
+Personal portfolio website for **Isaac Adjei (Zac)**, an Electronic Engineering and Computer Science student at Aston University (Predicted First Class). Built to showcase projects, skills, experience and writing. Fast, clean and fully responsive with dark/light mode support.
 
 ---
 
@@ -29,13 +29,13 @@ Personal portfolio website for **Isaac Adjei (Zac)** — Electronic Engineering 
 
 | Route | Description |
 |---|---|
-| `/` | Hero landing with profile image, tagline, social links and quick-nav pill |
+| `/` | Hero landing with profile image, tagline, social links and quick-nav |
 | `/about` | Background, education and personal story |
 | `/projects` | Project cards with problem / solution / learnings format |
 | `/experience` | Work experience, internships and virtual placements timeline |
 | `/skills` | Full tech stack with animated icon grid across 14 categories |
-| `/blog` | Interactive terminal blog — type commands to explore content |
-| `/contact` | Contact form (name, email, subject, message) |
+| `/blog` | Interactive terminal blog - type commands to explore content |
+| `/contact` | Contact form with spam protection and email delivery via Resend |
 | `/links` | Linktree-style page with all social and professional links |
 
 ---
@@ -50,15 +50,15 @@ Personal portfolio website for **Isaac Adjei (Zac)** — Electronic Engineering 
 |:---:|:---:|:---:|:---:|
 | **Next.js 14** | **React 18** | **TypeScript 5** | **Tailwind CSS** |
 
-### UI & Styling
+### UI and Styling
 
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" width="55" /> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" width="55" /> |
 |:---:|:---:|
 | **CSS / Animations** | **Figma (Design)** |
 
-> UI components from [shadcn/ui](https://ui.shadcn.com) — Radix UI primitives + Tailwind. Icons via `lucide-react` and `react-icons`.
+> UI components from [shadcn/ui](https://ui.shadcn.com) - Radix UI primitives + Tailwind. Icons via `lucide-react` and `react-icons`.
 
-### Tooling & Deployment
+### Tooling and Deployment
 
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="55" /> | <img src="https://techstack-generator.vercel.app/github-icon.svg" width="55" /> | <img src="https://skillicons.dev/icons?i=vercel" width="55" /> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg" width="55" /> |
 |:---:|:---:|:---:|:---:|
@@ -70,16 +70,17 @@ Personal portfolio website for **Isaac Adjei (Zac)** — Electronic Engineering 
 
 ## Features
 
-- **Dark / Light mode** — system preference detection with manual toggle via `next-themes`
-- **Interactive terminal blog** — fully functional terminal emulator with 10+ commands, blinking cursor, command history, macOS-style window controls (close / minimise / maximise)
-- **Command palette** — `Ctrl+I` global keyboard shortcut to navigate anywhere on the site
-- **Animated skills grid** — scroll-triggered fade-in with `IntersectionObserver`, icons from devicons / skillicons / simpleicons across 14 categories
-- **Responsive layout** — mobile-first, adapts from single column to multi-column on desktop
-- **Contact form** — client-side form with API route handler (`/api/contact`)
-- **Links page** — Linktree-style page with categorised professional, social and content links
-- **CV download** — direct PDF download from the contact CTA section
-- **Smooth animations** — `framer-motion` for entrance animations, CSS keyframes for scroll-triggered sections
-- **Projects** — problem / solution / key decisions / learnings format per project
+- **Dark / Light mode** - system preference detection with manual toggle via `next-themes`
+- **Interactive terminal blog** - fully functional terminal emulator with 10+ commands, blinking cursor, command history and macOS-style window controls
+- **Command palette** - `Ctrl+I` global keyboard shortcut to navigate anywhere on the site
+- **Animated skills grid** - scroll-triggered fade-in with `IntersectionObserver`, icons from devicons / skillicons / simpleicons across 14 categories
+- **Responsive layout** - mobile-first, adapts from single column to multi-column on desktop
+- **Contact form** - honeypot, rate limiting, input sanitisation, Cloudflare Turnstile CAPTCHA and Resend email delivery
+- **Security headers** - X-Frame-Options, HSTS, CSP and more configured in `next.config.mjs`
+- **Links page** - Linktree-style page with categorised professional, social and content links
+- **CV download** - direct PDF download from the contact CTA section
+- **Smooth animations** - `framer-motion` for entrance animations, CSS keyframes for scroll-triggered sections
+- **Dynamic quotes** - motivation section on blog page fetches fresh quotes from ZenQuotes API every 30 minutes
 
 ---
 
@@ -88,8 +89,9 @@ Personal portfolio website for **Isaac Adjei (Zac)** — Electronic Engineering 
 ```
 ├── app/
 │   ├── about/          # About page
-│   ├── api/contact/    # Contact form API route
-│   ├── blog/           # Terminal blog page + [slug] post pages
+│   ├── api/contact/    # Contact form API route (rate limiting, Turnstile, Resend)
+│   ├── api/quote/      # ZenQuotes proxy API route
+│   ├── blog/           # Terminal blog page
 │   ├── contact/        # Contact page
 │   ├── experience/     # Experience timeline page
 │   ├── links/          # Links / Linktree page
@@ -100,8 +102,9 @@ Personal portfolio website for **Isaac Adjei (Zac)** — Electronic Engineering 
 │   └── page.tsx        # Home / Hero
 ├── components/
 │   ├── blog/           # PostCard component
+│   ├── forms/          # ContactForm with Turnstile CAPTCHA
 │   ├── layout/         # Header, Footer, Navigation, MobileNav
-│   ├── sections/       # Hero, ContactCTA, etc.
+│   ├── sections/       # Hero, ContactCTA, ExperienceTimeline, etc.
 │   ├── shared/         # SocialLinks, CommandMenu
 │   └── ui/             # shadcn/ui components (Button, Card, etc.)
 ├── data/
@@ -116,11 +119,9 @@ Personal portfolio website for **Isaac Adjei (Zac)** — Electronic Engineering 
 │   ├── animations.ts   # Framer-motion variants
 │   ├── constants.ts    # Nav links, routes, site URL
 │   └── utils.ts        # cn() utility
-├── styles/
-│   └── animations.css  # Custom CSS keyframe animations
 └── public/
     ├── images/         # Profile photo, project images, skill icons
-    ├── media/          # GIFs and media assets
+    ├── Media/          # GIFs and media assets
     └── resume/         # CV PDF (Isaac_Adjei_CV.pdf)
 ```
 
@@ -162,12 +163,16 @@ Create a `.env.local` file in the root for local development:
 ```env
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 RESEND_API_KEY=your_resend_api_key_here
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_turnstile_site_key_here
+TURNSTILE_SECRET_KEY=your_turnstile_secret_key_here
 ```
 
 | Variable | Required | Description |
 |---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | No | Public site URL (defaults to `https://isaacadjei.me`) |
 | `RESEND_API_KEY` | Yes (contact form) | API key from [resend.com](https://resend.com) for email sending |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Yes (contact form) | Cloudflare Turnstile site key (public) |
+| `TURNSTILE_SECRET_KEY` | Yes (contact form) | Cloudflare Turnstile secret key (server-side) |
 
 ---
 
@@ -184,6 +189,7 @@ RESEND_API_KEY=your_resend_api_key_here
 | `lucide-react` | Icon set |
 | `react-icons` | Brand icons (GitHub, LinkedIn, etc.) |
 | `@radix-ui/*` | Accessible UI primitives (Dialog, Tabs, Tooltip) |
+| `@marsidev/react-turnstile` | Cloudflare Turnstile CAPTCHA widget |
 | `class-variance-authority` | Component variant styling |
 | `geist` | Vercel Geist font (sans + mono) |
 
@@ -199,7 +205,7 @@ Custom domain: **[isaacadjei.me](https://isaacadjei.me)**
 
 ## Author
 
-**Isaac Adjei (Zac)** — [@zaccesss](https://github.com/zaccesss)
+**Isaac Adjei (Zac)** - [@zaccesss](https://github.com/zaccesss)
 
 <p align="center">
   <a href="https://isaacadjei.me"><img src="https://img.shields.io/badge/Portfolio-isaacadjei.me-000000?style=flat-square&logo=googlechrome&logoColor=white" /></a>
