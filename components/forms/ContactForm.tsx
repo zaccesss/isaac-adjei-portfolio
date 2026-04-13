@@ -15,7 +15,7 @@ export default function ContactForm() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, _hp: (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>("[name=_hp]")?.value ?? "" }),
       })
       if (!res.ok) throw new Error()
       setStatus("success")
@@ -30,6 +30,8 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Honeypot - hidden from real users, bots fill this in */}
+      <input type="text" name="_hp" autoComplete="off" aria-hidden="true" tabIndex={-1} className="hidden" />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <label htmlFor="name" className="text-sm font-medium">
