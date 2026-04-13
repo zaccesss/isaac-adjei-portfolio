@@ -38,18 +38,18 @@ const iconMap: Record<string, React.ElementType> = {
 }
 
 const brandClasses: Record<string, { bg: string; icon: string }> = {
-  linkedin:  { bg: "bg-[#0A66C2]/10", icon: "text-[#0A66C2]" },
-  github:    { bg: "bg-gray-800/10",  icon: "text-gray-800 dark:text-gray-200" },
-  substack:  { bg: "bg-[#FF6719]/10", icon: "text-[#FF6719]" },
-  twitter:   { bg: "bg-gray-900/10",  icon: "text-gray-900 dark:text-gray-100" },
-  threads:   { bg: "bg-gray-900/10",  icon: "text-gray-900 dark:text-gray-100" },
+  linkedin: { bg: "bg-[#0A66C2]/10", icon: "text-[#0A66C2]" },
+  github: { bg: "bg-gray-800/10", icon: "text-gray-800 dark:text-gray-200" },
+  substack: { bg: "bg-[#FF6719]/10", icon: "text-[#FF6719]" },
+  twitter: { bg: "bg-gray-900/10", icon: "text-gray-900 dark:text-gray-100" },
+  threads: { bg: "bg-gray-900/10", icon: "text-gray-900 dark:text-gray-100" },
   instagram: { bg: "bg-[#E1306C]/10", icon: "text-[#E1306C]" },
-  tiktok:    { bg: "bg-gray-900/10",  icon: "text-gray-900 dark:text-gray-100" },
+  tiktok: { bg: "bg-gray-900/10", icon: "text-gray-900 dark:text-gray-100" },
   pinterest: { bg: "bg-[#E60023]/10", icon: "text-[#E60023]" },
-  youtube:   { bg: "bg-[#FF0000]/10", icon: "text-[#FF0000]" },
-  twitch:    { bg: "bg-[#9146FF]/10", icon: "text-[#9146FF]" },
-  discord:   { bg: "bg-[#5865F2]/10", icon: "text-[#5865F2]" },
-  spotify:   { bg: "bg-[#1DB954]/10", icon: "text-[#1DB954]" },
+  youtube: { bg: "bg-[#FF0000]/10", icon: "text-[#FF0000]" },
+  twitch: { bg: "bg-[#9146FF]/10", icon: "text-[#9146FF]" },
+  discord: { bg: "bg-[#5865F2]/10", icon: "text-[#5865F2]" },
+  spotify: { bg: "bg-[#1DB954]/10", icon: "text-[#1DB954]" },
 }
 
 const categoryLabel: Record<LinkItem["category"], string> = {
@@ -63,20 +63,25 @@ const categories: LinkItem["category"][] = ["professional", "social", "content"]
 export default function LinksPage() {
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-16">
-
       {/* Profile header */}
       <div className="text-center mb-12 space-y-3 animate-fade-up">
         <div className="w-20 h-20 rounded-full border-2 border-primary/30 overflow-hidden mx-auto">
-          <Image src="/images/avatar.png" alt="Isaac Adjei" width={80} height={80} className="object-cover w-full h-full" />
+          <Image
+            src="/images/avatar.png"
+            alt="Isaac Adjei"
+            width={80}
+            height={80}
+            className="object-cover w-full h-full"
+          />
         </div>
         <div className="space-y-1">
           <h1 className="text-2xl font-bold">Isaac Adjei</h1>
           <p className="text-sm text-primary font-mono">@zaccess</p>
         </div>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
-          Electronic Engineering & Computer Science student at Aston University,
-          building at the intersection of hardware and software.
-          Open to internships, placements & professional tech roles.
+          Electronic Engineering & Computer Science student at Aston University, building at the
+          intersection of hardware and software. Open to internships, placements & professional tech
+          roles. Follow, connect, like, comment and share on all socials!
         </p>
       </div>
 
@@ -114,7 +119,13 @@ export default function LinksPage() {
                       )}
                     >
                       {link.iconImage ? (
-                        <Image src={link.iconImage} alt={link.title} width={36} height={36} className="object-contain w-full h-full" />
+                        <Image
+                          src={link.iconImage}
+                          alt={link.title}
+                          width={36}
+                          height={36}
+                          className="object-contain w-full h-full"
+                        />
                       ) : (
                         <Icon className={cn("h-5 w-5", brand?.icon ?? "text-primary")} />
                       )}
@@ -133,7 +144,10 @@ export default function LinksPage() {
       </div>
 
       <div className="mt-16">
-        <Link href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+        <Link
+          href="/"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
           isaacadjei.me
         </Link>
       </div>
