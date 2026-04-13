@@ -121,7 +121,7 @@ export const profileLinks: LinkItem[] = [
     title: "PlayStation",
     description: "Add me on PlayStation",
     url: "https://psnprofiles.com/zac_cess",
-    icon: "gamepad2",
+    icon: "gamepad",
     category: "social",
   },
   {
