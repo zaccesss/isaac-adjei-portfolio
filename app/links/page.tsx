@@ -12,6 +12,7 @@ import {
   FaSpotify,
   FaPinterest,
   FaThreads,
+  FaPlaystation,
 } from "react-icons/fa6"
 import { SiSubstack } from "react-icons/si"
 import { Globe, Mail, ExternalLink } from "lucide-react"
@@ -35,6 +36,7 @@ const iconMap: Record<string, React.ElementType> = {
   twitch: FaTwitch,
   discord: FaDiscord,
   spotify: FaSpotify,
+  playstation: FaPlaystation,
 }
 
 const brandClasses: Record<string, { bg: string; icon: string }> = {
@@ -50,6 +52,7 @@ const brandClasses: Record<string, { bg: string; icon: string }> = {
   twitch: { bg: "bg-[#9146FF]/10", icon: "text-[#9146FF]" },
   discord: { bg: "bg-[#5865F2]/10", icon: "text-[#5865F2]" },
   spotify: { bg: "bg-[#1DB954]/10", icon: "text-[#1DB954]" },
+  playstation: { bg: "bg-[#003791]/10", icon: "text-[#003791] dark:text-[#0072CE]" },
 }
 
 const categoryLabel: Record<LinkItem["category"], string> = {

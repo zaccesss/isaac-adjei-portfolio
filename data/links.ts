@@ -111,6 +111,13 @@ export const profileLinks: LinkItem[] = [
     category: "social",
   },
   {
+    title: "PlayStation",
+    description: "Add me on PlayStation - zac_cess",
+    url: "https://www.playstation.com/en-gb/profiles/zac_cess/",
+    icon: "playstation",
+    category: "social",
+  },
+  {
     title: "Discord Community",
     description: "Join the ZACCESS community - it's free",
     url: "https://discord.gg/habvhrGX4s",
