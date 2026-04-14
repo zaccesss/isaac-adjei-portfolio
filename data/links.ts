@@ -62,7 +62,7 @@ export const profileLinks: LinkItem[] = [
   },
   {
     title: "Threads",
-    description: "Follow on Threads - @zac.cesss",
+    description: "Follow on Threads",
     url: "https://www.threads.net/@zac.cesss",
     icon: "threads",
     category: "social",
@@ -112,7 +112,7 @@ export const profileLinks: LinkItem[] = [
   },
   {
     title: "PlayStation",
-    description: "Add me on PlayStation - zac_cess",
+    description: "Add me on PlayStation",
     url: "https://www.playstation.com/en-gb/profiles/zac_cess/",
     icon: "playstation",
     category: "social",

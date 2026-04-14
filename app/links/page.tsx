@@ -84,7 +84,7 @@ export default function LinksPage() {
         <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
           Electronic Engineering & Computer Science student at Aston University, building at the
           intersection of hardware and software. Open to internships, placements & professional tech
-          roles. Follow, connect, like, comment and share on all socials!
+          roles. Follow, connect, subscribe, like, comment and share on all socials!
         </p>
       </div>
 
