@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+14+%7C+TypeScript+%7C+Tailwind+CSS;8+Projects+%7C+Image+Gallery+%7C+Lightbox;Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+16+%7C+TypeScript+%7C+Tailwind+CSS;8+Projects+%7C+Image+Gallery+%7C+Lightbox;Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-14-black?style=flat&logo=next.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/Next.js-16-black?style=flat&logo=next.js&logoColor=white" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/deployment-Vercel-000000?style=flat&logo=vercel&logoColor=white" />
   <img src="https://img.shields.io/badge/DNS-Cloudflare-f48024?style=flat&logo=cloudflare&logoColor=white" />
@@ -53,7 +53,7 @@
 
 Personal portfolio website for **Isaac Adjei (Zac)** - Top 40 Finalist, Black Heritage Undergraduate of the Year 2026, and Electronic Engineering and Computer Science student at Aston University (Predicted First Class). Built to showcase 8 engineering and software projects with full image galleries and lightboxes, alongside skills, experience, blog and contact pages.
 
-The site is a proper **Next.js 14 App Router** application with TypeScript, Tailwind CSS, Framer Motion animations and full dark/light mode support. Every page is server-rendered or statically generated where possible, with client components only where interactivity requires it.
+The site is a proper **Next.js 16 App Router** application with TypeScript, Tailwind CSS, Framer Motion animations and full dark/light mode support. Every page is server-rendered or statically generated where possible, with client components only where interactivity requires it.
 
 ---
 
@@ -162,7 +162,7 @@ The site is a proper **Next.js 14 App Router** application with TypeScript, Tail
 
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" width="55" /> | <img src="https://techstack-generator.vercel.app/js-icon.svg" width="55" /> | <img src="https://techstack-generator.vercel.app/ts-icon.svg" width="55" /> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg" width="55" /> | <img src="https://techstack-generator.vercel.app/react-icon.svg" width="55" /> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" width="55" /> |
 | :--------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------: | :-------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
-|                                               **HTML**                                               |                               **JavaScript**                                |                              **TypeScript 5**                               |                                             **Next.js 14**                                             |                                  **React 18**                                  |                                              **Node.js**                                               |
+|                                               **HTML**                                               |                               **JavaScript**                                |                              **TypeScript 5**                               |                                             **Next.js 16**                                             |                                  **React 18**                                  |                                              **Node.js**                                               |
 
 ### UI and Styling
 
@@ -180,7 +180,7 @@ The site is a proper **Next.js 14 App Router** application with TypeScript, Tail
 
 </div>
 
-- **Framework** - Next.js 14 App Router with TypeScript
+- **Framework** - Next.js 16 App Router with TypeScript
 - **Styling** - Tailwind CSS v3 with shadcn/ui component primitives
 - **Animations** - Framer Motion 11 for page and section entrance effects
 - **Theming** - next-themes, system preference detection
@@ -337,7 +337,7 @@ TURNSTILE_SECRET_KEY=your_turnstile_secret_key_here
 
 | Package                     | Purpose                                          |
 | --------------------------- | ------------------------------------------------ |
-| `next` 14                   | App Router, SSR, image optimisation, API routes  |
+| `next` 16                   | App Router, SSR, image optimisation, API routes  |
 | `react` / `react-dom` 18    | UI rendering                                     |
 | `typescript` 5              | Type safety                                      |
 | `tailwindcss` 3             | Utility-first styling                            |

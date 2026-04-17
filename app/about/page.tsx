@@ -3,7 +3,16 @@ import { education } from "@/data/education"
 import { societies } from "@/data/societies"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { GraduationCap, Users, Heart, Sparkles, Languages, HandHeart, Trophy, Quote } from "lucide-react"
+import {
+  GraduationCap,
+  Users,
+  Heart,
+  Sparkles,
+  Languages,
+  HandHeart,
+  Trophy,
+  Quote,
+} from "lucide-react"
 
 export const metadata: Metadata = {
   title: "About",
@@ -56,19 +65,18 @@ export default function AboutPage() {
             I&apos;m Isaac Adjei - most people know me as Zac. I&apos;m an Electronic Engineering
             and Computer Science student at Aston University, Birmingham, working towards a First
             Class BEng degree. I am a Top 40 Finalist for the Black Heritage Undergraduate of the
-            Year Award 2026 and was named Best and Most Hardworking Student at Stanmore College.
-            My goal is to build a career at the intersection of intelligent software and efficient
+            Year Award 2026 and was named Best and Most Hardworking Student at Stanmore College. My
+            goal is to build a career at the intersection of intelligent software and efficient
             hardware - systems that solve real problems for real people.
           </p>
           <p>
             My journey began in Ghana, where curiosity and hands-on problem-solving shaped me from
             an early age. I spent my senior high school years at Adisadel College in Cape Coast -
-            one of the most prestigious boys&apos; schools in Ghana, guided by the motto
-            &ldquo;Vel Primus, Vel Cum Primis&rdquo; (Either the first, or with the first). I lived
-            in Thomas Jonah House and was active in Robotics, Scripture Union, PENSA, Debate
-            Society and Sports &amp; Athletics, serving as APOSA Secretary. Adisadel instilled in
-            me resilience, discipline and a standard of excellence that continues to guide
-            everything I do.
+            one of the most prestigious boys&apos; schools in Ghana, guided by the motto &ldquo;Vel
+            Primus, Vel Cum Primis&rdquo; (Either the first, or with the first). I lived in Thomas
+            Jonah House and was active in Robotics, Scripture Union, PENSA, Debate Society and
+            Sports &amp; Athletics, serving as APOSA Secretary. Adisadel instilled in me resilience,
+            discipline and a standard of excellence that continues to guide everything I do.
           </p>
           <p>
             In April 2022 I relocated to the UK. I initially enrolled in a business course at
@@ -81,23 +89,20 @@ export default function AboutPage() {
           </p>
           <p>
             My hands-on engineering roots go back further. Between 2019 and 2021 I worked as a
-            Junior Apprentice HVAC Technician in Accra, Ghana, servicing and installing over 50
-            air conditioning units on-site, using diagnostic equipment and learning the discipline
-            of real field technical work. That foundation, combined with the legacy of my late
-            father who was a mechanical engineer, drives my determination every single day. He used
-            to say &ldquo;Always strive to make things better.&rdquo; During school vacations I
-            would accompany him to work and watch engineering come to life in his hands. His
-            passion and the impact of his work are a constant source of motivation.
+            Junior Apprentice HVAC Technician in Accra, Ghana, servicing and installing over 50 air
+            conditioning units on-site, using diagnostic equipment and learning the discipline of
+            real field technical work. That foundation, combined with the legacy of my late father
+            who was a mechanical engineer, drives my determination every single day. He used to say
+            &ldquo;Always strive to make things better.&rdquo; During school vacations I would
+            accompany him to work and watch engineering come to life in his hands. His passion and
+            the impact of his work are a constant source of motivation.
           </p>
           <p>
-            I have been partially sighted since the age of two due to suspected retinoblastoma,
-            which resulted in blindness in my right eye. This also meant I missed approximately
-            five years of early education. Rather than letting either be a limitation, those
-            experiences sharpened my focus, consistency and determination to succeed. They also
-            deepened my commitment to accessible technology - building things that genuinely work
-            for everyone, not just the majority. I am a Student Representative at Aston
-            Students&apos; Union, a Student Member of the IET, and a member of the Aston Computing
-            Society, Aston Ghana Society and Aston Gaming Society.
+            My journey has required resilience, discipline and long-term consistency, and those
+            values now shape how I approach engineering and leadership. I care deeply about
+            accessible technology and practical systems that serve real users. I am a Student
+            Representative at Aston Students&apos; Union, a Student Member of the IET, and a member
+            of the Aston Computing Society, Aston Ghana Society and Aston Gaming Society.
           </p>
           <p>
             Beyond university I have gained professional experience across different sectors. In
@@ -109,17 +114,17 @@ export default function AboutPage() {
             studies.
           </p>
           <p>
-            Technically I work across the full stack: bare-metal C and C++ on microcontrollers,
-            PCB design in KiCad and Proteus, full-stack web with Next.js, PHP 8.2 and MySQL, and
-            AI/ML with Python, TensorFlow and PyTorch. I am also expanding into cloud computing,
-            cyber security and game development. My projects include a two-stage audio amplifier
-            designed and manufactured as a PCB from scratch, a 4x4x4 NeoPixel LED Cube with
-            adaptive brightness and four animation modes, a full-stack CV database with 11
-            production security measures deployed live at Aston University, a terminal-style
-            personal site at zacess.com built with Next.js, safety-critical control systems for
-            CNC and lift machinery, and an open-source Git course with 138 structured topic files.
-            I enjoy understanding how systems work at every layer and building things that move
-            from concept to code to real, tangible output.
+            Technically I work across the full stack: bare-metal C and C++ on microcontrollers, PCB
+            design in KiCad and Proteus, full-stack web with Next.js, PHP 8.2 and MySQL, and AI/ML
+            with Python, TensorFlow and PyTorch. I am also expanding into cloud computing, cyber
+            security and game development. My projects include a two-stage audio amplifier designed
+            and manufactured as a PCB from scratch, a 4x4x4 NeoPixel LED Cube with adaptive
+            brightness and four animation modes, a full-stack CV database with 11 production
+            security measures deployed live at Aston University, a terminal-style personal site at
+            zacess.com built with Next.js, safety-critical control systems for CNC and lift
+            machinery, and an open-source Git course with 138 structured topic files. I enjoy
+            understanding how systems work at every layer and building things that move from concept
+            to code to real, tangible output.
           </p>
         </div>
       </section>
@@ -139,18 +144,29 @@ export default function AboutPage() {
                 <div>
                   <h3 className="text-xl font-semibold">{edu.institution}</h3>
                   <p className="text-muted-foreground">
-                    {edu.degree}{edu.field ? `, ${edu.field}` : ""}
+                    {edu.degree}
+                    {edu.field ? `, ${edu.field}` : ""}
                   </p>
-                  {edu.grade && (
-                    <p className="text-sm text-primary font-medium">{edu.grade}</p>
-                  )}
+                  {edu.grade && <p className="text-sm text-primary font-medium">{edu.grade}</p>}
                 </div>
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
                   {edu.startDate} - {edu.endDate}
                 </span>
               </div>
-              {edu.description && (
-                <p className="text-muted-foreground">{edu.description}</p>
+              {edu.description && <p className="text-muted-foreground">{edu.description}</p>}
+              {edu.id === "aston" && (
+                <p className="text-sm text-muted-foreground">
+                  Highlights include Internet Applications and Databases, Foundations of AI and Data
+                  Science, Python Programming, Electronics 1 and 2, Engineering Mathematics and
+                  Professional Skills.
+                </p>
+              )}
+              {edu.id === "stanmore" && (
+                <p className="text-sm text-muted-foreground">
+                  Key modules included Engineering Product Design and Manufacture, Microcontroller
+                  Systems, CAD, Electronic Devices and Circuits and Electronic Measurement and
+                  Testing.
+                </p>
               )}
               {edu.modules && edu.modules.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -205,30 +221,36 @@ export default function AboutPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
               <div>
                 <h3 className="font-semibold">Student Judge</h3>
-                <p className="text-sm text-primary font-medium">targetjobs UK - National Emerging Talent Awards 2026</p>
+                <p className="text-sm text-primary font-medium">
+                  targetjobs UK - National Emerging Talent Awards 2026
+                </p>
               </div>
               <span className="text-sm text-muted-foreground whitespace-nowrap">Feb 2026</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Selected to evaluate employer submissions for the Best Placement or Internship
-              Programme category. Assessed programme design, recruitment strategy, inclusivity
-              and student experience, providing detailed qualitative feedback and numerical
-              scoring. Commended for a timely, thorough and high-quality approach.
+              Programme category. Assessed programme design, recruitment strategy, inclusivity and
+              student experience, providing detailed qualitative feedback and numerical scoring.
+              Commended for a timely, thorough and high-quality approach.
             </p>
           </div>
           <div className="space-y-1">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
               <div>
                 <h3 className="font-semibold">Fundraising Volunteer</h3>
-                <p className="text-sm text-primary font-medium">Cancer Research UK - 10 Days of 5K Challenge</p>
+                <p className="text-sm text-primary font-medium">
+                  Cancer Research UK - 10 Days of 5K Challenge
+                </p>
               </div>
-              <span className="text-sm text-muted-foreground whitespace-nowrap">Feb 2026 - Mar 2026</span>
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                Feb 2026 - Mar 2026
+              </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Completed 10 x 5km runs (50km+ total) to support life-saving cancer research.
-              Managed a personal fundraising page contributing to a wider campaign that raised
-              over £797,424. Strengthened accountability, resilience and goal-setting through
-              consistent daily commitment.
+              Completed 10 x 5km runs (50km+ total) to support life-saving cancer research. Managed
+              a personal fundraising page contributing to a wider campaign that raised over
+              £797,424. Strengthened accountability, resilience and goal-setting through consistent
+              daily commitment.
             </p>
           </div>
         </div>
@@ -246,18 +268,20 @@ export default function AboutPage() {
           <div className="space-y-1">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
               <div>
-                <h3 className="font-semibold">Top 40 Finalist - Black Heritage Undergraduate of the Year Award 2026</h3>
+                <h3 className="font-semibold">
+                  Top 40 Finalist - Black Heritage Undergraduate of the Year Award 2026
+                </h3>
                 <p className="text-sm text-primary font-medium">TargetJobs &amp; Sky · Mar 2026</p>
               </div>
               <span className="text-sm text-muted-foreground whitespace-nowrap">Mar 2026</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Selected as one of the Top 40 finalists nationwide for the Black Heritage
-              Undergraduate of the Year Award 2026 - a programme recognising high-achieving
-              students across the UK for leadership, impact and potential. Completed the
-              application and video interview process with Sky and TargetJobs and was invited to
-              attend the finalist Celebration Day at Sky&apos;s flagship Osterley campus.
-              Associated with Aston University.
+              Undergraduate of the Year Award 2026 - a programme recognising high-achieving students
+              across the UK for leadership, impact and potential. Completed the application and
+              video interview process with Sky and TargetJobs and was invited to attend the finalist
+              Celebration Day at Sky&apos;s flagship Osterley campus. Associated with Aston
+              University.
             </p>
           </div>
           <div className="space-y-1">
@@ -268,9 +292,9 @@ export default function AboutPage() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              Recognised as the best and most hardworking student at Stanmore College during
-              the Pearson BTEC Level 3 National Extended Diploma in Engineering, graduating
-              with D*DD (Distinction*, Distinction, Distinction).
+              Recognised as the best and most hardworking student at Stanmore College during the
+              Pearson BTEC Level 3 National Extended Diploma in Engineering, graduating with D*DD
+              (Distinction*, Distinction, Distinction).
             </p>
           </div>
         </div>
@@ -302,12 +326,12 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold">Outside Engineering</h2>
         </div>
         <p className="text-muted-foreground">
-          Outside engineering I play piano, stay active at the gym, cycle, cook, journal and
-          travel whenever I get the chance. I completed the Cancer Research UK 10 Days of 5K
-          Challenge, running over 50km in March 2026. I am a big believer in continuous learning
-          - I regularly work through online courses on platforms like Coursera, build personal
-          projects and read widely across tech, business and history. For me, growth is not
-          occasional - it&apos;s an active lifestyle.
+          Outside engineering I play piano, stay active at the gym, cycle, cook, journal and travel
+          whenever I get the chance. I completed the Cancer Research UK 10 Days of 5K Challenge,
+          running over 50km in March 2026. I am a big believer in continuous learning - I regularly
+          work through online courses on platforms like Coursera, build personal projects and read
+          widely across tech, business and history. For me, growth is not occasional - it&apos;s an
+          active lifestyle.
         </p>
         <div className="flex flex-wrap gap-2">
           {hobbies.map((hobby) => (
@@ -330,14 +354,16 @@ export default function AboutPage() {
           <p className="text-muted-foreground leading-relaxed italic">
             &ldquo;Isaac recently completed a set of student judging for us at targetjobs for the
             prestigious National Graduate Recruitment Awards. He completed this task in a timely
-            manner and to a high quality, and we are very thankful that Isaac volunteered his
-            time. Isaac proved to be efficient and self-motivated, with a thorough approach to the
+            manner and to a high quality, and we are very thankful that Isaac volunteered his time.
+            Isaac proved to be efficient and self-motivated, with a thorough approach to the
             assigned work. I would highly recommend Isaac for any future roles and
             opportunities.&rdquo;
           </p>
           <div>
             <p className="font-semibold text-sm">Imogen Carter</p>
-            <p className="text-xs text-muted-foreground">Events and Marketing Administrator, Group GTI · March 2026</p>
+            <p className="text-xs text-muted-foreground">
+              Events and Marketing Administrator, Group GTI · March 2026
+            </p>
           </div>
         </div>
       </section>
@@ -348,7 +374,10 @@ export default function AboutPage() {
       <section className="space-y-6">
         <div className="flex items-center gap-3">
           <Languages className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-bold">Languages <span className="text-base font-normal text-muted-foreground">(spoken & written)</span></h2>
+          <h2 className="text-2xl font-bold">
+            Languages{" "}
+            <span className="text-base font-normal text-muted-foreground">(spoken & written)</span>
+          </h2>
         </div>
         <div className="space-y-3">
           {languages.map((lang) => (
