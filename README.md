@@ -37,8 +37,10 @@
   <a href="#features">Features</a> •
   <a href="#projects">Projects</a> •
   <a href="#tech-stack">Tech Stack</a> •
+  <a href="#api-routes">API Routes</a> •
   <a href="#file-structure">File Structure</a> •
   <a href="#getting-started">Getting Started</a> •
+  <a href="#scripts">Scripts</a> •
   <a href="#environment-variables">Environment Variables</a> •
   <a href="#deployment">Deployment</a>
 </p>
@@ -46,6 +48,7 @@
 ---
 
 <a id="overview"></a>
+
 ## Overview
 
 Personal portfolio website for **Isaac Adjei (Zac)** - Top 40 Finalist, Black Heritage Undergraduate of the Year 2026, and Electronic Engineering and Computer Science student at Aston University (Predicted First Class). Built to showcase 8 engineering and software projects with full image galleries and lightboxes, alongside skills, experience, blog and contact pages.
@@ -55,50 +58,57 @@ The site is a proper **Next.js 14 App Router** application with TypeScript, Tail
 ---
 
 <a id="live-demo"></a>
+
 ## Live Demo
 
 <div align="center">
 
-| Feature | Detail |
-|---|---|
-| Hosting | Vercel |
-| DNS | Cloudflare |
-| Custom domain | [isaacadjei.me](https://isaacadjei.me) |
-| Auto-deploy | On push to `main` |
-| Quote API | ZenQuotes, proxied via `/api/quote`, refreshes every 30 min |
-| CAPTCHA | Cloudflare Turnstile on contact form |
+| Feature       | Detail                                                      |
+| ------------- | ----------------------------------------------------------- |
+| Hosting       | Vercel                                                      |
+| DNS           | Cloudflare                                                  |
+| Custom domain | [isaacadjei.me](https://isaacadjei.me)                      |
+| Auto-deploy   | On push to `main`                                           |
+| Quote API     | ZenQuotes, proxied via `/api/quote`, refreshes every 30 min |
+| CAPTCHA       | Cloudflare Turnstile on contact form                        |
 
 </div>
 
 ---
 
 <a id="pages"></a>
+
 ## Pages
 
-| Route | Description |
-|---|---|
-| `/` | Hero with profile image, bio, social links and quick-nav |
-| `/about` | Full personal story, education, awards, societies, volunteering and languages |
-| `/projects` | 8 project cards with cover images, each linking to a full detail page |
+| Route              | Description                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| `/`                | Hero with profile image, bio, social links and quick-nav                           |
+| `/about`           | Full personal story, education, awards, societies, volunteering and languages      |
+| `/projects`        | 8 project cards with cover images, each linking to a full detail page              |
 | `/projects/[slug]` | Project detail: overview, highlights, technologies and image gallery with lightbox |
-| `/experience` | Work experience and internships timeline |
-| `/skills` | Full tech stack with animated icon grid across 14 categories |
-| `/blog` | Interactive terminal blog - type commands to explore content |
-| `/contact` | Contact form with spam protection and email delivery via Resend |
-| `/links` | Linktree-style page with all social and professional links |
+| `/experience`      | Work experience and internships timeline                                           |
+| `/skills`          | Full tech stack with animated icon grid across 14 categories                       |
+| `/blog`            | Interactive terminal blog - type commands to explore content                       |
+| `/blog/[slug]`     | Blog post page for published posts with rich content blocks                        |
+| `/contact`         | Contact form with spam protection and email delivery via Resend                    |
+| `/cv`              | Serves CV as HTML from `public/resume/cv.html`                                     |
+| `/links`           | Linktree-style page with all social and professional links                         |
 
 ---
 
 <a id="features"></a>
+
 ## Features
 
 ### Projects and gallery
+
 - **8 engineering projects** - hardware, embedded, web and open source, each with full detail pages
 - **Image gallery with lightbox** - uniform grid of project photos, hover zoom effect, click to open full-screen
 - **Lightbox navigation** - arrow keys (left/right), Escape to close, image counter (`1 / 9`)
 - **Project cover images** - each project card shows a cover photo with hover zoom
 
 ### UI and navigation
+
 - **Dark / light mode** - system preference detection with manual toggle via `next-themes`
 - **Command palette** - `Ctrl+I` global keyboard shortcut to navigate anywhere on the site
 - **Responsive layout** - mobile-first, adapts from single column to multi-column on desktop
@@ -106,16 +116,19 @@ The site is a proper **Next.js 14 App Router** application with TypeScript, Tail
 - **Animated skills grid** - scroll-triggered fade-in with `IntersectionObserver`, icons across 14 categories
 
 ### Blog
+
 - **Interactive terminal blog** - fully functional terminal emulator with 10+ commands
 - **Blinking cursor, command history** and macOS-style window controls
 - **Dynamic quotes** - blog page fetches fresh quotes from ZenQuotes API every 30 minutes
 
 ### Contact and security
+
 - **Contact form** - honeypot field, rate limiting, input sanitisation and Resend email delivery
 - **Cloudflare Turnstile CAPTCHA** - bot protection on the contact form
-- **Security headers** - X-Frame-Options, HSTS, CSP and more configured in `next.config.mjs`
+- **Security headers** - X-Frame-Options, HSTS, Referrer-Policy, Permissions-Policy and more configured in `next.config.mjs`
 
 ### Performance and SEO
+
 - **Custom favicon** - avatar image served as site icon via Next.js App Router convention (`app/icon.png`)
 - **Per-page metadata** - title, description and Open Graph tags on every page
 - **Next.js Image optimisation** - automatic format conversion, lazy loading and responsive sizes
@@ -123,22 +136,24 @@ The site is a proper **Next.js 14 App Router** application with TypeScript, Tail
 ---
 
 <a id="projects"></a>
+
 ## Projects
 
-| Project | Category | Featured |
-|---|---|---|
-| Two-Stage Audio Amplifier | Hardware | Yes |
-| 4x4x4 NeoPixel LED Cube | Embedded | Yes |
-| AstonCV - Full-Stack CV Database | Web | Yes |
-| zacess.com - Interactive Terminal | Web | Yes |
-| git-unlocked Open Source Course | Other | Yes |
-| CNC Milling Machine Control System | Embedded | - |
-| Goods Lift Control System | Embedded | - |
-| CAD Engineering Design Portfolio | Hardware | - |
+| Project                            | Category | Featured |
+| ---------------------------------- | -------- | -------- |
+| Two-Stage Audio Amplifier          | Hardware | Yes      |
+| 4x4x4 NeoPixel LED Cube            | Embedded | Yes      |
+| AstonCV - Full-Stack CV Database   | Web      | Yes      |
+| zacess.com - Interactive Terminal  | Web      | Yes      |
+| git-unlocked Open Source Course    | Other    | Yes      |
+| CNC Milling Machine Control System | Embedded | -        |
+| Goods Lift Control System          | Embedded | -        |
+| CAD Engineering Design Portfolio   | Hardware | -        |
 
 ---
 
 <a id="tech-stack"></a>
+
 ## Tech Stack
 
 <div align="center">
@@ -146,22 +161,22 @@ The site is a proper **Next.js 14 App Router** application with TypeScript, Tail
 ### Core Framework
 
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg" width="55" /> | <img src="https://techstack-generator.vercel.app/react-icon.svg" width="55" /> | <img src="https://techstack-generator.vercel.app/ts-icon.svg" width="55" /> | <img src="https://skillicons.dev/icons?i=tailwind" width="55" /> |
-|:---:|:---:|:---:|:---:|
-| **Next.js 14** | **React 18** | **TypeScript 5** | **Tailwind CSS** |
+| :----------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------: | :-------------------------------------------------------------------------: | :--------------------------------------------------------------: |
+|                                             **Next.js 14**                                             |                                  **React 18**                                  |                              **TypeScript 5**                               |                         **Tailwind CSS**                         |
 
 ### UI and Styling
 
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" width="55" /> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg" width="55" /> |
-|:---:|:---:|
-| **CSS / Animations** | **Figma (Design)** |
+| :------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------: |
+|                                        **CSS / Animations**                                        |                                          **Figma (Design)**                                          |
 
 > UI components from [shadcn/ui](https://ui.shadcn.com) - Radix UI primitives + Tailwind. Icons via `lucide-react` and `react-icons`.
 
 ### Tooling and Deployment
 
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" width="55" /> | <img src="https://techstack-generator.vercel.app/github-icon.svg" width="55" /> | <img src="https://skillicons.dev/icons?i=vercel" width="55" /> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cloudflare/cloudflare-original.svg" width="55" /> | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg" width="55" /> |
-|:---:|:---:|:---:|:---:|:---:|
-| **Git** | **GitHub** | **Vercel** | **Cloudflare** | **VS Code** |
+| :----------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------: | :------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
+|                                             **Git**                                              |                                   **GitHub**                                    |                           **Vercel**                           |                                                 **Cloudflare**                                                 |                                              **VS Code**                                               |
 
 </div>
 
@@ -178,7 +193,19 @@ The site is a proper **Next.js 14 App Router** application with TypeScript, Tail
 
 ---
 
+<a id="api-routes"></a>
+
+## API Routes
+
+| Route          | Method | Purpose                                                                                                                                  |
+| -------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/contact` | `POST` | Contact form submission with in-memory rate limiting, honeypot check, optional Turnstile verification and optional Resend email delivery |
+| `/api/quote`   | `GET`  | Fetches quote data from ZenQuotes with a local fallback quote                                                                            |
+
+---
+
 <a id="file-structure"></a>
+
 ## File Structure
 
 ```
@@ -187,7 +214,9 @@ The site is a proper **Next.js 14 App Router** application with TypeScript, Tail
 │   ├── api/contact/    # Contact form API route (rate limiting, Turnstile, Resend)
 │   ├── api/quote/      # ZenQuotes proxy API route
 │   ├── blog/           # Terminal blog page
+│   │   └── [slug]/     # Individual blog posts
 │   ├── contact/        # Contact page
+│   ├── cv/             # CV HTML route
 │   ├── experience/     # Experience timeline page
 │   ├── links/          # Links / Linktree page
 │   ├── projects/       # Projects list and [slug] detail pages
@@ -213,7 +242,12 @@ The site is a proper **Next.js 14 App Router** application with TypeScript, Tail
 │   ├── links.ts        # Links page data
 │   ├── projects.ts     # 8 projects with images, highlights and descriptions
 │   ├── skills.ts       # Tech stack (icons and categories)
+│   ├── social.ts       # Social profile links
 │   └── societies.ts    # University societies and memberships
+│
+├── hooks/              # Custom hooks (command menu, media query, scroll, theme)
+├── styles/             # Additional CSS (animations)
+├── types/              # Shared TypeScript types
 │
 ├── lib/
 │   ├── animations.ts   # Framer Motion variants
@@ -224,12 +258,13 @@ The site is a proper **Next.js 14 App Router** application with TypeScript, Tail
     ├── images/
     │   └── projects/   # Project photos organised by project slug
     ├── Media/          # GIFs and media assets
-    └── resume/         # CV PDF
+    └── resume/         # CV assets (HTML + PDF)
 ```
 
 ---
 
 <a id="getting-started"></a>
+
 ## Getting Started
 
 **Prerequisites:** Node.js 18+ and npm/yarn/pnpm
@@ -251,15 +286,33 @@ Open [http://localhost:3000](http://localhost:3000).
 ```bash
 # Build for production
 npm run build
-npm start
+npm run start
 
 # Lint
 npm run lint
+
+# Format all files
+npm run format
 ```
 
 ---
 
+<a id="scripts"></a>
+
+## Scripts
+
+| Command          | Description                |
+| ---------------- | -------------------------- |
+| `npm run dev`    | Start Next.js dev server   |
+| `npm run build`  | Build production bundle    |
+| `npm run start`  | Start production server    |
+| `npm run lint`   | Run Next.js linting        |
+| `npm run format` | Format files with Prettier |
+
+---
+
 <a id="environment-variables"></a>
+
 ## Environment Variables
 
 Create a `.env.local` file in the root for local development:
@@ -271,35 +324,38 @@ NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_turnstile_site_key_here
 TURNSTILE_SECRET_KEY=your_turnstile_secret_key_here
 ```
 
-| Variable | Required | Description |
-|---|---|---|
-| `NEXT_PUBLIC_SITE_URL` | No | Public site URL (defaults to `https://isaacadjei.me`) |
-| `RESEND_API_KEY` | Yes (contact form) | API key from [resend.com](https://resend.com) |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Yes (contact form) | Cloudflare Turnstile site key (public) |
-| `TURNSTILE_SECRET_KEY` | Yes (contact form) | Cloudflare Turnstile secret key (server-side) |
+| Variable                         | Required    | Description                                                                                                                    |
+| -------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SITE_URL`           | No          | Public site URL (defaults to `https://isaacadjei.me`)                                                                          |
+| `RESEND_API_KEY`                 | Optional    | API key from [resend.com](https://resend.com). If missing, contact submissions are logged server-side and still return success |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Recommended | Cloudflare Turnstile site key (public). Required when Turnstile is enabled on the contact form                                 |
+| `TURNSTILE_SECRET_KEY`           | Optional    | Cloudflare Turnstile secret key (server-side). If set, the API route verifies Turnstile tokens                                 |
 
 ---
 
 ## Key Dependencies
 
-| Package | Purpose |
-|---|---|
-| `next` 14 | App Router, SSR, image optimisation, API routes |
-| `react` / `react-dom` 18 | UI rendering |
-| `typescript` 5 | Type safety |
-| `tailwindcss` 3 | Utility-first styling |
-| `framer-motion` 11 | Page and section entrance animations |
-| `next-themes` | Dark / light mode |
-| `lucide-react` | Icon set |
-| `react-icons` | Brand icons (GitHub, LinkedIn, etc.) |
-| `@radix-ui/*` | Accessible UI primitives (Dialog, Tabs, Tooltip) |
-| `@marsidev/react-turnstile` | Cloudflare Turnstile CAPTCHA widget |
-| `class-variance-authority` | Component variant styling |
-| `geist` | Vercel Geist font (sans + mono) |
+| Package                     | Purpose                                          |
+| --------------------------- | ------------------------------------------------ |
+| `next` 14                   | App Router, SSR, image optimisation, API routes  |
+| `react` / `react-dom` 18    | UI rendering                                     |
+| `typescript` 5              | Type safety                                      |
+| `tailwindcss` 3             | Utility-first styling                            |
+| `framer-motion` 11          | Page and section entrance animations             |
+| `next-themes`               | Dark / light mode                                |
+| `lucide-react`              | Icon set                                         |
+| `react-icons`               | Brand icons (GitHub, LinkedIn, etc.)             |
+| `@radix-ui/*`               | Accessible UI primitives (Dialog, Tabs, Tooltip) |
+| `@marsidev/react-turnstile` | Cloudflare Turnstile CAPTCHA widget              |
+| `cmdk`                      | Command menu behavior                            |
+| `clsx` + `tailwind-merge`   | Class name composition utilities                 |
+| `class-variance-authority`  | Component variant styling                        |
+| `geist`                     | Vercel Geist font (sans + mono)                  |
 
 ---
 
 <a id="deployment"></a>
+
 ## Deployment
 
 Hosted on **Vercel**, connected to this GitHub repo. Every push to `main` triggers an automatic production deploy. DNS is managed through **Cloudflare**.
