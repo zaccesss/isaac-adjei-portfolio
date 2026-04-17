@@ -6,15 +6,21 @@ import { posts } from "@/data/blog"
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type WindowState = "normal" | "minimized" | "maximized" | "closed"
-type LineType    = "system" | "cmd-echo" | "output" | "error" | "info" | "blank"
+type LineType = "system" | "cmd-echo" | "output" | "error" | "info" | "blank"
 
-interface Line { type: LineType; text: string }
+interface Line {
+  type: LineType
+  text: string
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const HOST = "zacess@portfolio:~/blog"
 
 const TYPE_LABEL: Record<string, string> = {
-  blog: "blog", journal: "journal", research: "research", notes: "notes",
+  blog: "blog",
+  journal: "journal",
+  research: "research",
+  notes: "notes",
 }
 
 const BOOT: Line[] = [
@@ -22,134 +28,168 @@ const BOOT: Line[] = [
   { type: "system", text: "kernel: loading writing module..." },
   { type: "system", text: "checking drafts......" },
   { type: "system", text: "environment: ready" },
-  { type: "blank",  text: "" },
+  { type: "blank", text: "" },
 ]
+
+const NAV_COMMANDS: Record<string, string> = {
+  about: "https://isaacadjei.me/about",
+  projects: "https://isaacadjei.me/projects",
+  skills: "https://isaacadjei.me/skills",
+  contact: "https://isaacadjei.me/contact",
+  links: "https://isaacadjei.me/links",
+  cv: "https://isaacadjei.me/cv",
+}
 
 const COMMANDS: Record<string, () => Line[]> = {
   help: () => [
-    { type: "info",   text: "available commands:" },
-    { type: "blank",  text: "" },
+    { type: "info", text: "blog terminal commands:" },
+    { type: "blank", text: "" },
     { type: "output", text: "  help      -  list available commands" },
-    { type: "output", text: "  about     -  who is isaac adjei" },
-    { type: "output", text: "  blog      -  upcoming posts and drafts" },
-    { type: "output", text: "  projects  -  featured engineering work" },
-    { type: "output", text: "  skills    -  technical stack overview" },
-    { type: "output", text: "  contact   -  how to get in touch" },
-    { type: "output", text: "  links     -  social and professional links" },
-    { type: "output", text: "  cv        -  curriculum vitae" },
-    { type: "output", text: "  motto     -  a word of motivation" },
+    { type: "output", text: "  about     -  open about page" },
+    { type: "output", text: "  projects  -  open projects page" },
+    { type: "output", text: "  skills    -  open skills page" },
+    { type: "output", text: "  contact   -  open contact page" },
+    { type: "output", text: "  links     -  open links page" },
+    { type: "output", text: "  cv        -  open CV page" },
+    { type: "output", text: "  posts     -  all writing entries" },
+    { type: "output", text: "  live      -  published posts with slugs" },
+    { type: "output", text: "  drafts    -  works in progress" },
+    { type: "output", text: "  topics    -  active tags and themes" },
+    { type: "output", text: "  now       -  what is being written right now" },
+    { type: "output", text: "  motto     -  quick motivation" },
     { type: "output", text: "  status    -  blog build status" },
+    { type: "output", text: "  zac       -  easter egg" },
+    { type: "output", text: "  sudo      -  definitely do not run this" },
+    { type: "output", text: "  whoami    -  identity check" },
     { type: "output", text: "  clear     -  clear the terminal" },
   ],
 
-  about: () => [
-    { type: "info",   text: "user:" },
-    { type: "output", text: "  name:    Isaac (Zac) Adjei" },
-    { type: "output", text: "  role:    Electronic Engineering & CS Student" },
-    { type: "output", text: "  school:  Aston University, Birmingham, UK" },
-    { type: "output", text: "  grade:   Predicted First Class" },
-    { type: "blank",  text: "" },
-    { type: "info",   text: "focus:" },
-    { type: "output", text: "  → Embedded Systems & Microcontrollers" },
-    { type: "output", text: "  → PCB Design & Circuit Theory" },
-    { type: "output", text: "  → IoT & Smart Systems" },
-    { type: "output", text: "  → AI / ML & Data" },
-    { type: "output", text: "  → Web Development" },
-    { type: "output", text: "  → Accessible Technology" },
-  ],
-
-  blog: () => [
-    { type: "info",  text: `draft queue  (${posts.length} posts):` },
+  posts: () => [
+    { type: "info", text: `writing queue  (${posts.length} entries):` },
     { type: "blank", text: "" },
     ...posts.map((p) => ({
       type: "output" as LineType,
-      text: `  [${TYPE_LABEL[p.type]}]  ${p.title}${p.published ? "  ● live" : ""}`,
+      text: `  [${TYPE_LABEL[p.type]}]  ${p.title}${p.published ? "  ● live" : "  • draft"}`,
     })),
-    { type: "blank",  text: "" },
-    { type: "output", text: "  blog is under construction - posts coming soon" },
+    { type: "blank", text: "" },
+    { type: "output", text: "  tip: run 'live' to get direct post slugs" },
+  ],
+
+  live: () => {
+    const published = posts.filter((p) => p.published)
+    return [
+      { type: "info", text: `published now  (${published.length}):` },
+      { type: "blank", text: "" },
+      ...published.map((p) => ({
+        type: "output" as LineType,
+        text: `  → /blog/${p.slug}`,
+      })),
+    ]
+  },
+
+  drafts: () => {
+    const draft = posts.filter((p) => !p.published)
+    return [
+      { type: "info", text: `draft pipeline  (${draft.length}):` },
+      { type: "blank", text: "" },
+      ...draft.map((p) => ({
+        type: "output" as LineType,
+        text: `  [${TYPE_LABEL[p.type]}]  ${p.title}`,
+      })),
+      { type: "blank", text: "" },
+      { type: "output", text: "  more posts are in progress - watch this space" },
+    ]
+  },
+
+  topics: () => {
+    const tags = Array.from(new Set(posts.flatMap((p) => p.tags))).sort((a, b) =>
+      a.localeCompare(b)
+    )
+    return [
+      { type: "info", text: `active tags  (${tags.length}):` },
+      { type: "blank", text: "" },
+      { type: "output", text: `  ${tags.join("  ·  ")}` },
+    ]
+  },
+
+  now: () => [
+    { type: "info", text: "writing now:" },
+    { type: "blank", text: "" },
+    { type: "output", text: "  → journal entries from uni + placements" },
+    { type: "output", text: "  → practical engineering write-ups" },
+    { type: "output", text: "  → quick notes from labs and projects" },
+    { type: "output", text: "  → reflections from virtual experiences" },
+  ],
+
+  about: () => [
+    { type: "info", text: "opening: isaacadjei.me/about" },
+    { type: "output", text: "launching in new tab..." },
   ],
 
   projects: () => [
-    { type: "info",   text: "featured projects:" },
-    { type: "blank",  text: "" },
-    { type: "output", text: "  [embedded]     4x4x4 NeoPixel LED Cube" },
-    { type: "output", text: "                 Arduino · C++ · WS2812B" },
-    { type: "blank",  text: "" },
-    { type: "output", text: "  [open-source]  git-unlocked - complete Git course" },
-    { type: "output", text: "                 Git · GitHub · GitLab · Markdown" },
-    { type: "blank",  text: "" },
-    { type: "output", text: "  [web]          AstonCV - full-stack CV database" },
-    { type: "output", text: "                 PHP 8.2 · MySQL · CSS · Apache" },
-    { type: "blank",  text: "" },
-    { type: "output", text: "  → view all at /projects" },
+    { type: "info", text: "opening: isaacadjei.me/projects" },
+    { type: "output", text: "launching in new tab..." },
   ],
 
   skills: () => [
-    { type: "info",   text: "technical stack:" },
-    { type: "blank",  text: "" },
-    { type: "output", text: "  languages:  C · C++ · Python · Java · TypeScript · PHP" },
-    { type: "output", text: "  embedded:   Arduino · STM32 · ESP32 · Raspberry Pi · AVR" },
-    { type: "output", text: "  hardware:   KiCad · Proteus · Oscilloscope · PCB Layout" },
-    { type: "output", text: "  web:        Next.js · React · Node.js · Tailwind CSS" },
-    { type: "output", text: "  ai / ml:    TensorFlow · PyTorch · NumPy · Pandas" },
-    { type: "output", text: "  cloud:      AWS · Azure · Vercel · Docker · Cloudflare" },
-    { type: "output", text: "  tools:      Git · GitHub · VS Code · JetBrains" },
-    { type: "blank",  text: "" },
-    { type: "output", text: "  → full list at /skills" },
+    { type: "info", text: "opening: isaacadjei.me/skills" },
+    { type: "output", text: "launching in new tab..." },
   ],
 
   contact: () => [
-    { type: "info",   text: "contact:" },
-    { type: "blank",  text: "" },
-    { type: "output", text: "  email:     contact@zacess.com" },
-    { type: "output", text: "  linkedin:  linkedin.com/in/isaacadjei" },
-    { type: "output", text: "  github:    github.com/zaccesss" },
-    { type: "blank",  text: "" },
-    { type: "output", text: "  open to internships, placements & professional" },
-    { type: "output", text: "  roles in engineering and tech" },
-    { type: "output", text: "  response within 24-48 hours" },
+    { type: "info", text: "opening: isaacadjei.me/contact" },
+    { type: "output", text: "launching in new tab..." },
   ],
 
   links: () => [
-    { type: "info",   text: "links:" },
-    { type: "blank",  text: "" },
-    { type: "output", text: "  portfolio:  isaacadjei.me" },
-    { type: "output", text: "  github:     github.com/zaccessss" },
-    { type: "output", text: "  linkedin:   linkedin.com/in/isaacadjei" },
-    { type: "output", text: "  youtube:    youtube.com/@zaccess" },
-    { type: "output", text: "  discord:    discord.gg/habvhrGX4s" },
-    { type: "output", text: "  x:          x.com/zaccessss" },
-    { type: "output", text: "  substack:   substack.com/@zaccess" },
+    { type: "info", text: "opening: isaacadjei.me/links" },
+    { type: "output", text: "launching in new tab..." },
   ],
 
   cv: () => [
-    { type: "info",   text: "curriculum vitae:" },
-    { type: "blank",  text: "" },
-    { type: "output", text: "  → download: /resume/Isaac_Adjei_CV.pdf" },
-    { type: "blank",  text: "" },
-    { type: "output", text: "  includes:  education · experience · skills · projects" },
-    { type: "output", text: "  last updated: 2025" },
+    { type: "info", text: "opening: isaacadjei.me/cv" },
+    { type: "output", text: "launching in new tab..." },
   ],
 
   motto: () => [
-    { type: "blank",  text: "" },
-    { type: "info",   text: '  "The people who are crazy enough to think they' },
-    { type: "info",   text: '   can change the world are the ones who do."' },
-    { type: "blank",  text: "" },
+    { type: "blank", text: "" },
+    { type: "info", text: '  "The people who are crazy enough to think they' },
+    { type: "info", text: '   can change the world are the ones who do."' },
+    { type: "blank", text: "" },
     { type: "output", text: "                                        - Steve Jobs" },
-    { type: "blank",  text: "" },
+    { type: "blank", text: "" },
+  ],
+
+  zac: () => [
+    { type: "info", text: "ACCESS GRANTED." },
+    { type: "blank", text: "" },
+    { type: "output", text: "  success unlocked. welcome to writer mode." },
+    { type: "output", text: "  hidden perk: your curiosity stat increased +1" },
+  ],
+
+  sudo: () => [
+    { type: "error", text: "permission denied: this terminal respects least privilege" },
+    { type: "blank", text: "" },
+    { type: "output", text: "  tip: try 'help' or 'posts' instead" },
+  ],
+
+  whoami: () => [
+    { type: "info", text: "you are a curious reader in /blog" },
+    { type: "blank", text: "" },
+    { type: "output", text: "  role: terminal operator" },
+    { type: "output", text: "  mission: discover live posts + hidden commands" },
   ],
 
   status: () => [
-    { type: "info",   text: "system:  ZacessOS v1.0-beta" },
+    { type: "info", text: "system:  ZacessOS v1.0-beta" },
     { type: "output", text: "build:   blog v0.1.0-alpha - in progress" },
-    { type: "blank",  text: "" },
-    { type: "info",   text: "ready now:" },
+    { type: "blank", text: "" },
+    { type: "info", text: "ready now:" },
     { type: "output", text: "  → portfolio at isaacadjei.me" },
     { type: "output", text: "  → CV available for download  (try: cv)" },
     { type: "output", text: "  → contact via contact@zacess.com" },
-    { type: "blank",  text: "" },
-    { type: "info",   text: "coming soon:" },
+    { type: "blank", text: "" },
+    { type: "info", text: "coming soon:" },
     { type: "output", text: "  → blog posts and engineering write-ups" },
     { type: "output", text: "  → journal entries from uni and work" },
     { type: "output", text: "  → research notes and papers" },
@@ -171,19 +211,30 @@ function renderLine(line: Line, i: number) {
   }
 
   const cls =
-    line.type === "system" ? "text-zinc-500"
-    : line.type === "info"   ? "text-blue-400"
-    : line.type === "error"  ? "text-red-400"
-    :                          "text-zinc-300"
+    line.type === "system"
+      ? "text-zinc-500"
+      : line.type === "info"
+        ? "text-blue-400"
+        : line.type === "error"
+          ? "text-red-400"
+          : "text-zinc-300"
 
   // Split on → to colour arrows cyan; split on ● live to colour green
   const parts = line.text.split(/(→|● live)/)
   return (
     <div key={i} className={`font-mono text-xs leading-relaxed ${cls}`}>
       {parts.map((part, j) =>
-        part === "→"      ? <span key={j} className="text-cyan-400">→</span>
-        : part === "● live" ? <span key={j} className="text-green-400">● live</span>
-        :                     <span key={j}>{part}</span>
+        part === "→" ? (
+          <span key={j} className="text-cyan-400">
+            →
+          </span>
+        ) : part === "● live" ? (
+          <span key={j} className="text-green-400">
+            ● live
+          </span>
+        ) : (
+          <span key={j}>{part}</span>
+        )
       )}
     </div>
   )
@@ -191,16 +242,16 @@ function renderLine(line: Line, i: number) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function BlogPage() {
-  const [lines,      setLines]      = useState<Line[]>([])
-  const [booted,     setBooted]     = useState(false)
-  const [inputVal,   setInputVal]   = useState("")
+  const [lines, setLines] = useState<Line[]>([])
+  const [booted, setBooted] = useState(false)
+  const [inputVal, setInputVal] = useState("")
   const [cmdHistory, setCmdHistory] = useState<string[]>([])
-  const [histIdx,    setHistIdx]    = useState(-1)
-  const [winState,   setWinState]   = useState<WindowState>("normal")
+  const [histIdx, setHistIdx] = useState(-1)
+  const [winState, setWinState] = useState<WindowState>("normal")
 
   const [quote, setQuote] = useState<{ quote: string; author: string } | null>(null)
-  const inputRef  = useRef<HTMLInputElement>(null)
-  const bodyRef   = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
 
   // Fetch quote on mount and refresh every 30 minutes
   useEffect(() => {
@@ -218,21 +269,23 @@ export default function BlogPage() {
     return () => clearInterval(interval)
   }, [])
 
-  // Boot sequence then auto-run help
+  // Boot sequence then show a short hint (no command dump)
   useEffect(() => {
     let i = 0
     const timer = setInterval(() => {
       if (i < BOOT.length) {
         const line = BOOT[i]
         i++
-        setLines(prev => [...prev, line])
+        setLines((prev) => [...prev, line])
       } else {
         clearInterval(timer)
         setTimeout(() => {
           setBooted(true)
-          setLines(prev => [
+          setLines((prev) => [
             ...prev,
-            ...COMMANDS.help(),
+            { type: "info", text: "session initialised" },
+            { type: "output", text: "type 'help' for a list of commands" },
+            { type: "output", text: "try: posts, live, drafts, topics" },
             { type: "blank", text: "" },
           ])
         }, 350)
@@ -243,19 +296,18 @@ export default function BlogPage() {
 
   // Auto-scroll to bottom
   useEffect(() => {
-    if (bodyRef.current)
-      bodyRef.current.scrollTop = bodyRef.current.scrollHeight
+    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
   }, [lines, inputVal])
 
   const execCommand = useCallback((raw: string) => {
     const cmd = raw.trim().toLowerCase()
 
     if (!cmd) {
-      setLines(prev => [...prev, { type: "blank", text: "" }])
+      setLines((prev) => [...prev, { type: "blank", text: "" }])
       return
     }
 
-    setCmdHistory(prev => [raw.trim(), ...prev])
+    setCmdHistory((prev) => [raw.trim(), ...prev])
     setHistIdx(-1)
 
     if (cmd === "clear") {
@@ -267,11 +319,16 @@ export default function BlogPage() {
     const output: Line[] = COMMANDS[cmd]
       ? COMMANDS[cmd]()
       : [
-          { type: "error",  text: `bash: ${cmd}: command not found` },
+          { type: "error", text: `bash: ${cmd}: command not found` },
           { type: "output", text: "type 'help' to see available commands" },
         ]
 
-    setLines(prev => [
+    const redirectUrl = NAV_COMMANDS[cmd]
+    if (redirectUrl) {
+      window.open(redirectUrl, "_blank", "noopener,noreferrer")
+    }
+
+    setLines((prev) => [
       ...prev,
       { type: "cmd-echo", text: raw.trim() },
       ...output,
@@ -298,11 +355,10 @@ export default function BlogPage() {
 
   const isMaximized = winState === "maximized"
   const isMinimized = winState === "minimized"
-  const isClosed    = winState === "closed"
+  const isClosed = winState === "closed"
 
   return (
     <div className="container max-w-3xl py-24 space-y-8">
-
       {/* Banner + GIF - hidden when maximised or closed */}
       {!isMaximized && !isClosed && (
         <>
@@ -310,7 +366,9 @@ export default function BlogPage() {
             <p className="font-mono text-sm font-semibold tracking-widest uppercase text-yellow-500">
               ⚠️ blog // under construction ⚠️
             </p>
-            <p className="font-mono text-xs text-muted-foreground">writing module is being built - check back soon</p>
+            <p className="font-mono text-xs text-muted-foreground">
+              writing module is being built - check back soon
+            </p>
           </div>
           <div className="flex justify-center">
             <div className="rounded-lg border border-border/60 overflow-hidden">
@@ -339,15 +397,24 @@ export default function BlogPage() {
           {/* Title bar - always dark */}
           <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-800 border-b border-zinc-700 shrink-0">
             <div className="flex items-center gap-1.5">
-              <button type="button" title="Close"
+              <button
+                type="button"
+                title="Close"
                 onClick={() => setWinState("closed")}
-                className="h-3 w-3 rounded-full bg-red-500 hover:brightness-125 transition-all cursor-pointer" />
-              <button type="button" title="Minimise"
+                className="h-3 w-3 rounded-full bg-red-500 hover:brightness-125 transition-all cursor-pointer"
+              />
+              <button
+                type="button"
+                title="Minimise"
                 onClick={() => setWinState(isMinimized ? "normal" : "minimized")}
-                className="h-3 w-3 rounded-full bg-yellow-400 hover:brightness-125 transition-all cursor-pointer" />
-              <button type="button" title="Maximise"
+                className="h-3 w-3 rounded-full bg-yellow-400 hover:brightness-125 transition-all cursor-pointer"
+              />
+              <button
+                type="button"
+                title="Maximise"
                 onClick={() => setWinState(isMaximized ? "normal" : "maximized")}
-                className="h-3 w-3 rounded-full bg-green-500 hover:brightness-125 transition-all cursor-pointer" />
+                className="h-3 w-3 rounded-full bg-green-500 hover:brightness-125 transition-all cursor-pointer"
+              />
             </div>
             <span className="text-xs text-zinc-400">zacess@portfolio - blog - 80x24</span>
             <span className="w-14" />
@@ -376,7 +443,7 @@ export default function BlogPage() {
                       type="text"
                       aria-label="Terminal input"
                       value={inputVal}
-                      onChange={e => setInputVal(e.target.value)}
+                      onChange={(e) => setInputVal(e.target.value)}
                       onKeyDown={onKeyDown}
                       autoFocus
                       autoComplete="off"
@@ -385,7 +452,9 @@ export default function BlogPage() {
                       className="absolute inset-0 opacity-0 w-full bg-transparent outline-none"
                     />
                     {/* Visual mirror */}
-                    <span className="text-green-300 font-mono text-xs whitespace-pre">{inputVal}</span>
+                    <span className="text-green-300 font-mono text-xs whitespace-pre">
+                      {inputVal}
+                    </span>
                     <span className="inline-block w-[7px] h-[13px] bg-zinc-300 ml-px shrink-0 animate-[blink_1s_step-end_infinite]" />
                   </div>
                 </div>
@@ -429,7 +498,9 @@ export default function BlogPage() {
               <p className="text-xs text-muted-foreground">- {quote.author}</p>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground font-mono animate-pulse">loading quote...</p>
+            <p className="text-sm text-muted-foreground font-mono animate-pulse">
+              loading quote...
+            </p>
           )}
         </div>
       )}
@@ -438,10 +509,11 @@ export default function BlogPage() {
       {!isMaximized && (
         <p className="text-center text-xs text-muted-foreground font-mono">
           writing is being rebuilt - use{" "}
-          <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">Ctrl</kbd>
-          {" "}+{" "}
-          <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">I</kbd>
-          {" "}to navigate the rest of the site
+          <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">
+            Ctrl
+          </kbd>{" "}
+          + <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">I</kbd>{" "}
+          to navigate the rest of the site
         </p>
       )}
     </div>
