@@ -40,6 +40,13 @@ const NAV_COMMANDS: Record<string, string> = {
   cv: "https://isaacadjei.me/cv",
 }
 
+const MAIL_COMMANDS: Record<string, string> = {
+  collaborate:
+    "mailto:contact@zacess.com?subject=Collaboration%20Opportunity&body=Hi%20Isaac%2C%0A%0AI%20would%20love%20to%20collaborate%20with%20you%20on...%0A%0ABest%2C",
+  suggest:
+    "mailto:contact@zacess.com?subject=Blog%20Suggestion&body=Hi%20Isaac%2C%0A%0AI%20have%20an%20idea%20for%20your%20blog%3A%0A%0A-%20Topic%3A%0A-%20Why%20it%20would%20be%20useful%3A%0A%0AThanks%2C",
+}
+
 const COMMANDS: Record<string, () => Line[]> = {
   help: () => [
     { type: "info", text: "blog terminal commands:" },
@@ -48,9 +55,14 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "output", text: "  about     -  open about page" },
     { type: "output", text: "  projects  -  open projects page" },
     { type: "output", text: "  skills    -  open skills page" },
-    { type: "output", text: "  contact   -  open contact page" },
+    {
+      type: "output",
+      text: "  contact   -  open contact form (collab, research, projects, suggestions)",
+    },
     { type: "output", text: "  links     -  open links page" },
     { type: "output", text: "  cv        -  open CV page" },
+    { type: "output", text: "  collaborate -  open email for collaboration" },
+    { type: "output", text: "  suggest   -  send a blog/content suggestion" },
     { type: "output", text: "  posts     -  all writing entries" },
     { type: "output", text: "  live      -  published posts with slugs" },
     { type: "output", text: "  drafts    -  works in progress" },
@@ -139,6 +151,10 @@ const COMMANDS: Record<string, () => Line[]> = {
   contact: () => [
     { type: "info", text: "opening: isaacadjei.me/contact" },
     { type: "output", text: "launching in new tab..." },
+    {
+      type: "output",
+      text: "use the form for collaboration, research, project work, suggestions and more",
+    },
   ],
 
   links: () => [
@@ -149,6 +165,18 @@ const COMMANDS: Record<string, () => Line[]> = {
   cv: () => [
     { type: "info", text: "opening: isaacadjei.me/cv" },
     { type: "output", text: "launching in new tab..." },
+  ],
+
+  collaborate: () => [
+    { type: "info", text: "opening: mail client" },
+    { type: "output", text: "to: contact@zacess.com" },
+    { type: "output", text: "subject: Collaboration Opportunity" },
+  ],
+
+  suggest: () => [
+    { type: "info", text: "opening: mail client" },
+    { type: "output", text: "to: contact@zacess.com" },
+    { type: "output", text: "subject: Blog Suggestion" },
   ],
 
   motto: () => [
@@ -326,6 +354,11 @@ export default function BlogPage() {
     const redirectUrl = NAV_COMMANDS[cmd]
     if (redirectUrl) {
       window.open(redirectUrl, "_blank", "noopener,noreferrer")
+    }
+
+    const mailUrl = MAIL_COMMANDS[cmd]
+    if (mailUrl) {
+      window.open(mailUrl, "_blank", "noopener,noreferrer")
     }
 
     setLines((prev) => [
