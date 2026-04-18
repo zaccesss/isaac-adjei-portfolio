@@ -26,7 +26,7 @@ export default function ExperiencePage() {
             asChild
             className="bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
           >
-            <a href="/api/cv-pdf" download="Isaac_Adjei_CV.pdf">
+            <a href="/resume/Isaac_Adjei_CV.pdf" download="Isaac_Adjei_CV.pdf">
               <Download className="mr-2 h-4 w-4" />
               Download CV
             </a>
