@@ -53,8 +53,22 @@ export async function GET() {
       },
     })
   } catch (error) {
-    console.error("CV PDF generation failed:", error)
-    return Response.json({ error: "Failed to generate CV PDF." }, { status: 500 })
+    console.error("CV PDF generation failed, serving static fallback:", error)
+    try {
+      const fallbackPath = join(process.cwd(), "public", "resume", "Isaac_Adjei_CV.pdf")
+      const fallbackPdf = readFileSync(fallbackPath)
+
+      return new Response(fallbackPdf, {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": 'attachment; filename="Isaac_Adjei_CV.pdf"',
+          "Cache-Control": "no-store",
+        },
+      })
+    } catch (fallbackError) {
+      console.error("CV PDF fallback failed:", fallbackError)
+      return Response.json({ error: "Failed to generate CV PDF." }, { status: 500 })
+    }
   } finally {
     if (browser) {
       await browser.close()
