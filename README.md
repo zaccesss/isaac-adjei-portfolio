@@ -42,6 +42,7 @@
   <a href="#getting-started">Getting Started</a> •
   <a href="#scripts">Scripts</a> •
   <a href="#environment-variables">Environment Variables</a> •
+  <a href="#pre-deploy-security-checks">Pre-Deploy Security Checks</a> •
   <a href="#deployment">Deployment</a>
 </p>
 
@@ -91,7 +92,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 | `/blog`            | Interactive terminal blog - type commands to explore content                       |
 | `/blog/[slug]`     | Blog post page for published posts with rich content blocks                        |
 | `/contact`         | Contact form with spam protection and email delivery via Resend                    |
-| `/cv`              | Serves CV as HTML from `public/resume/cv.html`                                     |
+| `/cv`              | CV viewer page with direct PDF download via `/api/cv-pdf` and printable HTML       |
 | `/links`           | Linktree-style page with all social and professional links                         |
 
 ---
@@ -200,6 +201,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 | Route          | Method | Purpose                                                                                                                                  |
 | -------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `/api/contact` | `POST` | Contact form submission with in-memory rate limiting, honeypot check, optional Turnstile verification and optional Resend email delivery |
+| `/api/cv-pdf`  | `GET`  | Generates and downloads the latest CV PDF from `public/resume/cv.html` using headless browser rendering                                  |
 | `/api/quote`   | `GET`  | Fetches quote data from ZenQuotes with a local fallback quote                                                                            |
 
 ---
@@ -212,11 +214,12 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 ├── app/
 │   ├── about/          # About page - story, education, awards, societies
 │   ├── api/contact/    # Contact form API route (rate limiting, Turnstile, Resend)
+│   ├── api/cv-pdf/     # Server-side CV PDF generation endpoint
 │   ├── api/quote/      # ZenQuotes proxy API route
 │   ├── blog/           # Terminal blog page
 │   │   └── [slug]/     # Individual blog posts
 │   ├── contact/        # Contact page
-│   ├── cv/             # CV HTML route
+│   ├── cv/             # CV viewer page with live download actions
 │   ├── experience/     # Experience timeline page
 │   ├── links/          # Links / Linktree page
 │   ├── projects/       # Projects list and [slug] detail pages
@@ -258,7 +261,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
     ├── images/
     │   └── projects/   # Project photos organised by project slug
     ├── Media/          # GIFs and media assets
-    └── resume/         # CV assets (HTML + PDF)
+    └── resume/         # CV source HTML (and optional static backup PDF)
 ```
 
 ---
@@ -267,7 +270,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 
 ## Getting Started
 
-**Prerequisites:** Node.js 18+ and npm/yarn/pnpm
+**Prerequisites:** Node.js 20.9+ and npm/yarn/pnpm
 
 ```bash
 # Clone the repo
@@ -306,7 +309,7 @@ npm run format
 | `npm run dev`    | Start Next.js dev server   |
 | `npm run build`  | Build production bundle    |
 | `npm run start`  | Start production server    |
-| `npm run lint`   | Run Next.js linting        |
+| `npm run lint`   | Run ESLint checks          |
 | `npm run format` | Format files with Prettier |
 
 ---
@@ -335,22 +338,56 @@ TURNSTILE_SECRET_KEY=your_turnstile_secret_key_here
 
 ## Key Dependencies
 
-| Package                     | Purpose                                          |
-| --------------------------- | ------------------------------------------------ |
-| `next` 16                   | App Router, SSR, image optimisation, API routes  |
-| `react` / `react-dom` 18    | UI rendering                                     |
-| `typescript` 5              | Type safety                                      |
-| `tailwindcss` 3             | Utility-first styling                            |
-| `framer-motion` 11          | Page and section entrance animations             |
-| `next-themes`               | Dark / light mode                                |
-| `lucide-react`              | Icon set                                         |
-| `react-icons`               | Brand icons (GitHub, LinkedIn, etc.)             |
-| `@radix-ui/*`               | Accessible UI primitives (Dialog, Tabs, Tooltip) |
-| `@marsidev/react-turnstile` | Cloudflare Turnstile CAPTCHA widget              |
-| `cmdk`                      | Command menu behavior                            |
-| `clsx` + `tailwind-merge`   | Class name composition utilities                 |
-| `class-variance-authority`  | Component variant styling                        |
-| `geist`                     | Vercel Geist font (sans + mono)                  |
+| Package                        | Purpose                                          |
+| ------------------------------ | ------------------------------------------------ |
+| `next` 16                      | App Router, SSR, image optimisation, API routes  |
+| `react` / `react-dom` 18       | UI rendering                                     |
+| `typescript` 5                 | Type safety                                      |
+| `tailwindcss` 3                | Utility-first styling                            |
+| `framer-motion` 11             | Page and section entrance animations             |
+| `next-themes`                  | Dark / light mode                                |
+| `lucide-react`                 | Icon set                                         |
+| `react-icons`                  | Brand icons (GitHub, LinkedIn, etc.)             |
+| `@radix-ui/*`                  | Accessible UI primitives (Dialog, Tabs, Tooltip) |
+| `@marsidev/react-turnstile`    | Cloudflare Turnstile CAPTCHA widget              |
+| `cmdk`                         | Command menu behavior                            |
+| `clsx` + `tailwind-merge`      | Class name composition utilities                 |
+| `class-variance-authority`     | Component variant styling                        |
+| `puppeteer` + `puppeteer-core` | Server-side CV PDF rendering                     |
+| `@sparticuz/chromium`          | Chromium binary support for serverless runtime   |
+| `geist`                        | Vercel Geist font (sans + mono)                  |
+
+---
+
+<a id="pre-deploy-security-checks"></a>
+
+## Pre-Deploy Security Checks
+
+Run this before every production push to keep deployments smooth:
+
+```bash
+# 1) Install exactly from lockfile
+npm ci
+
+# 2) Lint all source files
+npm run lint
+
+# 3) Fail on high/critical known vulnerabilities
+npm audit --audit-level=high
+
+# 4) Verify production build succeeds
+npm run build
+```
+
+Notes:
+
+- `npm audit --audit-level=high` should return no high/critical vulnerabilities.
+- If build fails on Windows with a `.next` file lock (`EPERM`), clear cache and retry:
+
+```bash
+Remove-Item -Recurse -Force .next
+npm run build
+```
 
 ---
 

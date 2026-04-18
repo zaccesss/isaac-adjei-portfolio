@@ -20,7 +20,8 @@ export const experiences: Experience[] = [
     type: "work",
     startDate: "Sep 2025",
     endDate: "Present",
-    description: "Elected course representative for Electronic Engineering and Computer Science at Aston University.",
+    description:
+      "Elected course representative for Electronic Engineering and Computer Science at Aston University.",
     achievements: [
       "Represent student voice by gathering and communicating feedback to academic staff",
       "Attend Staff-Student Liaison Committee (SSLC), Senate and Council meetings",
@@ -37,7 +38,8 @@ export const experiences: Experience[] = [
     type: "virtual",
     startDate: "Feb 2026",
     endDate: "Feb 2026",
-    description: "Selected as a Student Judge for the National Emerging Talent Awards 2026, evaluating employer submissions for Best Placement or Internship Programme.",
+    description:
+      "Selected as a Student Judge for the National Emerging Talent Awards 2026, evaluating employer submissions for Best Placement or Internship Programme.",
     achievements: [
       "Assessed national employer entries on programme design, recruitment strategy, inclusivity and student experience",
       "Provided detailed qualitative feedback and numerical scoring to support award decisions",
@@ -52,11 +54,13 @@ export const experiences: Experience[] = [
     type: "work",
     startDate: "Feb 2026",
     endDate: "Mar 2026",
-    description: "Participated in the Cancer Research UK 10 Days of 5K Challenge to support life-saving cancer research.",
+    description:
+      "Participated in the Cancer Research UK 10 Days of 5K Challenge to support life-saving cancer research.",
     achievements: [
-      "Completed 10 x 5km runs (50km+ total) across March, demonstrating consistency and discipline",
-      "Set up and managed an online fundraising page contributing to a wider campaign that raised over £797,424",
-      "Promoted awareness of cancer research initiatives through personal network engagement",
+      "Completed 10 x 5 km runs (more than 50 km total) across March, demonstrating consistency and discipline",
+      "Set up and managed an online fundraising page, contributing to a wider campaign that raised over £797,424.64, with an additional £159,224.14 through Gift Aid",
+      "Raised funds through outreach and personal network engagement",
+      "Promoted awareness of cancer research initiatives",
     ],
   },
   {
@@ -67,7 +71,8 @@ export const experiences: Experience[] = [
     type: "work",
     startDate: "Nov 2025",
     endDate: "Present",
-    description: "Part-time crew member delivering fast-paced customer service and operational support.",
+    description:
+      "Part-time crew member delivering fast-paced customer service and operational support.",
     achievements: [
       "Maintain consistent service quality in a high-volume, fast-paced environment",
       "Work collaboratively across kitchen and front-of-house teams",
@@ -82,7 +87,8 @@ export const experiences: Experience[] = [
     type: "virtual",
     startDate: "Oct 2025",
     endDate: "Oct 2025",
-    description: "Completed a virtual engineering operations simulation focused on real-world aircraft maintenance and supply-chain planning.",
+    description:
+      "Completed a virtual engineering operations simulation focused on real-world aircraft maintenance and supply-chain planning.",
     achievements: [
       "Analysed A320 maintenance schedules, forecasted material requirements and identified risk factors during C-checks",
       "Diagnosed component faults and produced professional Work Request (WREQ) reports",
@@ -99,7 +105,8 @@ export const experiences: Experience[] = [
     type: "virtual",
     startDate: "Aug 2025",
     endDate: "Aug 2025",
-    description: "Explored intelligent transport systems, IoT sensor networks and real-time air quality monitoring in smart city environments.",
+    description:
+      "Explored intelligent transport systems, IoT sensor networks and real-time air quality monitoring in smart city environments.",
     achievements: [
       "Explored how intelligent transport systems and digital technology improve air quality and urban efficiency",
       "Studied traffic lights design, sensor integration and data-driven transport management in smart cities",
@@ -115,7 +122,8 @@ export const experiences: Experience[] = [
     type: "internship",
     startDate: "Jul 2024",
     endDate: "Aug 2024",
-    description: "Supported the Consular Department in processing passports, visas and travel documents.",
+    description:
+      "Supported the Consular Department in processing passports, visas and travel documents.",
     achievements: [
       "Supported passport and visa processing workflows, document verification and client enquiries",
       "Maintained accurate digital records and handled sensitive information with professionalism and confidentiality",
@@ -131,7 +139,8 @@ export const experiences: Experience[] = [
     type: "internship",
     startDate: "Mar 2024",
     endDate: "Mar 2024",
-    description: "Assisted the Administration Section with estates management activities and general administrative operations.",
+    description:
+      "Assisted the Administration Section with estates management activities and general administrative operations.",
     achievements: [
       "Supported the team with document handling, facilities coordination and office logistics",
       "Developed skills in professional communication, record management and organisational efficiency",
@@ -146,7 +155,8 @@ export const experiences: Experience[] = [
     type: "work",
     startDate: "Sep 2022",
     endDate: "Jan 2025",
-    description: "Delivered high-quality front-of-house service in a busy, high-volume restaurant in central London.",
+    description:
+      "Delivered high-quality front-of-house service in a busy, high-volume restaurant in central London.",
     achievements: [
       "Delivered high-quality service in a fast-paced, high-volume restaurant environment",
       "Worked closely with kitchen and bar teams to ensure smooth service flow and exceptional customer experiences",
@@ -162,7 +172,8 @@ export const experiences: Experience[] = [
     type: "work",
     startDate: "Jul 2022",
     endDate: "Sep 2022",
-    description: "Provided hospitality support across various venues in London through flexible agency shifts.",
+    description:
+      "Provided hospitality support across various venues in London through flexible agency shifts.",
     achievements: [
       "Supported multiple venues across London through flexible agency shifts",
       "Assisted with bar preparation, table running and guest assistance in varied settings",
@@ -192,7 +203,8 @@ export const experiences: Experience[] = [
     type: "work",
     startDate: "Jul 2019",
     endDate: "Jul 2021",
-    description: "Part-time on-site apprenticeship assisting with air conditioning servicing, installation and maintenance.",
+    description:
+      "Part-time on-site apprenticeship assisting with air conditioning servicing, installation and maintenance.",
     achievements: [
       "Assisted in air conditioner servicing, installations and maintenance for over 50 units",
       "Used hand tools, drills and diagnostic meters under supervision",

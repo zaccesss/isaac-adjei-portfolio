@@ -49,9 +49,8 @@ const hobbies = [
 
 const languages = [
   { name: "English", level: "Full professional proficiency" },
-  { name: "Twi & Ga", level: "Full professional proficiency" },
-  { name: "French", level: "Elementary proficiency" },
-  { name: "Spanish", level: "Elementary proficiency" },
+  { name: "Twi & Ga", level: "Native proficiency" },
+  { name: "French & Spanish", level: "Elementary proficiency" },
 ]
 
 export default function AboutPage() {
@@ -247,10 +246,12 @@ export default function AboutPage() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Completed 10 x 5km runs (50km+ total) to support life-saving cancer research. Managed
-              a personal fundraising page contributing to a wider campaign that raised over
-              £797,424. Strengthened accountability, resilience and goal-setting through consistent
-              daily commitment.
+              Participated in the Cancer Research UK 10 Days of 5K Challenge to support life-saving
+              cancer research. Completed 10 x 5 km runs (more than 50 km total) across March,
+              demonstrating consistency and discipline. Set up and managed an online fundraising
+              page, contributing to a wider campaign that raised over £797,424.64, with an
+              additional £159,224.14 through Gift Aid. Raised funds through outreach and personal
+              network engagement while promoting awareness of cancer research initiatives.
             </p>
           </div>
         </div>
@@ -327,11 +328,10 @@ export default function AboutPage() {
         </div>
         <p className="text-muted-foreground">
           Outside engineering I play piano, stay active at the gym, cycle, cook, journal and travel
-          whenever I get the chance. I completed the Cancer Research UK 10 Days of 5K Challenge,
-          running over 50km in March 2026. I am a big believer in continuous learning - I regularly
-          work through online courses on platforms like Coursera, build personal projects and read
-          widely across tech, business and history. For me, growth is not occasional - it&apos;s an
-          active lifestyle.
+          whenever I get the chance. I am a big believer in continuous learning - I regularly work
+          through online courses on platforms like Coursera, build personal projects and read widely
+          across tech, business and history. For me, growth is not occasional - it&apos;s an active
+          lifestyle.
         </p>
         <div className="flex flex-wrap gap-2">
           {hobbies.map((hobby) => (

@@ -36,8 +36,12 @@ export default function ContactCTA() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild size="lg" className="bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
-              <a href="/resume/Isaac_Adjei_CV.pdf" download>
+            <Button
+              asChild
+              size="lg"
+              className="bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+            >
+              <a href="/api/cv-pdf" download="Isaac_Adjei_CV.pdf">
                 <Download className="mr-2 h-4 w-4" />
                 Download CV
               </a>
