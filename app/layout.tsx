@@ -11,11 +11,11 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider"
 export const metadata: Metadata = {
   metadataBase: new URL("https://isaacadjei.me"),
   title: {
-    default: "Isaac Adjei | Electronic Engineering & Computer Science",
+    default: "Isaac Adjei | EECS",
     template: "%s | Isaac Adjei",
   },
   description:
-    "Electronic Engineering and Computer Science student at Aston University. Passionate about embedded systems, IoT and accessible technology.",
+    "Electronic Engineering and Computer Science student at Aston University. Building full-stack software, embedded systems and IoT products.",
   keywords: [
     "Isaac Adjei",
     "Zac",
@@ -37,16 +37,18 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_GB",
     url: "https://isaacadjei.me",
-    title: "Isaac Adjei | Electronic Engineering & Computer Science",
+    title: "Isaac Adjei | EECS",
     description:
-      "Electronic Engineering and Computer Science student passionate about embedded systems and accessible technology.",
+      "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",
     siteName: "Isaac Adjei Portfolio",
+    images: ["/opengraph-image"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Isaac Adjei | Electronic Engineering & Computer Science",
+    title: "Isaac Adjei | EECS",
     description:
-      "Electronic Engineering and Computer Science student passionate about embedded systems and accessible technology.",
+      "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",
+    images: ["/twitter-image"],
   },
 }
 
