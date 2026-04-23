@@ -9,8 +9,9 @@ import CommandMenu from "@/components/shared/CommandMenu"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://isaacadjei.me"),
   title: {
-    default: "Isaac Adjei | Electronic Engineering & Computer Science",
+    default: "Isaac Adjei",
     template: "%s | Isaac Adjei",
   },
   description:
@@ -27,20 +28,34 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Isaac Adjei" }],
   creator: "Isaac Adjei",
+  icons: {
+    icon: [{ url: "/images/avatar.png", type: "image/png" }],
+    apple: [{ url: "/images/avatar.png", type: "image/png" }],
+    shortcut: ["/images/avatar.png"],
+  },
   openGraph: {
     type: "website",
     locale: "en_GB",
     url: "https://isaacadjei.me",
-    title: "Isaac Adjei | Electronic Engineering & Computer Science",
+    title: "Isaac Adjei",
     description:
       "Electronic Engineering and Computer Science student passionate about embedded systems and accessible technology.",
     siteName: "Isaac Adjei Portfolio",
+    images: [
+      {
+        url: "/images/zac_profile.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Isaac Adjei",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Isaac Adjei | Electronic Engineering & Computer Science",
+    title: "Isaac Adjei",
     description:
       "Electronic Engineering and Computer Science student passionate about embedded systems and accessible technology.",
+    images: ["/images/zac_profile.jpg"],
   },
 }
 

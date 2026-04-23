@@ -16,11 +16,13 @@ export default function Header() {
     <header
       className={cn(
         "sticky top-0 z-40 w-full transition-all duration-200 border-b",
-        isScrolled ? "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" : "bg-transparent"
+        isScrolled
+          ? "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          : "bg-transparent"
       )}
     >
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex flex-col items-center gap-0.5 group">
+        <Link href="/" title="Home" className="flex flex-col items-center gap-0.5 group">
           <div className="w-7 h-7 rounded-full overflow-hidden border border-primary/30 group-hover:border-primary/70 transition-colors">
             <Image
               src="/images/avatar.png"

@@ -14,6 +14,7 @@ export const profileLinks: LinkItem[] = [
     description: "View my engineering & CS projects - isaacadjei.me",
     url: "https://isaacadjei.me",
     icon: "globe",
+    iconImage: "/images/avatar.png",
     category: "professional",
   },
   {
@@ -119,13 +120,6 @@ export const profileLinks: LinkItem[] = [
     category: "content",
   },
   {
-    title: "Twitch",
-    description: "Follow on Twitch - watch me live",
-    url: "https://www.twitch.tv/zaccessss",
-    icon: "twitch",
-    category: "content",
-  },
-  {
     title: "Discord",
     description: "Add me on Discord",
     url: "https://discord.com/users/zac.cess",
@@ -151,6 +145,20 @@ export const profileLinks: LinkItem[] = [
     description: "Follow on Spotify - see what I'm listening to",
     url: "https://open.spotify.com/user/31ft5mriyu5bwmavvevqs2qsrsmm",
     icon: "spotify",
+    category: "content",
+  },
+  {
+    title: "Twitch",
+    description: "Follow on Twitch - watch me live",
+    url: "https://www.twitch.tv/zaccessss",
+    icon: "twitch",
+    category: "content",
+  },
+  {
+    title: "Kick",
+    description: "Follow on Kick - watch me live",
+    url: "https://kick.com/zaccess",
+    icon: "kick",
     category: "content",
   },
 ]
