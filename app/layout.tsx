@@ -9,7 +9,7 @@ import CommandMenu from "@/components/shared/CommandMenu"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://isaacadjei.me"),
+  metadataBase: new URL("https://www.isaacadjei.me"),
   title: {
     default: "Isaac Adjei | EECS",
     template: "%s | Isaac Adjei",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_GB",
-    url: "https://isaacadjei.me",
+    url: "https://www.isaacadjei.me",
     title: "Isaac Adjei | EECS",
     description:
       "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",

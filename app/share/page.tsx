@@ -2,23 +2,25 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 export const metadata: Metadata = {
-  title: "Isaac Adjei | EECS",
+  title: {
+    absolute: "Isaac Adjei | EECS",
+  },
   description:
     "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",
   openGraph: {
     title: "Isaac Adjei | EECS",
     description:
       "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",
-    url: "https://isaacadjei.me/share",
+    url: "https://www.isaacadjei.me/share",
     type: "website",
-    images: ["https://isaacadjei.me/opengraph-image?v=20260424a"],
+    images: ["https://www.isaacadjei.me/opengraph-image?v=20260424b"],
   },
   twitter: {
     card: "summary_large_image",
     title: "Isaac Adjei | EECS",
     description:
       "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",
-    images: ["https://isaacadjei.me/twitter-image?v=20260424a"],
+    images: ["https://www.isaacadjei.me/twitter-image?v=20260424b"],
   },
 }
 
