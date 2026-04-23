@@ -14,7 +14,7 @@ import {
   FaThreads,
   FaPlaystation,
 } from "react-icons/fa6"
-import { SiSubstack } from "react-icons/si"
+import { SiCodeforces, SiLeetcode, SiSubstack } from "react-icons/si"
 import { Globe, Mail, ExternalLink } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -37,6 +37,8 @@ const iconMap: Record<string, React.ElementType> = {
   discord: FaDiscord,
   spotify: FaSpotify,
   playstation: FaPlaystation,
+  leetcode: SiLeetcode,
+  codeforces: SiCodeforces,
 }
 
 const brandClasses: Record<string, { bg: string; icon: string }> = {
@@ -53,6 +55,8 @@ const brandClasses: Record<string, { bg: string; icon: string }> = {
   discord: { bg: "bg-[#5865F2]/10", icon: "text-[#5865F2]" },
   spotify: { bg: "bg-[#1DB954]/10", icon: "text-[#1DB954]" },
   playstation: { bg: "bg-[#003791]/10", icon: "text-[#003791] dark:text-[#0072CE]" },
+  leetcode: { bg: "bg-[#FFA116]/10", icon: "text-[#FFA116]" },
+  codeforces: { bg: "bg-[#1F8ACB]/10", icon: "text-[#1F8ACB]" },
 }
 
 const categoryLabel: Record<LinkItem["category"], string> = {

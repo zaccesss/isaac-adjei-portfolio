@@ -25,6 +25,13 @@ export const profileLinks: LinkItem[] = [
     category: "professional",
   },
   {
+    title: "Email",
+    description: "Get in touch - contact@zacess.com",
+    url: "mailto:contact@zacess.com",
+    icon: "mail",
+    category: "professional",
+  },
+  {
     title: "LinkedIn",
     description: "Connect with me on LinkedIn - career & professional updates",
     url: "https://www.linkedin.com/in/isaacadjei",
@@ -42,21 +49,22 @@ export const profileLinks: LinkItem[] = [
     title: "LeetCode",
     description: "Track my LeetCode progress and problem-solving",
     url: "https://leetcode.com/u/zacadjei",
-    icon: "globe",
+    icon: "leetcode",
     category: "professional",
   },
   {
     title: "NeetCode",
     description: "See my NeetCode roadmap and solved problems",
     url: "https://neetcode.io/profile/zaccess",
-    icon: "globe",
+    icon: "neetcode",
+    iconImage: "/images/brands/neetcode.ico",
     category: "professional",
   },
   {
     title: "Codeforces",
     description: "Follow my Codeforces contests and rating",
     url: "https://codeforces.com/profile/zaccesss",
-    icon: "globe",
+    icon: "codeforces",
     category: "professional",
   },
   {
@@ -64,13 +72,6 @@ export const profileLinks: LinkItem[] = [
     description: "Subscribe - writing on tech, engineering & ideas",
     url: "https://substack.com/@zaccess",
     icon: "substack",
-    category: "professional",
-  },
-  {
-    title: "Email",
-    description: "Get in touch - contact@zacess.com",
-    url: "mailto:contact@zacess.com",
-    icon: "mail",
     category: "professional",
   },
   // Social
