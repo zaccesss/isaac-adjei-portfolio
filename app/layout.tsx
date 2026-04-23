@@ -11,7 +11,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider"
 export const metadata: Metadata = {
   metadataBase: new URL("https://isaacadjei.me"),
   title: {
-    default: "Isaac Adjei",
+    default: "Isaac Adjei | EECS",
     template: "%s | Isaac Adjei",
   },
   description:
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_GB",
     url: "https://isaacadjei.me",
-    title: "Isaac Adjei",
+    title: "Isaac Adjei | EECS",
     description:
       "Electronic Engineering and Computer Science student passionate about embedded systems and accessible technology.",
     siteName: "Isaac Adjei Portfolio",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Isaac Adjei",
+    title: "Isaac Adjei | EECS",
     description:
       "Electronic Engineering and Computer Science student passionate about embedded systems and accessible technology.",
     images: ["/images/zac_profile.jpg"],
