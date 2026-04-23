@@ -39,6 +39,27 @@ export const profileLinks: LinkItem[] = [
     category: "professional",
   },
   {
+    title: "LeetCode",
+    description: "Track my LeetCode progress and problem-solving",
+    url: "https://leetcode.com/u/zacadjei",
+    icon: "globe",
+    category: "professional",
+  },
+  {
+    title: "NeetCode",
+    description: "See my NeetCode roadmap and solved problems",
+    url: "https://neetcode.io/profile/zaccess",
+    icon: "globe",
+    category: "professional",
+  },
+  {
+    title: "Codeforces",
+    description: "Follow my Codeforces contests and rating",
+    url: "https://codeforces.com/profile/zaccesss",
+    icon: "globe",
+    category: "professional",
+  },
+  {
     title: "Substack",
     description: "Subscribe - writing on tech, engineering & ideas",
     url: "https://substack.com/@zaccess",
