@@ -121,7 +121,7 @@ export default function AboutPage() {
             brightness and four animation modes, a full-stack CV database with 11 production
             security measures deployed live at Aston University, a terminal-style personal site at
             zacess.com built with Next.js, safety-critical control systems for CNC and lift
-            machinery, and an open-source Git course with 138 structured topic files. I enjoy
+            machinery, and an open-source Git course with 202 structured topic files. I enjoy
             understanding how systems work at every layer and building things that move from concept
             to code to real, tangible output.
           </p>
