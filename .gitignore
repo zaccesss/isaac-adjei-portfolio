@@ -17,7 +17,7 @@
 .DS_Store
 Thumbs.db
 
-# env / secrets — never commit these
+# env / secrets - never commit these
 .env
 .env.local
 .env.*.local
@@ -50,6 +50,9 @@ next-env.d.ts
 
 # Claude Code local settings (tool config, not for version control)
 .claude/
+
+# Copilot local instructions (not for version control)
+.github/copilot-instructions.md
 
 # IDE / editor
 .vscode/settings.json

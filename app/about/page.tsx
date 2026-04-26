@@ -100,7 +100,7 @@ export default function AboutPage() {
             My journey has required resilience, discipline and long-term consistency, and those
             values now shape how I approach engineering and leadership. I care deeply about
             accessible technology and practical systems that serve real users. I am a Student
-            Representative at Aston Students&apos; Union, a Student Member of the IET, and a member
+            Representative at Aston Students&apos; Union, a Student Member of the IET and a member
             of the Aston Computing Society, Aston Ghana Society and Aston Gaming Society.
           </p>
           <p>
@@ -114,7 +114,7 @@ export default function AboutPage() {
           </p>
           <p>
             Technically I work across the full stack: bare-metal C and C++ on microcontrollers, PCB
-            design in KiCad and Proteus, full-stack web with Next.js, PHP 8.2 and MySQL, and AI/ML
+            design in KiCad and Proteus, full-stack web with Next.js, PHP 8.2 and MySQL and AI/ML
             with Python, TensorFlow and PyTorch. I am also expanding into cloud computing, cyber
             security and game development. My projects include a two-stage audio amplifier designed
             and manufactured as a PCB from scratch, a 4x4x4 NeoPixel LED Cube with adaptive

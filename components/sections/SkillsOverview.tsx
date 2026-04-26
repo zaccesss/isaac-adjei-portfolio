@@ -9,7 +9,14 @@ import { skillCategories } from "@/data/skills"
 import { staggerContainer, fadeUp } from "@/lib/animations"
 
 export default function SkillsOverview() {
-  const topCategories = skillCategories.slice(0, 2)
+  const HIDDEN_ON_HOME = ["Assembly", "Rust", "C#", "Go", "JSON"]
+  const topCategories = skillCategories
+    .slice(0, 2)
+    .map((cat) =>
+      cat.category === "Languages & Software"
+        ? { ...cat, skills: cat.skills.filter((s) => !HIDDEN_ON_HOME.includes(s.name)) }
+        : cat
+    )
 
   return (
     <section className="py-24 border-t">
