@@ -32,7 +32,7 @@ function SkillCard({ skill }: { skill: Skill }) {
 }
 
 function CategorySection({ cat }: { cat: (typeof skillCategories)[0] }) {
-  const ref = useRef<HTMLElement>(null)
+  const ref = useRef<HTMLDetailsElement>(null)
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -52,22 +52,23 @@ function CategorySection({ cat }: { cat: (typeof skillCategories)[0] }) {
   }, [])
 
   return (
-    <section
+    <details
       ref={ref}
       className={cn(
         "transition-all duration-700",
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       )}
     >
-      <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-5 text-center">
-        {cat.category}
-      </h2>
-      <div className={cn("skills-grid", `skills-cols-${cat.columns}`)}>
+      <summary className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-5 text-center cursor-pointer select-none list-none flex items-center justify-center gap-2 hover:text-foreground transition-colors">
+        <span>{cat.category}</span>
+        <span className="text-xs opacity-50">[expand]</span>
+      </summary>
+      <div className={cn("skills-grid mt-5", `skills-cols-${cat.columns}`)}>
         {cat.skills.map((skill) => (
           <SkillCard key={skill.name} skill={skill} />
         ))}
       </div>
-    </section>
+    </details>
   )
 }
 
