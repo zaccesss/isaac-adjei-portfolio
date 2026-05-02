@@ -104,14 +104,21 @@ export default function ProjectDetail({ project }: Props) {
             <h2 className="text-xl font-semibold">Gallery</h2>
             <ImageGallery images={project.images} title={project.title} />
             {project.video && (
-              // Demo video sits centred below the gallery images
-              <div className="flex justify-center pt-4">
-                <video
-                  src={project.video}
-                  controls
-                  className="w-full max-w-xl rounded-lg"
-                  aria-label={`${project.title} demo video`}
-                />
+              // Demo video sits below the gallery with a labelled heading
+              <div className="space-y-3 pt-2">
+                <h3 className="text-base font-semibold text-muted-foreground uppercase tracking-wide text-center">
+                  Project demo
+                </h3>
+                <div className="flex justify-center">
+                  <video
+                    src={project.video}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="w-full max-w-2xl rounded-lg aspect-video bg-black"
+                    aria-label={`${project.title} demo video`}
+                  />
+                </div>
               </div>
             )}
           </motion.div>
