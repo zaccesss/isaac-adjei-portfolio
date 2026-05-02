@@ -1,3 +1,8 @@
+// Dynamic blog post page. Looks up the post by slug from data/blog.ts.
+// If the post exists but is not published, it redirects to /blog instead of showing a 404.
+// The renderBlock function is a switch statement that turns each ContentBlock
+// into the appropriate JSX element (paragraph, heading, list, code block, etc.).
+
 import type { Metadata } from "next"
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
@@ -63,7 +68,9 @@ function renderBlock(block: ContentBlock, i: number): React.ReactNode {
         <ol key={i} className="space-y-1.5 list-none pl-0 counter-reset-[item]">
           {block.items.map((item, j) => (
             <li key={j} className="flex gap-3 text-base text-foreground/90">
-              <span className="shrink-0 font-mono text-sm text-primary">{String(j + 1).padStart(2, "0")}.</span>
+              <span className="shrink-0 font-mono text-sm text-primary">
+                {String(j + 1).padStart(2, "0")}.
+              </span>
               <span>{item}</span>
             </li>
           ))}
@@ -78,16 +85,15 @@ function renderBlock(block: ContentBlock, i: number): React.ReactNode {
             </div>
           )}
           <pre className="px-4 py-4">
-            <code className="font-mono text-sm text-foreground/90 whitespace-pre">{block.text}</code>
+            <code className="font-mono text-sm text-foreground/90 whitespace-pre">
+              {block.text}
+            </code>
           </pre>
         </div>
       )
     case "quote":
       return (
-        <blockquote
-          key={i}
-          className="border-l-2 border-primary pl-5 py-1 space-y-1"
-        >
+        <blockquote key={i} className="border-l-2 border-primary pl-5 py-1 space-y-1">
           <p className="text-base italic text-foreground/80">{block.text}</p>
           {block.source && (
             <p className="text-xs font-mono text-muted-foreground">— {block.source}</p>
@@ -179,9 +185,7 @@ export default function PostPage({ params }: { params: { slug: string } }) {
 
       {/* Content */}
       {post.published && post.content.length > 0 ? (
-        <div className="space-y-5">
-          {post.content.map((block, i) => renderBlock(block, i))}
-        </div>
+        <div className="space-y-5">{post.content.map((block, i) => renderBlock(block, i))}</div>
       ) : (
         <div className="rounded-lg border border-dashed border-border/60 p-12 text-center space-y-2">
           <p className="text-sm font-medium">This post is still being written.</p>

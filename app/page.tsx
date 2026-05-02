@@ -1,3 +1,6 @@
+// Homepage - assembles the five homepage sections in order.
+// All the heavy lifting lives inside the individual section components.
+
 import Hero from "@/components/sections/Hero"
 import AboutPreview from "@/components/sections/AboutPreview"
 import FeaturedProjects from "@/components/sections/FeaturedProjects"

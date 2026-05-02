@@ -1,3 +1,7 @@
+// Experience page - splits the experiences array into professional entries
+// and volunteering entries by ID, then renders each group in its own timeline.
+// The IDs are hardcoded in a Set here since the volunteering split is specific to this page.
+
 import type { Metadata } from "next"
 import { Download } from "lucide-react"
 import { experiences } from "@/data/experience"

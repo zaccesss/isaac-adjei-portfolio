@@ -1,3 +1,13 @@
+// API route that handles contact form submissions.
+// Security layers applied in order:
+// 1. IP-based rate limiting - max 3 submissions per 10 minutes per IP
+// 2. Honeypot check - if the hidden _hp field is filled in, silently succeed (fool the bot)
+// 3. Cloudflare Turnstile verification - confirms the user passed the CAPTCHA
+// 4. Input validation - required fields, length limits, email format
+// 5. HTML stripping - removes any injected markup before including text in the email
+// Email is sent via the Resend API. If RESEND_API_KEY is not set, the submission is
+// logged to the console instead (useful for local development).
+
 import { NextResponse } from "next/server"
 
 // In-memory rate limit store: ip -> { count, resetAt }
@@ -23,8 +33,7 @@ function checkRateLimit(ip: string): boolean {
 
 export async function POST(request: Request) {
   try {
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
 
     // Rate limit check
     if (!checkRateLimit(ip)) {
@@ -55,7 +64,10 @@ export async function POST(request: Request) {
       })
       const verifyData = await verifyRes.json()
       if (!verifyData.success) {
-        return NextResponse.json({ error: "Verification failed. Please try again." }, { status: 400 })
+        return NextResponse.json(
+          { error: "Verification failed. Please try again." },
+          { status: 400 }
+        )
       }
     }
 
@@ -83,7 +95,12 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.RESEND_API_KEY
     if (!apiKey) {
-      console.log("Contact form submission (no RESEND_API_KEY):", { safeName, safeEmail, safeSubject, safeMessage })
+      console.log("Contact form submission (no RESEND_API_KEY):", {
+        safeName,
+        safeEmail,
+        safeSubject,
+        safeMessage,
+      })
       return NextResponse.json({ success: true })
     }
 
