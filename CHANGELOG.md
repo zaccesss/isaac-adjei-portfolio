@@ -44,41 +44,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [2026-05-02c]
-
-### Added
-
-- Upstash Redis sliding-window rate limiter on `/api/contact` (3 requests per 10 minutes per IP) - replaces the previous in-memory Map which reset on every cold start
-- `app/sitemap.ts` - generates `/sitemap.xml` at build time covering all 9 public routes; submitted to Google Search Console
-- `.github/workflows/ci.yml` - CI pipeline: install, lint and build on every push and pull request to `main`; actions pinned to full commit SHAs
-- `.github/workflows/gitleaks-scan.yml` - Gitleaks secret scanning on every push and pull request; uses direct binary install to avoid licence requirement of the action wrapper
-- Schema.org `Person` JSON-LD block injected in `app/layout.tsx` for structured data
-- `robots` and `alternates.canonical` metadata fields added to root layout
-- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` environment variables (see `.env.example`)
-- Cloudflare proxying enabled on both CNAME records (was DNS only)
-- Cloudflare SSL/TLS mode upgraded from Full to Full (strict)
-- Cloudflare Bot Fight Mode, Client-side security and Speed optimisations enabled
-- Cloudflare AI training bot blocking enabled
-- SPF TXT record (`v=spf1 -all`) and DMARC TXT record (`p=reject`) added to Cloudflare DNS
-- GitHub branch ruleset on `main`: PR required, linear history, force push blocked, `Lint and Build` status check required
-- Dependabot alerts and security updates enabled on repository
-- Repository website and topics set via GitHub API
-
-### Changed
-
-- `metadataBase` in `app/layout.tsx` corrected from `https://www.isaacadjei.me` to `https://isaacadjei.me` (no `www`)
-- Root metadata description expanded to 164 characters for better search snippet coverage
-- `next.config.mjs` CSP header: `script-src` now includes `https://challenges.cloudflare.com` so the Turnstile widget loads correctly; `X-XSS-Protection` header removed (deprecated, superseded by CSP); `images.domains` removed in favour of `remotePatterns`; AVIF and WebP image formats added
-- `/api/contact` rate limiter description updated to reflect Upstash Redis backend
-
-### Fixed
-
-- `useModKey` hook: replaced `useEffect + setState` pattern with lazy `useState` initialiser, resolving an ESLint `react-hooks/exhaustive-deps` warning
-- Cloudflare Turnstile widget was not rendering due to missing `https://challenges.cloudflare.com` in `script-src` CSP directive
-- `.env.example` real credentials removed and replaced with placeholder values
-
----
-
 ## [2026-05-02b]
 
 ### Added
