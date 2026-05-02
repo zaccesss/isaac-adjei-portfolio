@@ -1,5 +1,9 @@
 "use client"
 
+// The main hero section at the top of the homepage.
+// The 'Quick navigate' button dispatches a synthetic keyboard event to trigger
+// the CommandMenu without having to duplicate the shortcut logic here.
+
 import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Image from "next/image"

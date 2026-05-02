@@ -1,5 +1,11 @@
 "use client"
 
+// Vertical timeline that lists experience entries in order.
+// Each entry shows a numbered dot, a type badge, the role title, company
+// and a list of achievements. I pass the experiences in as a prop so the
+// same component can render both the professional and volunteering lists
+// on the Experience page.
+
 import { motion } from "framer-motion"
 import { type Experience } from "@/data/experience"
 import { Badge } from "@/components/ui/badge"
@@ -30,9 +36,7 @@ export default function ExperienceTimeline({ experiences }: Props) {
       {experiences.map((exp, i) => (
         <motion.div key={exp.id} variants={fadeUp} className="relative flex gap-4 pl-10">
           {/* Dot */}
-          <div
-            className="absolute left-0 mt-1.5 h-7 w-7 rounded-full border-2 border-background bg-muted text-muted-foreground flex items-center justify-center text-xs font-bold shrink-0"
-          >
+          <div className="absolute left-0 mt-1.5 h-7 w-7 rounded-full border-2 border-background bg-muted text-muted-foreground flex items-center justify-center text-xs font-bold shrink-0">
             {i + 1}
           </div>
 
@@ -41,7 +45,11 @@ export default function ExperienceTimeline({ experiences }: Props) {
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   variant={exp.type === "work" || exp.type === "internship" ? "default" : "outline"}
-                  className={cn("text-xs", exp.type === "internship" && "bg-amber-500 hover:bg-amber-500 text-white border-amber-500")}
+                  className={cn(
+                    "text-xs",
+                    exp.type === "internship" &&
+                      "bg-amber-500 hover:bg-amber-500 text-white border-amber-500"
+                  )}
                 >
                   {typeLabel[exp.type]}
                 </Badge>

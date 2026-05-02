@@ -1,5 +1,9 @@
 "use client"
 
+// Displays my CV in an iframe and provides download and print buttons.
+// handlePrint opens the raw cv.html file in a new tab so the browser's native
+// print dialog works correctly with all the CV's custom CSS.
+
 type CVViewerProps = {
   cvHtml: string
 }

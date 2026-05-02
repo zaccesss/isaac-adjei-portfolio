@@ -1,5 +1,9 @@
 "use client"
 
+// Combines ProjectFilter and the project grid into one component.
+// I derive the filtered list from the full projects array every render - no extra state needed.
+// If no projects match the selected category, a short message is shown instead of an empty grid.
+
 import { useState } from "react"
 import { type Project } from "@/data/projects"
 import ProjectCard from "./ProjectCard"
