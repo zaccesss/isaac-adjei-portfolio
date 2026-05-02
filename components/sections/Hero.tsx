@@ -7,16 +7,12 @@
 import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
 import SocialLinks from "@/components/shared/SocialLinks"
 import { fadeUp, staggerContainer } from "@/lib/animations"
+import { useModKey } from "@/hooks/useModKey"
 
 export default function Hero() {
-  // Detect Mac so we show ⌘ instead of Ctrl in the keyboard hint
-  const [isMac, setIsMac] = useState(false)
-  useEffect(() => {
-    setIsMac(navigator.platform.toUpperCase().includes("MAC"))
-  }, [])
+  const { modLabel } = useModKey()
 
   return (
     <section className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-6 py-24">
@@ -75,7 +71,7 @@ export default function Hero() {
             <span>Quick navigate</span>
             <span className="flex items-center gap-1">
               <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] font-medium shadow-sm">
-                {isMac ? "⌘" : "Ctrl"}
+                {modLabel}
               </kbd>
               <span>+</span>
               <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] font-medium shadow-sm">
