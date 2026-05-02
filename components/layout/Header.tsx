@@ -1,5 +1,10 @@
 "use client"
 
+// Sticky site header with a blur backdrop that appears once the user scrolls down.
+// I use the useScrollPosition hook to detect scroll and swap Tailwind classes accordingly.
+// The header renders the desktop Navigation and the MobileNav side by side - CSS hides
+// whichever one isn't appropriate for the current viewport width.
+
 import Link from "next/link"
 import Image from "next/image"
 import { useScrollPosition } from "@/hooks/useScrollPosition"

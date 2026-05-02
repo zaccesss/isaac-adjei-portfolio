@@ -1,5 +1,9 @@
 "use client"
 
+// Mobile hamburger menu. It toggles a slide-down panel with a fixed backdrop
+// that blocks interaction with the page while the menu is open.
+// I use usePathname to highlight the link that matches the current URL.
+
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"

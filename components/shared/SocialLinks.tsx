@@ -1,3 +1,8 @@
+// Renders a row of social media icon links.
+// The iconMap translates the string stored in data/social.ts to a React component.
+// Falls back to the generic Link2 icon for any platform not in the map.
+// showLabel is optional - if true, the platform name appears next to the icon.
+
 import Link from "next/link"
 import { Github, Linkedin, Link2, Mail, Globe } from "lucide-react"
 import { socialLinks } from "@/data/social"
@@ -36,9 +41,7 @@ export default function SocialLinks({
             aria-label={social.name}
           >
             <Icon className={iconSize} />
-            {showLabel && (
-              <span className="text-sm">{social.name}</span>
-            )}
+            {showLabel && <span className="text-sm">{social.name}</span>}
           </Link>
         )
       })}

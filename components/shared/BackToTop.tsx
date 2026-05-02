@@ -1,5 +1,10 @@
 "use client"
 
+// Floating button that appears in the bottom-right corner once the user scrolls
+// more than 300px down the page. Clicking it scrolls smoothly back to the top.
+// I use translate-y and pointer-events-none to hide it without removing it from the DOM,
+// which makes the show/hide transition smooth.
+
 import { ArrowUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useScrollPosition } from "@/hooks/useScrollPosition"
