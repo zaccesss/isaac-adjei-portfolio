@@ -1,5 +1,9 @@
 "use client"
 
+// Skills preview section on the homepage.
+// I only show the first two skill categories here and filter out a few less-common
+// languages to keep the list concise. The full list lives on the /skills page.
+
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"

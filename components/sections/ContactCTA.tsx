@@ -1,5 +1,8 @@
 "use client"
 
+// Call-to-action section at the bottom of the homepage.
+// It gives visitors quick buttons to contact me, view my work or download my CV.
+
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight, Mail, Download } from "lucide-react"

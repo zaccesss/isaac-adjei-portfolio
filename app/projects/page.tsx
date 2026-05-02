@@ -1,10 +1,13 @@
+// Projects listing page - shows all projects with category filtering via ProjectGrid.
+
 import type { Metadata } from "next"
 import { projects } from "@/data/projects"
 import ProjectGrid from "@/components/projects/ProjectGrid"
 
 export const metadata: Metadata = {
   title: "Projects",
-  description: "A collection of my engineering projects - from embedded systems to web applications.",
+  description:
+    "A collection of my engineering projects - from embedded systems to web applications.",
 }
 
 export default function ProjectsPage() {

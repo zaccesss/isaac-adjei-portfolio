@@ -1,3 +1,5 @@
+// Contact page - renders the ContactForm and shows my social links below it.
+
 import type { Metadata } from "next"
 import ContactForm from "@/components/forms/ContactForm"
 import SocialLinks from "@/components/shared/SocialLinks"

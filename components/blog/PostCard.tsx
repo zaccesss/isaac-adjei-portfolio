@@ -1,3 +1,7 @@
+// Blog post preview card used in the blog listing page.
+// TYPE_STYLES and TYPE_LABELS map the PostType string to its display colour and label.
+// formatDate converts the ISO date string to a readable UK date (e.g. 1 January 2025).
+
 import Link from "next/link"
 import { ArrowRight, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -43,9 +47,7 @@ export default function PostCard({ post }: PostCardProps) {
           >
             {TYPE_LABELS[post.type]}
           </span>
-          <span className="font-mono text-xs text-muted-foreground">
-            {formatDate(post.date)}
-          </span>
+          <span className="font-mono text-xs text-muted-foreground">{formatDate(post.date)}</span>
         </div>
 
         {/* Title */}

@@ -1,5 +1,9 @@
 "use client"
 
+// Button that toggles between light and dark mode.
+// Both the Sun and Moon icons are always rendered - CSS rotations and scale transforms
+// are used to show one and hide the other so the swap animation is smooth.
+
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"

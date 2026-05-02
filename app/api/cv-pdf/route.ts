@@ -1,3 +1,9 @@
+// API route that generates a PDF of my CV on the fly using Puppeteer.
+// In production (Vercel), @sparticuz/chromium provides a compatible headless browser.
+// Locally, it falls back to the standard puppeteer executable.
+// If PDF generation fails entirely, the route serves the static Isaac_Adjei_CV.pdf
+// from the public folder as a fallback so downloads never break.
+
 import { readFileSync } from "fs"
 import { join } from "path"
 import chromium from "@sparticuz/chromium"

@@ -1,3 +1,6 @@
+// All work experience, internships and virtual programmes.
+// The 'type' field controls the badge colour on the timeline.
+
 export interface Experience {
   id: string
   role: string

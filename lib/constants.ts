@@ -1,3 +1,7 @@
+// Central place for all route paths and navigation links.
+// I define everything here so if a URL ever changes, I only have to update it once.
+
+// All the URL paths used across the site
 export const ROUTES = {
   home: "/",
   about: "/about",
@@ -9,6 +13,7 @@ export const ROUTES = {
   links: "/links",
 } as const
 
+// The label + href for each item shown in the nav bar
 export const NAV_LINKS = [
   { label: "About", href: ROUTES.about },
   { label: "Projects", href: ROUTES.projects },
@@ -19,4 +24,5 @@ export const NAV_LINKS = [
   { label: "Links", href: ROUTES.links },
 ] as const
 
+// The canonical site URL - reads from an env variable in production, falls back to localhost
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://isaacadjei.me"

@@ -1,7 +1,18 @@
+// Preview card for a single project shown in the grid and on the homepage.
+// Technologies are capped at 5 - if there are more, a '+N' overflow badge is shown
+// so the card doesn't get too tall.
+
 import Link from "next/link"
 import Image from "next/image"
 import { ExternalLink, Github } from "lucide-react"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { type Project } from "@/data/projects"

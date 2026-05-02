@@ -1,3 +1,8 @@
+// CV page - reads cv.html from the public folder at request time (server component)
+// and passes the raw HTML string down to CVViewer which renders it in an iframe.
+// Reading the file on the server avoids a client-side fetch and keeps the CV private
+// from direct public URL access when needed.
+
 import type { Metadata } from "next"
 import { readFileSync } from "fs"
 import { join } from "path"

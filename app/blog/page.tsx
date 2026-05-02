@@ -1,5 +1,11 @@
 "use client"
 
+// Blog listing page styled as an interactive terminal emulator.
+// The terminal boots with a fake startup sequence (BOOT lines) and then waits for
+// commands. Each command is looked up in the COMMANDS map and returns an array
+// of Line objects that are appended to the terminal output.
+// Navigation commands (about, projects, etc.) open the target page in a new tab.
+
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { posts } from "@/data/blog"

@@ -1,3 +1,6 @@
+// Full About page - covers my background, education, societies, interests, hobbies and languages.
+// The interests, hobbies and languages are defined inline here because they're only used on this page.
+
 import type { Metadata } from "next"
 import { education } from "@/data/education"
 import { societies } from "@/data/societies"

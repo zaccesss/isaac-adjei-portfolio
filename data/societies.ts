@@ -1,3 +1,5 @@
+// University society memberships shown on the About page.
+
 export interface Society {
   name: string
   role: string

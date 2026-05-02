@@ -1,5 +1,8 @@
 "use client"
 
+// A short teaser section shown on the homepage that introduces who I am
+// and links through to the full About page.
+
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"

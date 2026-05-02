@@ -1,3 +1,6 @@
+// Site footer - shown at the bottom of every page.
+// I calculate the copyright year dynamically so I never have to update it manually.
+
 import Link from "next/link"
 import SocialLinks from "@/components/shared/SocialLinks"
 
@@ -16,9 +19,7 @@ export default function Footer() {
 
         <SocialLinks showLabel className="justify-center" />
 
-        <p className="text-xs text-muted-foreground">
-          &copy; {year} Isaac Adjei
-        </p>
+        <p className="text-xs text-muted-foreground">&copy; {year} Isaac Adjei</p>
       </div>
     </footer>
   )
