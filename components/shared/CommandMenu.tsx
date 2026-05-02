@@ -65,9 +65,11 @@ export default function CommandMenu() {
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       {/* Visible title centred at the top of the menu */}
-      <DialogTitle className="px-4 pt-4 pb-0 text-base font-semibold text-center">Quick Navigation</DialogTitle>
+      <DialogTitle className="px-4 pt-4 pb-0 text-base font-semibold text-center">
+        Quick Navigation
+      </DialogTitle>
       <CommandInput placeholder="Type a command or search..." />
-      <CommandList className="max-h-[480px]">
+      <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
         {/* Navigation group - the main site pages */}
