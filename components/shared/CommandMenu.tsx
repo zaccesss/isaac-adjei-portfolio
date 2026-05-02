@@ -64,8 +64,8 @@ export default function CommandMenu() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      {/* Visually hidden title keeps screen readers happy without showing a heading */}
-      <DialogTitle className="sr-only">Quick navigation</DialogTitle>
+      {/* Visible title shown at the top of the menu */}
+      <DialogTitle className="px-4 pt-4 pb-0 text-base font-semibold">Quick Navigation</DialogTitle>
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
