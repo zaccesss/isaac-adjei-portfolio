@@ -70,7 +70,7 @@ export default function CommandMenu() {
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
-        {/* Navigation group - the main site pages */
+        {/* Navigation group - the main site pages */}
         <CommandGroup heading="Navigation">
           <CommandItem value="home" onSelect={() => go("/")}>
             <Home className="mr-2 h-4 w-4" />
@@ -104,7 +104,7 @@ export default function CommandMenu() {
           </CommandItem>
         </CommandGroup>
 
-        {/* Actions group - contact and external links */
+        {/* Actions group - contact and external links */}
         <CommandGroup heading="Actions">
           <CommandItem value="contact" onSelect={() => go("/contact")}>
             <Mail className="mr-2 h-4 w-4" />
