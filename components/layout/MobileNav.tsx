@@ -29,16 +29,6 @@ export default function MobileNav() {
           {/* Menu panel */}
           <div className="fixed inset-x-0 top-16 z-50 bg-background border-t shadow-xl">
             <nav className="container flex flex-col gap-1 py-6">
-              <Link
-                href="/"
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "px-4 py-3 text-base font-medium rounded-md transition-colors hover:bg-accent",
-                  pathname === "/" ? "bg-accent text-foreground" : "text-muted-foreground"
-                )}
-              >
-                Home
-              </Link>
               {NAV_LINKS.map((link) => (
                 <Link
                   key={link.href}
