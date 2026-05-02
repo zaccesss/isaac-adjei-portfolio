@@ -35,13 +35,12 @@ function SkillCard({ skill }: { skill: Skill }) {
   )
 }
 
-// CategorySection renders one collapsible tech stack group.
-// I use a native <details>/<summary> element so users can hide categories they don't need.
-// I also use IntersectionObserver to fade the section in when it scrolls into view —
+// CategorySection renders one tech stack category section.
+// I use IntersectionObserver to fade the section in when it scrolls into view —
 // this fires once per section and then disconnects itself to avoid wasting memory.
 function CategorySection({ cat }: { cat: (typeof skillCategories)[0] }) {
   // ref lets me attach the IntersectionObserver to the actual DOM element
-  const ref = useRef<HTMLDetailsElement>(null)
+  const ref = useRef<HTMLElement>(null)
   // visible tracks whether this section has entered the viewport yet
   const [visible, setVisible] = useState(false)
 
@@ -65,23 +64,22 @@ function CategorySection({ cat }: { cat: (typeof skillCategories)[0] }) {
   }, [])
 
   return (
-    <details
+    <section
       ref={ref}
       className={cn(
         "transition-all duration-700",
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       )}
     >
-      <summary className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-5 text-center cursor-pointer select-none list-none flex items-center justify-center gap-2 hover:text-foreground transition-colors">
-        <span>{cat.category}</span>
-        <span className="text-xs opacity-50">[expand]</span>
-      </summary>
-      <div className={cn("skills-grid mt-5", `skills-cols-${cat.columns}`)}>
+      <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-5 text-center">
+        {cat.category}
+      </h2>
+      <div className={cn("skills-grid", `skills-cols-${cat.columns}`)}>
         {cat.skills.map((skill) => (
           <SkillCard key={skill.name} skill={skill} />
         ))}
       </div>
-    </details>
+    </section>
   )
 }
 
