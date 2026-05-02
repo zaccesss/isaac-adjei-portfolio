@@ -52,7 +52,7 @@
 
 ## Overview
 
-Personal portfolio website for **Isaac Adjei (Zac)** - Top 40 Finalist, Black Heritage Undergraduate of the Year 2026, and Electronic Engineering and Computer Science student at Aston University (Predicted First Class). Built to showcase 8 engineering and software projects with full image galleries and lightboxes, alongside skills, experience, blog and contact pages.
+Personal portfolio website for **Isaac Adjei (Zac)** - Top 40 Finalist, Black Heritage Undergraduate of the Year 2026 and Electronic Engineering and Computer Science student at Aston University (Predicted First Class). Built to showcase 8 engineering and software projects with full image galleries and lightboxes, alongside skills, experience, blog and contact pages.
 
 The site is a proper **Next.js 16 App Router** application with TypeScript, Tailwind CSS, Framer Motion animations and full dark/light mode support. Every page is server-rendered or statically generated where possible, with client components only where interactivity requires it.
 
@@ -70,8 +70,9 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 | DNS           | Cloudflare                                                  |
 | Custom domain | [isaacadjei.me](https://isaacadjei.me)                      |
 | Auto-deploy   | On push to `main`                                           |
-| Quote API     | ZenQuotes, proxied via `/api/quote`, refreshes every 30 min |
-| CAPTCHA       | Cloudflare Turnstile on contact form                        |
+| Quote API     | ZenQuotes, proxied via `/api/quote`, refreshes every 30 min  |
+| Bible verse   | NET Bible API, proxied via `/api/bible-verse`, refreshes every 30 min |
+| CAPTCHA       | Cloudflare Turnstile on contact form                         |
 
 </div>
 
@@ -111,7 +112,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 ### UI and navigation
 
 - **Dark / light mode** - system preference detection with manual toggle via `next-themes`
-- **Command palette** - `Ctrl+I` global keyboard shortcut to navigate anywhere on the site
+- **Command palette** - `Ctrl+I` / `⌘I` global shortcut opens a searchable command menu with Navigation and Actions groups; shortcut labels adapt to the user's OS (⌘H on Mac, Ctrl+H on Windows/Linux)
 - **Responsive layout** - mobile-first, adapts from single column to multi-column on desktop
 - **Framer Motion** - page and section entrance animations with stagger containers
 - **Animated skills grid** - scroll-triggered fade-in with `IntersectionObserver`, icons across 14 categories
@@ -121,6 +122,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 - **Interactive terminal blog** - fully functional terminal emulator with 10+ commands
 - **Blinking cursor, command history** and macOS-style window controls
 - **Dynamic quotes** - blog page fetches fresh quotes from ZenQuotes API every 30 minutes
+- **Scripture section** - random Bible verse from the NET Bible API, auto-refreshes every 30 minutes with a manual refresh button
 
 ### Contact and security
 
@@ -188,6 +190,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 - **Email** - Resend for contact form delivery
 - **CAPTCHA** - Cloudflare Turnstile via `@marsidev/react-turnstile`
 - **Quote API** - ZenQuotes, proxied through a Next.js API route to avoid CORS
+- **Bible verse API** - NET Bible public API, proxied through a Next.js API route
 - **Font** - Vercel Geist (sans + mono) via the `geist` package
 - **Deployment** - Vercel, auto-deploys on push to `main`
 - **DNS** - Cloudflare
@@ -200,9 +203,10 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 
 | Route          | Method | Purpose                                                                                                                                  |
 | -------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/contact` | `POST` | Contact form submission with in-memory rate limiting, honeypot check, optional Turnstile verification and optional Resend email delivery |
-| `/api/cv-pdf`  | `GET`  | Generates and downloads the latest CV PDF from `public/resume/cv.html` using headless browser rendering                                  |
-| `/api/quote`   | `GET`  | Fetches quote data from ZenQuotes with a local fallback quote                                                                            |
+| `/api/contact`      | `POST` | Contact form submission with in-memory rate limiting, honeypot check, optional Turnstile verification and optional Resend email delivery |
+| `/api/cv-pdf`       | `GET`  | Generates and downloads the latest CV PDF from `public/resume/cv.html` using headless browser rendering                                  |
+| `/api/quote`        | `GET`  | Fetches a random motivational quote from ZenQuotes with a local fallback                                                                  |
+| `/api/bible-verse`  | `GET`  | Fetches a random Bible verse from the NET Bible API with a local fallback                                                                 |
 
 ---
 
@@ -216,6 +220,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 │   ├── api/contact/    # Contact form API route (rate limiting, Turnstile, Resend)
 │   ├── api/cv-pdf/     # Server-side CV PDF generation endpoint
 │   ├── api/quote/      # ZenQuotes proxy API route
+│   ├── api/bible-verse/ # NET Bible API proxy route for random Scripture verses
 │   ├── blog/           # Terminal blog page
 │   │   └── [slug]/     # Individual blog posts
 │   ├── contact/        # Contact page
@@ -248,7 +253,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 │   ├── social.ts       # Social profile links
 │   └── societies.ts    # University societies and memberships
 │
-├── hooks/              # Custom hooks (command menu, media query, scroll, theme)
+├── hooks/              # Custom hooks (command menu, media query, scroll, theme, OS mod key)
 ├── styles/             # Additional CSS (animations)
 ├── types/              # Shared TypeScript types
 │

@@ -17,6 +17,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command"
 import { Home, User, Briefcase, Code, Mail, Cpu, BookOpen, Link2 } from "lucide-react"
+import { DialogTitle } from "@/components/ui/dialog"
 import { useModKey } from "@/hooks/useModKey"
 
 export default function CommandMenu() {
@@ -63,11 +64,13 @@ export default function CommandMenu() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
+      {/* Visually hidden title keeps screen readers happy without showing a heading */}
+      <DialogTitle className="sr-only">Quick navigation</DialogTitle>
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
-        {/* Navigation group — the main site pages */}
+        {/* Navigation group - the main site pages */
         <CommandGroup heading="Navigation">
           <CommandItem value="home" onSelect={() => go("/")}>
             <Home className="mr-2 h-4 w-4" />
@@ -101,7 +104,7 @@ export default function CommandMenu() {
           </CommandItem>
         </CommandGroup>
 
-        {/* Actions group — contact and external links */}
+        {/* Actions group - contact and external links */
         <CommandGroup heading="Actions">
           <CommandItem value="contact" onSelect={() => go("/contact")}>
             <Mail className="mr-2 h-4 w-4" />
