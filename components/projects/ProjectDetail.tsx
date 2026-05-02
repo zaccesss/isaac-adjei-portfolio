@@ -1,5 +1,9 @@
 "use client"
 
+// Full project detail page layout.
+// Shows the back link, title, description, image gallery, optional video embed,
+// highlights list, tech stack badges and GitHub/demo links.
+
 import Link from "next/link"
 import { ArrowLeft, Github, ExternalLink } from "lucide-react"
 import ImageGallery from "./ImageGallery"

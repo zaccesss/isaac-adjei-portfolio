@@ -1,3 +1,7 @@
+// All project data for the portfolio. The Project interface describes the shape
+// of every entry. The 'featured' flag controls whether a project appears on the
+// homepage. 'video' is an optional path to a demo video shown on the detail page.
+
 export interface Project {
   id: string
   title: string

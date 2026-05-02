@@ -1,5 +1,9 @@
 "use client"
 
+// Displays only the projects flagged as featured on the homepage.
+// The 'All projects' button is hidden on small screens and shown via a second
+// button below the grid so the layout works on both mobile and desktop.
+
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"

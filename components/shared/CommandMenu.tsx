@@ -1,5 +1,10 @@
 "use client"
 
+// Keyboard-driven command menu (like Spotlight or VS Code's Ctrl+P).
+// Opens with Ctrl+I or Cmd+I. Selecting an item navigates to that page.
+// I use a useEffect here as well as the useCommandMenuShortcut hook because
+// this component owns the open state itself and wires up the shortcut inline.
+
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import {

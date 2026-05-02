@@ -1,7 +1,11 @@
 "use client"
 
+// Two hooks for tracking the user's scroll state.
+// I use the passive event listener flag to avoid blocking the browser's scroll thread.
+
 import { useState, useEffect } from "react"
 
+// Returns the current vertical scroll offset in pixels
 export function useScrollPosition() {
   const [scrollY, setScrollY] = useState(0)
 
@@ -14,6 +18,7 @@ export function useScrollPosition() {
   return scrollY
 }
 
+// Returns how far the user has scrolled as a percentage (0-100) of the full page height
 export function useScrollProgress() {
   const [progress, setProgress] = useState(0)
 

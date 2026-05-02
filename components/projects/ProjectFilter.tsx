@@ -1,5 +1,9 @@
 "use client"
 
+// Row of filter buttons that lets users narrow projects by category.
+// The parent (ProjectGrid) owns the state - this component just receives the current
+// filter value and an onChange callback.
+
 import { type Project } from "@/data/projects"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"

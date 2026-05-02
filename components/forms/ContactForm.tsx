@@ -1,5 +1,10 @@
 "use client"
 
+// Contact form with three layers of spam protection:
+// 1. Honeypot field (_hp) - hidden from real users but bots fill it in, so if it's not empty I reject the submission.
+// 2. Cloudflare Turnstile CAPTCHA - verifies the user is human before the form is submitted.
+// 3. Server-side rate limiting in the API route (3 submissions per IP per 10 minutes).
+
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Send, Loader2 } from "lucide-react"
@@ -22,7 +27,9 @@ export default function ContactForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
-          _hp: (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>("[name=_hp]")?.value ?? "",
+          _hp:
+            (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>("[name=_hp]")
+              ?.value ?? "",
           turnstileToken,
         }),
       })
@@ -43,7 +50,14 @@ export default function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Honeypot - hidden from real users, bots fill this in */}
-      <input type="text" name="_hp" autoComplete="off" aria-hidden="true" tabIndex={-1} className="hidden" />
+      <input
+        type="text"
+        name="_hp"
+        autoComplete="off"
+        aria-hidden="true"
+        tabIndex={-1}
+        className="hidden"
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
@@ -121,7 +135,11 @@ export default function ContactForm() {
         <p className="text-sm text-destructive">Something went wrong. Please try again.</p>
       )}
 
-      <Button type="submit" disabled={status === "loading" || !turnstileToken} className="w-full sm:w-auto">
+      <Button
+        type="submit"
+        disabled={status === "loading" || !turnstileToken}
+        className="w-full sm:w-auto"
+      >
         {status === "loading" ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (

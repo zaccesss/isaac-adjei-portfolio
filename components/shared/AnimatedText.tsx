@@ -1,5 +1,9 @@
 "use client"
 
+// A small wrapper that fades any text element in and slides it up when the page loads.
+// The 'tag' prop lets me choose which HTML element to render (h1, h2, p, etc.)
+// without having to create a separate component for each one.
+
 import { motion } from "framer-motion"
 import { fadeUp } from "@/lib/animations"
 

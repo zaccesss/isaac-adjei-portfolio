@@ -1,5 +1,10 @@
 "use client"
 
+// Photo gallery grid with a fullscreen lightbox.
+// Keyboard navigation: ArrowLeft / ArrowRight to move between images, Escape to close.
+// I use useCallback for the keyboard handler so it can be safely added and removed
+// from the document event listener without stale closure issues.
+
 import { useState, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { X, ChevronLeft, ChevronRight } from "lucide-react"
@@ -79,7 +84,10 @@ export default function ImageGallery({ images, title }: Props) {
           {/* Prev */}
           {images.length > 1 && (
             <button
-              onClick={(e) => { e.stopPropagation(); prev() }}
+              onClick={(e) => {
+                e.stopPropagation()
+                prev()
+              }}
               className="absolute left-4 text-white/80 hover:text-white transition-colors z-10"
               aria-label="Previous image"
             >
@@ -105,7 +113,10 @@ export default function ImageGallery({ images, title }: Props) {
           {/* Next */}
           {images.length > 1 && (
             <button
-              onClick={(e) => { e.stopPropagation(); next() }}
+              onClick={(e) => {
+                e.stopPropagation()
+                next()
+              }}
               className="absolute right-4 text-white/80 hover:text-white transition-colors z-10"
               aria-label="Next image"
             >

@@ -1,3 +1,7 @@
+// Twitter/X card image - same layout as the Open Graph image above.
+// Twitter requires its own separate export even though the content is identical,
+// because the two platforms have slightly different image processing pipelines.
+
 import { ImageResponse } from "next/og"
 
 export const runtime = "edge"

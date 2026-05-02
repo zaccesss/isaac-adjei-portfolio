@@ -1,3 +1,8 @@
+// API route that fetches a random inspirational quote from ZenQuotes.
+// revalidate: 0 ensures the quote is fresh on every request.
+// If the external API is down, a hardcoded fallback quote is returned so the
+// UI never shows a broken state.
+
 import { NextResponse } from "next/server"
 
 export const revalidate = 0

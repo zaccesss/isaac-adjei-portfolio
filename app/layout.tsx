@@ -1,3 +1,8 @@
+// Root layout - wraps every page on the site.
+// Sets the global metadata (title template, description, OG image, etc.),
+// applies the Geist font variables and wires up the ThemeProvider.
+// The CommandMenu is rendered outside the page content so it floats over everything.
+
 import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
