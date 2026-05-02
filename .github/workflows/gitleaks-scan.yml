@@ -1,0 +1,29 @@
+name: Gitleaks Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Least-privilege token - read-only access to repository contents.
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: Gitleaks
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the repository content for scanning.
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # Scan git history and current files for hard-coded credentials.
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@e6dab246340401bf53eec993b8f05aebe80ac636 # v2.3.4
+        with:
+          args: --no-git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
