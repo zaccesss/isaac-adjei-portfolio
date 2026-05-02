@@ -7,6 +7,8 @@ export interface Project {
   category: "embedded" | "web" | "software" | "hardware" | "other"
   featured: boolean
   images: string[]
+  // optional path to a demo video shown below the gallery on the project detail page
+  video?: string
   github?: string
   demo?: string
   date: string
@@ -69,6 +71,7 @@ export const projects: Project[] = [
       "/images/projects/led-cube/build-lit.jpeg",
     ],
     github: "https://github.com/zaccesss/neopixel-led-cube-project",
+    video: "/Media/neopixel-description.mp4",
     date: "2025",
     highlights: [
       "64 WS2812B LEDs hand-soldered onto a custom copper wire frame built layer by layer",
