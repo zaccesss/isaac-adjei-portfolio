@@ -67,7 +67,9 @@ export default function ProjectDetail({ project }: Props) {
         <div className="space-y-3">
           <h2 className="text-xl font-semibold">Overview</h2>
           {project.longDescription.split("\n\n").map((para, i) => (
-            <p key={i} className="text-muted-foreground leading-relaxed">{para}</p>
+            <p key={i} className="text-muted-foreground leading-relaxed">
+              {para}
+            </p>
           ))}
         </div>
 
@@ -101,6 +103,17 @@ export default function ProjectDetail({ project }: Props) {
           <motion.div variants={fadeUp} className="space-y-4">
             <h2 className="text-xl font-semibold">Gallery</h2>
             <ImageGallery images={project.images} title={project.title} />
+            {project.video && (
+              // Demo video sits centred below the gallery images
+              <div className="flex justify-center pt-4">
+                <video
+                  src={project.video}
+                  controls
+                  className="w-full max-w-xl rounded-lg"
+                  aria-label={`${project.title} demo video`}
+                />
+              </div>
+            )}
           </motion.div>
         </>
       )}
