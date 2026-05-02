@@ -1,3 +1,5 @@
+// I mark this as a Client Component because I use React hooks (useEffect, useRef, useState).
+// Server Components can't use hooks, so this directive is required.
 "use client"
 
 import { useEffect, useRef, useState } from "react"
@@ -6,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
+// SkillCard renders a single icon + label tile.
+// I show the icon image if a URL is available, otherwise I fall back to the first two letters of the name.
 function SkillCard({ skill }: { skill: Skill }) {
   return (
     <div className="group flex flex-col items-center gap-2 p-3 w-[88px] rounded-xl border bg-card hover:border-primary/50 hover:shadow-lg hover:-translate-y-1.5 hover:scale-105 transition-all duration-200 cursor-default">
@@ -31,23 +35,32 @@ function SkillCard({ skill }: { skill: Skill }) {
   )
 }
 
+// CategorySection renders one collapsible tech stack group.
+// I use a native <details>/<summary> element so users can hide categories they don't need.
+// I also use IntersectionObserver to fade the section in when it scrolls into view —
+// this fires once per section and then disconnects itself to avoid wasting memory.
 function CategorySection({ cat }: { cat: (typeof skillCategories)[0] }) {
+  // ref lets me attach the IntersectionObserver to the actual DOM element
   const ref = useRef<HTMLDetailsElement>(null)
+  // visible tracks whether this section has entered the viewport yet
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
+    // IntersectionObserver calls my callback whenever the element enters or leaves the viewport
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          // Once visible I set the flag and stop watching — I only want the animation once
           setVisible(true)
           observer.disconnect()
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 } // trigger when at least 10% of the element is visible
     )
     observer.observe(el)
+    // cleanup: if the component unmounts before the animation fires, stop observing
     return () => observer.disconnect()
   }, [])
 
@@ -78,7 +91,8 @@ export default function SkillsPage() {
       <div className="space-y-3 animate-fade-up text-center">
         <h1 className="text-4xl font-bold tracking-tight">Skills</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          A full picture of what I bring - professional skills, hardware experience and the tech stack I work with.
+          A full picture of what I bring - professional skills, hardware experience and the tech
+          stack I work with.
         </p>
       </div>
 
@@ -106,7 +120,8 @@ export default function SkillsPage() {
       <div className="space-y-3 text-center">
         <h2 className="text-2xl font-bold tracking-tight">Tech Stack</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Technologies I work with and am actively learning. Some are daily tools, others I&apos;m still developing.
+          Technologies I work with and am actively learning. Some are daily tools, others I&apos;m
+          still developing.
         </p>
       </div>
 
@@ -117,9 +132,10 @@ export default function SkillsPage() {
       </div>
 
       <p className="text-xs text-center max-w-xl mx-auto leading-relaxed text-primary/80">
-        <strong className="text-primary">NB:</strong> I am not an expert in all these technologies yet. This is a living document that reflects
-        what I am actively using and what I am learning. Some tools are part of my daily workflow, others are at
-        beginner level. The process of continuous learning is what drives my interest in technology and innovation.
+        <strong className="text-primary">NB:</strong> I am not an expert in all these technologies
+        yet. This is a living document that reflects what I am actively using and what I am
+        learning. Some tools are part of my daily workflow, others are at beginner level. The
+        process of continuous learning is what drives my interest in technology and innovation.
       </p>
     </div>
   )
