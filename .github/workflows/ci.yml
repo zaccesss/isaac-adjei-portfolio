@@ -1,0 +1,55 @@
+# CI pipeline - runs on every push to main and every pull request targeting main.
+# Steps: install dependencies → lint → build.
+# This catches TypeScript errors, ESLint violations and broken builds before
+# they reach production on Vercel.
+#
+# GITHUB_TOKEN permissions are set to the minimum required (contents: read only).
+# No secrets are echoed in run: steps.
+# Third-party actions are pinned to a full commit SHA so a mutable tag like @v4
+# cannot be silently updated to malicious code (supply-chain attack prevention).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Least-privilege token - read-only access to the repo contents
+permissions:
+  contents: read
+
+jobs:
+  lint-and-build:
+    name: Lint and Build
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the code
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # Set up Node 20 LTS and restore npm cache for faster installs
+      - name: Set up Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      # Clean install from package-lock.json (deterministic, no resolution surprises)
+      - name: Install dependencies
+        run: npm ci
+
+      # Run ESLint - will fail if any error-level rule fires
+      - name: Lint
+        run: npm run lint
+
+      # Run Next.js production build - catches TS errors and broken imports
+      # Environment variables that the build references must be set here as placeholders.
+      # They don't need real values for a build-only check.
+      - name: Build
+        run: npm run build
+        env:
+          RESEND_API_KEY: placeholder
+          TURNSTILE_SECRET_KEY: placeholder

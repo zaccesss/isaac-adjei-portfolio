@@ -13,14 +13,35 @@ import Footer from "@/components/layout/Footer"
 import CommandMenu from "@/components/shared/CommandMenu"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 
+// ─── Schema.org structured data ─────────────────────────────────────────────
+// Injected as a JSON-LD script tag in the <body>.
+// Tells search engines (Google, Bing, etc.) that this is a Person page.
+// sameAs links connect this identity to GitHub and LinkedIn for knowledge graph
+// disambiguation. Data is fully static so dangerouslySetInnerHTML is safe here.
+const personSchema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Isaac Adjei",
+  url: "https://isaacadjei.me",
+  jobTitle: "Electronic Engineering and Computer Science Student",
+  alumniOf: {
+    "@type": "CollegeOrUniversity",
+    name: "Aston University",
+  },
+  sameAs: ["https://github.com/zaccessss", "https://linkedin.com/in/isaacadjei"],
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.isaacadjei.me"),
+  // Use the non-www canonical form consistently.
+  // All absolute OG/Twitter image URLs resolve relative to this base.
+  metadataBase: new URL("https://isaacadjei.me"),
   title: {
     default: "Isaac Adjei | EECS",
     template: "%s | Isaac Adjei",
   },
+  // Description length target: 140-160 characters for optimal search snippets.
   description:
-    "Electronic Engineering and Computer Science student at Aston University. Building full-stack software, embedded systems and IoT products.",
+    "Electronic Engineering and Computer Science student at Aston University, Birmingham. Building full-stack software, embedded systems and IoT products from concept to deployment.",
   keywords: [
     "Isaac Adjei",
     "Zac",
@@ -33,6 +54,15 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Isaac Adjei" }],
   creator: "Isaac Adjei",
+  // Tell crawlers to index and follow all links (explicit is better than implicit)
+  robots: {
+    index: true,
+    follow: true,
+  },
+  // Canonical URL - prevents duplicate content issues if www and non-www both resolve
+  alternates: {
+    canonical: "https://isaacadjei.me",
+  },
   icons: {
     icon: [{ url: "/images/avatar.png", type: "image/png" }],
     apple: [{ url: "/images/avatar.png", type: "image/png" }],
@@ -41,7 +71,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_GB",
-    url: "https://www.isaacadjei.me",
+    url: "https://isaacadjei.me",
     title: "Isaac Adjei | EECS",
     description:
       "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",
@@ -64,6 +94,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
         className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}
       >
+        {/* Schema.org JSON-LD - read by Google for rich search results and knowledge graph */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

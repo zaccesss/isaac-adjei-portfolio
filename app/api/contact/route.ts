@@ -1,6 +1,11 @@
 // API route that handles contact form submissions.
 // Security layers applied in order:
 // 1. IP-based rate limiting - max 3 submissions per 10 minutes per IP
+//    Uses Upstash Redis (persistent, shared across all Vercel serverless instances).
+//    The previous in-memory Map approach reset on every cold-start and was not shared
+//    across concurrent function instances - making it ineffective on Vercel.
+//    Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars.
+//    Falls back gracefully to allowing the request if the env vars are missing (e.g. local dev).
 // 2. Honeypot check - if the hidden _hp field is filled in, silently succeed (fool the bot)
 // 3. Cloudflare Turnstile verification - confirms the user passed the CAPTCHA
 // 4. Input validation - required fields, length limits, email format
@@ -9,38 +14,41 @@
 // logged to the console instead (useful for local development).
 
 import { NextResponse } from "next/server"
+import { Ratelimit } from "@upstash/ratelimit"
+import { Redis } from "@upstash/redis"
 
-// In-memory rate limit store: ip -> { count, resetAt }
-const rateLimit = new Map<string, { count: number; resetAt: number }>()
-const RATE_LIMIT_MAX = 3
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
+// ─── Rate limiter setup ──────────────────────────────────────────────────────
+// Upstash Redis is used so the rate limit state persists across cold-starts and
+// is shared between all concurrent serverless function instances on Vercel.
+// Sliding window algorithm: allows up to 3 requests per 10-minute window per IP.
+// If the Redis env vars are not set (local dev / CI), ratelimit is null and all
+// requests are allowed through - the Turnstile CAPTCHA still protects the route.
+let ratelimit: Ratelimit | null = null
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  ratelimit = new Ratelimit({
+    redis: Redis.fromEnv(),
+    limiter: Ratelimit.slidingWindow(3, "10 m"),
+    prefix: "contact_rl", // namespace the keys so they don't clash with other limiters
+  })
+}
 
 function stripHtml(str: string): string {
   return str.replace(/<[^>]*>/g, "").trim()
-}
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimit.get(ip)
-  if (!entry || now > entry.resetAt) {
-    rateLimit.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return true
-  }
-  if (entry.count >= RATE_LIMIT_MAX) return false
-  entry.count++
-  return true
 }
 
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
 
-    // Rate limit check
-    if (!checkRateLimit(ip)) {
-      return NextResponse.json(
-        { error: "Too many requests. Please try again later." },
-        { status: 429 }
-      )
+    // Rate limit check - only enforced when Upstash env vars are present
+    if (ratelimit) {
+      const { success } = await ratelimit.limit(ip)
+      if (!success) {
+        return NextResponse.json(
+          { error: "Too many requests. Please try again later." },
+          { status: 429 }
+        )
+      }
     }
 
     const body = await request.json()
