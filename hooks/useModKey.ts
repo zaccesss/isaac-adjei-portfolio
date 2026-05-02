@@ -3,7 +3,7 @@
 // Detects the user's OS and returns helpers for displaying keyboard shortcuts.
 // On Mac: mod label is "⌘" and shortcut() returns e.g. "⌘H".
 // On all other platforms: mod label is "Ctrl" and shortcut() returns "Ctrl+H".
-// Uses useEffect so SSR never touches navigator — safe for Next.js App Router.
+// Uses useEffect so SSR never touches navigator - safe for Next.js App Router.
 
 import { useEffect, useState } from "react"
 

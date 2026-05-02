@@ -5,7 +5,7 @@ export interface SkillGroup {
   skills: string[]
 }
 
-// These are my non-technical skills — things like communication, teamwork and hardware lab experience.
+// These are my non-technical skills: things like communication, teamwork and hardware lab experience.
 // I display these as badge tags on the Skills page.
 export const professionalSkillGroups: SkillGroup[] = [
   {
@@ -46,10 +46,10 @@ export const professionalSkillGroups: SkillGroup[] = [
 ]
 
 // I store the base URLs as short constants so I don't have to repeat the full URL every time.
-// DEV  = devicons CDN — most of my icons come from here
-// TSG  = techstack-generator — good for language/framework logos
-// SKI  = skillicons.dev — alternative icon source
-// WIKI = Wikimedia Commons — for icons not available anywhere else
+// DEV  = devicons CDN - most of my icons come from here
+// TSG  = techstack-generator - good for language/framework logos
+// SKI  = skillicons.dev - alternative icon source
+// WIKI = Wikimedia Commons - for icons not available anywhere else
 // Important: I always use the direct source file path (e.g. /7/7c/AMD_Logo.svg),
 // never the /thumb/ path, because thumbnail URLs can expire and return 404.
 const DEV = "https://cdn.jsdelivr.net/gh/devicons/devicon/icons"

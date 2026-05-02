@@ -563,7 +563,7 @@ export default function BlogPage() {
         </div>
       )}
 
-      {/* Scripture — below motivation, hidden when maximised */}
+      {/* Scripture - below motivation, hidden when maximised */}
       {!isMaximized && (
         <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-2">
           <div className="flex items-center justify-between">

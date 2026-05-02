@@ -36,8 +36,8 @@ function SkillCard({ skill }: { skill: Skill }) {
 }
 
 // CategorySection renders one tech stack category section.
-// I use IntersectionObserver to fade the section in when it scrolls into view —
-// this fires once per section and then disconnects itself to avoid wasting memory.
+// I use IntersectionObserver to fade the section in when it scrolls into view.
+// This fires once per section and then disconnects itself to avoid wasting memory.
 function CategorySection({ cat }: { cat: (typeof skillCategories)[0] }) {
   // ref lets me attach the IntersectionObserver to the actual DOM element
   const ref = useRef<HTMLElement>(null)
@@ -51,7 +51,7 @@ function CategorySection({ cat }: { cat: (typeof skillCategories)[0] }) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Once visible I set the flag and stop watching — I only want the animation once
+          // Once visible I set the flag and stop watching - I only want the animation once
           setVisible(true)
           observer.disconnect()
         }
