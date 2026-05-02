@@ -1,3 +1,6 @@
+// The small set of social links that appear in the site footer and hero section.
+// The 'icon' string maps to a component in the iconMap inside SocialLinks.tsx.
+
 export interface SocialLink {
   name: string
   url: string
