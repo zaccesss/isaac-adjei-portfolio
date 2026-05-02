@@ -2,8 +2,8 @@
 
 // Keyboard-driven command menu (like Spotlight or VS Code's Ctrl+P).
 // Opens with Ctrl+I or Cmd+I. Selecting an item navigates to that page.
-// I use a useEffect here as well as the useCommandMenuShortcut hook because
-// this component owns the open state itself and wires up the shortcut inline.
+// Items are split into Navigation (pages) and Actions (contact/external).
+// Shortcuts adapt to the user's OS: ⌘H on Mac, Ctrl+H on Windows/Linux.
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -17,10 +17,12 @@ import {
   CommandShortcut,
 } from "@/components/ui/command"
 import { Home, User, Briefcase, Code, Mail, Cpu, BookOpen, Link2 } from "lucide-react"
+import { useModKey } from "@/hooks/useModKey"
 
 export default function CommandMenu() {
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  const { shortcut } = useModKey()
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -30,7 +32,7 @@ export default function CommandMenu() {
         setOpen((o) => !o)
         return
       }
-      // When the menu is open, ⌘/Ctrl + first letter navigates directly
+      // When the menu is open, mod + first letter navigates directly
       if (!open) return
       if (!(e.metaKey || e.ctrlKey)) return
       const shortcuts: Record<string, string> = {
@@ -64,46 +66,52 @@ export default function CommandMenu() {
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
+
+        {/* Navigation group — the main site pages */}
         <CommandGroup heading="Navigation">
           <CommandItem value="home" onSelect={() => go("/")}>
             <Home className="mr-2 h-4 w-4" />
             Home
-            <CommandShortcut>⌘H</CommandShortcut>
+            <CommandShortcut>{shortcut("H")}</CommandShortcut>
           </CommandItem>
           <CommandItem value="about" onSelect={() => go("/about")}>
             <User className="mr-2 h-4 w-4" />
             About
-            <CommandShortcut>⌘A</CommandShortcut>
+            <CommandShortcut>{shortcut("A")}</CommandShortcut>
           </CommandItem>
           <CommandItem value="projects" onSelect={() => go("/projects")}>
             <Code className="mr-2 h-4 w-4" />
             Projects
-            <CommandShortcut>⌘P</CommandShortcut>
+            <CommandShortcut>{shortcut("P")}</CommandShortcut>
           </CommandItem>
           <CommandItem value="experience" onSelect={() => go("/experience")}>
             <Briefcase className="mr-2 h-4 w-4" />
             Experience
-            <CommandShortcut>⌘E</CommandShortcut>
+            <CommandShortcut>{shortcut("E")}</CommandShortcut>
           </CommandItem>
           <CommandItem value="skills" onSelect={() => go("/skills")}>
             <Cpu className="mr-2 h-4 w-4" />
             Skills
-            <CommandShortcut>⌘S</CommandShortcut>
+            <CommandShortcut>{shortcut("S")}</CommandShortcut>
           </CommandItem>
           <CommandItem value="blog" onSelect={() => go("/blog")}>
             <BookOpen className="mr-2 h-4 w-4" />
             Blog
-            <CommandShortcut>⌘B</CommandShortcut>
+            <CommandShortcut>{shortcut("B")}</CommandShortcut>
           </CommandItem>
+        </CommandGroup>
+
+        {/* Actions group — contact and external links */}
+        <CommandGroup heading="Actions">
           <CommandItem value="contact" onSelect={() => go("/contact")}>
             <Mail className="mr-2 h-4 w-4" />
             Contact
-            <CommandShortcut>⌘C</CommandShortcut>
+            <CommandShortcut>{shortcut("C")}</CommandShortcut>
           </CommandItem>
           <CommandItem value="links" onSelect={() => go("/links")}>
             <Link2 className="mr-2 h-4 w-4" />
             Links
-            <CommandShortcut>⌘L</CommandShortcut>
+            <CommandShortcut>{shortcut("L")}</CommandShortcut>
           </CommandItem>
         </CommandGroup>
       </CommandList>

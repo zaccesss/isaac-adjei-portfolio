@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { posts } from "@/data/blog"
+import { useModKey } from "@/hooks/useModKey"
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type WindowState = "normal" | "minimized" | "maximized" | "closed"
@@ -284,10 +285,12 @@ export default function BlogPage() {
   const [winState, setWinState] = useState<WindowState>("normal")
 
   const [quote, setQuote] = useState<{ quote: string; author: string } | null>(null)
+  const [bible, setBible] = useState<{ verse: string; reference: string } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
+  const { modLabel } = useModKey()
 
-  // Fetch quote on mount and refresh every 30 minutes
+  // Fetch motivational quote on mount and refresh every 30 minutes
   useEffect(() => {
     const fetchQuote = async () => {
       try {
@@ -300,6 +303,22 @@ export default function BlogPage() {
     }
     fetchQuote()
     const interval = setInterval(fetchQuote, 30 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Fetch random Bible verse on mount and refresh every 30 minutes
+  useEffect(() => {
+    const fetchVerse = async () => {
+      try {
+        const res = await fetch("/api/bible-verse")
+        const data = await res.json()
+        setBible(data)
+      } catch {
+        // silently keep previous verse
+      }
+    }
+    fetchVerse()
+    const interval = setInterval(fetchVerse, 30 * 60 * 1000)
     return () => clearInterval(interval)
   }, [])
 
@@ -544,12 +563,43 @@ export default function BlogPage() {
         </div>
       )}
 
+      {/* Scripture — below motivation, hidden when maximised */}
+      {!isMaximized && (
+        <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-mono text-primary uppercase tracking-widest">scripture</p>
+            <button
+              type="button"
+              onClick={async () => {
+                setBible(null)
+                const res = await fetch("/api/bible-verse")
+                const data = await res.json()
+                setBible(data)
+              }}
+              className="text-[10px] font-mono text-muted-foreground hover:text-primary transition-colors"
+            >
+              refresh ↻
+            </button>
+          </div>
+          {bible ? (
+            <>
+              <p className="text-base font-medium leading-relaxed">&ldquo;{bible.verse}&rdquo;</p>
+              <p className="text-xs text-muted-foreground">- {bible.reference}</p>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground font-mono animate-pulse">
+              loading verse...
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Footer hint */}
       {!isMaximized && (
         <p className="text-center text-xs text-muted-foreground font-mono">
           writing is being rebuilt - use{" "}
           <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">
-            Ctrl
+            {modLabel}
           </kbd>{" "}
           + <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">I</kbd>{" "}
           to navigate the rest of the site
