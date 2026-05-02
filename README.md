@@ -64,15 +64,15 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 
 <div align="center">
 
-| Feature       | Detail                                                      |
-| ------------- | ----------------------------------------------------------- |
-| Hosting       | Vercel                                                      |
-| DNS           | Cloudflare                                                  |
-| Custom domain | [isaacadjei.me](https://isaacadjei.me)                      |
-| Auto-deploy   | On push to `main`                                           |
-| Quote API     | ZenQuotes, proxied via `/api/quote`, refreshes every 30 min  |
+| Feature       | Detail                                                                |
+| ------------- | --------------------------------------------------------------------- |
+| Hosting       | Vercel                                                                |
+| DNS           | Cloudflare                                                            |
+| Custom domain | [isaacadjei.me](https://isaacadjei.me)                                |
+| Auto-deploy   | On push to `main`                                                     |
+| Quote API     | ZenQuotes, proxied via `/api/quote`, refreshes every 30 min           |
 | Bible verse   | NET Bible API, proxied via `/api/bible-verse`, refreshes every 30 min |
-| CAPTCHA       | Cloudflare Turnstile on contact form                         |
+| CAPTCHA       | Cloudflare Turnstile on contact form                                  |
 
 </div>
 
@@ -126,15 +126,27 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 
 ### Contact and security
 
-- **Contact form** - honeypot field, rate limiting, input sanitisation and Resend email delivery
+- **Contact form** - honeypot field, Upstash Redis rate limiting (3 requests / 10 min per IP), input sanitisation and Resend email delivery
 - **Cloudflare Turnstile CAPTCHA** - bot protection on the contact form
-- **Security headers** - X-Frame-Options, HSTS, Referrer-Policy, Permissions-Policy and more configured in `next.config.mjs`
+- **Security headers** - CSP, HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy configured in `next.config.mjs`
+- **CI pipeline** - lint and build check on every push and PR via GitHub Actions
+- **Gitleaks scanning** - secret leak detection on every push and PR via GitHub Actions
+- **Branch protection** - `main` requires PR, passing CI check and linear history; force push blocked
+- **Cloudflare hardening** - Bot Fight Mode, Full (strict) SSL, DDoS protection, proxied DNS, SPF and DMARC records
 
 ### Performance and SEO
 
 - **Custom favicon** - avatar image served as site icon via Next.js App Router convention (`app/icon.png`)
 - **Per-page metadata** - title, description and Open Graph tags on every page
-- **Next.js Image optimisation** - automatic format conversion, lazy loading and responsive sizes
+- **Sitemap** - `/sitemap.xml` auto-generated at build time, submitted to Google Search Console
+- **Schema.org JSON-LD** - `Person` structured data block in root layout for rich search results
+- **Next.js Image optimisation** - automatic AVIF/WebP
+
+- **Custom favicon** - avatar image served as site icon via Next.js App Router convention (`app/icon.png`)
+- **Per-page metadata** - title, description and Open Graph tags on every page
+- **Sitemap** - `/sitemap.xml` auto-generated at build time, submitted to Google Search Console
+- **Schema.org JSON-LD** - `Person` structured data block in root layout for rich search results
+- **Next.js Image optimisation** - automatic AVIF/WebP format conversion, lazy loading and responsive sizes
 
 ---
 
@@ -197,16 +209,16 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 
 ---
 
-<a id="api-routes"></a>
+<a id="api-routes"></a>Upstash Redis rate limiting (3 req / 10 min per IP)
 
 ## API Routes
 
-| Route          | Method | Purpose                                                                                                                                  |
-| -------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/contact`      | `POST` | Contact form submission with in-memory rate limiting, honeypot check, optional Turnstile verification and optional Resend email delivery |
-| `/api/cv-pdf`       | `GET`  | Generates and downloads the latest CV PDF from `public/resume/cv.html` using headless browser rendering                                  |
-| `/api/quote`        | `GET`  | Fetches a random motivational quote from ZenQuotes with a local fallback                                                                  |
-| `/api/bible-verse`  | `GET`  | Fetches a random Bible verse from the NET Bible API with a local fallback                                                                 |
+| Route              | Method | Purpose                                                                                                                                                              |
+| ------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/contact`     | `POST` | Contact form submission with Upstash Redis rate limiting (3 req / 10 min per IP), honeypot check, optional Turnstile verification and optional Resend email delivery |
+| `/api/cv-pdf`      | `GET`  | Generates and downloads the latest CV PDF from `public/resume/cv.html` using headless browser rendering                                                              |
+| `/api/quote`       | `GET`  | Fetches a random motivational quote from ZenQuotes with a local fallback                                                                                             |
+| `/api/bible-verse` | `GET`  | Fetches a random Bible verse from the NET Bible API with a local fallback                                                                                            |
 
 ---
 
@@ -332,35 +344,41 @@ NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_turnstile_site_key_here
 TURNSTILE_SECRET_KEY=your_turnstile_secret_key_here
 ```
 
-| Variable                         | Required    | Description                                                                                                                    |
+| `UPSTASH_REDIS_REST_URL` | Optional | REST URL from [upstash.com](https://upstash.com) Redis database. If missing, rate limiting is skipped |
+| `UPSTASH_REDIS_REST_TOKEN` | Optional | REST token for the Upstash Redis database. Required alongside `UPSTASH_REDIS_REST_URL` |
+| Variable | Required | Description |
 | -------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SITE_URL`           | No          | Public site URL (defaults to `https://isaacadjei.me`)                                                                          |
-| `RESEND_API_KEY`                 | Optional    | API key from [resend.com](https://resend.com). If missing, contact submissions are logged server-side and still return success |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Recommended | Cloudflare Turnstile site key (public). Required when Turnstile is enabled on the contact form                                 |
-| `TURNSTILE_SECRET_KEY`           | Optional    | Cloudflare Turnstile secret key (server-side). If set, the API route verifies Turnstile tokens                                 |
+| `NEXT_PUBLIC_SITE_URL` | No | Public site URL (defaults to `https://isaacadjei.me`) |
+| `RESEND_API_KEY` | Optional | API key from [resend.com](https://resend.com). If missing, contact submissions are logged server-side and still return success |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Recommended | Cloudflare Turnstile site key (public). Required when Turnstile is enabled on the contact form |
+| `TURNSTILE_SECRET_KEY` | Optional | Cloudflare Turnstile secret key (server-side). If set, the API route verifies Turnstile tokens |
+| `UPSTASH_REDIS_REST_URL` | Optional | REST URL from [upstash.com](https://upstash.com) Redis database. If missing, rate limiting is skipped |
+| `UPSTASH_REDIS_REST_TOKEN` | Optional | REST token for the Upstash Redis database. Required alongside `UPSTASH_REDIS_REST_URL` |
 
 ---
 
 ## Key Dependencies
 
-| Package                        | Purpose                                          |
-| ------------------------------ | ------------------------------------------------ |
-| `next` 16                      | App Router, SSR, image optimisation, API routes  |
-| `react` / `react-dom` 18       | UI rendering                                     |
-| `typescript` 5                 | Type safety                                      |
-| `tailwindcss` 3                | Utility-first styling                            |
-| `framer-motion` 11             | Page and section entrance animations             |
-| `next-themes`                  | Dark / light mode                                |
-| `lucide-react`                 | Icon set                                         |
-| `react-icons`                  | Brand icons (GitHub, LinkedIn, etc.)             |
-| `@radix-ui/*`                  | Accessible UI primitives (Dialog, Tabs, Tooltip) |
-| `@marsidev/react-turnstile`    | Cloudflare Turnstile CAPTCHA widget              |
-| `cmdk`                         | Command menu behavior                            |
-| `clsx` + `tailwind-merge`      | Class name composition utilities                 |
-| `class-variance-authority`     | Component variant styling                        |
-| `puppeteer` + `puppeteer-core` | Server-side CV PDF rendering                     |
-| `@sparticuz/chromium`          | Chromium binary support for serverless runtime   |
-| `geist`                        | Vercel Geist font (sans + mono)                  |
+| Package                        | Purpose                                             |
+| ------------------------------ | --------------------------------------------------- |
+| `next` 16                      | App Router, SSR, image optimisation, API routes     |
+| `react` / `react-dom` 18       | UI rendering                                        |
+| `typescript` 5                 | Type safety                                         |
+| `tailwindcss` 3                | Utility-first styling                               |
+| `framer-motion` 11             | Page and section entrance animations                |
+| `next-themes`                  | Dark / light mode                                   |
+| `lucide-react`                 | Icon set                                            |
+| `react-icons`                  | Brand icons (GitHub, LinkedIn, etc.)                |
+| `@radix-ui/*`                  | Accessible UI primitives (Dialog, Tabs, Tooltip)    |
+| `@marsidev/react-turnstile`    | Cloudflare Turnstile CAPTCHA widget                 |
+| `cmdk`                         | Command menu behavior                               |
+| `clsx` + `tailwind-merge`      | Class name composition utilities                    |
+| `class-variance-authority`     | Component variant styling                           |
+| `puppeteer` + `puppeteer-core` | Server-side CV PDF rendering                        |
+| `@sparticuz/chromium`          | Chromium binary support for serverless runtime      |
+| `@upstash/redis`               | Upstash Redis client for persistent rate limiting   |
+| `@upstash/ratelimit`           | Sliding-window rate limiter backed by Upstash Redis |
+| `geist`                        | Vercel Geist font (sans + mono)                     |
 
 ---
 
@@ -400,6 +418,7 @@ npm run build
 
 ## Deployment
 
+(`RESEND_API_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)
 Hosted on **Vercel**, connected to this GitHub repo. Every push to `main` triggers an automatic production deploy. DNS is managed through **Cloudflare**.
 
 ### Setup (already done)
@@ -407,7 +426,7 @@ Hosted on **Vercel**, connected to this GitHub repo. Every push to `main` trigge
 1. Vercel - import GitHub repo - Next.js auto-detected, no build config needed
 2. Custom domain added: `isaacadjei.me`
 3. Cloudflare DNS updated to point to Vercel
-4. Environment variables set in Vercel project settings
+4. Environment variables set in Vercel project settings (`RESEND_API_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)
 
 ### To deploy an update
 
