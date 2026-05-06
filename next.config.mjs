@@ -11,6 +11,16 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.isaacadjei.me" }],
+        destination: "https://isaacadjei.me/:path*",
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {
