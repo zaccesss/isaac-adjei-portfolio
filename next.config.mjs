@@ -1,4 +1,3 @@
-// test: verify automerge workflow runs for labelled PRs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
