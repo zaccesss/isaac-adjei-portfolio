@@ -2,7 +2,7 @@ name: Auto-merge Dependabot
 
 on:
   pull_request_target:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
 
 permissions:
   contents: write
@@ -10,13 +10,24 @@ permissions:
 
 jobs:
   enable-automerge:
-    if: github.actor == 'dependabot[bot]' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
 
     steps:
-      - name: Enable auto-merge for Dependabot PR
+      - name: Enable auto-merge for eligible PRs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_IS_DRAFT: ${{ github.event.pull_request.draft }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
         run: |
-          gh pr merge --auto --squash "$PR_URL"
+          if [ "$PR_IS_DRAFT" = "true" ]; then
+            echo "Draft PR - skipping auto-merge setup"
+            exit 0
+          fi
+
+          if [ "$PR_AUTHOR" = "dependabot[bot]" ] || echo "$PR_LABELS" | grep -Eq '(^|,)automerge(,|$)'; then
+            gh pr merge --auto --squash "$PR_URL"
+          else
+            echo "Auto-merge not enabled - add the automerge label for non-Dependabot PRs"
+          fi
