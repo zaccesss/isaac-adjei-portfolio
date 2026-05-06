@@ -9,6 +9,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [2026-05-06]
+
+### Changed
+
+- `.github/workflows/automerge-dependabot.yml` updated so auto-merge runs for all pull requests and enables merge when either the PR author is `dependabot[bot]` or the PR has the `automerge` label
+- Canonical host handling consolidated to avoid split redirect ownership between app and edge layers
+
+### Fixed
+
+- `next.config.mjs`: removed host-based redirect rule that caused `ERR_TOO_MANY_REDIRECTS` in production when combined with edge-level domain redirects
+- `app/share/page.tsx`: normalised metadata/share URLs to the canonical non-`www` host
+- `components/providers/ThemeProvider.tsx`: restored `next-themes` typing compatibility using `React.ComponentProps<typeof NextThemesProvider>`
+
+### Infrastructure
+
+- Added release tag `v1.0.1` and published GitHub release "v1.0.1 - Redirect and Workflow Hotfixes"
+
+---
+
 ## [2026-05-02c]
 
 ### Added
@@ -130,4 +149,4 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-[Unreleased]: https://github.com/zaccessss/isaac-adjei-portfolio/compare/HEAD...HEAD
+[Unreleased]: https://github.com/zaccesss/isaac-adjei-portfolio/compare/v1.0.1...HEAD
