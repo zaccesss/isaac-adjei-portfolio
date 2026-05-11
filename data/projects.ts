@@ -43,7 +43,7 @@ export const projects: Project[] = [
       "/images/projects/audio-amplifier/pcb-layout-top.png",
       "/images/projects/audio-amplifier/3d-model.png",
     ],
-    github: "https://github.com/zaccessss/two-stage-audio-amplifier",
+    github: "https://github.com/zaccesss/two-stage-audio-amplifier",
     date: "2026",
     highlights: [
       "Two-stage design: TL071 active band-pass filter (Stage 1) and OPA551 unity-gain buffer (Stage 2)",
@@ -75,7 +75,7 @@ export const projects: Project[] = [
       "/images/projects/led-cube/power-circuit.jpeg",
       "/images/projects/led-cube/build-lit.jpeg",
     ],
-    github: "https://github.com/zaccessss/neopixel-led-cube-project",
+    github: "https://github.com/zaccesss/neopixel-led-cube-project",
     video: "/Media/neopixel-description.mp4",
     date: "2025",
     highlights: [
@@ -115,7 +115,7 @@ export const projects: Project[] = [
       "/images/projects/astoncv/contact.png",
       "/images/projects/astoncv/footer.png",
     ],
-    github: "https://github.com/zaccessss/astoncv",
+    github: "https://github.com/zaccesss/astoncv",
     demo: "http://240191278.cs2410-web01pvm.aston.ac.uk/",
     date: "2026",
     highlights: [
@@ -147,7 +147,7 @@ export const projects: Project[] = [
     category: "other",
     featured: true,
     images: [],
-    github: "https://github.com/zaccessss/git-unlocked",
+    github: "https://github.com/zaccesss/git-unlocked",
     date: "2026",
     highlights: [
       "v1.2.0 ships 217 topic files across 12 sections: Git, GitHub, GitLab, Bitbucket, Azure DevOps, Gitea, Forgejo and Codeberg",
@@ -184,7 +184,7 @@ export const projects: Project[] = [
     category: "software",
     featured: true,
     images: [],
-    github: "https://github.com/zaccessss/phaemos",
+    github: "https://github.com/zaccesss/phaemos",
     demo: "https://phaemos.com",
     date: "2026",
     highlights: [
@@ -210,7 +210,7 @@ export const projects: Project[] = [
       "/images/projects/zacess-pages/main.png",
       "/images/projects/zacess-pages/terminal.png",
     ],
-    github: "https://github.com/zaccessss/zacess-pages",
+    github: "https://github.com/zaccesss/zacess-pages",
     demo: "https://zacess.com",
     date: "2024",
     highlights: [
@@ -308,7 +308,7 @@ export const projects: Project[] = [
     category: "embedded",
     featured: false,
     images: [],
-    github: "https://github.com/zaccessss/avr-zac",
+    github: "https://github.com/zaccesss/avr-zac",
     date: "2026",
     highlights: [
       "7 projects from 00_fuse_test to 06_state_machine - bare metal register manipulation with no framework abstractions",

@@ -9,6 +9,40 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v1.1.0] - 2026-05-11
+
+### Added
+
+- avr-zac project: ATmega644P bare metal C development with 7 progressive learning projects, nine-mode state machine and comprehensive documentation
+- PHAEMOS Smart Maintenance Platform added to featured projects
+- Two-Stage Audio Amplifier: GitHub repository link added
+- ORCID profile link added to footer social links (between Email and LinkedIn)
+- ORCID and Linktree added to /links Professional section
+- Cybersecurity project category added to project filter
+- Platforms & Operating Systems skills category (Windows, macOS, Ubuntu, WSL2)
+- Microchip Studio added to Embedded & Hardware skills with local logo asset
+- PlatformIO added to Embedded & Hardware skills
+- public/.well-known/security.txt created (Contact, Expires, Preferred-Languages)
+- Per-page canonical tags added to all routes (root-level canonical was incorrectly pointing all pages to the homepage)
+- Layout files added for client component pages (skills, blog, links) to enable per-page canonical metadata
+- repo-extract excluded from both .gitignore and TypeScript compilation
+
+### Changed
+
+- Projects reordered by relevance and completion: audio-amplifier, led-cube, astoncv, git-unlocked, phaemos first
+- Footer Links entry URL updated from linktr.ee to isaacadjei.me/links
+- avr-zac set to non-featured and moved to last position (ongoing project)
+- AstonCV demo link updated to Aston University server URL
+- More Projects text on /projects page now links to both GitHub and GitHub Projects
+- Steam icon fixed (was using an expiring Wikipedia thumbnail path, now uses simpleicons)
+- Root-level alternates canonical removed from layout.tsx; per-page canonicals used instead
+
+### Fixed
+
+- GitHub username corrected from zaccessss (4 s) to zaccesss (3 s) across all data files, layout and README
+
+---
+
 ## [2026-05-06]
 
 ### Changed
@@ -149,4 +183,5 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-[Unreleased]: https://github.com/zaccesss/isaac-adjei-portfolio/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/zaccesss/isaac-adjei-portfolio/compare/v1.1.0...HEAD
+[v1.1.0]: https://github.com/zaccesss/isaac-adjei-portfolio/compare/v1.0.1...v1.1.0
