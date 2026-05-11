@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Skills",
   description: "Technical skills, tools and technologies I work with.",
   alternates: {
-    canonical: "https://isaacadjei.me/skills",
+    canonical: "https://www.isaacadjei.me/skills",
   },
 }
 

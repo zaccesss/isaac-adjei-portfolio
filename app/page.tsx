@@ -10,7 +10,7 @@ import ContactCTA from "@/components/sections/ContactCTA"
 
 export const metadata: Metadata = {
   alternates: {
-    canonical: "https://isaacadjei.me",
+    canonical: "https://www.isaacadjei.me",
   },
 }
 
