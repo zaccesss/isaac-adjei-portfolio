@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+16+%7C+TypeScript+%7C+Tailwind+CSS;8+Projects+%7C+Image+Gallery+%7C+Lightbox;Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+16+%7C+TypeScript+%7C+Tailwind+CSS;10+Projects+%7C+Image+Gallery+%7C+Lightbox;Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
 </p>
 
 <p align="center">
@@ -52,7 +52,7 @@
 
 ## Overview
 
-Personal portfolio website for **Isaac Adjei (Zac)** - Top 40 Finalist, Black Heritage Undergraduate of the Year 2026 and Electronic Engineering and Computer Science student at Aston University (Predicted First Class). Built to showcase 8 engineering and software projects with full image galleries and lightboxes, alongside skills, experience, blog and contact pages.
+Personal portfolio website for **Isaac Adjei (Zac)** - Top 40 Finalist, Black Heritage Undergraduate of the Year 2026 and Electronic Engineering and Computer Science student at Aston University (Predicted First Class). Built to showcase 10 engineering and software projects with full image galleries and lightboxes, alongside skills, experience, blog and contact pages.
 
 The site is a proper **Next.js 16 App Router** application with TypeScript, Tailwind CSS, Framer Motion animations and full dark/light mode support. Every page is server-rendered or statically generated where possible, with client components only where interactivity requires it.
 
@@ -86,10 +86,10 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 | ------------------ | ---------------------------------------------------------------------------------- |
 | `/`                | Hero with profile image, bio, social links and quick-nav                           |
 | `/about`           | Full personal story, education, awards, societies, volunteering and languages      |
-| `/projects`        | 8 project cards with cover images, each linking to a full detail page              |
+| `/projects`        | 10 project cards with cover images, each linking to a full detail page             |
 | `/projects/[slug]` | Project detail: overview, highlights, technologies and image gallery with lightbox |
 | `/experience`      | Work experience and internships timeline                                           |
-| `/skills`          | Full tech stack with animated icon grid across 14 categories                       |
+| `/skills`          | Full tech stack with animated icon grid across 15 categories                       |
 | `/blog`            | Interactive terminal blog - type commands to explore content                       |
 | `/blog/[slug]`     | Blog post page for published posts with rich content blocks                        |
 | `/contact`         | Contact form with spam protection and email delivery via Resend                    |
@@ -104,7 +104,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 
 ### Projects and gallery
 
-- **8 engineering projects** - hardware, embedded, web and open source, each with full detail pages
+- **10 engineering projects** - hardware, embedded, web and open source, each with full detail pages
 - **Image gallery with lightbox** - uniform grid of project photos, hover zoom effect, click to open full-screen
 - **Lightbox navigation** - arrow keys (left/right), Escape to close, image counter (`1 / 9`)
 - **Project cover images** - each project card shows a cover photo with hover zoom
@@ -115,7 +115,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 - **Command palette** - `Ctrl+I` / `⌘I` global shortcut opens a searchable command menu with Navigation and Actions groups; shortcut labels adapt to the user's OS (⌘H on Mac, Ctrl+H on Windows/Linux)
 - **Responsive layout** - mobile-first, adapts from single column to multi-column on desktop
 - **Framer Motion** - page and section entrance animations with stagger containers
-- **Animated skills grid** - scroll-triggered fade-in with `IntersectionObserver`, icons across 14 categories
+- **Animated skills grid** - scroll-triggered fade-in with `IntersectionObserver`, icons across 15 categories
 
 ### Blog
 
@@ -153,11 +153,13 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 | Two-Stage Audio Amplifier          | Hardware | Yes      |
 | 4x4x4 NeoPixel LED Cube            | Embedded | Yes      |
 | AstonCV - Full-Stack CV Database   | Web      | Yes      |
-| zacess.com - Interactive Terminal  | Web      | Yes      |
 | git-unlocked Open Source Course    | Other    | Yes      |
+| PHAEMOS Smart Maintenance Platform | Software | Yes      |
+| zacess.com - Interactive Terminal  | Web      | -        |
 | CNC Milling Machine Control System | Embedded | -        |
 | Goods Lift Control System          | Embedded | -        |
 | CAD Engineering Design Portfolio   | Hardware | -        |
+| avr-zac Bare Metal AVR C           | Embedded | -        |
 
 ---
 
@@ -254,7 +256,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 │   ├── education.ts    # Education history
 │   ├── experience.ts   # Work experience and internships
 │   ├── links.ts        # Links page data
-│   ├── projects.ts     # 8 projects with images, highlights and descriptions
+│   ├── projects.ts     # 10 projects with images, highlights and descriptions
 │   ├── skills.ts       # Tech stack (icons and categories)
 │   ├── social.ts       # Social profile links
 │   └── societies.ts    # University societies and memberships
