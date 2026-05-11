@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button"
 export const metadata: Metadata = {
   title: "Experience",
   description: "My work experience, internships and virtual programmes.",
+  alternates: {
+    canonical: "https://isaacadjei.me/experience",
+  },
 }
 
 export default function ExperiencePage() {

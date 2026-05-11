@@ -59,10 +59,6 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-  // Canonical URL - prevents duplicate content issues if www and non-www both resolve
-  alternates: {
-    canonical: "https://isaacadjei.me",
-  },
   icons: {
     icon: [{ url: "/images/avatar.png", type: "image/png" }],
     apple: [{ url: "/images/avatar.png", type: "image/png" }],

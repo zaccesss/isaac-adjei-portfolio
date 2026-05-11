@@ -11,6 +11,9 @@ import CVViewer from "@/components/cv/CVViewer"
 export const metadata: Metadata = {
   title: "CV | Isaac Adjei",
   description: "View and print Isaac Adjei's CV.",
+  alternates: {
+    canonical: "https://isaacadjei.me/cv",
+  },
 }
 
 export default function CVPage() {

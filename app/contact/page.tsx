@@ -8,6 +8,9 @@ import { Mail } from "lucide-react"
 export const metadata: Metadata = {
   title: "Contact",
   description: "Get in touch with Isaac Adjei.",
+  alternates: {
+    canonical: "https://isaacadjei.me/contact",
+  },
 }
 
 export default function ContactPage() {
