@@ -45,7 +45,7 @@ export const profileLinks: LinkItem[] = [
   },
   {
     title: "ORCID",
-    description: "My ORCID researcher profile - 0009-0001-8298-5098",
+    description: "My ORCID researcher profile",
     url: "https://orcid.org/0009-0001-8298-5098",
     icon: "orcid",
     category: "professional",

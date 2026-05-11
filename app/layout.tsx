@@ -28,7 +28,7 @@ const personSchema = {
     "@type": "CollegeOrUniversity",
     name: "Aston University",
   },
-  sameAs: ["https://github.com/zaccessss", "https://linkedin.com/in/isaacadjei"],
+  sameAs: ["https://github.com/zaccesss", "https://linkedin.com/in/isaacadjei"],
 }
 
 export const metadata: Metadata = {

@@ -27,7 +27,7 @@ export default function ProjectsPage() {
       <p className="text-sm text-muted-foreground text-center pt-4">
         More projects and courses available on{" "}
         <a
-          href="https://github.com/zaccessss"
+          href="https://github.com/zaccesss"
           target="_blank"
           rel="noopener noreferrer"
           className="text-primary hover:underline font-medium"
@@ -36,7 +36,7 @@ export default function ProjectsPage() {
         </a>{" "}
         and{" "}
         <a
-          href="https://github.com/zaccessss?tab=projects"
+          href="https://github.com/zaccesss?tab=projects"
           target="_blank"
           rel="noopener noreferrer"
           className="text-primary hover:underline font-medium"
