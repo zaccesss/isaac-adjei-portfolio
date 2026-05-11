@@ -39,12 +39,12 @@ const BOOT: Line[] = [
 ]
 
 const NAV_COMMANDS: Record<string, string> = {
-  about: "https://isaacadjei.me/about",
-  projects: "https://isaacadjei.me/projects",
-  skills: "https://isaacadjei.me/skills",
-  contact: "https://isaacadjei.me/contact",
-  links: "https://isaacadjei.me/links",
-  cv: "https://isaacadjei.me/cv",
+  about: "https://www.isaacadjei.me/about",
+  projects: "https://www.isaacadjei.me/projects",
+  skills: "https://www.isaacadjei.me/skills",
+  contact: "https://www.isaacadjei.me/contact",
+  links: "https://www.isaacadjei.me/links",
+  cv: "https://www.isaacadjei.me/cv",
 }
 
 const MAIL_COMMANDS: Record<string, string> = {

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     "A collection of my engineering projects - from embedded systems to web applications.",
   alternates: {
-    canonical: "https://isaacadjei.me/projects",
+    canonical: "https://www.isaacadjei.me/projects",
   },
 }
 

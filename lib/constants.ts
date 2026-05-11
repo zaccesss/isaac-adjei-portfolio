@@ -25,5 +25,5 @@ export const NAV_LINKS = [
   { label: "Links", href: ROUTES.links },
 ] as const
 
-// The canonical site URL - reads from an env variable in production, falls back to localhost
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://isaacadjei.me"
+// The canonical site URL - reads from an env variable in production, falls back to the live host
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.isaacadjei.me"

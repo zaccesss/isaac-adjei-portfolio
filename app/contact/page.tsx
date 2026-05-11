@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Contact",
   description: "Get in touch with Isaac Adjei.",
   alternates: {
-    canonical: "https://isaacadjei.me/contact",
+    canonical: "https://www.isaacadjei.me/contact",
   },
 }
 
