@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "Experience",
   description: "My work experience, internships and virtual programmes.",
   alternates: {
-    canonical: "https://isaacadjei.me/experience",
+    canonical: "https://www.isaacadjei.me/experience",
   },
 }
 

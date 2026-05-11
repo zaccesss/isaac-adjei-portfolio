@@ -1,3 +1,13 @@
+const isDev = process.env.NODE_ENV === "development"
+
+const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com"]
+const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io"]
+
+if (isDev) {
+  scriptSrc.push("'unsafe-eval'")
+  connectSrc.push("ws://127.0.0.1:3000", "ws://localhost:3000")
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -27,11 +37,11 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+              `script-src ${scriptSrc.join(" ")}`,
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self' data:",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://challenges.cloudflare.com https://zenquotes.io",
+              `connect-src ${connectSrc.join(" ")}`,
               "frame-src https://challenges.cloudflare.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",

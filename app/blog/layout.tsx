@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Blog",
   description: "Writing on tech, engineering and ideas.",
   alternates: {
-    canonical: "https://isaacadjei.me/blog",
+    canonical: "https://www.isaacadjei.me/blog",
   },
 }
 

@@ -17,9 +17,9 @@ export const socialLinks: SocialLink[] = [
   },
   {
     name: "Links",
-    url: "https://isaacadjei.me/links",
+    url: "https://www.isaacadjei.me/links",
     icon: "link",
-    username: "isaacadjei.me/links",
+    username: "www.isaacadjei.me/links",
   },
   {
     name: "Email",

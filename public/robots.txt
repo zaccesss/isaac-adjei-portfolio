@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://isaacadjei.me/sitemap.xml
+Sitemap: https://www.isaacadjei.me/sitemap.xml

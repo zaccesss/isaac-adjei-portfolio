@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "CV | Isaac Adjei",
   description: "View and print Isaac Adjei's CV.",
   alternates: {
-    canonical: "https://isaacadjei.me/cv",
+    canonical: "https://www.isaacadjei.me/cv",
   },
 }
 

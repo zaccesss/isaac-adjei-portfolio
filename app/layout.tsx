@@ -12,6 +12,7 @@ import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 import CommandMenu from "@/components/shared/CommandMenu"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
+import { SITE_URL } from "@/lib/constants"
 
 // ─── Schema.org structured data ─────────────────────────────────────────────
 // Injected as a JSON-LD script tag in the <body>.
@@ -22,7 +23,7 @@ const personSchema = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: "Isaac Adjei",
-  url: "https://isaacadjei.me",
+  url: SITE_URL,
   jobTitle: "Electronic Engineering and Computer Science Student",
   alumniOf: {
     "@type": "CollegeOrUniversity",
@@ -32,9 +33,9 @@ const personSchema = {
 }
 
 export const metadata: Metadata = {
-  // Use the non-www canonical form consistently.
+  // Use the live canonical host consistently.
   // All absolute OG/Twitter image URLs resolve relative to this base.
-  metadataBase: new URL("https://isaacadjei.me"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Isaac Adjei | EECS",
     template: "%s | Isaac Adjei",
@@ -67,7 +68,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_GB",
-    url: "https://isaacadjei.me",
+    url: SITE_URL,
     title: "Isaac Adjei | EECS",
     description:
       "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",

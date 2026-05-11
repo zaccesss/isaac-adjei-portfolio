@@ -1,10 +1,10 @@
 // Dynamic blog post page. Looks up the post by slug from data/blog.ts.
-// If the post exists but is not published, it redirects to /blog instead of showing a 404.
+// If the post exists but is not published, it returns 404 so draft URLs are not indexed.
 // The renderBlock function is a switch statement that turns each ContentBlock
 // into the appropriate JSX element (paragraph, heading, list, code block, etc.).
 
 import type { Metadata } from "next"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Clock, Calendar } from "lucide-react"
 import { getPostBySlug, posts, type ContentBlock, type PostType } from "@/data/blog"
@@ -108,7 +108,7 @@ function renderBlock(block: ContentBlock, i: number): React.ReactNode {
 }
 
 export async function generateStaticParams() {
-  return posts.map((p) => ({ slug: p.slug }))
+  return posts.filter((p) => p.published).map((p) => ({ slug: p.slug }))
 }
 
 export async function generateMetadata({
@@ -118,11 +118,19 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const post = getPostBySlug(params.slug)
   if (!post) return {}
+  if (!post.published) {
+    return {
+      robots: {
+        index: false,
+        follow: false,
+      },
+    }
+  }
   return {
     title: post.title,
     description: post.description,
     alternates: {
-      canonical: `https://isaacadjei.me/blog/${params.slug}`,
+      canonical: `https://www.isaacadjei.me/blog/${params.slug}`,
     },
   }
 }
@@ -130,7 +138,7 @@ export async function generateMetadata({
 export default function PostPage({ params }: { params: { slug: string } }) {
   const post = getPostBySlug(params.slug)
   if (!post) notFound()
-  if (!post.published) redirect("/blog")
+  if (!post.published) notFound()
 
   return (
     <div className="container max-w-2xl py-24">

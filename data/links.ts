@@ -15,8 +15,8 @@ export const profileLinks: LinkItem[] = [
   // Professional
   {
     title: "Portfolio",
-    description: "View my engineering & CS projects - isaacadjei.me",
-    url: "https://isaacadjei.me",
+    description: "View my engineering & CS projects - www.isaacadjei.me",
+    url: "https://www.isaacadjei.me",
     icon: "globe",
     iconImage: "/images/avatar.png",
     category: "professional",
