@@ -26,6 +26,9 @@ export const metadata: Metadata = {
       "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",
     images: ["https://isaacadjei.me/twitter-image?v=20260424b"],
   },
+  alternates: {
+    canonical: "https://isaacadjei.me/share",
+  },
 }
 
 export default function SharePage() {

@@ -20,6 +20,9 @@ import {
 export const metadata: Metadata = {
   title: "About",
   description: "Learn more about Isaac Adjei - his story, education and involvement.",
+  alternates: {
+    canonical: "https://isaacadjei.me/about",
+  },
 }
 
 const interests = [
