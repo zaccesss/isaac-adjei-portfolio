@@ -16,6 +16,7 @@ const categories: { value: Category; label: string }[] = [
   { value: "hardware", label: "Hardware" },
   { value: "software", label: "Software" },
   { value: "web", label: "Web" },
+  { value: "cybersecurity", label: "Cybersecurity" },
   { value: "other", label: "Other" },
 ]
 

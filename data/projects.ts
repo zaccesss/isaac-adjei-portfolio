@@ -8,7 +8,7 @@ export interface Project {
   description: string
   longDescription: string
   technologies: string[]
-  category: "embedded" | "web" | "software" | "hardware" | "other"
+  category: "embedded" | "web" | "software" | "hardware" | "cybersecurity" | "other"
   featured: boolean
   images: string[]
   // optional path to a demo video shown below the gallery on the project detail page
@@ -43,6 +43,7 @@ export const projects: Project[] = [
       "/images/projects/audio-amplifier/pcb-layout-top.png",
       "/images/projects/audio-amplifier/3d-model.png",
     ],
+    github: "https://github.com/zaccessss/two-stage-audio-amplifier",
     date: "2026",
     highlights: [
       "Two-stage design: TL071 active band-pass filter (Stage 1) and OPA551 unity-gain buffer (Stage 2)",
@@ -74,7 +75,7 @@ export const projects: Project[] = [
       "/images/projects/led-cube/power-circuit.jpeg",
       "/images/projects/led-cube/build-lit.jpeg",
     ],
-    github: "https://github.com/zaccesss/neopixel-led-cube-project",
+    github: "https://github.com/zaccessss/neopixel-led-cube-project",
     video: "/Media/neopixel-description.mp4",
     date: "2025",
     highlights: [
@@ -114,8 +115,8 @@ export const projects: Project[] = [
       "/images/projects/astoncv/contact.png",
       "/images/projects/astoncv/footer.png",
     ],
-    github: "https://github.com/zaccesss/astoncv",
-    demo: "https://astoncv.zacess.com",
+    github: "https://github.com/zaccessss/astoncv",
+    demo: "http://240191278.cs2410-web01pvm.aston.ac.uk/",
     date: "2026",
     highlights: [
       "Built entirely from scratch - pure PHP 8.2, MySQL and CSS with no frameworks",
@@ -124,6 +125,97 @@ export const projects: Project[] = [
       "Live filter, sort and search with no page reload using JavaScript",
       "Personal dashboard with CV completeness score, view stats and profile picture upload",
       "Deployed live on Aston University's Apache server with custom Cloudflare domain redirect",
+    ],
+  },
+  {
+    id: "git-unlocked",
+    title: "git-unlocked",
+    description:
+      "Free, MIT-licensed open source course taking anyone from absolute zero to industry-level Git proficiency across every major platform and tool",
+    longDescription:
+      "git-unlocked is a free, MIT-licensed, community-built course designed to take anyone from never having heard of version control all the way to using Git, GitHub, GitLab and every major platform confidently in real teams. v1.2.0 ships 217 topic files organised across 12 sections and 8 platforms: Git core, GitHub, GitLab, Bitbucket, Azure DevOps, Gitea, Forgejo and Codeberg, each tagged with difficulty levels (beginner / intermediate / advanced) and OS labels (Windows, Mac, Linux) so every reader knows exactly where they stand.\n\nThe course is structured into three progressive learning paths. Platform sections cover everything from account setup, repositories and branching strategy through to CI/CD pipelines, branch protection rules, security features, CLI tooling and cross-platform comparisons. Advanced Git topics include rebase strategies, bisect, worktrees, signing commits with GPG/SSH, monorepo patterns, GitOps workflows and a complete command reference. The IDE and editor section covers VS Code, JetBrains, Neovim, Cursor and Zed. The terminal tools section covers lazygit, git-delta, fzf, bat and tig.\n\nThe repo ships with GitHub Actions CI for automated markdownlint checking and link validation on every push, a HALL_OF_FAME.md for contributors, a full CONTRIBUTING guide, CODE_OF_CONDUCT, CHANGELOG, SECURITY policy, ROADMAP and an 11-first-contribution sandbox designed to let anyone make their first open source pull request in under 10 minutes. A curated resource collection of 120+ links rounds out the reference section. MIT licensed, public template. Everything free, forever.",
+    technologies: [
+      "Git",
+      "GitHub",
+      "GitLab",
+      "Bitbucket",
+      "Azure DevOps",
+      "Markdown",
+      "GitHub Actions",
+      "Open Source",
+    ],
+    category: "other",
+    featured: true,
+    images: [],
+    github: "https://github.com/zaccessss/git-unlocked",
+    date: "2026",
+    highlights: [
+      "v1.2.0 ships 217 topic files across 12 sections: Git, GitHub, GitLab, Bitbucket, Azure DevOps, Gitea, Forgejo and Codeberg",
+      "Three learning paths: beginner, intermediate and advanced, tagged per file and structured end to end",
+      "Every command and workflow shown on Windows, Mac and Linux side by side",
+      "IDE section: VS Code, JetBrains, Neovim, Cursor and Zed; terminal section: lazygit, delta, fzf, bat and tig",
+      "GitHub Actions CI for automated markdownlint and link checking on every push",
+      "First-contribution sandbox: make your first open source pull request in under 10 minutes",
+    ],
+  },
+  {
+    id: "phaemos",
+    title: "PHAEMOS - Smart Maintenance Platform",
+    description:
+      "End-to-end IoT and predictive maintenance platform - FastAPI backend, Isolation Forest anomaly detection, Next.js live dashboard with automated alert and ticket workflows, actively being built",
+    longDescription:
+      "Machines fail. Not suddenly: gradually, silently, invisibly. PHAEMOS exists to reveal what machines cannot say about themselves.\n\nPHAEMOS (pronounced FAY-mos - coined from Ancient Greek phaen, to reveal, and mos, system or order) is a full-stack IoT and predictive maintenance platform built from hardware up. It collects real sensor data from ESP32, Arduino Uno and STM32 nodes, ingests it through a FastAPI backend, scores every reading with a machine learning anomaly detection model and surfaces everything on a live Next.js dashboard with alert management and an automated maintenance ticket workflow.\n\nThe hardware layer uses DHT22 for temperature and humidity, MPU6050 for vibration and acceleration and LDR for ambient light. The ESP32 acts as the primary Wi-Fi gateway, POSTing consolidated JSON telemetry every 5 seconds. The Arduino Uno reads sensors and relays formatted serial strings to the ESP32 for merging. The STM32 samples the MPU6050 at 100Hz and computes a short-window FFT to output a peak vibration frequency per second, giving the ML model a far richer vibration signal than simple acceleration values alone.\n\nThe backend is a FastAPI application in Python 3.11 backed by PostgreSQL 15, Redis for caching and queue management and JWT authentication with bcrypt password hashing. On every incoming telemetry POST it validates the device API key, stores the reading, evaluates all alert rules, scores the reading through the ML model, updates device status and last-seen timestamp and returns a 200 response in under 200ms. Every significant action is written to an immutable audit log.\n\nThe ML pipeline is a scikit-learn Isolation Forest - unsupervised, so it needs no labelled fault data to train. It learns the normal operating envelope from real telemetry and scores each new reading from 0 to 1. Scores above 0.7 trigger an alert and auto-generate a maintenance ticket. Scores above 0.85 attach a recommendation string to that ticket, suggesting a likely cause based on which combination of sensors is elevated. Features include raw readings, rolling means and standard deviations over the last 10 readings, total vibration magnitude and time-of-day encoding.\n\nThe Next.js 14 frontend polls the API every 5 seconds and renders live Recharts line charts for each metric. Anomalous readings are highlighted red on the chart in real time. Device cards show current status (online, warning, fault, offline) with colour coding. All views are role-gated at both the API and UI level across Admin, Technician and Viewer roles. The full stack runs with Docker Compose and deploys to Vercel (frontend) and Render (backend and database).",
+    technologies: [
+      "Next.js 14",
+      "TypeScript",
+      "FastAPI",
+      "Python",
+      "PostgreSQL",
+      "Redis",
+      "scikit-learn",
+      "Docker",
+      "ESP32",
+      "Arduino",
+      "STM32",
+      "Recharts",
+      "Tailwind CSS",
+      "Vercel",
+    ],
+    category: "software",
+    featured: true,
+    images: [],
+    github: "https://github.com/zaccessss/phaemos",
+    demo: "https://phaemos.com",
+    date: "2026",
+    highlights: [
+      "FastAPI backend processes every telemetry POST in under 200ms - validate, store, evaluate alert rules, score ML model and respond",
+      "Isolation Forest ML: unsupervised anomaly detection - score above 0.7 triggers alert, above 0.85 attaches a diagnostic recommendation",
+      "STM32 samples MPU6050 at 100Hz and computes FFT per second, outputting peak vibration frequency to the ML model",
+      "Next.js live dashboard: Recharts line charts polling every 5 seconds, anomalous readings highlighted red in real time",
+      "JWT auth with role-based access control (Admin, Technician and Viewer) enforced at API and UI level with full audit log",
+      "Full Docker Compose stack - Vercel (frontend), Render (backend and database), operational in under an hour",
+    ],
+  },
+  {
+    id: "avr-zac",
+    title: "avr-zac",
+    description:
+      "ATmega644P bare metal C projects with state machines, interrupts, PWM and ADC",
+    longDescription:
+      "A personal project to learn bare metal AVR C development, writing directly to hardware registers without any framework or abstraction layer. The ATmega644P runs at 20 MHz on a custom PCB designed by Richard Reeves (lab technician at Aston University) with an external crystal, LM317T voltage regulator and an ISP header breaking out all 32 I/O pins. Programming is handled by a Pololu USB AVR Programmer v2.1 via STK500v2. Richard Reeves also provided components and guidance throughout.\n\nProjects progress from a basic LED blink through GPIO manipulation, button polling, interrupt-driven input, software PWM and ADC, building towards a full nine-mode state machine. The final project (06_state_machine.c) cycles through nine modes on each button press: Chase, Blink All, Alternate, PWM Fade, Knight Rider, Binary Counter, Random, Reaction Game and Tetris Melody - the last two combining ADC noise seeding and buzzer tone sequencing with LED synchronisation. Mode state is held in a volatile variable updated inside an INT0 ISR with software debounce.\n\nThe repo ships with comprehensive documentation: WORKFLOW.md covering PlatformIO in VS Code and Microchip Studio 7 setup, a wiring reference, hardware notes covering fuse settings, ISP clock, register map and ADC configuration, the full PCB reference, the original PCB schematic PDF, the ATmega644P datasheet and 8 session notes each with a reference doc and hands-on lab exercises covering AVR C, bit shifting, interrupts, timers, PWM, UART and ADC. MIT licensed.",
+    technologies: ["C", "Embedded C", "ATmega644P", "PlatformIO", "Microchip Studio", "AVR", "State Machines", "Interrupts", "PWM", "ADC"],
+    category: "embedded",
+    featured: true,
+    images: [],
+    github: "https://github.com/zaccessss/avr-zac",
+    date: "2026",
+    highlights: [
+      "7 projects from 00_fuse_test to 06_state_machine - bare metal register manipulation with no framework abstractions",
+      "Nine-mode state machine: Chase, Blink All, Alternate, PWM Fade, Knight Rider, Binary Counter, Random, Reaction Game and Tetris Melody",
+      "Custom PCB designed by Richard Reeves (Aston University) with LM317T regulator, external crystal and ISP header",
+      "Pololu USB AVR Programmer v2.1 via STK500v2 - buildable with PlatformIO in VS Code or Microchip Studio 7",
+      "Comprehensive documentation: WORKFLOW.md, wiring reference, hardware notes, PCB schematic and ATmega644P datasheet",
+      "8 session notes with hands-on lab exercises covering AVR C, bit shifting, interrupts, timers, PWM, UART and ADC",
     ],
   },
   {
@@ -140,7 +232,7 @@ export const projects: Project[] = [
       "/images/projects/zacess-pages/main.png",
       "/images/projects/zacess-pages/terminal.png",
     ],
-    github: "https://github.com/zaccesss/zacess-pages",
+    github: "https://github.com/zaccessss/zacess-pages",
     demo: "https://zacess.com",
     date: "2024",
     highlights: [
@@ -225,75 +317,6 @@ export const projects: Project[] = [
       "Assembly drawings with exploded views, balloon callouts, section views and structured BOM",
       "Consumer product design: injection molding DFM, IEC 60335 compliance, assembly sequence",
       "All drawings comply with BS 8888, ISO 128 and ASME Y14.5 with proper title blocks and revision control",
-    ],
-  },
-  {
-    id: "git-unlocked",
-    title: "git-unlocked",
-    description:
-      "Free, MIT-licensed open source course taking anyone from absolute zero to industry-level Git proficiency across every major platform and tool",
-    longDescription:
-      "git-unlocked is a free, MIT-licensed, community-built course designed to take anyone from never having heard of version control all the way to using Git, GitHub, GitLab and every major platform confidently in real teams. v1.2.0 ships 217 topic files organised across 12 sections and 8 platforms: Git core, GitHub, GitLab, Bitbucket, Azure DevOps, Gitea, Forgejo and Codeberg, each tagged with difficulty levels (beginner / intermediate / advanced) and OS labels (Windows, Mac, Linux) so every reader knows exactly where they stand.\n\nThe course is structured into three progressive learning paths. Platform sections cover everything from account setup, repositories and branching strategy through to CI/CD pipelines, branch protection rules, security features, CLI tooling and cross-platform comparisons. Advanced Git topics include rebase strategies, bisect, worktrees, signing commits with GPG/SSH, monorepo patterns, GitOps workflows and a complete command reference. The IDE and editor section covers VS Code, JetBrains, Neovim, Cursor and Zed. The terminal tools section covers lazygit, git-delta, fzf, bat and tig.\n\nThe repo ships with GitHub Actions CI for automated markdownlint checking and link validation on every push, a HALL_OF_FAME.md for contributors, a full CONTRIBUTING guide, CODE_OF_CONDUCT, CHANGELOG, SECURITY policy, ROADMAP and an 11-first-contribution sandbox designed to let anyone make their first open source pull request in under 10 minutes. A curated resource collection of 120+ links rounds out the reference section. MIT licensed, public template. Everything free, forever.",
-    technologies: [
-      "Git",
-      "GitHub",
-      "GitLab",
-      "Bitbucket",
-      "Azure DevOps",
-      "Markdown",
-      "GitHub Actions",
-      "Open Source",
-    ],
-    category: "other",
-    featured: true,
-    images: [],
-    github: "https://github.com/zaccesss/git-unlocked",
-    date: "2026",
-    highlights: [
-      "v1.2.0 ships 217 topic files across 12 sections: Git, GitHub, GitLab, Bitbucket, Azure DevOps, Gitea, Forgejo and Codeberg",
-      "Three learning paths: beginner, intermediate and advanced, tagged per file and structured end to end",
-      "Every command and workflow shown on Windows, Mac and Linux side by side",
-      "IDE section: VS Code, JetBrains, Neovim, Cursor and Zed; terminal section: lazygit, delta, fzf, bat and tig",
-      "GitHub Actions CI for automated markdownlint and link checking on every push",
-      "First-contribution sandbox: make your first open source pull request in under 10 minutes",
-    ],
-  },
-  {
-    id: "phaemos",
-    title: "PHAEMOS - Smart Maintenance Platform",
-    description:
-      "End-to-end IoT and predictive maintenance platform - FastAPI backend, Isolation Forest anomaly detection, Next.js live dashboard with automated alert and ticket workflows, actively being built",
-    longDescription:
-      "Machines fail. Not suddenly: gradually, silently, invisibly. PHAEMOS exists to reveal what machines cannot say about themselves.\n\nPHAEMOS (pronounced FAY-mos - coined from Ancient Greek phaen, to reveal, and mos, system or order) is a full-stack IoT and predictive maintenance platform built from hardware up. It collects real sensor data from ESP32, Arduino Uno and STM32 nodes, ingests it through a FastAPI backend, scores every reading with a machine learning anomaly detection model and surfaces everything on a live Next.js dashboard with alert management and an automated maintenance ticket workflow.\n\nThe hardware layer uses DHT22 for temperature and humidity, MPU6050 for vibration and acceleration and LDR for ambient light. The ESP32 acts as the primary Wi-Fi gateway, POSTing consolidated JSON telemetry every 5 seconds. The Arduino Uno reads sensors and relays formatted serial strings to the ESP32 for merging. The STM32 samples the MPU6050 at 100Hz and computes a short-window FFT to output a peak vibration frequency per second, giving the ML model a far richer vibration signal than simple acceleration values alone.\n\nThe backend is a FastAPI application in Python 3.11 backed by PostgreSQL 15, Redis for caching and queue management and JWT authentication with bcrypt password hashing. On every incoming telemetry POST it validates the device API key, stores the reading, evaluates all alert rules, scores the reading through the ML model, updates device status and last-seen timestamp and returns a 200 response in under 200ms. Every significant action is written to an immutable audit log.\n\nThe ML pipeline is a scikit-learn Isolation Forest - unsupervised, so it needs no labelled fault data to train. It learns the normal operating envelope from real telemetry and scores each new reading from 0 to 1. Scores above 0.7 trigger an alert and auto-generate a maintenance ticket. Scores above 0.85 attach a recommendation string to that ticket, suggesting a likely cause based on which combination of sensors is elevated. Features include raw readings, rolling means and standard deviations over the last 10 readings, total vibration magnitude and time-of-day encoding.\n\nThe Next.js 14 frontend polls the API every 5 seconds and renders live Recharts line charts for each metric. Anomalous readings are highlighted red on the chart in real time. Device cards show current status (online, warning, fault, offline) with colour coding. All views are role-gated at both the API and UI level across Admin, Technician and Viewer roles. The full stack runs with Docker Compose and deploys to Vercel (frontend) and Render (backend and database).",
-    technologies: [
-      "Next.js 14",
-      "TypeScript",
-      "FastAPI",
-      "Python",
-      "PostgreSQL",
-      "Redis",
-      "scikit-learn",
-      "Docker",
-      "ESP32",
-      "Arduino",
-      "STM32",
-      "Recharts",
-      "Tailwind CSS",
-      "Vercel",
-    ],
-    category: "software",
-    featured: false,
-    images: [],
-    github: "https://github.com/zaccesss/phaemos",
-    demo: "https://phaemos.com",
-    date: "2026",
-    highlights: [
-      "FastAPI backend processes every telemetry POST in under 200ms - validate, store, evaluate alert rules, score ML model and respond",
-      "Isolation Forest ML: unsupervised anomaly detection - score above 0.7 triggers alert, above 0.85 attaches a diagnostic recommendation",
-      "STM32 samples MPU6050 at 100Hz and computes FFT per second, outputting peak vibration frequency to the ML model",
-      "Next.js live dashboard: Recharts line charts polling every 5 seconds, anomalous readings highlighted red in real time",
-      "JWT auth with role-based access control (Admin, Technician and Viewer) enforced at API and UI level with full audit log",
-      "Full Docker Compose stack - Vercel (frontend), Render (backend and database), operational in under an hour",
     ],
   },
 ]

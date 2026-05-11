@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: "Projects",
   description:
     "A collection of my engineering projects - from embedded systems to web applications.",
+  alternates: {
+    canonical: "https://isaacadjei.me/projects",
+  },
 }
 
 export default function ProjectsPage() {
@@ -24,12 +27,21 @@ export default function ProjectsPage() {
       <p className="text-sm text-muted-foreground text-center pt-4">
         More projects and courses available on{" "}
         <a
-          href="https://github.com/zaccesss"
+          href="https://github.com/zaccessss"
           target="_blank"
           rel="noopener noreferrer"
           className="text-primary hover:underline font-medium"
         >
           GitHub
+        </a>{" "}
+        and{" "}
+        <a
+          href="https://github.com/zaccessss?tab=projects"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline font-medium"
+        >
+          GitHub Projects
         </a>
         .
       </p>
