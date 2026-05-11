@@ -18,7 +18,7 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@sparticuz/chromium": "^147.0.2",
     "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.37.0",
+    "@upstash/redis": "^1.38.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^1.0.0",
