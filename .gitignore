@@ -58,3 +58,6 @@ next-env.d.ts
 .vscode/settings.json
 *.swp
 *.swo
+
+# Local repo clones for reference - never commit
+repo-extract/
