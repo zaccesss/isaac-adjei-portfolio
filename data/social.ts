@@ -17,9 +17,21 @@ export const socialLinks: SocialLink[] = [
   },
   {
     name: "Links",
-    url: "https://linktr.ee/zaccess",
+    url: "https://isaacadjei.me/links",
     icon: "link",
-    username: "linktr.ee/zaccess",
+    username: "isaacadjei.me/links",
+  },
+  {
+    name: "Email",
+    url: "mailto:contact@zacess.com",
+    icon: "mail",
+    username: "contact@zacess.com",
+  },
+  {
+    name: "ORCID",
+    url: "https://orcid.org/0009-0001-8298-5098",
+    icon: "orcid",
+    username: "0009-0001-8298-5098",
   },
   {
     name: "LinkedIn",
@@ -29,14 +41,8 @@ export const socialLinks: SocialLink[] = [
   },
   {
     name: "GitHub",
-    url: "https://github.com/zaccesss",
+    url: "https://github.com/zaccessss",
     icon: "github",
-    username: "@zaccesss",
-  },
-  {
-    name: "Email",
-    url: "mailto:contact@zacess.com",
-    icon: "mail",
-    username: "contact@zacess.com",
+    username: "@zaccessss",
   },
 ]

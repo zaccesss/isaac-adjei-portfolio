@@ -30,10 +30,24 @@ export const profileLinks: LinkItem[] = [
     category: "professional",
   },
   {
+    title: "Linktree",
+    description: "All my links in one place - @zaccess",
+    url: "https://linktr.ee/zaccess",
+    icon: "linktree",
+    category: "professional",
+  },
+  {
     title: "Email",
     description: "Get in touch - contact@zacess.com",
     url: "mailto:contact@zacess.com",
     icon: "mail",
+    category: "professional",
+  },
+  {
+    title: "ORCID",
+    description: "My ORCID researcher profile - 0009-0001-8298-5098",
+    url: "https://orcid.org/0009-0001-8298-5098",
+    icon: "orcid",
     category: "professional",
   },
   {

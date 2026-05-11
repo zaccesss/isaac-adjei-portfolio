@@ -19,7 +19,7 @@ import {
   FaThreads,
   FaPlaystation,
 } from "react-icons/fa6"
-import { SiCodeforces, SiKick, SiLeetcode, SiSubstack } from "react-icons/si"
+import { SiCodeforces, SiKick, SiLeetcode, SiSubstack, SiLinktree, SiOrcid } from "react-icons/si"
 import { Globe, Mail, ExternalLink } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -45,6 +45,8 @@ const iconMap: Record<string, React.ElementType> = {
   leetcode: SiLeetcode,
   codeforces: SiCodeforces,
   kick: SiKick,
+  linktree: SiLinktree,
+  orcid: SiOrcid,
 }
 
 const brandClasses: Record<string, { bg: string; icon: string }> = {
@@ -64,6 +66,8 @@ const brandClasses: Record<string, { bg: string; icon: string }> = {
   leetcode: { bg: "bg-[#FFA116]/10", icon: "text-[#FFA116]" },
   codeforces: { bg: "bg-[#1F8ACB]/10", icon: "text-[#1F8ACB]" },
   kick: { bg: "bg-[#53FC18]/15", icon: "text-[#3AD70A]" },
+  linktree: { bg: "bg-[#43E55E]/10", icon: "text-[#43E55E]" },
+  orcid: { bg: "bg-[#A6CE39]/10", icon: "text-[#A6CE39]" },
 }
 
 const categoryLabel: Record<LinkItem["category"], string> = {
