@@ -112,6 +112,16 @@ export const skillCategories: SkillCategory[] = [
     ],
   },
   {
+    category: "Platforms & Operating Systems",
+    columns: 4,
+    skills: [
+      { name: "Windows", icon: `${DEV}/windows11/windows11-original.svg` },
+      { name: "macOS", icon: `${DEV}/apple/apple-original.svg` },
+      { name: "Ubuntu", icon: `${DEV}/ubuntu/ubuntu-original.svg` },
+      { name: "WSL2", icon: `${DEV}/linux/linux-original.svg` },
+    ],
+  },
+  {
     category: "JetBrains Ecosystem",
     columns: 5,
     skills: [
@@ -234,6 +244,8 @@ export const skillCategories: SkillCategory[] = [
       { name: "KiCad", icon: `${WIKI}/5/59/KiCad-Logo.svg` },
       { name: "Eagle", icon: "https://cdn.simpleicons.org/eagle" },
       { name: "Proteus", icon: "/images/proteus.jpg" },
+      { name: "Microchip Studio", icon: "/images/brands/microchip_studio.png" },
+      { name: "PlatformIO", icon: "https://cdn.simpleicons.org/platformio" },
       { name: "SolidWorks", icon: "/images/solidworks.png" },
       {
         name: "Simulink",
@@ -262,10 +274,7 @@ export const skillCategories: SkillCategory[] = [
       { name: "NVIDIA", icon: "https://cdn.simpleicons.org/nvidia" },
       { name: "Intel", icon: `${WIKI}/8/85/Intel_logo_2023.svg` },
       { name: "AMD", icon: `${WIKI}/7/7c/AMD_Logo.svg` },
-      {
-        name: "Steam",
-        icon: `${WIKI}/thumb/8/83/Steam_icon_logo.svg/200px-Steam_icon_logo.svg.png`,
-      },
+      { name: "Steam", icon: "https://cdn.simpleicons.org/steam" },
       { name: "PlayStation", icon: "https://cdn.simpleicons.org/playstation" },
       { name: "EA", icon: "https://cdn.simpleicons.org/ea" },
       { name: "Ubisoft", icon: "https://cdn.simpleicons.org/ubisoft" },

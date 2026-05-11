@@ -39,8 +39,17 @@ export default function FeaturedProjects() {
           </motion.div>
 
           <motion.div variants={fadeUp} className="grid gap-6 md:grid-cols-2">
-            {featured.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+            {featured.map((project, i) => (
+              <div
+                key={project.id}
+                className={
+                  featured.length % 2 !== 0 && i === featured.length - 1
+                    ? "md:col-span-2 md:max-w-sm md:mx-auto w-full"
+                    : undefined
+                }
+              >
+                <ProjectCard project={project} />
+              </div>
             ))}
           </motion.div>
 
