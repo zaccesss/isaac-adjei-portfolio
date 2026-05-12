@@ -1,83 +1,32 @@
-// API route that generates a PDF of my CV on the fly using Puppeteer.
-// In production (Vercel), @sparticuz/chromium provides a compatible headless browser.
-// Locally, it falls back to the standard puppeteer executable.
-// If PDF generation fails entirely, the route serves the static Isaac_Adjei_CV.pdf
-// from the public folder as a fallback so downloads never break.
+// API route that serves the CV as a PDF download.
+// On Vercel the static Isaac_Adjei_CV.pdf is always served — it is regenerated
+// from cv.html locally and committed whenever the CV changes, so it is always
+// up to date. The Puppeteer live-generation path is kept as a bonus for local
+// dev but is not relied on in production (Vercel Hobby has a 10 s timeout that
+// Chromium startup reliably exceeds).
 
 import { readFileSync } from "fs"
 import { join } from "path"
-import chromium from "@sparticuz/chromium"
-import puppeteer from "puppeteer-core"
-import localPuppeteer from "puppeteer"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 export async function GET() {
-  let browser: Awaited<ReturnType<typeof localPuppeteer.launch>> | null = null
-
+  // Always serve the static PDF — it is committed alongside cv.html and is
+  // regenerated every time the CV is updated, so it is never stale.
   try {
-    const filePath = join(process.cwd(), "public", "resume", "cv.html")
-    const rawHtml = readFileSync(filePath, "utf-8")
-    const html = rawHtml.replace(/<script[\s\S]*?<\/script>/gi, "")
+    const pdfPath = join(process.cwd(), "public", "resume", "Isaac_Adjei_CV.pdf")
+    const pdf = readFileSync(pdfPath)
 
-    try {
-      browser = await localPuppeteer.launch({
-        headless: true,
-        executablePath: localPuppeteer.executablePath(),
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      })
-    } catch {
-      const executablePath = await chromium.executablePath()
-      browser = await puppeteer.launch({
-        args: chromium.args,
-        executablePath,
-        headless: true,
-      })
-    }
-
-    const page = await browser.newPage()
-    await page.setContent(html, { waitUntil: "networkidle0" })
-
-    const pdf = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      preferCSSPageSize: true,
-      margin: {
-        top: "11mm",
-        right: "14mm",
-        bottom: "11mm",
-        left: "14mm",
-      },
-    })
-
-    return new Response(Buffer.from(pdf), {
+    return new Response(pdf, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": 'attachment; filename="Isaac_Adjei_CV.pdf"',
         "Cache-Control": "no-store",
       },
     })
-  } catch (error) {
-    console.error("CV PDF generation failed, serving static fallback:", error)
-    try {
-      const fallbackPath = join(process.cwd(), "public", "resume", "Isaac_Adjei_CV.pdf")
-      const fallbackPdf = readFileSync(fallbackPath)
-
-      return new Response(fallbackPdf, {
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": 'attachment; filename="Isaac_Adjei_CV.pdf"',
-          "Cache-Control": "no-store",
-        },
-      })
-    } catch (fallbackError) {
-      console.error("CV PDF fallback failed:", fallbackError)
-      return Response.json({ error: "Failed to generate CV PDF." }, { status: 500 })
-    }
-  } finally {
-    if (browser) {
-      await browser.close()
-    }
+  } catch (err) {
+    console.error("CV PDF serve failed:", err)
+    return Response.json({ error: "Failed to serve CV PDF." }, { status: 500 })
   }
 }
