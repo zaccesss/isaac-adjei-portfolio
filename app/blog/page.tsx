@@ -49,9 +49,9 @@ const NAV_COMMANDS: Record<string, string> = {
 
 const MAIL_COMMANDS: Record<string, string> = {
   collaborate:
-    "mailto:contact@zacess.com?subject=Collaboration%20Opportunity&body=Hi%20Isaac%2C%0A%0AI%20would%20love%20to%20collaborate%20with%20you%20on...%0A%0ABest%2C",
+    "mailto:contact@isaacadjei.me?subject=Collaboration%20Opportunity&body=Hi%20Isaac%2C%0A%0AI%20would%20love%20to%20collaborate%20with%20you%20on...%0A%0ABest%2C",
   suggest:
-    "mailto:contact@zacess.com?subject=Blog%20Suggestion&body=Hi%20Isaac%2C%0A%0AI%20have%20an%20idea%20for%20your%20blog%3A%0A%0A-%20Topic%3A%0A-%20Why%20it%20would%20be%20useful%3A%0A%0AThanks%2C",
+    "mailto:contact@isaacadjei.me?subject=Blog%20Suggestion&body=Hi%20Isaac%2C%0A%0AI%20have%20an%20idea%20for%20your%20blog%3A%0A%0A-%20Topic%3A%0A-%20Why%20it%20would%20be%20useful%3A%0A%0AThanks%2C",
 }
 
 const COMMANDS: Record<string, () => Line[]> = {
@@ -176,13 +176,13 @@ const COMMANDS: Record<string, () => Line[]> = {
 
   collaborate: () => [
     { type: "info", text: "opening: mail client" },
-    { type: "output", text: "to: contact@zacess.com" },
+    { type: "output", text: "to: contact@isaacadjei.me" },
     { type: "output", text: "subject: Collaboration Opportunity" },
   ],
 
   suggest: () => [
     { type: "info", text: "opening: mail client" },
-    { type: "output", text: "to: contact@zacess.com" },
+    { type: "output", text: "to: contact@isaacadjei.me" },
     { type: "output", text: "subject: Blog Suggestion" },
   ],
 
@@ -222,7 +222,7 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "info", text: "ready now:" },
     { type: "output", text: "  → portfolio at isaacadjei.me" },
     { type: "output", text: "  → CV available for download  (try: cv)" },
-    { type: "output", text: "  → contact via contact@zacess.com" },
+    { type: "output", text: "  → contact via contact@isaacadjei.me" },
     { type: "blank", text: "" },
     { type: "info", text: "coming soon:" },
     { type: "output", text: "  → blog posts and engineering write-ups" },

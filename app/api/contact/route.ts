@@ -119,8 +119,8 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: "Portfolio Contact <contact@zacess.com>",
-        to: ["contact@zacess.com"],
+        from: "Portfolio Contact <contact@isaacadjei.me>",
+        to: ["contact@isaacadjei.me"],
         reply_to: safeEmail,
         subject: `[Portfolio] ${safeSubject}`,
         html: `

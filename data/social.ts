@@ -11,9 +11,9 @@ export interface SocialLink {
 export const socialLinks: SocialLink[] = [
   {
     name: "Website",
-    url: "https://zacess.com",
+    url: "https://isaacadjei.me",
     icon: "globe",
-    username: "zacess.com",
+    username: "isaacadjei.me",
   },
   {
     name: "Links",
@@ -23,9 +23,9 @@ export const socialLinks: SocialLink[] = [
   },
   {
     name: "Email",
-    url: "mailto:contact@zacess.com",
+    url: "mailto:contact@isaacadjei.me",
     icon: "mail",
-    username: "contact@zacess.com",
+    username: "contact@isaacadjei.me",
   },
   {
     name: "ORCID",
