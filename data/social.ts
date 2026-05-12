@@ -11,9 +11,9 @@ export interface SocialLink {
 export const socialLinks: SocialLink[] = [
   {
     name: "Website",
-    url: "https://isaacadjei.me",
+    url: "https://zacess.com",
     icon: "globe",
-    username: "isaacadjei.me",
+    username: "zacess.com",
   },
   {
     name: "Links",
