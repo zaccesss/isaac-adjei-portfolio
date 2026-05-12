@@ -26,8 +26,7 @@ export default function CVViewer({ cvHtml }: CVViewerProps) {
 
         <div className="mt-4 flex flex-wrap gap-2">
           <a
-            href="/resume/Isaac_Adjei_CV.pdf"
-            download="Isaac_Adjei_CV.pdf"
+            href="/api/cv-pdf"
             className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-300"
           >
             Download PDF (Recommended)
