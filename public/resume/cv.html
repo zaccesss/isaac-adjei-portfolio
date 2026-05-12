@@ -433,6 +433,43 @@
 
       <div class="proj-entry">
         <div class="proj-row1">
+          <span class="proj-title">PHAEMOS &ndash; Smart Maintenance Platform</span>
+          <span class="proj-date">2026 &ndash; present</span>
+        </div>
+        <div class="proj-row2">
+          <span class="proj-tech">FastAPI, Python, Next.js 14, PostgreSQL, Redis, scikit-learn, Docker, ESP32, Arduino, STM32</span>
+          <span
+            ><a href="https://github.com/zaccessss/phaemos" class="proj-link"
+              >GitHub &#8599;</a
+            ><span class="proj-link-sep">|</span
+            ><a href="https://phaemos.com" class="proj-link-second"
+              >phaemos.com &#8599;</a
+            ></span
+          >
+        </div>
+        <ul class="proj-bullets">
+          <li>
+            End-to-end IoT platform: ESP32, Arduino and STM32 hardware nodes POST sensor telemetry
+            to a FastAPI backend with PostgreSQL and Redis, processed in under 200ms per request
+          </li>
+          <li>
+            Isolation Forest ML anomaly detection &mdash; unsupervised, scores every reading; above
+            0.7 triggers an alert and auto-generates a maintenance ticket with a diagnostic
+            recommendation above 0.85
+          </li>
+          <li>
+            Next.js live dashboard polls every 5 seconds with Recharts line charts; anomalous
+            readings highlighted in real time
+          </li>
+          <li>
+            JWT auth with role-based access control (Admin, Technician, Viewer) enforced at API and
+            UI level with a full immutable audit log
+          </li>
+        </ul>
+      </div>
+
+      <div class="proj-entry">
+        <div class="proj-row1">
           <span class="proj-title">Two-Stage Audio Amplifier</span>
           <span class="proj-date">2026</span>
         </div>
