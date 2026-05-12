@@ -13,9 +13,11 @@ import { skillCategories } from "@/data/skills"
 import { staggerContainer, fadeUp } from "@/lib/animations"
 
 export default function SkillsOverview() {
-  const HIDDEN_ON_HOME = ["Assembly", "Rust", "C#", "Go", "JSON"]
+  const HIDDEN_ON_HOME = ["Assembly", "Rust", "C#", "Go", "JSON", "Markdown"]
+  const SHOW_CATEGORIES = ["Platforms & Operating Systems", "Core Tools", "Languages & Software"]
   const topCategories = skillCategories
-    .slice(0, 2)
+    .filter((cat) => SHOW_CATEGORIES.includes(cat.category))
+    .sort((a, b) => SHOW_CATEGORIES.indexOf(a.category) - SHOW_CATEGORIES.indexOf(b.category))
     .map((cat) =>
       cat.category === "Languages & Software"
         ? { ...cat, skills: cat.skills.filter((s) => !HIDDEN_ON_HOME.includes(s.name)) }
@@ -45,7 +47,7 @@ export default function SkillsOverview() {
             </Button>
           </motion.div>
 
-          <motion.div variants={fadeUp} className="grid gap-8 sm:grid-cols-2">
+          <motion.div variants={fadeUp} className="grid gap-8 sm:grid-cols-3">
             {topCategories.map((cat) => (
               <div key={cat.category} className="space-y-3">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
