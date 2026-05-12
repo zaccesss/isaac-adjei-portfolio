@@ -76,25 +76,13 @@ export interface SkillCategory {
 // Each one becomes a collapsible <details> section so the page doesn't get too long.
 export const skillCategories: SkillCategory[] = [
   {
-    category: "Languages & Software",
-    columns: 5,
+    category: "Platforms & Operating Systems",
+    columns: 4,
     skills: [
-      { name: "C", icon: `${DEV}/c/c-original.svg` },
-      { name: "C++", icon: `${TSG}/cpp-icon.svg` },
-      { name: "C#", icon: `${TSG}/csharp-icon.svg` },
-      { name: "Python", icon: `${TSG}/python-icon.svg` },
-      { name: "Java", icon: `${TSG}/java-icon.svg` },
-      { name: "TypeScript", icon: `${TSG}/ts-icon.svg` },
-      { name: "JavaScript", icon: `${TSG}/js-icon.svg` },
-      { name: "HTML", icon: `${DEV}/html5/html5-original.svg` },
-      { name: "CSS", icon: `${DEV}/css3/css3-original.svg` },
-      { name: "MATLAB", icon: `${DEV}/matlab/matlab-original.svg` },
-      { name: "SQL", icon: `${DEV}/azuresqldatabase/azuresqldatabase-original.svg` },
-      { name: "Go", icon: `${DEV}/go/go-original.svg` },
-      { name: "Markdown", icon: `${DEV}/markdown/markdown-original.svg` },
-      { name: "Rust", icon: `${DEV}/rust/rust-original.svg` },
-      { name: "Assembly", icon: `${DEV}/embeddedc/embeddedc-original.svg` },
-      { name: "JSON", icon: `${DEV}/json/json-original.svg` },
+      { name: "Windows", icon: `${DEV}/windows11/windows11-original.svg` },
+      { name: "macOS", icon: `${DEV}/apple/apple-original.svg` },
+      { name: "Ubuntu", icon: `${DEV}/ubuntu/ubuntu-original.svg` },
+      { name: "WSL2", icon: `${DEV}/linux/linux-original.svg` },
     ],
   },
   {
@@ -109,16 +97,6 @@ export const skillCategories: SkillCategory[] = [
       { name: "Postman", icon: `${DEV}/postman/postman-original.svg` },
       { name: "Slack", icon: `${DEV}/slack/slack-original.svg` },
       { name: "Gradle", icon: `${DEV}/gradle/gradle-original.svg` },
-    ],
-  },
-  {
-    category: "Platforms & Operating Systems",
-    columns: 4,
-    skills: [
-      { name: "Windows", icon: `${DEV}/windows11/windows11-original.svg` },
-      { name: "macOS", icon: `${DEV}/apple/apple-original.svg` },
-      { name: "Ubuntu", icon: `${DEV}/ubuntu/ubuntu-original.svg` },
-      { name: "WSL2", icon: `${DEV}/linux/linux-original.svg` },
     ],
   },
   {
@@ -145,6 +123,28 @@ export const skillCategories: SkillCategory[] = [
     skills: [
       { name: "Android Studio", icon: `${DEV}/androidstudio/androidstudio-original.svg` },
       { name: "Kotlin", icon: `${DEV}/kotlin/kotlin-original.svg` },
+    ],
+  },
+  {
+    category: "Languages & Software",
+    columns: 5,
+    skills: [
+      { name: "C", icon: `${DEV}/c/c-original.svg` },
+      { name: "C++", icon: `${TSG}/cpp-icon.svg` },
+      { name: "C#", icon: `${TSG}/csharp-icon.svg` },
+      { name: "Python", icon: `${TSG}/python-icon.svg` },
+      { name: "Java", icon: `${TSG}/java-icon.svg` },
+      { name: "TypeScript", icon: `${TSG}/ts-icon.svg` },
+      { name: "JavaScript", icon: `${TSG}/js-icon.svg` },
+      { name: "HTML", icon: `${DEV}/html5/html5-original.svg` },
+      { name: "CSS", icon: `${DEV}/css3/css3-original.svg` },
+      { name: "MATLAB", icon: `${DEV}/matlab/matlab-original.svg` },
+      { name: "SQL", icon: `${DEV}/azuresqldatabase/azuresqldatabase-original.svg` },
+      { name: "Go", icon: `${DEV}/go/go-original.svg` },
+      { name: "Markdown", icon: `${DEV}/markdown/markdown-original.svg` },
+      { name: "Rust", icon: `${DEV}/rust/rust-original.svg` },
+      { name: "Assembly", icon: `${DEV}/embeddedc/embeddedc-original.svg` },
+      { name: "JSON", icon: `${DEV}/json/json-original.svg` },
     ],
   },
   {
