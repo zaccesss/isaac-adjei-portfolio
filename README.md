@@ -14,8 +14,8 @@
   <a href="https://github.com/zaccesss/isaac-adjei-portfolio">
     <img src="https://img.shields.io/badge/Repo-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
   </a>
-  <a href="mailto:contact@zacess.com">
-    <img src="https://img.shields.io/badge/Contact-contact@zacess.com-ff6f61?style=for-the-badge&logo=gmail&logoColor=white" />
+  <a href="mailto:contact@isaacadjei.me">
+    <img src="https://img.shields.io/badge/Contact-contact@isaacadjei.me-ff6f61?style=for-the-badge&logo=gmail&logoColor=white" />
   </a>
 </p>
 
@@ -443,7 +443,7 @@ Vercel picks it up within seconds.
 <p align="center">
   <a href="https://isaacadjei.me"><img src="https://img.shields.io/badge/Portfolio-isaacadjei.me-000000?style=flat-square&logo=googlechrome&logoColor=white" /></a>
   <a href="https://www.linkedin.com/in/isaacadjei"><img src="https://img.shields.io/badge/LinkedIn-isaacadjei-0a66c2?style=flat-square&logo=linkedin&logoColor=white" /></a>
-  <a href="mailto:contact@zacess.com"><img src="https://img.shields.io/badge/Email-contact@zacess.com-ff6f61?style=flat-square&logo=gmail&logoColor=white" /></a>
+  <a href="mailto:contact@isaacadjei.me"><img src="https://img.shields.io/badge/Email-contact@isaacadjei.me-ff6f61?style=flat-square&logo=gmail&logoColor=white" /></a>
 </p>
 
 ---
@@ -455,5 +455,5 @@ Vercel picks it up within seconds.
 
 <p align="center">
   Built by <a href="https://isaacadjei.me"><strong>Isaac (Zac) Adjei</strong></a> --
-  <a href="mailto:contact@zacess.com">contact@zacess.com</a>
+  <a href="mailto:contact@isaacadjei.me">contact@isaacadjei.me</a>
 </p>
