@@ -30,9 +30,9 @@ export const profileLinks: LinkItem[] = [
     category: "professional",
   },
   {
-    title: "Links",
-    description: "All my links in one place",
-    url: "https://isaacadjei.me/links",
+    title: "Linktree",
+    description: "All my links in one place - @zaccess",
+    url: "https://linktr.ee/zaccess",
     icon: "linktree",
     category: "professional",
   },
