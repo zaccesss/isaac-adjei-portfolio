@@ -1,15 +1,16 @@
 // API route that fetches a random inspirational quote from ZenQuotes.
-// Cached for 30 minutes (1800s) to avoid hitting the external API on every
-// page load — the fallback quote is returned if the API is down or slow.
+// No server-side cache so the quote changes on every request/refresh.
+// A 4-second timeout ensures the fallback returns immediately if ZenQuotes
+// is slow, so the UI never hangs waiting.
 
 import { NextResponse } from "next/server"
 
-export const revalidate = 1800
+export const revalidate = 0
 
 export async function GET() {
   try {
     const res = await fetch("https://zenquotes.io/api/random", {
-      next: { revalidate: 1800 },
+      next: { revalidate: 0 },
       signal: AbortSignal.timeout(4000),
     })
 
