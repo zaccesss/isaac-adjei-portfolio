@@ -443,7 +443,7 @@ Vercel picks it up within seconds.
 <p align="center">
   <a href="https://isaacadjei.me"><img src="https://img.shields.io/badge/Portfolio-isaacadjei.me-000000?style=flat-square&logo=googlechrome&logoColor=white" /></a>
   <a href="https://www.linkedin.com/in/isaacadjei"><img src="https://img.shields.io/badge/LinkedIn-isaacadjei-0a66c2?style=flat-square&logo=linkedin&logoColor=white" /></a>
-  <a href="mailto:contact@isaacadjei.me"><img src="https://img.shields.io/badge/Email-contact@isaacadjei.me-ff6f61?style=flat-square&logo=gmail&logoColor=white" /></a>
+  <a href="mailto:contact@isaacadjei.me"><img src="https://img.shields.io/badge/Email-Contact-ff6f61?style=flat-square&logo=gmail&logoColor=white" /></a>
 </p>
 
 ---
@@ -453,7 +453,3 @@ Vercel picks it up within seconds.
   <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=80&section=footer" />
 </p>
 
-<p align="center">
-  Built by <a href="https://isaacadjei.me"><strong>Isaac (Zac) Adjei</strong></a> --
-  <a href="mailto:contact@isaacadjei.me">contact@isaacadjei.me</a>
-</p>
