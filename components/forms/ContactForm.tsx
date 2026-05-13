@@ -4,6 +4,7 @@
 // 1. Honeypot field (_hp) - hidden from real users but bots fill it in, so if it's not empty I reject the submission.
 // 2. Cloudflare Turnstile CAPTCHA - verifies the user is human before the form is submitted.
 // 3. Server-side rate limiting in the API route (3 submissions per IP per 10 minutes).
+// Failed requests show the API's `error` string when present (Turnstile hostname mismatch, rate limit, etc.).
 
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
@@ -14,12 +15,20 @@ import type { TurnstileInstance } from "@marsidev/react-turnstile"
 export default function ContactForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" })
+  // Mirror of the Turnstile token for enabling the submit button; the widget ref is the source of truth at send time.
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  // Server-returned error text (e.g. Turnstile hostname mismatch) so users see more than a generic failure.
+  const [errorDetail, setErrorDetail] = useState<string | null>(null)
   const turnstileRef = useRef<TurnstileInstance>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!turnstileToken) return
+    setErrorDetail(null)
+
+    // Prefer getResponse() from the widget: React state can lag behind or hold an expired token while the UI still looks "solved".
+    const liveToken = turnstileRef.current?.getResponse?.() ?? turnstileToken
+    if (!liveToken) return
+
     setStatus("loading")
     try {
       const res = await fetch("/api/contact", {
@@ -30,16 +39,29 @@ export default function ContactForm() {
           _hp:
             (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>("[name=_hp]")
               ?.value ?? "",
-          turnstileToken,
+          turnstileToken: liveToken,
         }),
       })
-      if (!res.ok) throw new Error()
+
+      // API always returns JSON with either { success: true } or { error: string }.
+      const data = (await res.json().catch(() => ({}))) as { success?: boolean; error?: string }
+
+      if (!res.ok) {
+        setStatus("error")
+        setErrorDetail(data.error ?? `Something went wrong (${res.status}). Please try again.`)
+        setTurnstileToken(null)
+        turnstileRef.current?.reset()
+        return
+      }
+
       setStatus("success")
       setForm({ name: "", email: "", subject: "", message: "" })
       setTurnstileToken(null)
       turnstileRef.current?.reset()
     } catch {
       setStatus("error")
+      setErrorDetail("Network error. Check your connection and try again.")
+      setTurnstileToken(null)
       turnstileRef.current?.reset()
     }
   }
@@ -49,7 +71,7 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Honeypot - hidden from real users, bots fill this in */}
+      {/* Honeypot: leave empty; if filled, API returns fake success so scrapers cannot probe the endpoint. */}
       <input
         type="text"
         name="_hp"
@@ -121,6 +143,11 @@ export default function ContactForm() {
       <Turnstile
         ref={turnstileRef}
         siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+        // Auto-refresh when Cloudflare expires the token or times out, so users are not stuck with a stale "Success" state.
+        options={{
+          refreshExpired: "auto",
+          refreshTimeout: "auto",
+        }}
         onSuccess={(token) => setTurnstileToken(token)}
         onExpire={() => setTurnstileToken(null)}
         onError={() => setTurnstileToken(null)}
@@ -132,11 +159,14 @@ export default function ContactForm() {
         </p>
       )}
       {status === "error" && (
-        <p className="text-sm text-destructive">Something went wrong. Please try again.</p>
+        <p className="text-sm text-destructive">
+          {errorDetail ?? "Something went wrong. Please try again."}
+        </p>
       )}
 
       <Button
         type="submit"
+        // Block send until Turnstile has issued a token (state mirrors widget; see liveToken in handleSubmit).
         disabled={status === "loading" || !turnstileToken}
         className="w-full sm:w-auto"
       >

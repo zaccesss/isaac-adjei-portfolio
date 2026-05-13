@@ -293,6 +293,9 @@ cd isaac-adjei-portfolio
 # Install dependencies
 npm install
 
+# Optional: use repo git hooks (strips AI Co-authored-by trailers from your commits)
+git config core.hooksPath .githooks
+
 # Start the dev server
 npm run dev
 ```
