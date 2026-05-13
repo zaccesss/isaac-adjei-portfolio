@@ -27,12 +27,14 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
   }
 }
 
+// Strip angle-bracket tags so email bodies cannot carry HTML injection into Resend-rendered HTML.
 function stripHtml(str: string): string {
   return str.replace(/<[^>]*>/g, "").trim()
 }
 
 export async function POST(request: Request) {
   try {
+    // Vercel sets x-forwarded-for; first hop is the client IP for rate limiting.
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
 
     // Rate limit - wrapped in its own try-catch so an Upstash outage never
@@ -54,12 +56,14 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { name, email, subject, message, _hp, turnstileToken } = body
 
-    // Honeypot
+    // Honeypot: bots often fill every input; real users never see this field. Return 200 so bots do not learn the field name.
     if (_hp) {
       return NextResponse.json({ success: true })
     }
 
-    // Turnstile - wrapped so a Cloudflare API blip never blocks the form
+    // Turnstile: optional server-side check when TURNSTILE_SECRET_KEY is set.
+    // The widget can show "Success" while siteverify still fails (wrong hostname, expired token, etc.) — those cases return 400 below.
+    // Network errors talking to Cloudflare are caught so a brief outage does not block real users.
     const turnstileSecret = process.env.TURNSTILE_SECRET_KEY
     if (turnstileSecret) {
       if (!turnstileToken) {
@@ -72,19 +76,38 @@ export async function POST(request: Request) {
           body: JSON.stringify({ secret: turnstileSecret, response: turnstileToken }),
           signal: AbortSignal.timeout(5000),
         })
-        const verifyData = await verifyRes.json()
+        const verifyData = (await verifyRes.json()) as {
+          success?: boolean
+          "error-codes"?: string[]
+        }
         if (!verifyData.success) {
-          return NextResponse.json(
-            { error: "Verification failed. Please try again." },
-            { status: 400 }
-          )
+          // Cloudflare documents these codes: https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
+          const codes = verifyData["error-codes"] ?? []
+          console.error("Turnstile siteverify failed:", codes)
+
+          let message = "Verification failed. Please complete the check again and send."
+          if (codes.includes("hostname-mismatch")) {
+            message =
+              "Captcha domain mismatch. In Cloudflare Turnstile, add both isaacadjei.me and www.isaacadjei.me to the widget hostnames."
+          } else if (
+            codes.includes("timeout-or-duplicate") ||
+            codes.includes("invalid-input-response")
+          ) {
+            message = "Captcha expired or was already used. Please verify again, then send."
+          } else if (
+            codes.includes("invalid-input-secret") ||
+            codes.includes("missing-input-secret")
+          ) {
+            message = "Server captcha configuration error."
+          }
+          return NextResponse.json({ error: message }, { status: 400 })
         }
       } catch (tsErr) {
         console.error("Turnstile verification failed, allowing request:", tsErr)
       }
     }
 
-    // Input validation
+    // Input validation — mirror client `required` so direct API calls cannot bypass the form.
     if (!name || !email || !subject || !message) {
       return NextResponse.json({ error: "All fields are required." }, { status: 400 })
     }
@@ -96,11 +119,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid email address." }, { status: 400 })
     }
 
+    // Sanitise after length checks so we do not strip then accidentally shorten past limits.
     const safeName = stripHtml(name)
     const safeEmail = stripHtml(email)
     const safeSubject = stripHtml(subject)
     const safeMessage = stripHtml(message)
 
+    // Resend is optional in dev: without a key we log the payload and return success so local testing still works.
     const apiKey = process.env.RESEND_API_KEY
     if (!apiKey) {
       console.log("Contact form submission (no RESEND_API_KEY):", {
@@ -112,6 +137,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true })
     }
 
+    // 8s cap so a stuck Resend connection does not leave the serverless function hanging until platform timeout.
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -134,6 +160,7 @@ export async function POST(request: Request) {
     })
 
     if (!res.ok) {
+      // Resend returns a JSON error body; log the raw text for Vercel diagnostics.
       const error = await res.text()
       console.error("Resend error:", res.status, error)
       return NextResponse.json({ error: "Failed to send message." }, { status: 500 })
@@ -141,6 +168,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
+    // Malformed JSON, AbortSignal timeout on fetch, or unexpected runtime errors.
     console.error("Contact route error:", err)
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 })
   }

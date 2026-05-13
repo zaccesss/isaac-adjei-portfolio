@@ -48,6 +48,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Cursor IDE (local plans, rules — not for version control)
+.cursor/
+
 # Claude Code local settings (tool config, not for version control)
 .claude/
 
