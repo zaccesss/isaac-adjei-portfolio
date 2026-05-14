@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator"
 
 export default function FooterNewsletter() {
   const pathname = usePathname()
-  if (pathname === "/blog" || pathname === "/lab" || pathname === "/newsletter") return null
+  if (pathname === "/blog" || pathname === "/newsletter") return null
 
   return (
     <>

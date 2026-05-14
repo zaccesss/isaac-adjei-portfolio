@@ -102,7 +102,7 @@ export default function ProstheticsHealthTechPage() {
           After enucleation, the orbit (eye socket) is fitted with an orbital implant to maintain
           the shape of the socket. A prosthetic eye (ocular prosthesis) is then custom-made to sit
           in front of the implant. Modern prosthetic eyes are typically made from acrylic and are
-          hand-painted to match the patient's other eye. They provide a cosmetic restoration but
+          hand-painted to match the patient&apos;s other eye. They provide a cosmetic restoration but
           no visual function. That gap is what I find most interesting from an engineering
           perspective.
         </p>

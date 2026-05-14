@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import NewsletterForm from "@/components/shared/NewsletterForm"
 import { posts } from "@/data/blog"
 import { useModKey } from "@/hooks/useModKey"
 
@@ -821,17 +820,6 @@ export default function LabPage() {
           >
             restore terminal ↩
           </button>
-        </div>
-      )}
-
-      {!isMaximized && (
-        <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-3">
-          <p className="text-xs font-mono text-primary uppercase tracking-widest">newsletter</p>
-          <p className="text-sm font-medium">Stay in the loop</p>
-          <p className="text-xs text-muted-foreground">
-            Notes on tech, projects and more. No spam. Unsubscribe anytime.
-          </p>
-          <NewsletterForm variant="compact" />
         </div>
       )}
 

@@ -6,6 +6,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowLeft, Clock, Calendar, ExternalLink } from "lucide-react"
 import { getPostBySlug, posts, type ContentBlock, type PostType } from "@/data/blog"
 import { projects } from "@/data/projects"
@@ -136,10 +137,12 @@ function renderBlock(block: ContentBlock, i: number): React.ReactNode {
     case "image":
       return (
         <figure key={i} className="space-y-2 my-2">
-          <img
+          <Image
             src={block.src}
             alt={block.alt}
-            className="rounded-lg border border-border/60 w-full"
+            width={900}
+            height={500}
+            className="rounded-lg border border-border/60 w-full h-auto"
           />
           {block.caption && (
             <figcaption className="text-xs text-center text-muted-foreground italic">
