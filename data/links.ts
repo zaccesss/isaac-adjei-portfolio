@@ -97,7 +97,7 @@ export const profileLinks: LinkItem[] = [
   {
     title: "X (Twitter)",
     description: "Follow on X - updates, thoughts & takes",
-    url: "https://x.com/zaccessss",
+    url: "https://x.com/zaccesss",
     icon: "twitter",
     category: "social",
   },
@@ -125,7 +125,7 @@ export const profileLinks: LinkItem[] = [
   {
     title: "Pinterest",
     description: "Follow on Pinterest - my digital vision & tech boards",
-    url: "https://pinterest.com/zaccessss",
+    url: "https://pinterest.com/zaccesss",
     icon: "pinterest",
     category: "social",
   },
@@ -140,7 +140,7 @@ export const profileLinks: LinkItem[] = [
   {
     title: "Discord",
     description: "Add me on Discord",
-    url: "https://discord.com/users/zac.cess",
+    url: "https://discord.com/users/zac.nii",
     icon: "discord",
     category: "social",
   },
@@ -168,7 +168,7 @@ export const profileLinks: LinkItem[] = [
   {
     title: "Twitch",
     description: "Follow on Twitch - watch me live",
-    url: "https://www.twitch.tv/zaccessss",
+    url: "https://www.twitch.tv/zaccesss",
     icon: "twitch",
     category: "content",
   },
