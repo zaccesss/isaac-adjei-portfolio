@@ -9,6 +9,8 @@ export const ROUTES = {
   experience: "/experience",
   skills: "/skills",
   blog: "/blog",
+  notes: "/notes",
+  lab: "/lab",
   contact: "/contact",
   links: "/links",
 } as const
@@ -21,6 +23,7 @@ export const NAV_LINKS = [
   { label: "Experience", href: ROUTES.experience },
   { label: "Skills", href: ROUTES.skills },
   { label: "Blog", href: ROUTES.blog },
+  { label: "Notes", href: ROUTES.notes },
   { label: "Contact", href: ROUTES.contact },
   { label: "Links", href: ROUTES.links },
 ] as const

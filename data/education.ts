@@ -63,7 +63,7 @@ export const education: Education[] = [
     startDate: "Sep 2019",
     endDate: "Mar 2022",
     description:
-      "Studied General Arts with electives in Economics, Government, Christian Religious Studies and Geography. Active in Robotics Club, APOSA (Secretary), Scripture Union, Debate Society and Athletics.",
+      "Core subjects: English Language, Mathematics, Social Studies and Integrated Science. Active in Robotics Club, APOSA (Secretary), Scripture Union and Debate Society.",
     modules: [
       "Economics",
       "Government",

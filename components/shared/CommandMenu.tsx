@@ -16,7 +16,7 @@ import {
   CommandList,
   CommandShortcut,
 } from "@/components/ui/command"
-import { Home, User, Briefcase, Code, Mail, Cpu, BookOpen, Link2 } from "lucide-react"
+import { Home, User, Briefcase, Code, Mail, Cpu, BookOpen, Link2, NotebookPen, FlaskConical } from "lucide-react"
 import { DialogTitle } from "@/components/ui/dialog"
 import { useModKey } from "@/hooks/useModKey"
 
@@ -43,6 +43,8 @@ export default function CommandMenu() {
         e: "/experience",
         s: "/skills",
         b: "/blog",
+        n: "/notes",
+        t: "/lab",
         c: "/contact",
         l: "/links",
       }
@@ -103,6 +105,16 @@ export default function CommandMenu() {
             <BookOpen className="mr-2 h-4 w-4" />
             Blog
             <CommandShortcut>{shortcut("B")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="notes" onSelect={() => go("/notes")}>
+            <NotebookPen className="mr-2 h-4 w-4" />
+            Notes
+            <CommandShortcut>{shortcut("N")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="lab" onSelect={() => go("/lab")}>
+            <FlaskConical className="mr-2 h-4 w-4" />
+            Lab
+            <CommandShortcut>{shortcut("T")}</CommandShortcut>
           </CommandItem>
         </CommandGroup>
 
