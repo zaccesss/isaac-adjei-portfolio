@@ -20,7 +20,7 @@ import {
   FaPlaystation,
 } from "react-icons/fa6"
 import { SiCodeforces, SiKick, SiLeetcode, SiSubstack, SiLinktree, SiOrcid } from "react-icons/si"
-import { Globe, Mail, ExternalLink } from "lucide-react"
+import { Globe, Mail, ExternalLink, Newspaper } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { profileLinks, type LinkItem } from "@/data/links"
@@ -47,6 +47,7 @@ const iconMap: Record<string, React.ElementType> = {
   kick: SiKick,
   linktree: SiLinktree,
   orcid: SiOrcid,
+  newspaper: Newspaper,
 }
 
 const brandClasses: Record<string, { bg: string; icon: string }> = {
@@ -68,6 +69,7 @@ const brandClasses: Record<string, { bg: string; icon: string }> = {
   kick: { bg: "bg-[#53FC18]/15", icon: "text-[#3AD70A]" },
   linktree: { bg: "bg-[#43E55E]/10", icon: "text-[#43E55E]" },
   orcid: { bg: "bg-[#A6CE39]/10", icon: "text-[#A6CE39]" },
+  newspaper: { bg: "bg-primary/10", icon: "text-primary" },
 }
 
 const categoryLabel: Record<LinkItem["category"], string> = {

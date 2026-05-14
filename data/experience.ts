@@ -67,22 +67,6 @@ export const experiences: Experience[] = [
     ],
   },
   {
-    id: "mcdonalds",
-    role: "Crew Member",
-    company: "McDonald's",
-    location: "Birmingham, UK",
-    type: "work",
-    startDate: "Nov 2025",
-    endDate: "Present",
-    description:
-      "Part-time crew member delivering fast-paced customer service and operational support.",
-    achievements: [
-      "Maintain consistent service quality in a high-volume, fast-paced environment",
-      "Work collaboratively across kitchen and front-of-house teams",
-      "Developed strong teamwork, time management and multitasking skills",
-    ],
-  },
-  {
     id: "british-airways-virtual",
     role: "Engineering Operations & Maintenance Planning (Virtual Experience)",
     company: "British Airways via Forage",

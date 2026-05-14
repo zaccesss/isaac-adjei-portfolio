@@ -38,10 +38,17 @@ export default function ProjectCard({ project }: Props) {
       )}
       <CardHeader className="space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <Badge variant="outline" className="capitalize text-xs">
-            {project.category}
-          </Badge>
-          <span className="text-xs text-muted-foreground">{project.date}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="outline" className="capitalize text-xs">
+              {project.category}
+            </Badge>
+            {project.ongoing && (
+              <Badge className="text-xs bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30 border">
+                Ongoing
+              </Badge>
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground shrink-0">{project.date}</span>
         </div>
         <div>
           <CardTitle className="text-xl">
