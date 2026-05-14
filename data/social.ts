@@ -29,9 +29,9 @@ export const socialLinks: SocialLink[] = [
   },
   {
     name: "Newsletter",
-    url: "https://newsletter.isaacadjei.me",
+    url: "https://isaacadjei.me/newsletter",
     icon: "newsletter",
-    username: "newsletter.isaacadjei.me",
+    username: "isaacadjei.me/newsletter",
   },
   {
     name: "ORCID",

@@ -103,7 +103,7 @@ function renderBlock(block: ContentBlock, i: number): React.ReactNode {
         <blockquote key={i} className="border-l-2 border-primary pl-5 py-1 space-y-1">
           <p className="text-base italic text-foreground/80">{block.text}</p>
           {block.source && (
-            <p className="text-xs font-mono text-muted-foreground">— {block.source}</p>
+            <p className="text-xs font-mono text-muted-foreground">- {block.source}</p>
           )}
         </blockquote>
       )

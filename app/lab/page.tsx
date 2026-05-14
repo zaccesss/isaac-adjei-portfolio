@@ -70,7 +70,7 @@ const MAIL_COMMANDS: Record<string, string> = {
 
 const COMMANDS: Record<string, () => Line[]> = {
   help: () => [
-    { type: "info", text: "isaacadjei-lab — available commands" },
+    { type: "info", text: "isaacadjei-lab - available commands" },
     { type: "blank", text: "" },
     { type: "info", text: "  navigate" },
     { type: "cmd-list", text: "  about        -  open about page" },
@@ -126,7 +126,7 @@ const COMMANDS: Record<string, () => Line[]> = {
   ],
 
   ls: () => [
-    { type: "info", text: "isaacadjei.me — directory listing" },
+    { type: "info", text: "isaacadjei.me - directory listing" },
     { type: "blank", text: "" },
     { type: "output", text: "  drwxr-xr-x  /about        who I am" },
     { type: "output", text: "  drwxr-xr-x  /projects     things I built" },
@@ -145,10 +145,10 @@ const COMMANDS: Record<string, () => Line[]> = {
   ],
 
   man: () => [
-    { type: "info", text: "MANUAL PAGE — isaac(1)" },
+    { type: "info", text: "MANUAL PAGE - isaac(1)" },
     { type: "blank", text: "" },
     { type: "output", text: "  NAME" },
-    { type: "output", text: "       isaac — electronic engineer and developer" },
+    { type: "output", text: "       isaac - electronic engineer and developer" },
     { type: "blank", text: "" },
     { type: "output", text: "  SYNOPSIS" },
     { type: "output", text: "       isaac [--build | --learn | --collaborate]" },
@@ -375,7 +375,7 @@ const COMMANDS: Record<string, () => Line[]> = {
         text: `  [${TYPE_LABEL[p.type] ?? p.type}]  ${p.title}`,
       })),
       { type: "blank", text: "" },
-      { type: "output", text: "  more in progress — watch this space" },
+      { type: "output", text: "  more in progress - watch this space" },
     ]
   },
 
@@ -503,7 +503,7 @@ function renderLine(line: Line, i: number) {
     )
   }
 
-  // kv: "  key      value" — key in cyan, value in amber
+  // kv: "  key      value" - key in cyan, value in amber
   if (line.type === "kv") {
     const idx = line.text.search(/\s{2,}/)
     if (idx > -1) {
@@ -526,7 +526,7 @@ function renderLine(line: Line, i: number) {
     return <div key={i} className="font-mono text-xs leading-relaxed text-amber-300">{line.text}</div>
   }
 
-  // cmd-list: "  command   -  description" — command in green, dash in zinc, description in zinc-400
+  // cmd-list: "  command   -  description" - command in green, dash in zinc, description in zinc-400
   if (line.type === "cmd-list") {
     const match = line.text.match(/^(\s*)(\S+)(\s+-\s+)(.*)$/)
     if (match) {
@@ -706,7 +706,7 @@ export default function LabPage() {
               ⚠️ lab // under construction ⚠️
             </p>
             <p className="font-mono text-xs text-muted-foreground">
-              something is being built here — check back soon
+              something is being built here - check back soon
             </p>
           </div>
           <div className="flex justify-center">
@@ -759,7 +759,7 @@ export default function LabPage() {
               />
             </div>
             <span className="text-xs text-zinc-400" aria-hidden="true">
-              isaacadjei@portfolio — lab — 80x24
+              isaacadjei@portfolio - lab - 80x24
             </span>
             <span className="w-14" />
           </div>
