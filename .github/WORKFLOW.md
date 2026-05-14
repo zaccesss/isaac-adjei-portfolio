@@ -37,8 +37,8 @@ Total time from commit to live: about 3-5 minutes.
 The `.githooks/commit-msg` hook rejects commits that violate these:
 
 - Use conventional prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`
-- No em dashes (`—`) or en dashes (`–`) — use a hyphen `-` instead
-- No Oxford comma (`x, y, and z`) — write `x, y and z`
+- No em dashes (`—`) or en dashes (`–`): use a hyphen `-` instead
+- No Oxford comma (`x, y, and z`): write `x, y and z`
 
 ---
 
