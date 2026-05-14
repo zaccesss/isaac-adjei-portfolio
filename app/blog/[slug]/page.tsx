@@ -6,8 +6,9 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Clock, Calendar } from "lucide-react"
+import { ArrowLeft, Clock, Calendar, ExternalLink } from "lucide-react"
 import { getPostBySlug, posts, type ContentBlock, type PostType } from "@/data/blog"
+import { projects } from "@/data/projects"
 import { Badge } from "@/components/ui/badge"
 
 const TYPE_STYLES: Record<PostType, string> = {
@@ -15,6 +16,9 @@ const TYPE_STYLES: Record<PostType, string> = {
   journal: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
   research: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
   notes: "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20",
+  report: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20",
+  article: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
+  resources: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
 }
 
 const TYPE_LABELS: Record<PostType, string> = {
@@ -22,6 +26,9 @@ const TYPE_LABELS: Record<PostType, string> = {
   journal: "Journal",
   research: "Research",
   notes: "Notes",
+  report: "Report",
+  article: "Article",
+  resources: "Resources",
 }
 
 function formatDate(dateStr: string): string {
@@ -100,6 +107,47 @@ function renderBlock(block: ContentBlock, i: number): React.ReactNode {
           )}
         </blockquote>
       )
+    case "ol-links":
+      return (
+        <ol key={i} className="space-y-2 list-none pl-0">
+          {block.items.map((item, j) => (
+            <li key={j} className="flex gap-3 text-sm text-foreground/90">
+              <span className="shrink-0 font-mono text-sm text-primary">
+                {String(j + 1).padStart(2, "0")}.
+              </span>
+              <span>
+                {item.url ? (
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary transition-colors underline underline-offset-4"
+                  >
+                    {item.text}
+                  </a>
+                ) : (
+                  item.text
+                )}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )
+    case "image":
+      return (
+        <figure key={i} className="space-y-2 my-2">
+          <img
+            src={block.src}
+            alt={block.alt}
+            className="rounded-lg border border-border/60 w-full"
+          />
+          {block.caption && (
+            <figcaption className="text-xs text-center text-muted-foreground italic">
+              {block.caption}
+            </figcaption>
+          )}
+        </figure>
+      )
     case "divider":
       return <hr key={i} className="border-border/40" />
     default:
@@ -114,9 +162,10 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }): Promise<Metadata> {
-  const post = getPostBySlug(params.slug)
+  const { slug } = await params
+  const post = getPostBySlug(slug)
   if (!post) return {}
   if (!post.published) {
     return {
@@ -130,15 +179,17 @@ export async function generateMetadata({
     title: post.title,
     description: post.description,
     alternates: {
-      canonical: `https://www.isaacadjei.me/blog/${params.slug}`,
+      canonical: `https://www.isaacadjei.me/blog/${slug}`,
     },
   }
 }
 
-export default function PostPage({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug)
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const post = getPostBySlug(slug)
   if (!post) notFound()
   if (!post.published) notFound()
+  const linkedProject = post.projectSlug ? projects.find((p) => p.id === post.projectSlug) : null
 
   return (
     <div className="container max-w-2xl py-24">
@@ -191,6 +242,28 @@ export default function PostPage({ params }: { params: { slug: string } }) {
           </div>
         )}
 
+        {linkedProject && (
+          <div className="flex items-center gap-4 flex-wrap">
+            <Link
+              href={`/projects/${post.projectSlug}`}
+              className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              View project page
+            </Link>
+            {linkedProject.github && (
+              <a
+                href={linkedProject.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                GitHub
+              </a>
+            )}
+          </div>
+        )}
         <hr className="border-border/40" />
       </div>
 

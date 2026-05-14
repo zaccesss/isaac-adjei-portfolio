@@ -12,6 +12,9 @@ const TYPE_STYLES: Record<PostType, string> = {
   journal: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
   research: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
   notes: "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20",
+  report: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20",
+  article: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
+  resources: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
 }
 
 const TYPE_LABELS: Record<PostType, string> = {
@@ -19,6 +22,9 @@ const TYPE_LABELS: Record<PostType, string> = {
   journal: "Journal",
   research: "Research",
   notes: "Notes",
+  report: "Report",
+  article: "Article",
+  resources: "Resources",
 }
 
 function formatDate(dateStr: string): string {

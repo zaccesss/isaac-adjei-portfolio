@@ -1,610 +1,248 @@
 "use client"
 
-// Blog listing page styled as an interactive terminal emulator.
-// The terminal boots with a fake startup sequence (BOOT lines) and then waits for
-// commands. Each command is looked up in the COMMANDS map and returns an array
-// of Line objects that are appended to the terminal output.
-// Navigation commands (about, projects, etc.) open the target page in a new tab.
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { Calendar, Clock, Terminal } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { getPublishedPosts, POST_TYPES, type PostType } from "@/data/blog"
+import NewsletterForm from "@/components/shared/NewsletterForm"
 
-import { useCallback, useEffect, useRef, useState } from "react"
-import Image from "next/image"
-import { posts } from "@/data/blog"
-import { useModKey } from "@/hooks/useModKey"
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-type WindowState = "normal" | "minimized" | "maximized" | "closed"
-type LineType = "system" | "cmd-echo" | "output" | "error" | "info" | "blank"
-
-interface Line {
-  type: LineType
-  text: string
+const TYPE_STYLES: Record<PostType, string> = {
+  blog: "bg-primary/10 text-primary border-primary/20",
+  journal: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  research: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  notes: "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20",
+  report: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20",
+  article: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
+  resources: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
 }
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-const HOST = "zacess@portfolio:~/blog"
-
-const TYPE_LABEL: Record<string, string> = {
-  blog: "blog",
-  journal: "journal",
-  research: "research",
-  notes: "notes",
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
 }
 
-const BOOT: Line[] = [
-  { type: "system", text: "zacess-blog v0.1.0-alpha" },
-  { type: "system", text: "kernel: loading writing module..." },
-  { type: "system", text: "checking drafts......" },
-  { type: "system", text: "environment: ready" },
-  { type: "blank", text: "" },
-]
-
-const NAV_COMMANDS: Record<string, string> = {
-  about: "https://www.isaacadjei.me/about",
-  projects: "https://www.isaacadjei.me/projects",
-  skills: "https://www.isaacadjei.me/skills",
-  contact: "https://www.isaacadjei.me/contact",
-  links: "https://www.isaacadjei.me/links",
-  cv: "https://www.isaacadjei.me/cv",
-}
-
-const MAIL_COMMANDS: Record<string, string> = {
-  collaborate:
-    "mailto:contact@isaacadjei.me?subject=Collaboration%20Opportunity&body=Hi%20Isaac%2C%0A%0AI%20would%20love%20to%20collaborate%20with%20you%20on...%0A%0ABest%2C",
-  suggest:
-    "mailto:contact@isaacadjei.me?subject=Blog%20Suggestion&body=Hi%20Isaac%2C%0A%0AI%20have%20an%20idea%20for%20your%20blog%3A%0A%0A-%20Topic%3A%0A-%20Why%20it%20would%20be%20useful%3A%0A%0AThanks%2C",
-}
-
-const COMMANDS: Record<string, () => Line[]> = {
-  help: () => [
-    { type: "info", text: "blog terminal commands:" },
-    { type: "blank", text: "" },
-    { type: "output", text: "  help      -  list available commands" },
-    { type: "output", text: "  about     -  open about page" },
-    { type: "output", text: "  projects  -  open projects page" },
-    { type: "output", text: "  skills    -  open skills page" },
-    {
-      type: "output",
-      text: "  contact   -  open contact form (collab, research, projects, suggestions)",
-    },
-    { type: "output", text: "  links     -  open links page" },
-    { type: "output", text: "  cv        -  open CV page" },
-    { type: "output", text: "  collaborate -  open email for collaboration" },
-    { type: "output", text: "  suggest   -  send a blog/content suggestion" },
-    { type: "output", text: "  posts     -  all writing entries" },
-    { type: "output", text: "  live      -  published posts with slugs" },
-    { type: "output", text: "  drafts    -  works in progress" },
-    { type: "output", text: "  topics    -  active tags and themes" },
-    { type: "output", text: "  now       -  what is being written right now" },
-    { type: "output", text: "  motto     -  quick motivation" },
-    { type: "output", text: "  status    -  blog build status" },
-    { type: "output", text: "  zac       -  easter egg" },
-    { type: "output", text: "  sudo      -  definitely do not run this" },
-    { type: "output", text: "  whoami    -  identity check" },
-    { type: "output", text: "  clear     -  clear the terminal" },
-  ],
-
-  posts: () => [
-    { type: "info", text: `writing queue  (${posts.length} entries):` },
-    { type: "blank", text: "" },
-    ...posts.map((p) => ({
-      type: "output" as LineType,
-      text: `  [${TYPE_LABEL[p.type]}]  ${p.title}${p.published ? "  ● live" : "  • draft"}`,
-    })),
-    { type: "blank", text: "" },
-    { type: "output", text: "  tip: run 'live' to get direct post slugs" },
-  ],
-
-  live: () => {
-    const published = posts.filter((p) => p.published)
-    return [
-      { type: "info", text: `published now  (${published.length}):` },
-      { type: "blank", text: "" },
-      ...published.map((p) => ({
-        type: "output" as LineType,
-        text: `  → /blog/${p.slug}`,
-      })),
-    ]
-  },
-
-  drafts: () => {
-    const draft = posts.filter((p) => !p.published)
-    return [
-      { type: "info", text: `draft pipeline  (${draft.length}):` },
-      { type: "blank", text: "" },
-      ...draft.map((p) => ({
-        type: "output" as LineType,
-        text: `  [${TYPE_LABEL[p.type]}]  ${p.title}`,
-      })),
-      { type: "blank", text: "" },
-      { type: "output", text: "  more posts are in progress - watch this space" },
-    ]
-  },
-
-  topics: () => {
-    const tags = Array.from(new Set(posts.flatMap((p) => p.tags))).sort((a, b) =>
-      a.localeCompare(b)
-    )
-    return [
-      { type: "info", text: `active tags  (${tags.length}):` },
-      { type: "blank", text: "" },
-      { type: "output", text: `  ${tags.join("  ·  ")}` },
-    ]
-  },
-
-  now: () => [
-    { type: "info", text: "writing now:" },
-    { type: "blank", text: "" },
-    { type: "output", text: "  → journal entries from uni + placements" },
-    { type: "output", text: "  → practical engineering write-ups" },
-    { type: "output", text: "  → quick notes from labs and projects" },
-    { type: "output", text: "  → reflections from virtual experiences" },
-  ],
-
-  about: () => [
-    { type: "info", text: "opening: isaacadjei.me/about" },
-    { type: "output", text: "launching in new tab..." },
-  ],
-
-  projects: () => [
-    { type: "info", text: "opening: isaacadjei.me/projects" },
-    { type: "output", text: "launching in new tab..." },
-  ],
-
-  skills: () => [
-    { type: "info", text: "opening: isaacadjei.me/skills" },
-    { type: "output", text: "launching in new tab..." },
-  ],
-
-  contact: () => [
-    { type: "info", text: "opening: isaacadjei.me/contact" },
-    { type: "output", text: "launching in new tab..." },
-    {
-      type: "output",
-      text: "use the form for collaboration, research, project work, suggestions and more",
-    },
-  ],
-
-  links: () => [
-    { type: "info", text: "opening: isaacadjei.me/links" },
-    { type: "output", text: "launching in new tab..." },
-  ],
-
-  cv: () => [
-    { type: "info", text: "opening: isaacadjei.me/cv" },
-    { type: "output", text: "launching in new tab..." },
-  ],
-
-  collaborate: () => [
-    { type: "info", text: "opening: mail client" },
-    { type: "output", text: "to: contact@isaacadjei.me" },
-    { type: "output", text: "subject: Collaboration Opportunity" },
-  ],
-
-  suggest: () => [
-    { type: "info", text: "opening: mail client" },
-    { type: "output", text: "to: contact@isaacadjei.me" },
-    { type: "output", text: "subject: Blog Suggestion" },
-  ],
-
-  motto: () => [
-    { type: "blank", text: "" },
-    { type: "info", text: '  "The people who are crazy enough to think they' },
-    { type: "info", text: '   can change the world are the ones who do."' },
-    { type: "blank", text: "" },
-    { type: "output", text: "                                        - Steve Jobs" },
-    { type: "blank", text: "" },
-  ],
-
-  zac: () => [
-    { type: "info", text: "ACCESS GRANTED." },
-    { type: "blank", text: "" },
-    { type: "output", text: "  success unlocked. welcome to writer mode." },
-    { type: "output", text: "  hidden perk: your curiosity stat increased +1" },
-  ],
-
-  sudo: () => [
-    { type: "error", text: "permission denied: this terminal respects least privilege" },
-    { type: "blank", text: "" },
-    { type: "output", text: "  tip: try 'help' or 'posts' instead" },
-  ],
-
-  whoami: () => [
-    { type: "info", text: "you are a curious reader in /blog" },
-    { type: "blank", text: "" },
-    { type: "output", text: "  role: terminal operator" },
-    { type: "output", text: "  mission: discover live posts + hidden commands" },
-  ],
-
-  status: () => [
-    { type: "info", text: "system:  ZacessOS v1.0-beta" },
-    { type: "output", text: "build:   blog v0.1.0-alpha - in progress" },
-    { type: "blank", text: "" },
-    { type: "info", text: "ready now:" },
-    { type: "output", text: "  → portfolio at isaacadjei.me" },
-    { type: "output", text: "  → CV available for download  (try: cv)" },
-    { type: "output", text: "  → contact via contact@isaacadjei.me" },
-    { type: "blank", text: "" },
-    { type: "info", text: "coming soon:" },
-    { type: "output", text: "  → blog posts and engineering write-ups" },
-    { type: "output", text: "  → journal entries from uni and work" },
-    { type: "output", text: "  → research notes and papers" },
-  ],
-}
-
-// ── Line renderer ─────────────────────────────────────────────────────────────
-function renderLine(line: Line, i: number) {
-  if (line.type === "blank") return <div key={i} className="h-2" />
-
-  if (line.type === "cmd-echo") {
-    return (
-      <div key={i} className="flex items-baseline gap-1.5 font-mono text-xs mt-1">
-        <span className="text-cyan-400 shrink-0">{HOST}</span>
-        <span className="text-green-400 shrink-0">$</span>
-        <span className="text-green-300">{line.text}</span>
-      </div>
-    )
-  }
-
-  const cls =
-    line.type === "system"
-      ? "text-zinc-500"
-      : line.type === "info"
-        ? "text-blue-400"
-        : line.type === "error"
-          ? "text-red-400"
-          : "text-zinc-300"
-
-  // Split on → to colour arrows cyan; split on ● live to colour green
-  const parts = line.text.split(/(→|● live)/)
-  return (
-    <div key={i} className={`font-mono text-xs leading-relaxed ${cls}`}>
-      {parts.map((part, j) =>
-        part === "→" ? (
-          <span key={j} className="text-cyan-400">
-            →
-          </span>
-        ) : part === "● live" ? (
-          <span key={j} className="text-green-400">
-            ● live
-          </span>
-        ) : (
-          <span key={j}>{part}</span>
-        )
-      )}
-    </div>
-  )
-}
-
-// ── Component ─────────────────────────────────────────────────────────────────
 export default function BlogPage() {
-  const [lines, setLines] = useState<Line[]>([])
-  const [booted, setBooted] = useState(false)
-  const [inputVal, setInputVal] = useState("")
-  const [cmdHistory, setCmdHistory] = useState<string[]>([])
-  const [histIdx, setHistIdx] = useState(-1)
-  const [winState, setWinState] = useState<WindowState>("normal")
-
+  const [activeType, setActiveType] = useState<PostType | "all">("all")
   const [quote, setQuote] = useState<{ quote: string; author: string } | null>(null)
   const [bible, setBible] = useState<{ verse: string; reference: string } | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const bodyRef = useRef<HTMLDivElement>(null)
-  const { modLabel } = useModKey()
 
-  // Fetch motivational quote on mount and refresh every 30 minutes
   useEffect(() => {
     const fetchQuote = async () => {
       try {
         const res = await fetch("/api/quote")
         const data = await res.json()
         setQuote(data)
-      } catch {
-        // silently keep previous quote
-      }
+      } catch {}
     }
     fetchQuote()
     const interval = setInterval(fetchQuote, 30 * 60 * 1000)
     return () => clearInterval(interval)
   }, [])
 
-  // Fetch random Bible verse on mount and refresh every 30 minutes
   useEffect(() => {
     const fetchVerse = async () => {
       try {
         const res = await fetch("/api/bible-verse")
         const data = await res.json()
         setBible(data)
-      } catch {
-        // silently keep previous verse
-      }
+      } catch {}
     }
     fetchVerse()
     const interval = setInterval(fetchVerse, 30 * 60 * 1000)
     return () => clearInterval(interval)
   }, [])
 
-  // Boot sequence then show a short hint (no command dump)
-  useEffect(() => {
-    let i = 0
-    const timer = setInterval(() => {
-      if (i < BOOT.length) {
-        const line = BOOT[i]
-        i++
-        setLines((prev) => [...prev, line])
-      } else {
-        clearInterval(timer)
-        setTimeout(() => {
-          setBooted(true)
-          setLines((prev) => [
-            ...prev,
-            { type: "info", text: "session initialised" },
-            { type: "output", text: "type 'help' for a list of commands" },
-            { type: "output", text: "try: posts, live, drafts, topics" },
-            { type: "blank", text: "" },
-          ])
-        }, 350)
-      }
-    }, 110)
-    return () => clearInterval(timer)
-  }, [])
-
-  // Auto-scroll to bottom
-  useEffect(() => {
-    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
-  }, [lines, inputVal])
-
-  const execCommand = useCallback((raw: string) => {
-    const cmd = raw.trim().toLowerCase()
-
-    if (!cmd) {
-      setLines((prev) => [...prev, { type: "blank", text: "" }])
-      return
-    }
-
-    setCmdHistory((prev) => [raw.trim(), ...prev])
-    setHistIdx(-1)
-
-    if (cmd === "clear") {
-      setLines([])
-      setInputVal("")
-      return
-    }
-
-    const output: Line[] = COMMANDS[cmd]
-      ? COMMANDS[cmd]()
-      : [
-          { type: "error", text: `bash: ${cmd}: command not found` },
-          { type: "output", text: "type 'help' to see available commands" },
-        ]
-
-    const redirectUrl = NAV_COMMANDS[cmd]
-    if (redirectUrl) {
-      window.open(redirectUrl, "_blank", "noopener,noreferrer")
-    }
-
-    const mailUrl = MAIL_COMMANDS[cmd]
-    if (mailUrl) {
-      window.open(mailUrl, "_blank", "noopener,noreferrer")
-    }
-
-    setLines((prev) => [
-      ...prev,
-      { type: "cmd-echo", text: raw.trim() },
-      ...output,
-      { type: "blank", text: "" },
-    ])
-    setInputVal("")
-  }, [])
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      execCommand(inputVal)
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault()
-      const idx = Math.min(histIdx + 1, cmdHistory.length - 1)
-      setHistIdx(idx)
-      if (cmdHistory[idx] !== undefined) setInputVal(cmdHistory[idx])
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault()
-      const idx = Math.max(histIdx - 1, -1)
-      setHistIdx(idx)
-      setInputVal(idx === -1 ? "" : cmdHistory[idx])
-    }
-  }
-
-  const isMaximized = winState === "maximized"
-  const isMinimized = winState === "minimized"
-  const isClosed = winState === "closed"
+  const allPosts = getPublishedPosts().sort((a, b) => {
+    // Pin journey post to top always
+    if (a.slug === "my-journey-so-far") return -1
+    if (b.slug === "my-journey-so-far") return 1
+    // Pin week-1-aston to bottom always
+    if (a.slug === "week-1-aston") return 1
+    if (b.slug === "week-1-aston") return -1
+    // Then sort by date descending
+    return new Date(b.date).getTime() - new Date(a.date).getTime()
+  })
+  const filtered =
+    activeType === "all" ? allPosts : allPosts.filter((p) => p.type === activeType)
 
   return (
-    <div className="container max-w-3xl py-24 space-y-8">
-      {/* Banner + GIF - hidden when maximised or closed */}
-      {!isMaximized && !isClosed && (
-        <>
-          <div className="text-center space-y-1">
-            <p className="font-mono text-sm font-semibold tracking-widest uppercase text-yellow-500">
-              ⚠️ blog // under construction ⚠️
-            </p>
-            <p className="font-mono text-xs text-muted-foreground">
-              writing module is being built - check back soon
-            </p>
-          </div>
-          <div className="flex justify-center">
-            <div className="rounded-lg border border-border/60 overflow-hidden">
-              <Image
-                src="/Media/giphy.gif"
-                alt="Under construction"
-                width={320}
-                height={200}
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-          </div>
-        </>
-      )}
+    <div className="container max-w-4xl py-24 space-y-12">
+      <section className="space-y-4">
+        <h1 className="text-4xl font-bold tracking-tight">Writing</h1>
+        <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+          Engineering write-ups, project breakdowns, journal entries and research notes. Everything
+          I build, learn and think about.
+        </p>
+      </section>
 
-      {/* ── Terminal ───────────────────────────────────────── */}
-      {!isClosed ? (
-        <div
-          className={
-            isMaximized
-              ? "fixed inset-0 z-50 flex flex-col font-mono"
-              : "rounded-lg border border-zinc-700 overflow-hidden shadow-xl font-mono"
-          }
-        >
-          {/* Title bar - always dark */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-800 border-b border-zinc-700 shrink-0">
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                title="Close"
-                onClick={() => setWinState("closed")}
-                className="h-3 w-3 rounded-full bg-red-500 hover:brightness-125 transition-all cursor-pointer"
-              />
-              <button
-                type="button"
-                title="Minimise"
-                onClick={() => setWinState(isMinimized ? "normal" : "minimized")}
-                className="h-3 w-3 rounded-full bg-yellow-400 hover:brightness-125 transition-all cursor-pointer"
-              />
-              <button
-                type="button"
-                title="Maximise"
-                onClick={() => setWinState(isMaximized ? "normal" : "maximized")}
-                className="h-3 w-3 rounded-full bg-green-500 hover:brightness-125 transition-all cursor-pointer"
-              />
-            </div>
-            <span className="text-xs text-zinc-400">zacess@portfolio - blog - 80x24</span>
-            <span className="w-14" />
-          </div>
+      {/* Filter tabs */}
+      <div className="flex flex-wrap gap-2">
+        {POST_TYPES.map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            onClick={() => setActiveType(t.value)}
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+              activeType === t.value
+                ? "bg-primary text-primary-foreground border-primary"
+                : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/40"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-          {/* Body - always dark, collapses when minimised */}
-          {!isMinimized && (
-            <div
-              ref={bodyRef}
-              onClick={() => inputRef.current?.focus()}
-              className={`bg-zinc-950 px-5 py-4 overflow-y-auto cursor-text select-text ${
-                isMaximized ? "flex-1" : "min-h-[420px] max-h-[580px]"
-              }`}
+      {/* Post grid */}
+      {filtered.length > 0 ? (
+        <div className="space-y-6">
+          {filtered.map((post) => (
+            <Link
+              key={post.slug}
+              href={`/blog/${post.slug}`}
+              className="group block rounded-lg border border-border/60 bg-muted/40 hover:bg-muted/60 hover:border-border transition-all px-6 py-5 space-y-3"
             >
-              {lines.map((line, i) => renderLine(line, i))}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span
+                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${TYPE_STYLES[post.type]}`}
+                >
+                  {POST_TYPES.find((t) => t.value === post.type)?.label ?? post.type}
+                </span>
+              </div>
 
-              {/* Interactive prompt */}
-              {booted && (
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-cyan-400 font-mono text-xs shrink-0">{HOST}</span>
-                  <span className="text-green-400 font-mono text-xs shrink-0">$</span>
-                  <div className="relative flex items-center flex-1 min-w-0">
-                    {/* Hidden real input captures keystrokes */}
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      aria-label="Terminal input"
-                      value={inputVal}
-                      onChange={(e) => setInputVal(e.target.value)}
-                      onKeyDown={onKeyDown}
-                      autoFocus
-                      autoComplete="off"
-                      autoCorrect="off"
-                      spellCheck={false}
-                      className="absolute inset-0 opacity-0 w-full bg-transparent outline-none"
-                    />
-                    {/* Visual mirror */}
-                    <span className="text-green-300 font-mono text-xs whitespace-pre">
-                      {inputVal}
-                    </span>
-                    <span className="inline-block w-[7px] h-[13px] bg-zinc-300 ml-px shrink-0 animate-[blink_1s_step-end_infinite]" />
-                  </div>
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold tracking-tight group-hover:text-primary transition-colors leading-snug">
+                  {post.title}
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                  {post.description}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-4 text-xs text-muted-foreground font-mono">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="h-3 w-3" />
+                  {formatDate(post.date)}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="h-3 w-3" />
+                  {post.readingTime} min read
+                </span>
+              </div>
+
+              {post.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {post.tags.map((tag) => (
+                    <Badge key={tag} variant="outline" className="text-xs font-normal">
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
               )}
-            </div>
-          )}
+            </Link>
+          ))}
         </div>
       ) : (
-        <div className="flex justify-center py-4">
+        <div className="rounded-lg border border-dashed border-border/60 p-12 text-center space-y-2">
+          <p className="text-sm font-medium">No posts in this category yet.</p>
+          <p className="text-xs text-muted-foreground">Check back soon.</p>
+        </div>
+      )}
+
+      <Separator />
+
+      {/* Motivation */}
+      <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-mono text-primary uppercase tracking-widest">motivation</p>
           <button
             type="button"
-            onClick={() => setWinState("normal")}
-            className="font-mono text-xs text-muted-foreground hover:text-foreground border border-border rounded px-4 py-2 transition-colors"
+            onClick={async () => {
+              setQuote(null)
+              const res = await fetch("/api/quote")
+              const data = await res.json()
+              setQuote(data)
+            }}
+            className="text-[10px] font-mono text-muted-foreground hover:text-primary transition-colors"
           >
-            restore terminal ↩
+            refresh ↻
           </button>
         </div>
-      )}
+        {quote ? (
+          <>
+            <p className="text-base font-medium leading-relaxed">&ldquo;{quote.quote}&rdquo;</p>
+            <p className="text-xs text-muted-foreground">- {quote.author}</p>
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground font-mono animate-pulse">loading quote...</p>
+        )}
+      </div>
 
-      {/* Motivation - below terminal, hidden when maximised */}
-      {!isMaximized && (
-        <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-mono text-primary uppercase tracking-widest">motivation</p>
-            <button
-              type="button"
-              onClick={async () => {
-                setQuote(null)
-                const res = await fetch("/api/quote")
-                const data = await res.json()
-                setQuote(data)
-              }}
-              className="text-[10px] font-mono text-muted-foreground hover:text-primary transition-colors"
-            >
-              refresh ↻
-            </button>
-          </div>
-          {quote ? (
-            <>
-              <p className="text-base font-medium leading-relaxed">&ldquo;{quote.quote}&rdquo;</p>
-              <p className="text-xs text-muted-foreground">- {quote.author}</p>
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground font-mono animate-pulse">
-              loading quote...
-            </p>
-          )}
+      {/* Scripture */}
+      <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-mono text-primary uppercase tracking-widest">scripture</p>
+          <button
+            type="button"
+            onClick={async () => {
+              setBible(null)
+              const res = await fetch("/api/bible-verse")
+              const data = await res.json()
+              setBible(data)
+            }}
+            className="text-[10px] font-mono text-muted-foreground hover:text-primary transition-colors"
+          >
+            refresh ↻
+          </button>
         </div>
-      )}
+        {bible ? (
+          <>
+            <p className="text-base font-medium leading-relaxed">&ldquo;{bible.verse}&rdquo;</p>
+            <p className="text-xs text-muted-foreground">- {bible.reference}</p>
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground font-mono animate-pulse">loading verse...</p>
+        )}
+      </div>
 
-      {/* Scripture - below motivation, hidden when maximised */}
-      {!isMaximized && (
-        <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-mono text-primary uppercase tracking-widest">scripture</p>
-            <button
-              type="button"
-              onClick={async () => {
-                setBible(null)
-                const res = await fetch("/api/bible-verse")
-                const data = await res.json()
-                setBible(data)
-              }}
-              className="text-[10px] font-mono text-muted-foreground hover:text-primary transition-colors"
-            >
-              refresh ↻
-            </button>
-          </div>
-          {bible ? (
-            <>
-              <p className="text-base font-medium leading-relaxed">&ldquo;{bible.verse}&rdquo;</p>
-              <p className="text-xs text-muted-foreground">- {bible.reference}</p>
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground font-mono animate-pulse">
-              loading verse...
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Footer hint */}
-      {!isMaximized && (
-        <p className="text-center text-xs text-muted-foreground font-mono">
-          writing is being rebuilt - use{" "}
-          <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">
-            {modLabel}
-          </kbd>{" "}
-          + <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">I</kbd>{" "}
-          to navigate the rest of the site
+      {/* Newsletter */}
+      <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-3">
+        <p className="text-xs font-mono text-primary uppercase tracking-widest">newsletter</p>
+        <p className="text-sm font-medium">Get new posts in your inbox</p>
+        <p className="text-xs text-muted-foreground">
+          Notes on tech, projects and more. No spam. Unsubscribe anytime.
         </p>
-      )}
+        <NewsletterForm variant="compact" />
+      </div>
+
+      <Separator />
+
+      {/* Lab link */}
+      <Link
+        href="/lab"
+        className="group block rounded-lg border border-primary/30 bg-primary/5 hover:border-primary/60 hover:bg-primary/10 transition-all px-5 py-4"
+      >
+        <div className="flex items-center gap-3">
+          <span
+            className="inline-block w-2 h-4 bg-primary shrink-0 animate-[blink_1s_step-end_infinite]"
+            aria-hidden="true"
+          />
+          <div className="space-y-0.5">
+            <p className="font-mono text-sm text-primary font-medium">
+              prefer a terminal? try /lab
+            </p>
+            <p className="font-mono text-xs text-muted-foreground">
+              type commands to explore the site and find out more — click to open
+            </p>
+          </div>
+          <Terminal className="h-4 w-4 text-primary/40 group-hover:text-primary transition-colors ml-auto shrink-0" />
+        </div>
+      </Link>
     </div>
   )
 }

@@ -4,7 +4,7 @@
 // showLabel is optional - if true, the platform name appears next to the icon.
 
 import Link from "next/link"
-import { Github, Linkedin, Link2, Mail, Globe } from "lucide-react"
+import { Github, Linkedin, Link2, Mail, Globe, Newspaper } from "lucide-react"
 import { SiOrcid } from "react-icons/si"
 import { socialLinks } from "@/data/social"
 import { cn } from "@/lib/utils"
@@ -16,6 +16,7 @@ const iconMap: Record<string, React.ElementType> = {
   mail: Mail,
   globe: Globe,
   orcid: SiOrcid,
+  newsletter: Newspaper,
 }
 
 interface SocialLinksProps {

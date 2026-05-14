@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# .githooks/commit-msg — reject en/em dash characters and Oxford-comma patterns
+# Install: commit this file and set `git config core.hooksPath .githooks` in the repo.
+
+MSGFILE="$1"
+# Read full message and normalize CRLFs
+MSG="$(sed ':a;N;$!ba;s/\r//g' "$MSGFILE")"
+
+# Reject en-dash (U+2013) or em-dash (U+2014) characters
+if [[ "$MSG" =~ –|— ]]; then
+  echo "ERROR: Commit message contains en/em dash (– or —). Replace with straight hyphen '-'" >&2
+  exit 1
+fi
+
+# Heuristic: detect an Oxford-comma pattern like 'a, b, and c'
+if echo "$MSG" | grep -Eq '[^,]+,\s*[^,]+,\s*and\s+[^,]+'; then
+  echo "ERROR: Commit message appears to use an Oxford comma (\", x, and y\"). Please remove the Oxford comma." >&2
+  exit 1
+fi
+
+exit 0

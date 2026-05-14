@@ -9,6 +9,76 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.0.0] - 2026-05-14
+
+### Added
+
+- Full blog system with 11 published posts: personal journey, two-stage audio amplifier full technical report with 20 images, AVR bare metal, NeoPixel LED Cube, Phaemos, git-unlocked, British Airways, Yunex Traffic, Business Analytics, Building My Portfolio and Week 1 at Aston
+- Blog post content types: blog, journal, research, report, article, notes, resources
+- Image block type in ContentBlock union with figure and caption rendering
+- ol-links block type for numbered reference lists with clickable URLs
+- Blog listing page with type filter tabs and date-sorted posts (journey pinned first, Week 1 pinned last)
+- Blog-to-project cross-linking: post detail pages show View Project and GitHub links via projectSlug field
+- Newsletter system via Beehiiv API: /api/newsletter route, NewsletterForm component with compact and default variants
+- /newsletter dedicated page
+- FooterNewsletter client component hidden on blog, lab, newsletter and notes pages
+- /notes page: public notebook with current builds, summer plans and future project ideas
+- /lab page: interactive terminal with 30+ commands, amber/cyan colour scheme and full ARIA accessibility
+- /security-policy page: responsible disclosure policy with contact email and response timeline
+- /hall-of-fame page: security researcher acknowledgements
+- Lab terminal cmd-list line type: command name in green, description in muted grey
+- Lab terminal kv line type: cyan keys and amber values for key-value outputs (whoami, stack, version, date, time)
+- Lab terminal success line type in green
+- Notes and Blog pages: royal blue terminal card with blinking cursor linking to /lab
+- Notes added to site navigation between Blog and Contact
+- Notes (N) and Lab (T) keyboard shortcuts added to command menu; Links moved to L
+- BEEHIIV_API_KEY and BEEHIIV_PUBLICATION_ID added to .env.example and README
+- blog-extract and blog-extract-my-testimony-and-journey added to .gitignore and deleted
+- Audio amplifier blog report with 20 images in public/images/blog/audio-amplifier/
+- Clean schematic image added to audio amplifier blog report and project gallery
+- Ongoing badge for Phaemos and avr-zac on project cards and detail pages
+- Causes section on About page with 9 causes including Education, Health, Faith and Open Source
+- Zaccess accessibility tool mentioned in About page and journey blog post
+- projectSlug optional field on BlogPost interface for project cross-linking
+- ongoing optional field on Project interface
+
+### Changed
+
+- Blog page: terminal replaced with proper post grid with type filters
+- Lab page: terminal moved here with 30+ commands and upgraded colour scheme
+- Blog post detail: shows linked project page and GitHub button when projectSlug is set
+- Lab terminal maximised mode: now starts below nav header so nav remains visible
+- Lab terminal: preventScroll on focus to stop page scrolling when typing
+- Lab terminal: 'help' highlighted in green bold in boot message
+- About page intro: expanded with retinoblastoma, father as mechanical and refrigeration engineer, Adisadel leadership roles, Zaccess, British Airways and Yunex Traffic
+- About page Adisadel: corrected to core subjects only and Athletics removed
+- About page: Stanmore award now shows Jun 2024 date
+- About page: leadership roles corrected to Dispensary Prefect, House Secretary and VP APOSA
+- Experience: McDonald's entry removed
+- Projects: git-unlocked and Phaemos moved after CAD portfolio with avr-zac last
+- Projects: avr-zac marked ongoing with date 2026 - Present
+- Projects: Phaemos marked ongoing with date 2025 - Present
+- Skills: WSL2 renamed to Linux
+- Links page: Newsletter added after Email entry
+- Social links: Newsletter added between Email and ORCID with Newspaper icon
+- Week 1 at Aston: content cleared to placeholder, tags corrected from EEE to EECS
+- CV page title changed from "CV | Isaac Adjei" to "CV" to fix double name in browser tab
+- tsconfig.json: blog-extract excluded from TypeScript compilation
+
+### Fixed
+
+- Blog post 404s: params now awaited as Promise in Next.js 15 dynamic route pages
+- Lab terminal crash on boot: BOOT sequence captures line value before incrementing index
+- Security policy and hall-of-fame pages resolve the 404s reported by Google Search Console
+
+### Security
+
+- /security-policy page published with responsible disclosure contact and response timeline
+- /hall-of-fame page published for acknowledged security researchers
+- security.txt Cloudflare references now resolve correctly instead of returning 404
+
+---
+
 ## [v1.1.0] - 2026-05-11
 
 ### Added
