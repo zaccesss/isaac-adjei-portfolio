@@ -210,18 +210,6 @@ export default function BlogPage() {
         )}
       </div>
 
-      {/* Newsletter */}
-      <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-3">
-        <p className="text-xs font-mono text-primary uppercase tracking-widest">newsletter</p>
-        <p className="text-sm font-medium">Get new posts in your inbox</p>
-        <p className="text-xs text-muted-foreground">
-          Notes on tech, projects and more. No spam. Unsubscribe anytime.
-        </p>
-        <NewsletterForm variant="compact" />
-      </div>
-
-      <Separator />
-
       {/* Lab link */}
       <Link
         href="/lab"
@@ -237,12 +225,24 @@ export default function BlogPage() {
               prefer a terminal? try /lab
             </p>
             <p className="font-mono text-xs text-muted-foreground">
-              type commands to explore the site and find out more — click to open
+              type commands to explore the site and find out more - click to open
             </p>
           </div>
           <Terminal className="h-4 w-4 text-primary/40 group-hover:text-primary transition-colors ml-auto shrink-0" />
         </div>
       </Link>
+
+      <Separator />
+
+      {/* Newsletter */}
+      <div className="rounded-lg border border-border/60 bg-muted/30 px-6 py-5 space-y-3">
+        <p className="text-xs font-mono text-primary uppercase tracking-widest">newsletter</p>
+        <p className="text-sm font-medium">Get new posts in your inbox</p>
+        <p className="text-xs text-muted-foreground">
+          Notes on tech, projects and more. No spam. Unsubscribe anytime.
+        </p>
+        <NewsletterForm variant="compact" />
+      </div>
     </div>
   )
 }

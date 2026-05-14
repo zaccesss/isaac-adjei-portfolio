@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     }
 
     // Turnstile: optional server-side check when TURNSTILE_SECRET_KEY is set.
-    // The widget can show "Success" while siteverify still fails (wrong hostname, expired token, etc.) — those cases return 400 below.
+    // The widget can show "Success" while siteverify still fails (wrong hostname, expired token, etc.) - those cases return 400 below.
     // Network errors talking to Cloudflare are caught so a brief outage does not block real users.
     const turnstileSecret = process.env.TURNSTILE_SECRET_KEY
     if (turnstileSecret) {
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // Input validation — mirror client `required` so direct API calls cannot bypass the form.
+    // Input validation - mirror client `required` so direct API calls cannot bypass the form.
     if (!name || !email || !subject || !message) {
       return NextResponse.json({ error: "All fields are required." }, { status: 400 })
     }
