@@ -6,6 +6,7 @@
 import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
+import Script from "next/script"
 import "./globals.css"
 import "@/styles/animations.css"
 import Header from "@/components/layout/Header"
@@ -13,6 +14,8 @@ import Footer from "@/components/layout/Footer"
 import CommandMenu from "@/components/shared/CommandMenu"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { SITE_URL } from "@/lib/constants"
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 
 // ─── Schema.org structured data ─────────────────────────────────────────────
 // Injected as a JSON-LD script tag in the <body>.
@@ -87,6 +90,24 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}');
+              `}
+            </Script>
+          </>
+        )}
+      </head>
       <body
         suppressHydrationWarning
         className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}
