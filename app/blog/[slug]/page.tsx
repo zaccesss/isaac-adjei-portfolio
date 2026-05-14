@@ -11,6 +11,30 @@ import { ArrowLeft, Clock, Calendar, ExternalLink } from "lucide-react"
 import { getPostBySlug, posts, type ContentBlock, type PostType } from "@/data/blog"
 import { projects } from "@/data/projects"
 import { Badge } from "@/components/ui/badge"
+import ReadingProgress from "@/components/shared/ReadingProgress"
+import CodeBlock from "@/components/shared/CodeBlock"
+import TableOfContents, { type TocHeading } from "@/components/shared/TableOfContents"
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+}
+
+function buildHeadingIds(content: ContentBlock[]): Map<number, string> {
+  const counts = new Map<string, number>()
+  const ids = new Map<number, string>()
+  content.forEach((block, i) => {
+    if (block.type !== "h2" && block.type !== "h3") return
+    const base = slugify(block.text)
+    const count = counts.get(base) ?? 0
+    ids.set(i, count === 0 ? base : `${base}-${count}`)
+    counts.set(base, count + 1)
+  })
+  return ids
+}
 
 const TYPE_STYLES: Record<PostType, string> = {
   blog: "bg-primary/10 text-primary border-primary/20",
@@ -40,7 +64,7 @@ function formatDate(dateStr: string): string {
   })
 }
 
-function renderBlock(block: ContentBlock, i: number): React.ReactNode {
+function renderBlock(block: ContentBlock, i: number, headingIds?: Map<number, string>): React.ReactNode {
   switch (block.type) {
     case "p":
       return (
@@ -50,13 +74,13 @@ function renderBlock(block: ContentBlock, i: number): React.ReactNode {
       )
     case "h2":
       return (
-        <h2 key={i} className="text-xl font-semibold tracking-tight mt-8 mb-2">
+        <h2 key={i} id={headingIds?.get(i)} className="text-xl font-semibold tracking-tight mt-8 mb-2 scroll-mt-24">
           {block.text}
         </h2>
       )
     case "h3":
       return (
-        <h3 key={i} className="text-base font-semibold tracking-tight mt-6 mb-1">
+        <h3 key={i} id={headingIds?.get(i)} className="text-base font-semibold tracking-tight mt-6 mb-1 scroll-mt-24">
           {block.text}
         </h3>
       )
@@ -85,20 +109,7 @@ function renderBlock(block: ContentBlock, i: number): React.ReactNode {
         </ol>
       )
     case "code":
-      return (
-        <div key={i} className="rounded-md border border-border/60 bg-muted overflow-x-auto">
-          {block.lang && (
-            <div className="border-b border-border/40 px-4 py-1.5">
-              <span className="font-mono text-xs text-muted-foreground">{block.lang}</span>
-            </div>
-          )}
-          <pre className="px-4 py-4">
-            <code className="font-mono text-sm text-foreground/90 whitespace-pre">
-              {block.text}
-            </code>
-          </pre>
-        </div>
-      )
+      return <CodeBlock key={i} lang={block.lang} text={block.text} />
     case "quote":
       return (
         <blockquote key={i} className="border-l-2 border-primary pl-5 py-1 space-y-1">
@@ -194,8 +205,18 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   if (!post.published) notFound()
   const linkedProject = post.projectSlug ? projects.find((p) => p.id === post.projectSlug) : null
 
+  const headingIds = buildHeadingIds(post.content)
+  const tocHeadings: TocHeading[] = post.content
+    .map((block, i) => {
+      if (block.type !== "h2" && block.type !== "h3") return null
+      return { id: headingIds.get(i)!, text: block.text, level: block.type === "h2" ? 2 : 3 } as TocHeading
+    })
+    .filter(Boolean) as TocHeading[]
+
   return (
-    <div className="container max-w-2xl py-24">
+    <>
+      <ReadingProgress />
+    <div className="container max-w-2xl py-24 xl:max-w-5xl">
       {/* Back link */}
       <Link
         href="/blog"
@@ -270,26 +291,35 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         <hr className="border-border/40" />
       </div>
 
-      {/* Content */}
-      {post.published && post.content.length > 0 ? (
-        <div className="space-y-5">{post.content.map((block, i) => renderBlock(block, i))}</div>
-      ) : (
-        <div className="rounded-lg border border-dashed border-border/60 p-12 text-center space-y-2">
-          <p className="text-sm font-medium">This post is still being written.</p>
-          <p className="text-xs text-muted-foreground">Check back soon.</p>
-        </div>
-      )}
+      {/* Content + TOC */}
+      <div className="xl:grid xl:grid-cols-[1fr_220px] xl:gap-12 xl:items-start">
+        <div>
+          {post.published && post.content.length > 0 ? (
+            <div className="space-y-5">
+              {post.content.map((block, i) => renderBlock(block, i, headingIds))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-border/60 p-12 text-center space-y-2">
+              <p className="text-sm font-medium">This post is still being written.</p>
+              <p className="text-xs text-muted-foreground">Check back soon.</p>
+            </div>
+          )}
 
-      {/* Footer */}
-      <div className="mt-16 pt-8 border-t border-border/40">
-        <Link
-          href="/blog"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to all writing
-        </Link>
+          {/* Footer */}
+          <div className="mt-16 pt-8 border-t border-border/40">
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to all writing
+            </Link>
+          </div>
+        </div>
+
+        <TableOfContents headings={tocHeadings} />
       </div>
     </div>
+    </>
   )
 }

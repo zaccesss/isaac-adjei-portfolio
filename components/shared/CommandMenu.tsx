@@ -44,7 +44,7 @@ export default function CommandMenu() {
         s: "/skills",
         b: "/blog",
         n: "/notes",
-        t: "/lab",
+        j: "/lab",
         c: "/contact",
         l: "/links",
       }
@@ -114,7 +114,7 @@ export default function CommandMenu() {
           <CommandItem value="lab" onSelect={() => go("/lab")}>
             <FlaskConical className="mr-2 h-4 w-4" />
             Lab
-            <CommandShortcut>{shortcut("T")}</CommandShortcut>
+            <CommandShortcut>{shortcut("J")}</CommandShortcut>
           </CommandItem>
         </CommandGroup>
 
