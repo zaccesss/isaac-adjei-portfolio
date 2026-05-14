@@ -35,10 +35,15 @@ export default function ProjectDetail({ project }: Props) {
         </Button>
 
         <div className="space-y-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <Badge variant="outline" className="capitalize">
               {project.category}
             </Badge>
+            {project.ongoing && (
+              <Badge className="bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30 border">
+                Ongoing
+              </Badge>
+            )}
             <span className="text-sm text-muted-foreground">{project.date}</span>
           </div>
           <h1 className="text-4xl font-bold tracking-tight">{project.title}</h1>

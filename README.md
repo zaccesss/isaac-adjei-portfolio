@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+16+%7C+TypeScript+%7C+Tailwind+CSS;10+Projects+%7C+Image+Gallery+%7C+Lightbox;Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+16+%7C+TypeScript+%7C+Tailwind+CSS;10+Projects+%7C+Blog+%7C+Newsletter+%7C+Lab+Terminal;Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
 </p>
 
 <p align="center">
@@ -85,16 +85,21 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 | Route              | Description                                                                        |
 | ------------------ | ---------------------------------------------------------------------------------- |
 | `/`                | Hero with profile image, bio, social links and quick-nav                           |
-| `/about`           | Full personal story, education, awards, societies, volunteering and languages      |
+| `/about`           | Full personal story, education, awards, societies, volunteering, causes and languages |
 | `/projects`        | 10 project cards with cover images, each linking to a full detail page             |
 | `/projects/[slug]` | Project detail: overview, highlights, technologies and image gallery with lightbox |
 | `/experience`      | Work experience and internships timeline                                           |
 | `/skills`          | Full tech stack with animated icon grid across 15 categories                       |
-| `/blog`            | Interactive terminal blog - type commands to explore content                       |
-| `/blog/[slug]`     | Blog post page for published posts with rich content blocks                        |
+| `/blog`            | Blog listing with type filters, sorted posts and newsletter signup                 |
+| `/blog/[slug]`     | Blog post page with rich content blocks, images and links to project pages         |
+| `/notes`           | Public notebook - current builds, summer plans and future project ideas            |
+| `/lab`             | Interactive terminal with 30+ commands to explore the site                         |
+| `/newsletter`      | Newsletter signup page via Beehiiv                                                 |
 | `/contact`         | Contact form with spam protection and email delivery via Resend                    |
 | `/cv`              | CV viewer page with direct PDF download via `/api/cv-pdf` and printable HTML       |
 | `/links`           | Linktree-style page with all social and professional links                         |
+| `/security-policy` | Responsible disclosure policy and reporting process                                |
+| `/hall-of-fame`    | Security researcher acknowledgements                                               |
 
 ---
 
@@ -117,12 +122,37 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 - **Framer Motion** - page and section entrance animations with stagger containers
 - **Animated skills grid** - scroll-triggered fade-in with `IntersectionObserver`, icons across 15 categories
 
-### Blog
+### Blog and writing
 
-- **Interactive terminal blog** - fully functional terminal emulator with 10+ commands
+- **Blog listing page** - post cards with type filter tabs (blog, journal, research, report, article, notes, resources), date-sorted with journey post pinned first
+- **11 published blog posts** - personal journey, audio amplifier full technical report with 20 images, AVR bare metal, NeoPixel LED Cube, Phaemos, git-unlocked, British Airways, Yunex Traffic, Business Analytics, Portfolio and Week 1 at Aston
+- **Rich content blocks** - paragraphs, headings, lists, code blocks, quotes, images with captions and clickable reference lists
+- **Blog-to-project linking** - post detail pages show View Project and GitHub links when an associated project exists
+- **Dynamic quotes** - blog page fetches quotes from ZenQuotes API every 30 minutes
+- **Scripture section** - random Bible verse from the NET Bible API, auto-refreshes every 30 minutes
+
+### Newsletter
+
+- **Beehiiv integration** - subscriber signups via `/api/newsletter` which calls the Beehiiv API
+- **Newsletter form component** - reusable compact and default variants used across blog, notes, newsletter and footer
+- **Footer signup** - shown on all pages except blog, lab, newsletter and notes (which have their own)
+- **Double opt-in** - subscribers confirm via email before being added to the list
+
+### Lab terminal
+
+- **30+ commands** across navigate, writing, explore, connect and discover groups
+- **Colour-coded output** - cyan section headers, amber output, green prompts and success states, red errors
+- **cmd-list type** - command names in green, descriptions in muted grey for easy scanning
+- **kv type** - key-value pairs with cyan keys and amber values (whoami, stack, version, date, time)
 - **Blinking cursor, command history** and macOS-style window controls
-- **Dynamic quotes** - blog page fetches fresh quotes from ZenQuotes API every 30 minutes
-- **Scripture section** - random Bible verse from the NET Bible API, auto-refreshes every 30 minutes with a manual refresh button
+- **Full accessibility** - ARIA labels, live region for screen readers, role="log" on output
+- **Maximised mode** starts below the sticky nav header so navigation remains visible
+
+### Notes page
+
+- **Public notebook** at `/notes` - current builds, summer plans and future project ideas
+- **World Cup 2026 AI predictor** and prosthetics/health technology research ideas documented
+- **Royal blue terminal card** with blinking cursor linking to the lab on both blog and notes pages
 
 ### Contact and security
 
@@ -212,6 +242,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 | Route              | Method | Purpose                                                                                                                                                              |
 | ------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/api/contact`     | `POST` | Contact form submission with Upstash Redis rate limiting (3 req / 10 min per IP), honeypot check, optional Turnstile verification and optional Resend email delivery |
+| `/api/newsletter`  | `POST` | Newsletter subscription via Beehiiv API - validates email and adds subscriber with welcome email                                                                     |
 | `/api/cv-pdf`      | `GET`  | Generates and downloads the latest CV PDF from `public/resume/cv.html` using headless browser rendering                                                              |
 | `/api/quote`       | `GET`  | Fetches a random motivational quote from ZenQuotes with a local fallback                                                                                             |
 | `/api/bible-verse` | `GET`  | Fetches a random Bible verse from the NET Bible API with a local fallback                                                                                            |
@@ -341,10 +372,10 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 RESEND_API_KEY=your_resend_api_key_here
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_turnstile_site_key_here
 TURNSTILE_SECRET_KEY=your_turnstile_secret_key_here
+BEEHIIV_API_KEY=your_beehiiv_api_key_here
+BEEHIIV_PUBLICATION_ID=pub_xxxxxxxxxxxxxxxxxxxx
 ```
 
-| `UPSTASH_REDIS_REST_URL` | Optional | REST URL from [upstash.com](https://upstash.com) Redis database. If missing, rate limiting is skipped |
-| `UPSTASH_REDIS_REST_TOKEN` | Optional | REST token for the Upstash Redis database. Required alongside `UPSTASH_REDIS_REST_URL` |
 | Variable | Required | Description |
 | -------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `NEXT_PUBLIC_SITE_URL` | No | Public site URL (defaults to `https://isaacadjei.me`) |
@@ -353,6 +384,8 @@ TURNSTILE_SECRET_KEY=your_turnstile_secret_key_here
 | `TURNSTILE_SECRET_KEY` | Optional | Cloudflare Turnstile secret key (server-side). If set, the API route verifies Turnstile tokens |
 | `UPSTASH_REDIS_REST_URL` | Optional | REST URL from [upstash.com](https://upstash.com) Redis database. If missing, rate limiting is skipped |
 | `UPSTASH_REDIS_REST_TOKEN` | Optional | REST token for the Upstash Redis database. Required alongside `UPSTASH_REDIS_REST_URL` |
+| `BEEHIIV_API_KEY` | Optional | API key from [beehiiv.com](https://beehiiv.com). Required for newsletter subscriptions via `/api/newsletter` |
+| `BEEHIIV_PUBLICATION_ID` | Optional | Beehiiv publication ID (starts with `pub_`). Required alongside `BEEHIIV_API_KEY` |
 
 ---
 

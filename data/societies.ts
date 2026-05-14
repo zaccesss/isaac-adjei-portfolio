@@ -20,7 +20,7 @@ export const societies: Society[] = [
     role: "Member & Student Representative",
     period: "2024 - Present",
     description:
-      "Active member and course representative. Stood for President and Treasurer positions.",
+      "Active member and course representative.",
   },
   {
     name: "Aston African-Caribbean Society (ACS)",

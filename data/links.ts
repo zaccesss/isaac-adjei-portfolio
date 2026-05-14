@@ -44,6 +44,13 @@ export const profileLinks: LinkItem[] = [
     category: "professional",
   },
   {
+    title: "Newsletter",
+    description: "Subscribe to my newsletter - engineering, tech, hardware, software & more",
+    url: "https://newsletter.isaacadjei.me",
+    icon: "newspaper",
+    category: "professional",
+  },
+  {
     title: "ORCID",
     description: "My ORCID researcher profile",
     url: "https://orcid.org/0009-0001-8298-5098",

@@ -28,6 +28,12 @@ export const socialLinks: SocialLink[] = [
     username: "contact@isaacadjei.me",
   },
   {
+    name: "Newsletter",
+    url: "https://newsletter.isaacadjei.me",
+    icon: "newsletter",
+    username: "newsletter.isaacadjei.me",
+  },
+  {
     name: "ORCID",
     url: "https://orcid.org/0009-0001-8298-5098",
     icon: "orcid",

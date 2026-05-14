@@ -82,7 +82,7 @@ export const skillCategories: SkillCategory[] = [
       { name: "Windows", icon: `${DEV}/windows11/windows11-original.svg` },
       { name: "macOS", icon: `${DEV}/apple/apple-original.svg` },
       { name: "Ubuntu", icon: `${DEV}/ubuntu/ubuntu-original.svg` },
-      { name: "WSL2", icon: `${DEV}/linux/linux-original.svg` },
+      { name: "Linux", icon: `${DEV}/linux/linux-original.svg` },
     ],
   },
   {

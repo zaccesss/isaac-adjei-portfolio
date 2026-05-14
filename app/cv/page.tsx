@@ -9,7 +9,7 @@ import { join } from "path"
 import CVViewer from "@/components/cv/CVViewer"
 
 export const metadata: Metadata = {
-  title: "CV | Isaac Adjei",
+  title: "CV",
   description: "View and print Isaac Adjei's CV.",
   alternates: {
     canonical: "https://www.isaacadjei.me/cv",
