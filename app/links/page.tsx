@@ -163,14 +163,6 @@ export default function LinksPage() {
         })}
       </div>
 
-      <div className="mt-16">
-        <Link
-          href="/"
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          isaacadjei.me
-        </Link>
-      </div>
     </div>
   )
 }

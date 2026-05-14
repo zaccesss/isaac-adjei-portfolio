@@ -7,6 +7,7 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight, Mail, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import LiveStatusCards from "@/components/shared/LiveStatusCards"
 import { fadeUp } from "@/lib/animations"
 
 export default function ContactCTA() {
@@ -50,6 +51,8 @@ export default function ContactCTA() {
               </a>
             </Button>
           </div>
+
+          <LiveStatusCards />
         </motion.div>
       </div>
     </section>
