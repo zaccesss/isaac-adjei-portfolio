@@ -46,7 +46,7 @@ export const posts: BlogPost[] = [
   // ── JOURNEY ──────────────────────────────────────────────────────────────────
   {
     slug: "my-journey-so-far",
-    title: "From Adisadel to Aston: My Journey in Engineering",
+    title: "My Journey So Far",
     date: "2025-01-01",
     type: "journal",
     description:
@@ -556,7 +556,7 @@ export const posts: BlogPost[] = [
     type: "blog",
     projectSlug: "avr-zac",
     description:
-      "How I built a nine-mode state machine on an ATmega644P from scratch using bare metal C, writing directly to hardware registers with no framework, no HAL and no shortcuts.",
+      "How I built a nine-mode state machine on an ATmega644P from scratch using bare metal C, writing directly to hardware registers with no framework, no HAL and no shortcuts. Still ongoing.",
     tags: ["Embedded", "AVR", "C", "Microcontroller", "Aston"],
     readingTime: 8,
     published: true,
@@ -701,6 +701,13 @@ srandom(ADC);`,
         type: "p",
         text: "Thanks to Richard Reeves for designing the PCB, providing components and offering guidance throughout this project.",
       },
+      {
+        type: "divider",
+      },
+      {
+        type: "p",
+        text: "This project is still ongoing. The nine-mode state machine documented here is the current milestone. Future sessions will add UART transmission, ADC reception and more advanced timing patterns. I will update this post as the project progresses.",
+      },
     ],
   },
 
@@ -808,7 +815,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "Power budgeting was critical. Each WS2812B draws up to 60mA at full white. 64 LEDs at full brightness would draw 3.84A — far more than a USB port can supply and enough to cause visible flickering and colour shift. The solution was to cap brightness in software using the Adafruit NeoPixel setBrightness() function and to never run all LEDs at full white simultaneously. In practice during normal operation the cube draws well under 2A at 5V.",
+        text: "Power budgeting was critical. Each WS2812B draws up to 60mA at full white. 64 LEDs at full brightness would draw 3.84A, far more than a USB port can supply and enough to cause visible flickering and colour shift. The solution was to cap brightness in software using the Adafruit NeoPixel setBrightness() function and to never run all LEDs at full white simultaneously. In practice during normal operation the cube draws well under 2A at 5V.",
       },
       {
         type: "p",
@@ -1269,42 +1276,145 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     date: "2025-04-12",
     type: "blog",
     description:
-      "Why I rebuilt my portfolio from scratch with Next.js, the design decisions I made and what the process taught me about shipping something personal.",
-    tags: ["Next.js", "Design", "Personal"],
-    readingTime: 5,
+      "How I rebuilt my portfolio from scratch using Next.js, React, TypeScript, Tailwind CSS and Node.js: the full tech stack, every design decision and what shipping something personal actually teaches you.",
+    tags: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Node.js", "Design", "Vercel"],
+    readingTime: 10,
     published: true,
     content: [
       {
         type: "p",
-        text: "I had a version of a portfolio online for a while: a terminal-style single-page HTML file at zacess.com. It was fun to build and genuinely terminal-accurate, but it did not show off my work in a way that felt useful to a recruiter or someone who wanted to understand what I actually do.",
+        text: "I had a version of a portfolio online for a while: a terminal-style single-page HTML file at zacess.com. It was fun to build and genuinely terminal-accurate, but it did not show off my work in a way that felt useful to a recruiter or someone who wanted to understand what I actually do. No project pages. No blog. No way to see anything beyond a blinking cursor.",
       },
       {
         type: "p",
-        text: "So I rebuilt. This is the new one. Here is what I decided and why.",
+        text: "So I rebuilt from scratch. This post covers the full tech stack, the decisions behind it and what I learned along the way.",
       },
       {
         type: "h2",
-        text: "Why Next.js?",
+        text: "The full tech stack",
       },
       {
         type: "p",
-        text: "I wanted something I could grow over time: add project pages, a blog and maybe interactive demos. A single HTML file stops scaling the moment you want more than one page. Next.js with the App Router gave me proper routing, server components, metadata for SEO and a structure I already knew from coursework.",
-      },
-      {
-        type: "h2",
-        text: "Design: starting from the terminal",
-      },
-      {
-        type: "p",
-        text: "The terminal site had a clear visual identity: monospace font, dark background and deliberate green-on-black colour. I did not want to lose that entirely. The new site uses GeistMono for labels and code, keeps a dark mode feel and uses a royal blue primary colour instead of the more generic purple that shadcn defaults to.",
+        text: "Before getting into the why, here is what the site is built with:",
       },
       {
         type: "ul",
         items: [
-          "Framer Motion for entrance animations: subtle, not distracting",
-          "shadcn/ui for base components so I am not rebuilding buttons and dialogs",
-          "Ctrl+I command palette for quick navigation",
-          "No hero animations that block the page: everything starts visible",
+          "Next.js 15 (App Router): the framework. Server components, file-based routing, layout nesting and built-in image optimisation",
+          "React 19: UI component library underpinning everything Next.js renders",
+          "TypeScript: typed throughout. Every component, data file and API route is fully typed",
+          "Tailwind CSS v4: utility-first CSS framework. Every style is a class, nothing is global except the base reset",
+          "Node.js: the runtime Next.js runs on, also used for the build step and API routes",
+          "shadcn/ui: unstyled, accessible base components (buttons, separators, cards) that I style with Tailwind rather than fighting someone else's design system",
+          "Geist Sans and Geist Mono: Vercel's typefaces, used for body text and monospace labels respectively",
+          "Lucide React: icon library, lightweight and consistent",
+          "Vercel: deployment platform with automatic deploys on every push to main",
+          "Cloudflare: DNS provider routing isaacadjei.me",
+          "GitHub Actions: CI pipeline running lint and build checks on every pull request",
+          "Resend: API for the contact form email delivery",
+          "Beehiiv: newsletter subscription management",
+          "Cloudflare Turnstile: CAPTCHA on the contact form, privacy-respecting alternative to reCAPTCHA",
+          "Upstash Redis: serverless rate limiting on the contact form API route",
+          "Google Analytics 4: traffic analytics via Next.js Script with afterInteractive strategy",
+        ],
+      },
+      {
+        type: "h2",
+        text: "Why Next.js and not something simpler?",
+      },
+      {
+        type: "p",
+        text: "A portfolio could be a static HTML file. Many are and they work fine. But I wanted something I could grow: add project detail pages, a full blog, a newsletter, a contact form with proper validation and rate limiting. A static file stops scaling the moment you need server-side logic or multiple pages.",
+      },
+      {
+        type: "p",
+        text: "Next.js with the App Router gave me everything I needed in one place: file-based routing where adding a new page is just adding a new folder, server components that run on the server and send HTML to the browser without shipping any JavaScript for purely static content, API routes for the contact form and newsletter subscription endpoints, and automatic static generation for pages that do not change at runtime.",
+      },
+      {
+        type: "p",
+        text: "I had already used Next.js on Phaemos and the zacess.com terminal site, so the learning curve was not the reason to choose it. The reason was that it was genuinely the right tool for what I wanted to build.",
+      },
+      {
+        type: "h2",
+        text: "TypeScript everywhere",
+      },
+      {
+        type: "p",
+        text: "Every file in this project is TypeScript. The blog post data is typed with a BlogPost interface and a ContentBlock discriminated union. The project data is typed with a Project interface. Every API route has typed request and response shapes.",
+      },
+      {
+        type: "p",
+        text: "The benefit became obvious when I added new features. When I extended the ContentBlock type to add image and divider block types, TypeScript immediately told me which renderer cases I had not handled yet. When I added the projectSlug field to blog posts, it told me which existing posts were missing it. The compiler catches entire categories of bugs before the page even loads.",
+      },
+      {
+        type: "h2",
+        text: "Tailwind CSS: why utility classes",
+      },
+      {
+        type: "p",
+        text: "I had used traditional CSS on AstonCV (pure custom CSS, no frameworks) and Tailwind on Phaemos. The comparison is instructive. With traditional CSS, naming things is genuinely hard. What do you call the container that wraps the project card header? How do you avoid naming collisions as the stylesheet grows? BEM helps but adds verbosity.",
+      },
+      {
+        type: "p",
+        text: "With Tailwind, there are no names to invent. Every style is a class that does exactly what it says: flex, items-center, gap-4, text-sm, text-muted-foreground. The component file and the styles are in the same place. When a component is deleted, its styles are deleted with it automatically. No orphaned CSS.",
+      },
+      {
+        type: "p",
+        text: "The trade-off is that class lists get long on complex components. I use cn() (from clsx and tailwind-merge) to conditionally apply classes without duplicates or conflicts, and break components into smaller pieces when the class list becomes unreadable.",
+      },
+      {
+        type: "h2",
+        text: "The blog system",
+      },
+      {
+        type: "p",
+        text: "The blog is built without a CMS or database. All posts live in data/blog.ts as TypeScript objects with a typed content array. Each content block has a type field (p, h2, h3, ul, ol, code, quote, image, divider) that the renderer uses to produce the right HTML. Adding a post is just adding an object to the array.",
+      },
+      {
+        type: "p",
+        text: "This was a deliberate choice. A CMS adds infrastructure, credentials, an API dependency and a rate limit to worry about. For a personal portfolio where I am the only author, those costs outweigh the benefits. The trade-off is that editing requires a code change and a deploy, which takes three to five minutes. I am fine with that.",
+      },
+      {
+        type: "h2",
+        text: "The contact form and API routes",
+      },
+      {
+        type: "p",
+        text: "The contact form submits to a Next.js API route at /api/contact. The route validates the Turnstile CAPTCHA token against Cloudflare's siteverify endpoint, checks the rate limit via Upstash Redis (five requests per hour per IP), validates the input fields and sends the email via Resend. All of this happens server-side, so the Resend API key and Redis credentials are never exposed to the browser.",
+      },
+      {
+        type: "p",
+        text: "The newsletter signup hits /api/newsletter, which validates the email format and calls the Beehiiv subscriptions API. Again, the API key lives in an environment variable and never touches the client.",
+      },
+      {
+        type: "h2",
+        text: "Deployment and CI",
+      },
+      {
+        type: "p",
+        text: "The site deploys automatically on every push to the main branch via Vercel's GitHub integration. The main branch has branch protection: every change must go through a pull request and pass the Lint and Build GitHub Actions check before merging. This means broken code never reaches production.",
+      },
+      {
+        type: "p",
+        text: "Environment variables (API keys for Resend, Beehiiv, Upstash, Turnstile and Google Analytics) are stored in Vercel project settings and injected at build time. A .env.example file in the repo documents every variable with placeholder values so the setup is reproducible.",
+      },
+      {
+        type: "h2",
+        text: "Design decisions",
+      },
+      {
+        type: "p",
+        text: "The visual identity came from the original terminal site. I wanted to keep the monospace feel without making the new site look like a gimmick. The result is a clean, readable layout that uses GeistMono for code and labels but GeistSans for everything else, with a royal blue primary accent colour that is distinctive without being loud.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Dark mode by default with system preference detection via next-themes",
+          "CSS animations (fade-up, fade-in) on page load: subtle and fast, never blocking",
+          "shadcn/ui components for accessible, consistent UI elements without reinventing every component",
+          "A command menu (Ctrl/Cmd+I) for keyboard navigation between pages",
+          "An interactive terminal on /lab that reuses the same vocabulary as the zacess.com terminal",
+          "No hero animations that make the user wait before they can read anything",
         ],
       },
       {
@@ -1313,11 +1423,15 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "Shipping something personal is harder than shipping coursework. With coursework there is a spec. Here the only constraint is: does this represent me well? That is surprisingly difficult to answer.",
+        text: "Shipping something personal is harder than shipping coursework. With coursework there is a spec, a deadline and a grade. Here the only constraint is: does this represent me well? That is surprisingly difficult to answer and easy to overthink.",
       },
       {
         type: "p",
-        text: "The best decision I made was writing the projects section as problem/solution/learnings rather than a list of tech stacks. It forced me to articulate why I built things, not just what I used.",
+        text: "The most useful thing I did was to write the projects section as problem, solution and learnings rather than a list of technologies used. That framing forced me to articulate why I built things, not just what I used. A list of tech stacks tells you nothing. The decisions behind them tell you everything.",
+      },
+      {
+        type: "p",
+        text: "The other lesson was about scope. A portfolio site can expand indefinitely: add more pages, more features, more integrations. At some point you have to decide it is done enough to show people. The discipline is not in building more. It is in knowing when what you have already built is enough.",
       },
       {
         type: "quote",
@@ -1326,6 +1440,148 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
     ],
   },
+
+  // ── ASTONCV ──────────────────────────────────────────────────────────────────
+  {
+    slug: "astoncv-full-stack-cv-database",
+    title: "Building AstonCV: A Full-Stack CV Database with PHP, MySQL and Zero Frameworks",
+    date: "2026-05-13",
+    type: "blog",
+    projectSlug: "astoncv",
+    description:
+      "How I built a full-stack CV database website from scratch using pure PHP 8.2 and MySQL for a university module, with eleven security measures, PDF export via mPDF and a complete UI redesign across four versions.",
+    tags: ["PHP", "MySQL", "Security", "Full-Stack", "Aston", "Web Dev"],
+    readingTime: 10,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "For DG1IAD Portfolio 3 at Aston University, the brief was to build a full-stack web application. The constraint that made it interesting: no frameworks. No Laravel. No Symfony. No Bootstrap. Pure PHP 8.2, MySQL, CSS3 and JavaScript, built from scratch.",
+      },
+      {
+        type: "p",
+        text: "AstonCV is a CV database where anyone can browse and search student CVs publicly, register an account, manage their own CV once logged in and download any CV as a professionally formatted PDF. The site is deployed live on Aston University's internal Apache server and accessible via a custom Cloudflare domain redirect at astoncv.zacess.com.",
+      },
+      {
+        type: "h2",
+        text: "Why no frameworks?",
+      },
+      {
+        type: "p",
+        text: "The constraint was deliberate. When you use a framework, you are using someone else's solutions to problems you have not yet encountered. You learn the framework's patterns rather than the underlying mechanics. Building without a framework forces you to understand what the framework would have done for you: database connections, prepared statements, session management, CSRF protection. Every one of those things has to be written explicitly and understood completely.",
+      },
+      {
+        type: "p",
+        text: "I had used Next.js on Phaemos and this portfolio. Those projects gave me the framework experience. AstonCV was an opportunity to work at a lower level and understand what is actually happening when a form submits, a session is validated or a query hits the database.",
+      },
+      {
+        type: "h2",
+        text: "The build: v1.0.0",
+      },
+      {
+        type: "p",
+        text: "Version 1.0.0 launched on 7 March 2026. The core structure was eight PHP files: index.php (the browse page), cv.php (individual CV detail), register.php, login.php, update.php, dashboard.php, logout.php and contact_handler.php. Each protected page checks $_SESSION['user_id'] at the top and redirects to login.php if the session is not active.",
+      },
+      {
+        type: "p",
+        text: "The database connection lives in db.php: a single PDO connection with error mode set to exceptions, returned as a singleton. Every query in every file uses this connection with prepared statements, so no query anywhere in the codebase builds SQL by string concatenation.",
+      },
+      {
+        type: "p",
+        text: "On the same day, v1.1.0 added PDF export via mPDF v8.2, installed with Composer. export_cv.php builds the PDF server-side from the stored CV data and streams it to the browser as a download. No client-side PDF generation, no external service, no watermark.",
+      },
+      {
+        type: "h2",
+        text: "The security layer",
+      },
+      {
+        type: "p",
+        text: "Security was not an afterthought. I implemented eleven specific measures before the v2.0.0 release:",
+      },
+      {
+        type: "ol",
+        items: [
+          "XSS prevention: every piece of user-supplied content rendered to the page goes through htmlspecialchars(). No exceptions",
+          "SQL injection prevention: every query uses PDO prepared statements with parameter binding. No string concatenation in SQL anywhere",
+          "Password hashing: bcrypt via password_hash() on registration, password_verify() on login",
+          "Session authentication: every protected page checks the session variable at the top and redirects immediately if it is missing",
+          "Authorisation: the edit button on a CV detail page only appears if the logged-in user owns that CV, enforced server-side not just in the UI",
+          "Server-side validation: all form inputs are validated in PHP before any database write, regardless of what client-side validation may have run",
+          "CSRF protection: a hidden token generated per session is included in every POST form and validated on submission",
+          "Brute-force lockout: five failed login attempts triggers a 15-minute account lockout, tracked in the database",
+          "File upload validation: profile picture uploads are checked for MIME type against a whitelist and capped at 2 MB before being moved to the uploads directory",
+          "Honeypot: the contact form includes a hidden field that is invisible to users but bots fill in automatically. Any submission with the honeypot field populated is silently discarded",
+          "POST-only enforcement: contact_handler.php rejects any request that is not a POST, preventing direct GET access to the form processor",
+        ],
+      },
+      {
+        type: "p",
+        text: "The brute-force lockout was the most interesting to implement. Rather than using a cache or Redis (both of which would add infrastructure), I added login_attempts and lockout_until columns to the users table. On each failed login, the attempt count increments. If it reaches five, lockout_until is set to now plus 15 minutes. On each login attempt, the route first checks whether lockout_until is in the future before validating the password.",
+      },
+      {
+        type: "h2",
+        text: "The v2.0.0 redesign",
+      },
+      {
+        type: "p",
+        text: "Version 2.0.0 launched on 20 March 2026 with a complete UI redesign. The original version was functional but sparse. The redesign introduced:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Aston University purple (#5c2d82) as the primary brand colour throughout",
+          "Space Grotesk for headings and DM Sans for body text, both loaded via Google Fonts",
+          "Real Aston University campus photography on every page: hero image on index, login, register, update and dashboard",
+          "Animated stats bar with counting numbers (total CVs, registered users, total downloads)",
+          "CSS marquee strip below the hero",
+          "Scroll reveal animations on CV cards using IntersectionObserver",
+          "Preloader on first page load",
+          "Sticky dark navbar with backdrop blur on scroll",
+          "Profile picture upload with avatar display across all pages",
+          "Dashboard with CV completeness score, view statistics and account management",
+          "View counter on each CV profile page",
+        ],
+      },
+      {
+        type: "p",
+        text: "The live filter and sort on the browse page required some care. Filtering by programming language and sorting by name or view count both needed to work without a page reload. The approach was straightforward: JavaScript reads the filter and sort values from the dropdowns and the search field, then iterates the CV cards in the DOM, hiding any that do not match. No fetch calls, no API, no re-render. The DOM manipulation was fast enough that there was no perceived delay even with a full list of CVs.",
+      },
+      {
+        type: "h2",
+        text: "Deployment",
+      },
+      {
+        type: "p",
+        text: "The site runs on Aston University's internal Apache server. Local development used XAMPP (Apache and MySQL) on Windows, with the project directory mapped to localhost/astoncv. config.php holds the database credentials and is gitignored. config.example.php with placeholder values is committed instead, so anyone cloning the repo knows exactly what to create.",
+      },
+      {
+        type: "p",
+        text: "The Cloudflare domain redirect was a simple CNAME and Page Rule configuration: astoncv.zacess.com CNAME to the Aston server, with a forwarding rule handling the URL rewrite. This meant the site was accessible at both the full Aston URL and the short link without changing anything on the server.",
+      },
+      {
+        type: "h2",
+        text: "Version history and lessons",
+      },
+      {
+        type: "p",
+        text: "The project shipped four versions between March and May 2026. v2.1.0 and v2.2.0 were cleanup releases: updating contact email addresses throughout the codebase, adding standard repository files (CHANGELOG, SECURITY, ROADMAP, MIT licence), setting up a GitHub Actions CI workflow for PHP syntax checking on every push and adding the Aston University SVG favicon to every page.",
+      },
+      {
+        type: "p",
+        text: "The main lessons came from working without a framework. Every problem that frameworks solve invisibly becomes explicit. Session management, CSRF, prepared statements, output escaping: you have to think about all of them, deliberately, every time you write a new page. That is slower but it is also far more instructive. I left this project understanding web security at a level that using a framework would not have given me.",
+      },
+      {
+        type: "p",
+        text: "The other lesson was about scope. The brief did not require a dashboard, animated stats or campus photography. Those came from wanting to build something I was proud of rather than something that just met the minimum criteria. The extra scope cost time but the result was a site that looked like a real product rather than a coursework submission.",
+      },
+      {
+        type: "quote",
+        text: "When the constraint is no frameworks, every feature you add teaches you something a framework would have hidden.",
+        source: "Something I understood about halfway through the build",
+      },
+    ],
+  },
+
   {
     slug: "week-1-aston",
     title: "Week 1 at Aston: What Second Year Actually Feels Like",

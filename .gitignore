@@ -68,3 +68,6 @@ repo-extract/
 # Blog content and personal materials - never commit
 blog-extract/
 blog-extract-my-testimony-and-journey/
+
+# Local project repo clones for reference - never commit
+astoncv/
