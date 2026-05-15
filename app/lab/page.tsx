@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { posts } from "@/data/blog"
 import { useModKey } from "@/hooks/useModKey"
-import LiveStatus from "@/components/shared/LiveStatus"
+import LiveStatusCards from "@/components/shared/LiveStatusCards"
 
 type WindowState = "normal" | "minimized" | "maximized" | "closed"
 type LineType = "system" | "cmd-echo" | "output" | "error" | "info" | "blank" | "success" | "cmd-list" | "kv"
@@ -690,7 +690,7 @@ export default function LabPage() {
 
   return (
     <div className="container max-w-3xl py-24 space-y-8">
-      <LiveStatus variant="terminal" />
+      <LiveStatusCards />
 
       {/* Screen reader live region */}
       <div

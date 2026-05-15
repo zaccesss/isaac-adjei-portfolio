@@ -65,25 +65,30 @@ export async function GET() {
 
     const data = await res.json() as {
       is_playing: boolean
+      progress_ms?: number
       item?: {
         name: string
+        duration_ms: number
         artists: { name: string }[]
         album: { images: { url: string }[] }
         external_urls: { spotify: string }
       }
     }
 
-    if (!data.is_playing || !data.item) {
-      return NextResponse.json({ playing: false }, { headers: { "Cache-Control": "no-store" } })
+    if (!data.item) {
+      return NextResponse.json({ playing: false, paused: false }, { headers: { "Cache-Control": "no-store" } })
     }
 
     return NextResponse.json(
       {
-        playing: true,
+        playing: data.is_playing,
+        paused: !data.is_playing,
         track: data.item.name,
         artist: data.item.artists.map((a) => a.name).join(", "),
-        albumArt: data.item.album.images[2]?.url ?? data.item.album.images[0]?.url ?? null,
+        albumArt: data.item.album.images[1]?.url ?? data.item.album.images[0]?.url ?? null,
         url: data.item.external_urls.spotify,
+        progressMs: data.progress_ms ?? 0,
+        durationMs: data.item.duration_ms,
       },
       { headers: { "Cache-Control": "no-store" } }
     )

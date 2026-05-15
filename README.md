@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+16+%7C+TypeScript+%7C+Tailwind+CSS;10+Projects+%7C+Blog+%7C+Newsletter+%7C+Lab+Terminal;Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+16+%7C+TypeScript+%7C+Tailwind+CSS;10+Projects+%7C+Blog+%7C+Newsletter+%7C+Lab+Terminal;Live+Status+%7C+Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
 </p>
 
 <p align="center">
@@ -52,7 +52,7 @@
 
 ## Overview
 
-Personal portfolio website for **Isaac Adjei (Zac)** - Top 40 Finalist, Black Heritage Undergraduate of the Year 2026 and Electronic Engineering and Computer Science student at Aston University (Predicted First Class). Built to showcase 10 engineering and software projects with full image galleries and lightboxes, alongside skills, experience, blog and contact pages.
+Personal portfolio website for **Isaac Adjei (Zac)** - Top 40 Finalist, Black Heritage Undergraduate of the Year 2026 and Electronic Engineering and Computer Science student at Aston University (Predicted First Class). Built to showcase 10 engineering and software projects with full image galleries and lightboxes, alongside 13 published blog posts, a newsletter, a public notes notebook, an interactive lab terminal and a live status widget showing Spotify, London time, MacBook battery and GitHub activity.
 
 The site is a proper **Next.js 16 App Router** application with TypeScript, Tailwind CSS, Framer Motion animations and full dark/light mode support. Every page is server-rendered or statically generated where possible, with client components only where interactivity requires it.
 
@@ -82,24 +82,26 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 
 ## Pages
 
-| Route              | Description                                                                        |
-| ------------------ | ---------------------------------------------------------------------------------- |
-| `/`                | Hero with profile image, bio, social links and quick-nav                           |
-| `/about`           | Full personal story, education, awards, societies, volunteering, causes and languages |
-| `/projects`        | 10 project cards with cover images, each linking to a full detail page             |
-| `/projects/[slug]` | Project detail: overview, highlights, technologies and image gallery with lightbox |
-| `/experience`      | Work experience and internships timeline                                           |
-| `/skills`          | Full tech stack with animated icon grid across 15 categories                       |
-| `/blog`            | Blog listing with type filters, sorted posts and newsletter signup                 |
-| `/blog/[slug]`     | Blog post page with rich content blocks, images and links to project pages         |
-| `/notes`           | Public notebook - current builds, summer plans and future project ideas            |
-| `/lab`             | Interactive terminal with 30+ commands to explore the site                         |
-| `/newsletter`      | Newsletter signup page via Beehiiv                                                 |
-| `/contact`         | Contact form with spam protection and email delivery via Resend                    |
-| `/cv`              | CV viewer page with direct PDF download via `/api/cv-pdf` and printable HTML       |
-| `/links`           | Linktree-style page with all social and professional links                         |
-| `/security-policy` | Responsible disclosure policy and reporting process                                |
-| `/hall-of-fame`    | Security researcher acknowledgements                                               |
+| Route                              | Description                                                                          |
+| ---------------------------------- | ------------------------------------------------------------------------------------ |
+| `/`                                | Hero with profile image, bio, social links, quick-nav and live status cards          |
+| `/about`                           | Full personal story, education, awards, societies, volunteering, causes and languages |
+| `/projects`                        | 10 project cards with cover images, each linking to a full detail page               |
+| `/projects/[slug]`                 | Project detail: overview, highlights, technologies and image gallery with lightbox   |
+| `/experience`                      | Work experience and internships timeline                                             |
+| `/skills`                          | Full tech stack with animated icon grid across 15 categories                         |
+| `/blog`                            | Blog listing with type filters, sorted posts and lab terminal link                   |
+| `/blog/[slug]`                     | Blog post with reading progress bar, copy buttons, TOC sidebar and project links     |
+| `/notes`                           | Public notebook with live status, current builds, summer plans and upcoming projects  |
+| `/notes/world-cup-ai-predictor`    | Detail page: World Cup 2026 AI predictor project plan with references                |
+| `/notes/prosthetics-health-tech`   | Detail page: ocular prosthetics and bio-integrated electronics research              |
+| `/lab`                             | Interactive terminal with 30+ commands and live status cards                         |
+| `/newsletter`                      | Newsletter signup page via Beehiiv with topic cards and cross-links                  |
+| `/contact`                         | Contact form with spam protection and email delivery via Resend                      |
+| `/cv`                              | CV viewer page with direct PDF download via `/api/cv-pdf` and printable HTML         |
+| `/links`                           | Linktree-style page with all social and professional links                           |
+| `/security-policy`                 | Responsible disclosure policy and reporting process                                  |
+| `/hall-of-fame`                    | Security researcher acknowledgements                                                 |
 
 ---
 
@@ -125,7 +127,10 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 ### Blog and writing
 
 - **Blog listing page** - post cards with type filter tabs (blog, journal, research, report, article, notes, resources), date-sorted with journey post pinned first
-- **11 published blog posts** - personal journey, audio amplifier full technical report with 20 images, AVR bare metal, NeoPixel LED Cube, Phaemos, git-unlocked, British Airways, Yunex Traffic, Business Analytics, Portfolio and Week 1 at Aston
+- **13 published blog posts** - personal journey, audio amplifier full technical report with 20 images, AVR bare metal (ongoing), NeoPixel LED Cube, Phaemos, git-unlocked, British Airways, Yunex Traffic, Business Analytics, Building My Portfolio, AstonCV and Week 1 at Aston
+- **Reading progress bar** - 3px primary-colour bar fixed at the top of the viewport, fills as you scroll through a post
+- **Copy button on code blocks** - hover reveals a Copy / Copied button on every code block
+- **Table of contents** - auto-generated sticky sidebar on xl screens for posts with 3+ headings, highlights active section via IntersectionObserver
 - **Rich content blocks** - paragraphs, headings, lists, code blocks, quotes, images with captions and clickable reference lists
 - **Blog-to-project linking** - post detail pages show View Project and GitHub links when an associated project exists
 - **Dynamic quotes** - blog page fetches quotes from ZenQuotes API every 30 minutes
@@ -148,11 +153,22 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 - **Full accessibility** - ARIA labels, live region for screen readers, role="log" on output
 - **Maximised mode** starts below the sticky nav header so navigation remains visible
 
+### Live status
+
+- **iOS-style cards** on homepage, /notes and /lab showing real-time data
+- **Spotify now playing** - album art, track name, artist, progress bar and paused/playing state via Spotify Web API
+- **London time** - always `Europe/London` timezone, updates every second client-side, no API needed
+- **MacBook battery** - percentage, charging state and device name written by `scripts/mac-daemon.py` to Upstash Redis every 2 minutes, read via `/api/macbook`
+- **GitHub last push** - last public repo pushed to and relative time via GitHub public API, cached in Redis for 5 minutes
+- **Online/away indicator** - green pulse if Mac daemon heartbeat is under 5 minutes old, grey if away or offline
+- **Theme-adaptive** - all cards use CSS variables and adapt to dark and light mode
+
 ### Notes page
 
-- **Public notebook** at `/notes` - current builds, summer plans and future project ideas
-- **World Cup 2026 AI predictor** and prosthetics/health technology research ideas documented
-- **Royal blue terminal card** with blinking cursor linking to the lab on both blog and notes pages
+- **Public notebook** at `/notes` with live status at the top, current builds, summer 2026 plans and upcoming project ideas
+- **Project links on ongoing builds** - Phaemos, avr-zac and ba-from-data-to-decisions link to project pages and GitHub
+- **World Cup 2026 AI predictor** detail page with full project plan, data sources, ML approach and timeline
+- **Prosthetics and health technology** detail page with background on retinoblastoma, current state of ocular prosthetics and research references
 
 ### Contact and security
 
@@ -239,13 +255,16 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 
 ## API Routes
 
-| Route              | Method | Purpose                                                                                                                                                              |
-| ------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/contact`     | `POST` | Contact form submission with Upstash Redis rate limiting (3 req / 10 min per IP), honeypot check, optional Turnstile verification and optional Resend email delivery |
-| `/api/newsletter`  | `POST` | Newsletter subscription via Beehiiv API - validates email and adds subscriber with welcome email                                                                     |
-| `/api/cv-pdf`      | `GET`  | Generates and downloads the latest CV PDF from `public/resume/cv.html` using headless browser rendering                                                              |
-| `/api/quote`       | `GET`  | Fetches a random motivational quote from ZenQuotes with a local fallback                                                                                             |
-| `/api/bible-verse` | `GET`  | Fetches a random Bible verse from the NET Bible API with a local fallback                                                                                            |
+| Route                    | Method | Purpose                                                                                                                                                              |
+| ------------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/contact`           | `POST` | Contact form submission with Upstash Redis rate limiting (3 req / 10 min per IP), honeypot check, optional Turnstile verification and optional Resend email delivery |
+| `/api/newsletter`        | `POST` | Newsletter subscription via Beehiiv API - validates email and adds subscriber with welcome email                                                                     |
+| `/api/spotify`           | `GET`  | Spotify now-playing: refreshes access token via Upstash Redis cache, returns track, artist, album art, progress and paused state                                     |
+| `/api/macbook`           | `GET`  | Reads MacBook battery status (percentage, charging, device name, last seen) from Upstash Redis key written by `scripts/mac-daemon.py`                                |
+| `/api/github-activity`   | `GET`  | Fetches last public push event from GitHub API for `zaccessss`, cached in Redis for 5 minutes                                                                        |
+| `/api/cv-pdf`            | `GET`  | Serves the static CV PDF from `public/resume/Isaac_Adjei_CV.pdf`                                                                                                    |
+| `/api/quote`             | `GET`  | Fetches a random motivational quote from ZenQuotes with a local fallback                                                                                             |
+| `/api/bible-verse`       | `GET`  | Fetches a random Bible verse from the NET Bible API with a local fallback                                                                                            |
 
 ---
 
@@ -374,18 +393,26 @@ NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_turnstile_site_key_here
 TURNSTILE_SECRET_KEY=your_turnstile_secret_key_here
 BEEHIIV_API_KEY=your_beehiiv_api_key_here
 BEEHIIV_PUBLICATION_ID=pub_xxxxxxxxxxxxxxxxxxxx
+NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+SPOTIFY_REFRESH_TOKEN=your_spotify_refresh_token
 ```
 
 | Variable | Required | Description |
-| -------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| -------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `NEXT_PUBLIC_SITE_URL` | No | Public site URL (defaults to `https://isaacadjei.me`) |
 | `RESEND_API_KEY` | Optional | API key from [resend.com](https://resend.com). If missing, contact submissions are logged server-side and still return success |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Recommended | Cloudflare Turnstile site key (public). Required when Turnstile is enabled on the contact form |
 | `TURNSTILE_SECRET_KEY` | Optional | Cloudflare Turnstile secret key (server-side). If set, the API route verifies Turnstile tokens |
-| `UPSTASH_REDIS_REST_URL` | Optional | REST URL from [upstash.com](https://upstash.com) Redis database. If missing, rate limiting is skipped |
+| `UPSTASH_REDIS_REST_URL` | Optional | REST URL from [upstash.com](https://upstash.com) Redis database. Used for rate limiting, Spotify token cache and Mac daemon data |
 | `UPSTASH_REDIS_REST_TOKEN` | Optional | REST token for the Upstash Redis database. Required alongside `UPSTASH_REDIS_REST_URL` |
 | `BEEHIIV_API_KEY` | Optional | API key from [beehiiv.com](https://beehiiv.com). Required for newsletter subscriptions via `/api/newsletter` |
 | `BEEHIIV_PUBLICATION_ID` | Optional | Beehiiv publication ID (starts with `pub_`). Required alongside `BEEHIIV_API_KEY` |
+| `NEXT_PUBLIC_GA_ID` | Optional | Google Analytics 4 measurement ID (starts with `G-`). If missing, analytics are disabled |
+| `SPOTIFY_CLIENT_ID` | Optional | Spotify app client ID from [developer.spotify.com](https://developer.spotify.com). Required for live now-playing status |
+| `SPOTIFY_CLIENT_SECRET` | Optional | Spotify app client secret. Required alongside `SPOTIFY_CLIENT_ID` |
+| `SPOTIFY_REFRESH_TOKEN` | Optional | Long-lived OAuth refresh token. Run `node scripts/spotify-auth.mjs` once to generate it |
 
 ---
 
