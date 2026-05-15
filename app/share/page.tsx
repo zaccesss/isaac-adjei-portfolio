@@ -29,6 +29,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://www.isaacadjei.me/share",
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default function SharePage() {
