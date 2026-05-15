@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `scripts/mac-daemon.py` Upstash REST API call corrected to use `/pipeline` endpoint with `["SET", key, value, "EX", ttl]` body; previous call to `/set/<key>` with the full command array as the body stored the raw array string instead of the JSON object, causing `/api/macbook` to return all-null values
+
 ---
 
 ## [v2.1.0] - 2026-05-15

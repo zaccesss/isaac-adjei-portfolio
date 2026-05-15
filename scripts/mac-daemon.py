@@ -57,25 +57,25 @@ def write_status():
         print("No battery found (desktop Mac?). Nothing to write.")
         return
 
-    data = json.dumps({
+    payload = {
         "battery": round(battery.percent),
         "charging": battery.power_plugged,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "device": DEVICE,
-    })
+    }
 
     try:
         res = requests.post(
-            f"{UPSTASH_URL}/set/macbook:status",
+            f"{UPSTASH_URL}/pipeline",
             headers={
                 "Authorization": f"Bearer {UPSTASH_TOKEN}",
                 "Content-Type": "application/json",
             },
-            json=["macbook:status", data, "EX", 600],
+            json=[["SET", "macbook:status", json.dumps(payload), "EX", 600]],  # noqa: E501
             timeout=10,
         )
-        pct = round(battery.percent)
-        chg = battery.power_plugged
+        pct = payload["battery"]
+        chg = payload["charging"]
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] battery={pct}% charging={chg} -> {res.status_code}")
     except Exception as e:
