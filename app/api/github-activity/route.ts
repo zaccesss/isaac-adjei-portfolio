@@ -37,7 +37,7 @@ export async function GET() {
     const pat = process.env.GITHUB_PAT
 
     const res = await fetch(
-      "https://api.github.com/users/zaccessss/events/public?per_page=30",
+      "https://api.github.com/users/zaccesss/events/public?per_page=30",
       {
         headers: {
           "User-Agent": "isaac-adjei-portfolio",
@@ -70,7 +70,7 @@ export async function GET() {
       )
     }
 
-    const repoShort = push.repo.name.replace("zaccessss/", "")
+    const repoShort = push.repo.name.replace("zaccesss/", "")
     const result = { repo: repoShort, pushedAt: push.created_at, relativeTime: relativeTime(push.created_at) }
 
     if (redis) {

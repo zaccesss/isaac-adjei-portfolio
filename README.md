@@ -261,7 +261,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 | `/api/newsletter`        | `POST` | Newsletter subscription via Beehiiv API - validates email and adds subscriber with welcome email                                                                     |
 | `/api/spotify`           | `GET`  | Spotify now-playing: refreshes access token via Upstash Redis cache, returns track, artist, album art, progress and paused state                                     |
 | `/api/macbook`           | `GET`  | Reads MacBook battery status (percentage, charging, device name, last seen) from Upstash Redis key written by `scripts/mac-daemon.py`                                |
-| `/api/github-activity`   | `GET`  | Fetches last public push event from GitHub API for `zaccessss`, cached in Redis for 5 minutes                                                                        |
+| `/api/github-activity`   | `GET`  | Fetches last public push event from GitHub API for `zaccesss`, cached in Redis for 5 minutes                                                                        |
 | `/api/cv-pdf`            | `GET`  | Serves the static CV PDF from `public/resume/Isaac_Adjei_CV.pdf`                                                                                                    |
 | `/api/quote`             | `GET`  | Fetches a random motivational quote from ZenQuotes with a local fallback                                                                                             |
 | `/api/bible-verse`       | `GET`  | Fetches a random Bible verse from the NET Bible API with a local fallback                                                                                            |
