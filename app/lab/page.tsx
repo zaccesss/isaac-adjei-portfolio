@@ -690,8 +690,6 @@ export default function LabPage() {
 
   return (
     <div className="container max-w-3xl py-24 space-y-8">
-      <LiveStatusCards />
-
       {/* Screen reader live region */}
       <div
         ref={liveRegionRef}
@@ -837,6 +835,8 @@ export default function LabPage() {
           to navigate the site
         </p>
       )}
+
+      {!isMaximized && <LiveStatusCards />}
     </div>
   )
 }
