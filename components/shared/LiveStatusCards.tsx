@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Laptop, BatteryCharging, Battery, Wifi, WifiOff } from "lucide-react"
+import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, Github } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface SpotifyData {
@@ -238,6 +238,18 @@ export default function LiveStatusCards() {
               </div>
             ) : (
               <p className="text-xs text-muted-foreground/40">offline</p>
+            )}
+
+            {/* GitHub last push */}
+            {github.repo && (
+              <div className="flex items-center gap-1.5">
+                <Github className="h-3 w-3 text-muted-foreground/40 shrink-0" />
+                <span className="text-xs text-muted-foreground truncate">
+                  pushed{" "}
+                  <span className="text-foreground/70">{github.repo}</span>{" "}
+                  <span className="text-muted-foreground/50">{github.relativeTime}</span>
+                </span>
+              </div>
             )}
           </div>
         </div>
