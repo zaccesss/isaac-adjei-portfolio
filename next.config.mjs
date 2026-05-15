@@ -1,7 +1,7 @@
 const isDev = process.env.NODE_ENV === "development"
 
-const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com"]
-const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io"]
+const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com", "https://www.googletagmanager.com"]
+const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io", "https://www.google-analytics.com", "https://analytics.google.com"]
 
 if (isDev) {
   scriptSrc.push("'unsafe-eval'")
