@@ -57,7 +57,7 @@ const NAV_COMMANDS: Record<string, string> = {
   blog: "https://www.isaacadjei.me/blog",
   notes: "https://www.isaacadjei.me/notes",
   newsletter: "https://www.isaacadjei.me/newsletter",
-  github: "https://github.com/zaccessss",
+  github: "https://github.com/zaccesss",
   linkedin: "https://www.linkedin.com/in/isaacadjei",
 }
 
@@ -471,7 +471,7 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "output", text: "launching in new tab..." },
   ],
   github: () => [
-    { type: "info", text: "opening: github.com/zaccessss" },
+    { type: "info", text: "opening: github.com/zaccesss" },
     { type: "output", text: "launching in new tab..." },
   ],
   linkedin: () => [
