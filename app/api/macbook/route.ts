@@ -18,14 +18,21 @@ export async function GET() {
       )
     }
 
-    const data = await redis.get<{
+    type StatusPayload = {
       battery: number
       charging: boolean
       timestamp: string
       device?: string
-    }>("macbook:status")
+    }
 
-    if (!data) {
+    const [live, lastKnown] = await Promise.all([
+      redis.get<StatusPayload>("macbook:status"),
+      redis.get<StatusPayload>("macbook:last-known"),
+    ])
+
+    const source = live ?? lastKnown
+
+    if (!source) {
       return NextResponse.json(
         { battery: null, charging: null, lastSeen: null, device: null },
         { headers: { "Cache-Control": "no-store" } }
@@ -34,10 +41,10 @@ export async function GET() {
 
     return NextResponse.json(
       {
-        battery: data.battery,
-        charging: data.charging,
-        lastSeen: data.timestamp,
-        device: data.device ?? null,
+        battery: source.battery,
+        charging: source.charging,
+        lastSeen: source.timestamp,
+        device: source.device ?? null,
       },
       { headers: { "Cache-Control": "no-store" } }
     )

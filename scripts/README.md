@@ -2,7 +2,7 @@
 
 ## mac-daemon.py
 
-Writes MacBook battery status to Upstash Redis every 2 minutes so the live
+Writes MacBook battery status to Upstash Redis every 30 seconds so the live
 status widget on the portfolio can show battery percentage, charging state,
 device name and online/away indicator.
 
@@ -33,12 +33,12 @@ python3 scripts/mac-daemon.py
 You will see output like:
 
 ```
-Mac daemon started. Writing battery status every 120s. Press Ctrl+C to stop.
+Mac daemon started. Writing battery status every 30s. Press Ctrl+C to stop.
 [14:32:01] battery=78% charging=True -> 200
 ```
 
 Reload isaacadjei.me and the MacBook card on the homepage will show your
-device name, battery and online status within 2 minutes.
+device name, battery and online status within 30 seconds.
 
 ### Run automatically on Mac startup (optional)
 
@@ -91,8 +91,10 @@ To check logs: `tail -f /tmp/macdaemon.log`
 
 ### What data it writes
 
-Every 120 seconds it writes a JSON object to the Redis key `macbook:status`
-with a 10-minute TTL:
+Every 30 seconds it writes a JSON object to two Redis keys:
+
+- `macbook:status` with a 10-minute TTL (used to detect online/away)
+- `macbook:last-known` with no expiry (persists device name, battery and timestamp forever)
 
 ```json
 {
@@ -103,9 +105,10 @@ with a 10-minute TTL:
 }
 ```
 
-The portfolio reads this via `/api/macbook`. If the key is missing or expired
-(i.e. the daemon has not run for 10+ minutes) the widget shows the Mac as
-offline.
+The portfolio reads this via `/api/macbook`. When `macbook:status` has expired
+(daemon not run for 10+ minutes) the widget falls back to `macbook:last-known`
+and shows the device name, last battery percent and "last seen X ago" instead
+of going blank.
 
 ### Safety
 

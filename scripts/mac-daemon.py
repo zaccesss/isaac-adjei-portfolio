@@ -31,7 +31,7 @@ except ImportError:
 
 UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL")
 UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
-INTERVAL = 120  # seconds between writes
+INTERVAL = 30  # seconds between writes
 
 if not UPSTASH_URL or not UPSTASH_TOKEN:
     print(
@@ -71,7 +71,10 @@ def write_status():
                 "Authorization": f"Bearer {UPSTASH_TOKEN}",
                 "Content-Type": "application/json",
             },
-            json=[["SET", "macbook:status", json.dumps(payload), "EX", 600]],  # noqa: E501
+            json=[
+                ["SET", "macbook:status", json.dumps(payload), "EX", 600],
+                ["SET", "macbook:last-known", json.dumps(payload)],
+            ],
             timeout=10,
         )
         pct = payload["battery"]
