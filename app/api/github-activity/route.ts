@@ -60,8 +60,8 @@ export async function GET() {
     }
 
     const events = await res.json() as { type: string; repo: { name: string }; created_at: string }[]
-    console.log("GitHub events count:", events.length, "types:", events.slice(0, 5).map((e) => e.type))
-    const push = events.find((e) => e.type === "PushEvent")
+    // Skip the profile README repo (zaccesss/zaccesss) - not a real project
+    const push = events.find((e) => e.type === "PushEvent" && e.repo.name !== "zaccesss/zaccesss")
 
     if (!push) {
       return NextResponse.json(
