@@ -320,6 +320,11 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 │   ├── constants.ts    # Nav links, routes, site URL
 │   └── utils.ts        # cn() utility
 │
+├── scripts/
+│   ├── mac-daemon.py   # Python daemon: writes battery/charging/device to Upstash Redis every 2 min
+│   ├── spotify-auth.mjs # One-time OAuth helper to get a Spotify refresh token
+│   └── README.md       # Setup guide for mac-daemon (launchd plist, dependencies, env vars)
+│
 └── public/
     ├── images/
     │   └── projects/   # Project photos organised by project slug
@@ -413,6 +418,7 @@ SPOTIFY_REFRESH_TOKEN=your_spotify_refresh_token
 | `SPOTIFY_CLIENT_ID` | Optional | Spotify app client ID from [developer.spotify.com](https://developer.spotify.com). Required for live now-playing status |
 | `SPOTIFY_CLIENT_SECRET` | Optional | Spotify app client secret. Required alongside `SPOTIFY_CLIENT_ID` |
 | `SPOTIFY_REFRESH_TOKEN` | Optional | Long-lived OAuth refresh token. Run `node scripts/spotify-auth.mjs` once to generate it |
+| `GITHUB_PAT` | Optional | GitHub personal access token. Increases the rate limit for `/api/github-activity` from 60 to 5000 req/hr |
 
 ---
 
