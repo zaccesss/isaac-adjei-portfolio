@@ -71,6 +71,7 @@ export default function LiveStatusCards() {
     lastSeen: null,
     device: null,
   })
+  const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
 
   useEffect(() => {
     const tick = () => {
@@ -103,6 +104,18 @@ export default function LiveStatusCards() {
     }
     fetch_()
     const id = setInterval(fetch_, 60000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    async function fetch_() {
+      try {
+        const res = await fetch("/api/github-activity")
+        if (res.ok) setGithub(await res.json())
+      } catch {}
+    }
+    fetch_()
+    const id = setInterval(fetch_, 300000)
     return () => clearInterval(id)
   }, [])
 
