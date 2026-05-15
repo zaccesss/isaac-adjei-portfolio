@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
-import { Mail, Zap, BookOpen, Cpu, Globe, Rss } from "lucide-react"
+import { Book, Mail, Zap, BookOpen, Cpu, Globe, Rss } from "lucide-react"
 import NewsletterForm from "@/components/shared/NewsletterForm"
 import Link from "next/link"
 
@@ -144,7 +144,7 @@ export default function NewsletterPage() {
             href="/notes"
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
           >
-            <Zap className="h-4 w-4 text-primary" />
+            <Book className="h-4 w-4 text-primary" />
             See my notes
           </Link>
         </div>

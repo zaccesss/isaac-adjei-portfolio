@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+16+%7C+TypeScript+%7C+Tailwind+CSS;10+Projects+%7C+Blog+%7C+Newsletter+%7C+Lab+Terminal;Live+Status+%7C+Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+16+%7C+TypeScript+%7C+Tailwind+CSS;Projects+%7C+Blog+%7C+Newsletter+%7C+Lab+Terminal;RSS+Feed+%7C+Privacy+Policy+%7C+My+Approach+Animation;Live+Status+%7C+Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
 </p>
 
 <p align="center">

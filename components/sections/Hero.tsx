@@ -42,17 +42,26 @@ export default function Hero() {
           </p>
         </motion.div>
 
-        <motion.p
+        <motion.div
           variants={fadeUp}
-          className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+          className="max-w-2xl mx-auto space-y-4"
         >
-          Electronic Engineering &amp; Computer Science student at Aston University. Top 40
-          Finalist, Black Heritage Undergraduate of the Year 2026 and named Best and Most
-          Hardworking Student at Stanmore College. I build across the full stack of engineering,
-          from bare-metal firmware and PCB design to AI&nbsp;&amp;&nbsp;ML and full-stack web.
-          Passionate about embedded systems, IoT and accessible technology. Open to internships,
-          placements and professional opportunities in engineering and tech.
-        </motion.p>
+          <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+            EE &amp; CS student at Aston University, Birmingham, building across the full stack of
+            engineering and technology. Open to internships, placements and professional
+            opportunities.
+          </p>
+          <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+            Not sure where to start?{" "}
+            <a href="/projects" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors">Projects</a>
+            {" "}for the work,{" "}
+            <a href="/about" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors">About</a>
+            {" "}for the full story, or the{" "}
+            <a href="/lab" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors">Lab terminal</a>
+            {" "}if you want to explore on your own terms, or just scroll for more.
+          </p>
+          <div className="w-24 h-px bg-border mx-auto" />
+        </motion.div>
 
         <motion.div variants={fadeUp} className="flex justify-center">
           <SocialLinks iconSize="h-5 w-5" />

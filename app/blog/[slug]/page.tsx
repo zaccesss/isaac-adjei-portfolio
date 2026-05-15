@@ -64,17 +64,24 @@ function formatDate(dateStr: string): string {
   })
 }
 
-function renderBlock(block: ContentBlock, i: number, headingIds?: Map<number, string>): React.ReactNode {
+function renderBlock(block: ContentBlock, i: number, headingIds?: Map<number, string>, prevBlock?: ContentBlock): React.ReactNode {
+  const afterAcknowledgements = prevBlock?.type === "h2" && prevBlock?.text === "Acknowledgements"
   switch (block.type) {
     case "p":
       return (
-        <p key={i} className="text-base leading-relaxed text-foreground/90">
+        <p key={i} className={`text-base leading-relaxed ${afterAcknowledgements ? "text-primary/90" : "text-foreground/90"}`}>
           {block.text}
         </p>
       )
     case "h2":
       return (
-        <h2 key={i} id={headingIds?.get(i)} className="text-xl font-semibold tracking-tight mt-8 mb-2 scroll-mt-24">
+        <h2
+          key={i}
+          id={headingIds?.get(i)}
+          className={`text-xl font-semibold tracking-tight mt-8 mb-2 scroll-mt-24 ${
+            block.text === "Acknowledgements" ? "text-primary" : ""
+          }`}
+        >
           {block.text}
         </h2>
       )
@@ -296,7 +303,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         <div>
           {post.published && post.content.length > 0 ? (
             <div className="space-y-5">
-              {post.content.map((block, i) => renderBlock(block, i, headingIds))}
+              {post.content.map((block, i) => renderBlock(block, i, headingIds, post.content[i - 1]))}
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-border/60 p-12 text-center space-y-2">

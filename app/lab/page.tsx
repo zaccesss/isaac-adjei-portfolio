@@ -121,6 +121,7 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "cmd-list", text: "  joke         -  one for the road" },
     { type: "cmd-list", text: "  hack         -  do not" },
     { type: "cmd-list", text: "  sudo         -  definitely do not" },
+    { type: "cmd-list", text: "  approach     -  my code philosophy" },
     { type: "cmd-list", text: "  zac          -  easter egg" },
     { type: "cmd-list", text: "  clear        -  clear terminal" },
   ],
@@ -410,6 +411,19 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "kv", text: "  ba-from-data-to-decisions     in progress" },
     { type: "blank", text: "" },
     { type: "success", text: "  all systems operational" },
+  ],
+
+  approach: () => [
+    { type: "info", text: "// my approach" },
+    { type: "output", text: "  bool struggling = true;" },
+    { type: "output", text: "  bool failing    = true;" },
+    { type: "output", text: "  while (struggling || failing) {" },
+    { type: "output", text: "      learn();      // Grow from the struggle" },
+    { type: "output", text: "      retry();      // Push through failure" },
+    { type: "output", text: "  }" },
+    { type: "output", text: "  thrive();         // Embrace growth" },
+    { type: "output", text: "  succeed();        // Achieve the goal" },
+    { type: "output", text: '  printf("Mission accomplished.\\n");  // Celebrate victory' },
   ],
 
   zac: () => [
@@ -827,7 +841,7 @@ export default function LabPage() {
       {!isMaximized && (
         <p className="text-center text-xs text-muted-foreground font-mono">
           use{" "}
-          <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">
+          <kbd suppressHydrationWarning className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px]">
             {modLabel}
           </kbd>{" "}
           +{" "}

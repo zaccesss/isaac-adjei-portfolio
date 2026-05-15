@@ -13,31 +13,32 @@ export const societies: Society[] = [
     role: "Student Member",
     period: "2024 - Present",
     description:
-      "Professional engineering institution membership focused on advancing engineering knowledge and skills.",
+      "Professional engineering institution membership, advancing engineering knowledge and skills.",
   },
   {
     name: "Aston Computing and Electronics Society (ESOC)",
     role: "Member & Student Representative",
     period: "2024 - Present",
     description:
-      "Active member and course representative.",
+      "Active member and course representative for the EECS programme at Aston.",
   },
   {
     name: "Aston African-Caribbean Society (ACS)",
     role: "Member",
     period: "2024 - Present",
-    description: "Active participation in cultural and community events.",
+    description: "Active participation in cultural, social and community events.",
   },
-  {
-    name: "Aston Ghana Society (AGS)",
-    role: "Member",
-    period: "2024 - Present",
-    description: "Connecting with Ghanaian students and promoting cultural heritage.",
-  },
-  {
-    name: "Aston Gaming Society",
-    role: "Member",
-    period: "2024 - Present",
-    description: "Participating in gaming events, tournaments and community activities.",
-  },
+  // Commented out for now — uncomment to re-add
+  // {
+  //   name: "Aston Ghana Society (AGS)",
+  //   role: "Member",
+  //   period: "2024 - Present",
+  //   description: "Connecting with Ghanaian students and celebrating cultural heritage.",
+  // },
+  // {
+  //   name: "Aston Gaming Society",
+  //   role: "Member",
+  //   period: "2024 - Present",
+  //   description: "Participating in gaming events, tournaments and community activities.",
+  // },
 ]
