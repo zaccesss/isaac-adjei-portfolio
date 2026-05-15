@@ -9,6 +9,56 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.1.0] - 2026-05-15
+
+### Added
+
+- **Live status widget** - iOS-style cards on homepage, /notes and /lab showing Spotify now playing (with album art and progress bar), London time (always Europe/London), MacBook battery percentage and charging state, GitHub last push and online/away indicator
+- `/api/spotify` - Spotify now-playing API route with access token refresh via Upstash Redis cache
+- `/api/macbook` - reads battery status written by the Mac daemon from Upstash Redis
+- `/api/github-activity` - fetches last public push event from GitHub API, cached in Redis for 5 minutes
+- `scripts/mac-daemon.py` - Python daemon that writes battery percentage, charging state, device name and timestamp to Upstash Redis every 120 seconds; safe (read-only syscalls, 0% CPU, no elevated privileges)
+- `scripts/spotify-auth.mjs` - one-time OAuth helper to exchange a Spotify authorisation code for a refresh token
+- `scripts/README.md` - full setup guide for mac-daemon including launchd plist for auto-start on login
+- `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REFRESH_TOKEN` added to `.env.example`
+- **Reading progress bar** - 3px primary-colour bar fixed at the top of the viewport on all blog post pages, fills as you scroll
+- **Copy button on code blocks** - hover reveals a Copy/Copied button on every code block in blog posts
+- **Table of contents** - auto-generated sticky sidebar on xl screens for blog posts with 3+ headings, highlights active section via IntersectionObserver
+- **Custom 404 page** - terminal-style animated not-found page with boot sequence, red error line and command links back to main pages
+- `/notes/world-cup-ai-predictor` detail page - full project plan with data sources, ML approach, tech stack and timeline
+- `/notes/prosthetics-health-tech` detail page - personal research page on ocular prosthetics and bio-integrated electronics with verified references
+- AstonCV blog post (`astoncv-full-stack-cv-database`) covering all four versions from CHANGELOG
+- Lab terminal and notes pages now use iOS-style LiveStatusCards instead of compact LiveStatus strip
+- Online/away indicator derived from MacBook daemon heartbeat freshness (green pulse if last seen under 5 minutes, grey otherwise)
+
+### Changed
+
+- Journey blog post title changed from "From Adisadel to Aston: My Journey in Engineering" to "My Journey So Far"
+- AVR blog post description and content updated to reflect ongoing status with a note at the end of the post
+- Building My Portfolio blog post expanded with full tech stack details (React, TypeScript, Tailwind CSS, Node.js, Vercel, GA4, Beehiiv, Resend, Turnstile, Upstash, GitHub Actions)
+- Notes page: all three ongoing project titles now link to their project page and/or GitHub repo; avr-zac has Ongoing badge
+- Notes page: "Future Project Ideas" renamed to "Upcoming Project Ideas"
+- Notes page: inline newsletter removed; footer newsletter restored on notes
+- Blog page: terminal lab link moved above newsletter signup
+- Spotify API updated to return `progress_ms`, `duration_ms` and `paused` state separately from `playing`
+- MacBook API and daemon updated to include device name from `socket.gethostname()`
+- Newsletter link updated sitewide from `newsletter.isaacadjei.me` to `isaacadjei.me/newsletter` (in `data/links.ts`, `data/social.ts` and footer)
+- Newsletter page fully rewritten with topic cards, cross-links to blog and notes, and "Read past issues on Beehiiv" link
+- Ctrl/Cmd+T shortcut for Lab terminal changed to Ctrl/Cmd+J to avoid browser new-tab conflict
+- Blog post page widened to `xl:max-w-5xl` on extra-large screens to accommodate TOC sidebar
+- Sitemap updated with `/notes/world-cup-ai-predictor` and `/notes/prosthetics-health-tech`
+
+### Fixed
+
+- All em dashes and en dashes removed sitewide from content, comments and documentation
+- Oxford commas removed from all content
+- Footer newsletter now shows on /notes and /lab; hidden only on /blog and /newsletter
+- `isaacadjei.me` text link removed from bottom of /links page
+- `astoncv/` folder deleted from the working tree (was a gitignored local clone, no longer needed)
+- `.gitignore` updated to exclude `astoncv/` permanently
+
+---
+
 ## [v2.0.0] - 2026-05-14
 
 ### Added
