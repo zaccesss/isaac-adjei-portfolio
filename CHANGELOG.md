@@ -7,9 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Fixed
+### Changed
 
-- `scripts/mac-daemon.py` Upstash REST API call corrected to use `/pipeline` endpoint with `["SET", key, value, "EX", ttl]` body; previous call to `/set/<key>` with the full command array as the body stored the raw array string instead of the JSON object, causing `/api/macbook` to return all-null values
+- `scripts/mac-daemon.py` daemon interval reduced from 120s to 30s for more accurate live status
+- `scripts/mac-daemon.py` now writes to a second `macbook:last-known` Redis key (no expiry) alongside `macbook:status` (EX 600) so device name, battery and last-seen timestamp persist after the 10-minute TTL expires
+- `/api/macbook` falls back to `macbook:last-known` when the live key has expired, so the MacBook card always shows the device name, last battery percent and "last seen X ago" instead of going blank
+- `scripts/mac-daemon.py` Upstash REST pipeline call corrected to use the proper body format; previous call stored the raw array string instead of the JSON object, causing `/api/macbook` to return all-null values
 
 ---
 

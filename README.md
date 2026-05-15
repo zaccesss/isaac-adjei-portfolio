@@ -158,7 +158,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 - **iOS-style cards** on homepage, /notes and /lab showing real-time data
 - **Spotify now playing** - album art, track name, artist, progress bar and paused/playing state via Spotify Web API
 - **London time** - always `Europe/London` timezone, updates every second client-side, no API needed
-- **MacBook battery** - percentage, charging state and device name written by `scripts/mac-daemon.py` to Upstash Redis every 2 minutes, read via `/api/macbook`
+- **MacBook battery** - percentage, charging state and device name written by `scripts/mac-daemon.py` to Upstash Redis every 30 seconds, read via `/api/macbook`; device name and last battery percent persist via a `macbook:last-known` key (no TTL) so the card always shows "last seen X ago" instead of going blank
 - **GitHub last push** - last public repo pushed to and relative time via GitHub public API, cached in Redis for 5 minutes
 - **Online/away indicator** - green pulse if Mac daemon heartbeat is under 5 minutes old, grey if away or offline
 - **Theme-adaptive** - all cards use CSS variables and adapt to dark and light mode
@@ -321,7 +321,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 │   └── utils.ts        # cn() utility
 │
 ├── scripts/
-│   ├── mac-daemon.py   # Python daemon: writes battery/charging/device to Upstash Redis every 2 min
+│   ├── mac-daemon.py   # Python daemon: writes battery/charging/device to Upstash Redis every 30s
 │   ├── spotify-auth.mjs # One-time OAuth helper to get a Spotify refresh token
 │   └── README.md       # Setup guide for mac-daemon (launchd plist, dependencies, env vars)
 │
