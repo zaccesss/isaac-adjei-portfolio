@@ -104,7 +104,7 @@ Current variables (see `.env.example` for full list):
 ## One-time setup on a new clone
 
 ```bash
-git clone https://github.com/zaccessss/isaac-adjei-portfolio.git
+git clone https://github.com/zaccesss/isaac-adjei-portfolio.git
 cd isaac-adjei-portfolio
 npm install
 git config core.hooksPath .githooks
