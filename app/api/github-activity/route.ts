@@ -48,7 +48,11 @@ export async function GET() {
       signal: AbortSignal.timeout(5000),
     })
 
+    console.log("GitHub API status:", res.status, "PAT present:", !!pat)
+
     if (!res.ok) {
+      const body = await res.text()
+      console.log("GitHub API error body:", body)
       return NextResponse.json(
         { repo: null, pushedAt: null, relativeTime: null },
         { headers: { "Cache-Control": "no-store" } }
@@ -56,6 +60,7 @@ export async function GET() {
     }
 
     const events = await res.json() as { type: string; repo: { name: string }; created_at: string }[]
+    console.log("GitHub events count:", events.length, "types:", events.slice(0, 5).map((e) => e.type))
     const push = events.find((e) => e.type === "PushEvent")
 
     if (!push) {
