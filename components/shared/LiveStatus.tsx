@@ -107,10 +107,10 @@ export default function LiveStatus({ variant = "card" }: LiveStatusProps) {
           <span
             className={cn(
               "inline-block w-1.5 h-1.5 rounded-full",
-              online ? "bg-green-500 animate-pulse" : "bg-zinc-600"
+              online ? "bg-blue-500 animate-pulse" : "bg-zinc-600"
             )}
           />
-          <span className={online ? "text-green-500" : "text-zinc-600"}>
+          <span className={online ? "text-blue-500" : "text-zinc-600"}>
             {online ? "online" : "away"}
           </span>
         </span>
@@ -119,7 +119,7 @@ export default function LiveStatus({ variant = "card" }: LiveStatusProps) {
 
         {/* Spotify */}
         <span className="flex items-center gap-1">
-          <span className={spotify.playing ? "text-green-400" : "text-zinc-600"}>♫</span>
+          <span className={spotify.playing ? "text-blue-400" : "text-zinc-600"}>♫</span>
           <span className={spotify.playing ? "text-zinc-300" : "text-zinc-600"}>
             {spotify.playing && spotify.track
               ? `${spotify.track} - ${spotify.artist}`
@@ -165,17 +165,17 @@ export default function LiveStatus({ variant = "card" }: LiveStatusProps) {
         <span
           className={cn(
             "inline-block w-2 h-2 rounded-full shrink-0",
-            online ? "bg-green-500 animate-pulse" : "bg-muted-foreground/30"
+            online ? "bg-blue-500 animate-pulse" : "bg-muted-foreground/30"
           )}
         />
-        <span className={cn("text-xs font-mono", online ? "text-green-500" : "text-muted-foreground/50")}>
+        <span className={cn("text-xs font-mono", online ? "text-blue-500" : "text-muted-foreground/50")}>
           {online ? "online" : "away"}
         </span>
       </span>
 
       {/* Spotify */}
       <span className="flex items-center gap-1.5 min-w-0">
-        <Music className={cn("h-3.5 w-3.5 shrink-0", spotify.playing ? "text-green-500" : "text-muted-foreground/40")} />
+        <Music className={cn("h-3.5 w-3.5 shrink-0", spotify.playing ? "text-blue-500" : "text-muted-foreground/40")} />
         <span className="text-xs text-muted-foreground truncate max-w-[180px]">
           {spotify.playing && spotify.track
             ? `${spotify.track} - ${spotify.artist}`
