@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Laptop, BatteryCharging, Battery, Wifi, WifiOff } from "lucide-react"
+import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, Github } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface SpotifyData {
@@ -21,6 +21,11 @@ interface MacbookData {
   charging: boolean | null
   lastSeen: string | null
   device: string | null
+}
+
+interface GithubData {
+  repo: string | null
+  relativeTime: string | null
 }
 
 function formatMs(ms: number): string {
@@ -71,6 +76,7 @@ export default function LiveStatusCards() {
     lastSeen: null,
     device: null,
   })
+  const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
 
   useEffect(() => {
     const tick = () => {
@@ -106,6 +112,18 @@ export default function LiveStatusCards() {
     return () => clearInterval(id)
   }, [])
 
+  useEffect(() => {
+    async function fetch_() {
+      try {
+        const res = await fetch("/api/github-activity")
+        if (res.ok) setGithub(await res.json())
+      } catch {}
+    }
+    fetch_()
+    const id = setInterval(fetch_, 300000)
+    return () => clearInterval(id)
+  }, [])
+
   const { text: seenText, online } = relativeLastSeen(mac.lastSeen)
   const hasTrack = spotify.playing || spotify.paused
   const progress =
@@ -120,12 +138,9 @@ export default function LiveStatusCards() {
       <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
         {hasTrack ? (
           <div className="p-4 space-y-3">
-            {/* Label */}
             <p className="text-[10px] font-semibold uppercase tracking-widest text-green-500">
               {spotify.playing ? "Currently Listening..." : "Paused"}
             </p>
-
-            {/* Track row */}
             <div className="flex items-center gap-3">
               {spotify.albumArt ? (
                 <Image
@@ -151,8 +166,6 @@ export default function LiveStatusCards() {
                 </span>
               )}
             </div>
-
-            {/* Progress bar */}
             <div className="space-y-1">
               <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
                 <div
@@ -195,26 +208,17 @@ export default function LiveStatusCards() {
               {mac.device ?? "MacBook Air"}
             </p>
           </div>
-
           <div className="space-y-1.5">
-            {/* Online indicator */}
             <div className="flex items-center gap-1.5">
               {online ? (
                 <Wifi className="h-3 w-3 text-green-500 shrink-0" />
               ) : (
                 <WifiOff className="h-3 w-3 text-muted-foreground/40 shrink-0" />
               )}
-              <span
-                className={cn(
-                  "text-xs",
-                  online ? "text-green-500" : "text-muted-foreground/60"
-                )}
-              >
+              <span className={cn("text-xs", online ? "text-green-500" : "text-muted-foreground/60")}>
                 {seenText}
               </span>
             </div>
-
-            {/* Battery */}
             {mac.battery !== null ? (
               <div className="flex items-center gap-1.5">
                 {mac.charging ? (
@@ -223,17 +227,13 @@ export default function LiveStatusCards() {
                   <Battery
                     className={cn(
                       "h-3.5 w-3.5 shrink-0",
-                      mac.battery <= 20
-                        ? "text-red-500"
-                        : "text-muted-foreground"
+                      mac.battery <= 20 ? "text-red-500" : "text-muted-foreground"
                     )}
                   />
                 )}
                 <span className="text-xs font-mono text-muted-foreground">
                   {mac.battery}%
-                  {mac.charging && (
-                    <span className="text-green-500"> charging</span>
-                  )}
+                  {mac.charging && <span className="text-green-500"> charging</span>}
                 </span>
               </div>
             ) : (
@@ -249,13 +249,28 @@ export default function LiveStatusCards() {
           </p>
           <div>
             <p className="text-xl font-semibold font-mono tabular-nums leading-tight">
-              {time || " "}
+              {time || " "}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">{tz || "local time"}</p>
           </div>
         </div>
 
       </div>
+
+      {/* GitHub card - full width */}
+      {github.repo && (
+        <div className="rounded-2xl border border-border/60 bg-card shadow-sm px-4 py-3 flex items-center gap-3">
+          <Github className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+          <span className="text-sm text-muted-foreground">
+            pushed{" "}
+            <span className="font-medium text-foreground/80">{github.repo}</span>
+          </span>
+          <span className="ml-auto text-xs text-muted-foreground/50 shrink-0">
+            {github.relativeTime}
+          </span>
+        </div>
+      )}
+
     </div>
   )
 }
