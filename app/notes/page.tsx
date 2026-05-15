@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { Terminal, Lightbulb, Wrench, CalendarDays, Github, ExternalLink, ArrowRight } from "lucide-react"
-import LiveStatus from "@/components/shared/LiveStatus"
+import LiveStatusCards from "@/components/shared/LiveStatusCards"
 
 export const metadata: Metadata = {
   title: "Notes",
@@ -55,7 +55,7 @@ export default function NotesPage() {
           A public notebook. Not polished posts, just honest notes on what I am building, thinking
           about and planning. Updated as things change.
         </p>
-        <LiveStatus variant="card" />
+        <LiveStatusCards />
       </section>
 
       <Separator />
