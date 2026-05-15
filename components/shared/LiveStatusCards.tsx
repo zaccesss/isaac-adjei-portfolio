@@ -258,18 +258,22 @@ export default function LiveStatusCards() {
       </div>
 
       {/* GitHub card - full width */}
-      {github.repo && (
-        <div className="rounded-2xl border border-border/60 bg-card shadow-sm px-4 py-3 flex items-center gap-3">
-          <Github className="h-4 w-4 text-muted-foreground/50 shrink-0" />
-          <span className="text-sm text-muted-foreground">
-            pushed{" "}
-            <span className="font-medium text-foreground/80">{github.repo}</span>
-          </span>
-          <span className="ml-auto text-xs text-muted-foreground/50 shrink-0">
-            {github.relativeTime}
-          </span>
-        </div>
-      )}
+      <div className="rounded-2xl border border-border/60 bg-card shadow-sm px-4 py-3 flex items-center gap-3">
+        <Github className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+        {github.repo ? (
+          <>
+            <span className="text-sm text-muted-foreground">
+              pushed{" "}
+              <span className="font-medium text-foreground/80">{github.repo}</span>
+            </span>
+            <span className="ml-auto text-xs text-muted-foreground/50 shrink-0">
+              {github.relativeTime}
+            </span>
+          </>
+        ) : (
+          <span className="text-sm text-muted-foreground/50">no recent activity</span>
+        )}
+      </div>
 
     </div>
   )
