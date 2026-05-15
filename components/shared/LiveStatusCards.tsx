@@ -138,7 +138,7 @@ export default function LiveStatusCards() {
       <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
         {hasTrack ? (
           <div className="p-4 space-y-3">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-green-500">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-blue-500">
               {spotify.playing ? "Currently Listening..." : "Paused"}
             </p>
             <div className="flex items-center gap-3">
@@ -171,7 +171,7 @@ export default function LiveStatusCards() {
                 <div
                   className={cn(
                     "h-full rounded-full transition-all",
-                    spotify.playing ? "bg-green-500" : "bg-muted-foreground/40"
+                    spotify.playing ? "bg-blue-500" : "bg-muted-foreground/40"
                   )}
                   style={{ width: `${progress * 100}%` }}
                 />
@@ -211,18 +211,18 @@ export default function LiveStatusCards() {
           <div className="space-y-1.5">
             <div className="flex items-center gap-1.5">
               {online ? (
-                <Wifi className="h-3 w-3 text-green-500 shrink-0" />
+                <Wifi className="h-3 w-3 text-blue-500 shrink-0" />
               ) : (
                 <WifiOff className="h-3 w-3 text-muted-foreground/40 shrink-0" />
               )}
-              <span className={cn("text-xs", online ? "text-green-500" : "text-muted-foreground/60")}>
+              <span className={cn("text-xs", online ? "text-blue-500" : "text-muted-foreground/60")}>
                 {seenText}
               </span>
             </div>
             {mac.battery !== null ? (
               <div className="flex items-center gap-1.5">
                 {mac.charging ? (
-                  <BatteryCharging className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                  <BatteryCharging className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                 ) : (
                   <Battery
                     className={cn(
@@ -233,7 +233,7 @@ export default function LiveStatusCards() {
                 )}
                 <span className="text-xs font-mono text-muted-foreground">
                   {mac.battery}%
-                  {mac.charging && <span className="text-green-500"> charging</span>}
+                  {mac.charging && <span className="text-blue-500"> charging</span>}
                 </span>
               </div>
             ) : (
