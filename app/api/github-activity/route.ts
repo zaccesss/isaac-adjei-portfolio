@@ -35,18 +35,18 @@ export async function GET() {
     }
 
     const pat = process.env.GITHUB_PAT
-    const eventsUrl = pat
-      ? "https://api.github.com/users/zaccessss/events?per_page=30"
-      : "https://api.github.com/users/zaccessss/events/public?per_page=30"
 
-    const res = await fetch(eventsUrl, {
-      headers: {
-        "User-Agent": "isaac-adjei-portfolio",
-        Accept: "application/vnd.github+json",
-        ...(pat ? { Authorization: `Bearer ${pat}` } : {}),
-      },
-      signal: AbortSignal.timeout(5000),
-    })
+    const res = await fetch(
+      "https://api.github.com/users/zaccessss/events/public?per_page=30",
+      {
+        headers: {
+          "User-Agent": "isaac-adjei-portfolio",
+          Accept: "application/vnd.github+json",
+          ...(pat ? { Authorization: `Bearer ${pat}` } : {}),
+        },
+        signal: AbortSignal.timeout(5000),
+      }
+    )
 
     console.log("GitHub API status:", res.status, "PAT present:", !!pat)
 
