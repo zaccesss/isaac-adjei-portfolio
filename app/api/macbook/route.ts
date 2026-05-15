@@ -18,19 +18,27 @@ export async function GET() {
       )
     }
 
-    const data = await redis.get<{ battery: number; charging: boolean; timestamp: string }>(
-      "macbook:status"
-    )
+    const data = await redis.get<{
+      battery: number
+      charging: boolean
+      timestamp: string
+      device?: string
+    }>("macbook:status")
 
     if (!data) {
       return NextResponse.json(
-        { battery: null, charging: null, lastSeen: null },
+        { battery: null, charging: null, lastSeen: null, device: null },
         { headers: { "Cache-Control": "no-store" } }
       )
     }
 
     return NextResponse.json(
-      { battery: data.battery, charging: data.charging, lastSeen: data.timestamp },
+      {
+        battery: data.battery,
+        charging: data.charging,
+        lastSeen: data.timestamp,
+        device: data.device ?? null,
+      },
       { headers: { "Cache-Control": "no-store" } }
     )
   } catch {

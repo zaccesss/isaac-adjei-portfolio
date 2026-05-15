@@ -19,6 +19,8 @@ import os
 import sys
 import json
 import time
+import socket
+
 import requests
 
 try:
@@ -32,10 +34,22 @@ UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
 INTERVAL = 120  # seconds between writes
 
 if not UPSTASH_URL or not UPSTASH_TOKEN:
-    print("Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars first.")
+    print(
+        "Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars first."
+    )
     sys.exit(1)
 
-print(f"Mac daemon started. Writing battery status every {INTERVAL}s. Press Ctrl+C to stop.")
+DEVICE = (
+    socket.gethostname()
+    .replace(".local", "")
+    .replace("-", " ")
+)
+
+print(
+    f"Mac daemon started. Writing battery status every {INTERVAL}s. "
+    "Press Ctrl+C to stop."
+)
+
 
 def write_status():
     battery = psutil.sensors_battery()
@@ -47,6 +61,7 @@ def write_status():
         "battery": round(battery.percent),
         "charging": battery.power_plugged,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "device": DEVICE,
     })
 
     try:
@@ -59,9 +74,14 @@ def write_status():
             json=["macbook:status", data, "EX", 600],
             timeout=10,
         )
-        print(f"[{time.strftime('%H:%M:%S')}] battery={round(battery.percent)}% charging={battery.power_plugged} -> {res.status_code}")
+        pct = round(battery.percent)
+        chg = battery.power_plugged
+        ts = time.strftime("%H:%M:%S")
+        print(f"[{ts}] battery={pct}% charging={chg} -> {res.status_code}")
     except Exception as e:
-        print(f"[{time.strftime('%H:%M:%S')}] write failed: {e}")
+        ts = time.strftime("%H:%M:%S")
+        print(f"[{ts}] write failed: {e}")
+
 
 while True:
     write_status()
