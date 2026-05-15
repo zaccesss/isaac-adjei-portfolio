@@ -73,12 +73,12 @@ export default function LiveStatusCards() {
   })
 
   useEffect(() => {
-    setTime(londonTime())
-    setTz(londonTz())
-    const id = setInterval(() => {
+    const tick = () => {
       setTime(londonTime())
       setTz(londonTz())
-    }, 1000)
+    }
+    tick()
+    const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [])
 
