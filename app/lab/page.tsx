@@ -844,6 +844,8 @@ export default function LabPage() {
         </div>
       )}
 
+      {!isMaximized && <GitHubStats />}
+
       {!isMaximized && (
         <p className="text-center text-xs text-muted-foreground font-mono">
           use{" "}
@@ -855,8 +857,6 @@ export default function LabPage() {
           to navigate the site
         </p>
       )}
-
-      {!isMaximized && <GitHubStats />}
     </div>
   )
 }
