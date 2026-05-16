@@ -54,7 +54,7 @@ export default function PrivacyPage() {
             The content on this site is provided for informational and educational purposes only.
             It reflects my personal work, views and experiences. No warranty is made regarding the
             accuracy, completeness or fitness of any information for a particular purpose. This
-            site and its content are provided in good faith on an "as is" basis. I am not liable
+            site and its content are provided in good faith on an &ldquo;as is&rdquo; basis. I am not liable
             for any loss or damage arising from your use of this site or reliance on any
             information found here.
           </p>

@@ -7,6 +7,7 @@
 import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import SocialLinks from "@/components/shared/SocialLinks"
 import { fadeUp, staggerContainer } from "@/lib/animations"
 import { useModKey } from "@/hooks/useModKey"
@@ -53,11 +54,11 @@ export default function Hero() {
           </p>
           <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
             Not sure where to start?{" "}
-            <a href="/projects" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors">Projects</a>
+            <Link href="/projects" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors font-medium">Projects</Link>
             {" "}for the work,{" "}
-            <a href="/about" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors">About</a>
+            <Link href="/about" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors font-medium">About</Link>
             {" "}for the full story, or the{" "}
-            <a href="/lab" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors">Lab terminal</a>
+            <Link href="/lab" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors font-medium">Lab terminal</Link>
             {" "}if you want to explore on your own terms, or just scroll for more.
           </p>
           <div className="w-24 h-px bg-border mx-auto" />
