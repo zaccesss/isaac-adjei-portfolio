@@ -17,6 +17,9 @@ export default function FooterNewsletter() {
           Notes on tech, engineering, projects and more. Straight to your inbox.
         </p>
         <NewsletterForm variant="compact" />
+        <p className="text-[11px] text-muted-foreground/70 text-center">
+          Unsubscribe any time with one click.
+        </p>
       </div>
     </>
   )
