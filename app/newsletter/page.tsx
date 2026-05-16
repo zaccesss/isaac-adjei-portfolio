@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
-import { Book, Mail, Zap, BookOpen, Cpu, Globe, Rss, Lightbulb } from "lucide-react"
+import { Book, Mail, Zap, BookOpen, Cpu, Globe, Lightbulb } from "lucide-react"
 import NewsletterForm from "@/components/shared/NewsletterForm"
+import PastIssues from "@/components/shared/PastIssues"
 import Link from "next/link"
 
 export const metadata: Metadata = {
@@ -119,19 +120,7 @@ export default function NewsletterPage() {
 
       <Separator />
 
-      {/* Past issues placeholder */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Rss className="h-5 w-5 text-primary" />
-          <h2 className="text-2xl font-bold">Past issues</h2>
-        </div>
-        <div className="rounded-lg border border-dashed border-border/60 bg-muted/10 px-6 py-8 text-center space-y-2">
-          <p className="text-sm font-medium">No issues published yet</p>
-          <p className="text-xs text-muted-foreground">
-            Subscribe above to be first when the first issue goes out.
-          </p>
-        </div>
-      </section>
+      <PastIssues />
 
       <Separator />
 
