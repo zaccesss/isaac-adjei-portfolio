@@ -80,11 +80,11 @@ export default function Hero() {
           >
             <span>Quick navigate</span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] font-medium shadow-sm">
+              <kbd className="rounded border border-border bg-background px-2 py-0.5 font-mono text-xs font-medium shadow-sm">
                 {modLabel}
               </kbd>
               <span>+</span>
-              <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] font-medium shadow-sm">
+              <kbd className="rounded border border-border bg-background px-2 py-0.5 font-mono text-xs font-medium shadow-sm">
                 I
               </kbd>
             </span>

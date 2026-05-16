@@ -8,7 +8,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft, Clock, Calendar, ExternalLink } from "lucide-react"
-import { getPostBySlug, posts, type ContentBlock, type PostType } from "@/data/blog"
+import { getPostBySlug, getPublishedPosts, posts, type ContentBlock, type PostType } from "@/data/blog"
 import { projects } from "@/data/projects"
 import { Badge } from "@/components/ui/badge"
 import ReadingProgress from "@/components/shared/ReadingProgress"
@@ -212,6 +212,17 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   if (!post.published) notFound()
   const linkedProject = post.projectSlug ? projects.find((p) => p.id === post.projectSlug) : null
 
+  // I find related posts by counting shared tags, excluding the current post
+  const relatedPosts = getPublishedPosts()
+    .filter((p) => p.slug !== slug)
+    .map((p) => ({
+      ...p,
+      sharedTags: p.tags.filter((t) => post.tags.includes(t)).length,
+    }))
+    .filter((p) => p.sharedTags > 0)
+    .sort((a, b) => b.sharedTags - a.sharedTags)
+    .slice(0, 3)
+
   const headingIds = buildHeadingIds(post.content)
   const tocHeadings: TocHeading[] = post.content
     .map((block, i) => {
@@ -312,8 +323,36 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             </div>
           )}
 
+          {/* Related posts */}
+          {relatedPosts.length > 0 && (
+            <div className="mt-16 pt-8 border-t border-border/40 space-y-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest font-mono">
+                You might also like
+              </h2>
+              <div className="space-y-3">
+                {relatedPosts.map((related) => (
+                  <Link
+                    key={related.slug}
+                    href={`/blog/${related.slug}`}
+                    className="group flex items-start justify-between gap-4 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 hover:border-primary/40 hover:bg-muted/30 transition-all"
+                  >
+                    <div className="space-y-0.5 min-w-0">
+                      <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors leading-snug line-clamp-1">
+                        {related.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground line-clamp-1 leading-relaxed">
+                        {related.description}
+                      </p>
+                    </div>
+                    <ArrowLeft className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary rotate-180 shrink-0 mt-0.5 transition-colors" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Footer */}
-          <div className="mt-16 pt-8 border-t border-border/40">
+          <div className="mt-8 pt-6 border-t border-border/40">
             <Link
               href="/blog"
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
