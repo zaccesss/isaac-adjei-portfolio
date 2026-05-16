@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
-import { Book, Mail, Zap, BookOpen, Cpu, Globe, Rss } from "lucide-react"
+import { Book, Mail, Zap, BookOpen, Cpu, Globe, Rss, Lightbulb } from "lucide-react"
 import NewsletterForm from "@/components/shared/NewsletterForm"
 import Link from "next/link"
 
@@ -18,25 +18,31 @@ const topics = [
     icon: Cpu,
     title: "Engineering and embedded systems",
     description:
-      "Bare metal C, microcontrollers, PCB design, circuit analysis and the messier side of hardware that tutorials skip over.",
+      "Bare metal C, microcontrollers, PCB design, circuit analysis and the messier side of hardware that tutorials skip over. Real field engineering, not just theory.",
   },
   {
     icon: Globe,
     title: "Full-stack software",
     description:
-      "Next.js, FastAPI, databases, APIs and deployment. Project breakdowns from concept to shipped product.",
+      "Next.js, FastAPI, databases, APIs and deployment. Project breakdowns from concept to shipped product, including what actually went wrong along the way.",
   },
   {
     icon: BookOpen,
     title: "University and learning",
     description:
-      "What studying BEng Electronic Engineering and Computer Science at Aston actually looks like, the good and the hard parts.",
+      "What studying BEng Electronic Engineering and Computer Science at Aston actually looks like, the good and the hard parts. Honest notes from someone living it.",
   },
   {
     icon: Zap,
     title: "Projects and builds",
     description:
-      "Detailed write-ups on everything I build: what worked, what broke and what I would do differently next time.",
+      "Detailed write-ups on everything I build: what worked, what broke and what I would do differently next time. From PCBs to platforms.",
+  },
+  {
+    icon: Lightbulb,
+    title: "General thoughts and ideas",
+    description:
+      "Not everything fits a category. Observations on technology, productivity, career, creativity and whatever else is worth thinking about. No filler, just honest takes.",
   },
 ]
 
@@ -95,6 +101,9 @@ export default function NewsletterPage() {
           </p>
         </div>
         <NewsletterForm />
+        <p className="text-xs text-muted-foreground">
+          Every issue includes a one-click unsubscribe link at the bottom. No questions asked.
+        </p>
         <p className="text-xs text-muted-foreground">
           Already subscribed?{" "}
           <a

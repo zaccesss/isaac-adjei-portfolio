@@ -102,8 +102,9 @@ export default function PrivacyPage() {
             >
               Beehiiv Privacy Policy
             </a>
-            ). Their privacy policy governs how that data is handled. You can unsubscribe at any
-            time using the link in any issue.
+            ). Their privacy policy governs how that data is handled. Every issue includes a
+            one-click unsubscribe link at the bottom so you can leave at any time with no
+            questions asked.
           </p>
         </div>
 
@@ -149,10 +150,11 @@ export default function PrivacyPage() {
         <div>
           <h2>Changes to this policy</h2>
           <p>
-            This policy may be updated from time to time to reflect changes to the site or
-            applicable requirements. The date at the top of this page will always show when it was
-            last revised. Continued use of the site after any update constitutes acceptance of the
-            revised policy.
+            This policy will be updated in the future as the site evolves. The date at the top of
+            this page will always reflect the most recent revision. Continued use of the site after
+            any update constitutes acceptance of the revised policy in effect at that time, not any
+            previous version. If data collection practices change significantly, all users and
+            subscribers will be notified before those changes come into effect.
           </p>
         </div>
 
