@@ -121,20 +121,6 @@ export default function CommandMenu() {
           </CommandItem>
         </CommandGroup>
 
-        {/* Posts group - searchable blog post titles */}
-        <CommandGroup heading="Posts">
-          {publishedPosts.map((post) => (
-            <CommandItem
-              key={post.slug}
-              value={`${post.title} ${post.tags.join(" ")}`}
-              onSelect={() => go(`/blog/${post.slug}`)}
-            >
-              <FileText className="mr-2 h-4 w-4 shrink-0" />
-              {post.title}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-
         {/* Actions group - contact and external links */}
         <CommandGroup heading="Actions">
           <CommandItem value="contact" onSelect={() => go("/contact")}>
@@ -147,6 +133,20 @@ export default function CommandMenu() {
             Links
             <CommandShortcut>{shortcut("L")}</CommandShortcut>
           </CommandItem>
+        </CommandGroup>
+
+        {/* Posts group - searchable blog post titles */}
+        <CommandGroup heading="Posts">
+          {publishedPosts.map((post) => (
+            <CommandItem
+              key={post.slug}
+              value={`${post.title} ${post.tags.join(" ")}`}
+              onSelect={() => go(`/blog/${post.slug}`)}
+            >
+              <FileText className="mr-2 h-4 w-4 shrink-0" />
+              {post.title}
+            </CommandItem>
+          ))}
         </CommandGroup>
       </CommandList>
     </CommandDialog>
