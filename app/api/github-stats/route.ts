@@ -14,7 +14,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
 }
 
 const GITHUB_USER = "zaccesss"
-const CACHE_KEY = "github:stats:v2"
+const CACHE_KEY = "github:stats:v3"
 const CACHE_TTL = 600
 
 interface GitHubRepo {
@@ -159,7 +159,7 @@ export async function GET() {
       }
     }
 
-    const stats: GitHubStats = { publicRepos: user.public_repos, followers: user.followers, totalStars, topLanguages, topRepos, contributions }
+    const stats: GitHubStats = { publicRepos: repos.length, followers: user.followers, totalStars, topLanguages, topRepos, contributions }
 
     if (redis) await redis.set(CACHE_KEY, stats, { ex: CACHE_TTL })
 
