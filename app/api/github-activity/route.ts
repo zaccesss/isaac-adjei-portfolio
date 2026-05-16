@@ -37,7 +37,7 @@ export async function GET() {
     const pat = process.env.GITHUB_PAT
 
     const res = await fetch(
-      "https://api.github.com/users/zaccesss/events?per_page=30",
+      "https://api.github.com/user/events?per_page=30",
       {
         headers: {
           "User-Agent": "isaac-adjei-portfolio",
