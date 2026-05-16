@@ -14,20 +14,28 @@ export const metadata: Metadata = {
 
 const references = [
   {
-    text: "Wikipedia: Argus II retinal prosthesis - history, design and clinical outcomes",
-    url: "https://en.wikipedia.org/wiki/Argus_II",
+    text: "NHS: Retinoblastoma - symptoms, diagnosis and treatment",
+    url: "https://www.nhs.uk/conditions/retinoblastoma/",
   },
   {
-    text: "Wikipedia: Visual prosthesis - overview of all current approaches",
-    url: "https://en.wikipedia.org/wiki/Visual_prosthesis",
+    text: "Retinoblastoma UK - patient information, research and support",
+    url: "https://www.retinoblastoma.org.uk",
   },
   {
-    text: "Wikipedia: Retinal implant - subretinal and epiretinal devices",
-    url: "https://en.wikipedia.org/wiki/Retinal_implant",
+    text: "PMC: Long-term outcomes and patient experiences with the Argus II retinal prosthesis system",
+    url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12496445/",
   },
   {
-    text: "Wikipedia: Retinoblastoma - background, treatment and enucleation",
-    url: "https://en.wikipedia.org/wiki/Retinoblastoma",
+    text: "PMC: Five-year safety and performance results from the Argus II Retinal Prosthesis System clinical trial",
+    url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC5035591/",
+  },
+  {
+    text: "PMC: Can bionic eyes restore vision? Breakthroughs, challenges and future frontiers - a comprehensive review",
+    url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12659496/",
+  },
+  {
+    text: "PMC: Advancements in ocular neuroprosthetics - bridging neuroscience and ICT for vision restoration",
+    url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11852115/",
   },
   {
     text: "National Eye Institute (NIH): Retinitis Pigmentosa - the condition Argus II targets",
@@ -42,16 +50,8 @@ const references = [
     url: "https://pubmed.ncbi.nlm.nih.gov/?term=flexible+electronics+neural+interface+review&filter=pubt.review&sort=date",
   },
   {
-    text: "PubMed: Retinal prosthesis clinical outcomes - peer-reviewed studies",
-    url: "https://pubmed.ncbi.nlm.nih.gov/?term=retinal+prosthesis+clinical+outcomes&filter=pubt.clinicaltrial&sort=date",
-  },
-  {
     text: "IEEE Transactions on Neural Systems and Rehabilitation Engineering",
     url: "https://ieeexplore.ieee.org/xpl/RecentIssue.jsp?punumber=7333",
-  },
-  {
-    text: "Retinoblastoma UK - patient information, research and support",
-    url: "https://www.retinoblastoma.org.uk",
   },
 ]
 

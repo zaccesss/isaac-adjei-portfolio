@@ -37,12 +37,12 @@ const currentProjects = [
     githubHref: "https://github.com/zaccesss/ba-from-data-to-decisions",
   },
   {
-    name: "This portfolio",
+    name: "zaccess.com",
     badge: "Ongoing",
     description:
-      "Blog posts being published, newsletter live, pages being refined. The site itself is a living project.",
-    projectHref: "/projects/zacess-pages",
-    githubHref: "https://github.com/zaccesss/isaac-adjei-portfolio",
+      "Still deciding on exactly what to do on that site, but keeping it terminal style for now. Suggestions welcome, use the contact form or type 'suggest' in the lab terminal.",
+    projectHref: "https://zaccess.com",
+    githubHref: "https://github.com/zaccesss/zacess-pages",
   },
 ]
 
