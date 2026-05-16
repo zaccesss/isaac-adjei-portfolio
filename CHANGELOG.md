@@ -9,6 +9,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **GitHub stats on Lab page** - new `/api/github-stats` route fetches public repos, followers and total stars from the GitHub API; `GitHubStats` component replaces LiveStatusCards on the lab page with repo stats, top languages and top repos; results cached in Redis for 10 minutes
+- **RSS XSL stylesheet** - `/feed.xsl` route serves an XSL stylesheet so browsers render the RSS feed as a styled HTML page with the site favicon instead of raw XML; feed items now include author and category tags
+- **`/feed.xsl`** route added to sitemap
+
+### Changed
+
+- **Privacy policy** - intro corrected from "isaacadjei.me" to "Isaac Adjei"; analytics section no longer names specific services; contact form and newsletter sections now link to Resend and Beehiiv privacy policies respectively; cookies section expanded; rights section expanded with infringement guidance
+- **Lab terminal** - input auto-focuses after the boot sequence completes so users can type immediately without clicking; terminal body now has `overscroll-contain` so page does not scroll while scrolling inside the terminal
+- **Quick navigate button** - kbd elements increased from `text-[10px]` to `text-xs` with slightly more padding so the ⌘ symbol is clearly readable
+- **Homepage ContactCTA** - description expanded to mention collaboration ideas and general conversation alongside internship opportunities
+- **RSS feed** - added `managingEditor`, `image` channel elements and `author` and `category` tags on each item
 - **"My Approach" typing animation** - looping syntax-highlighted code philosophy block on the About page, typing letter by letter at 60ms per character with a 2.5s hold and clean loop; uses site colour tokens for dark and light mode
 - **`approach` lab terminal command** - easter egg in the `/lab` terminal that prints the approach philosophy block in monospaced output
 - **RSS feed** - `/feed.xml` route handler generates a standard RSS 2.0 feed of all published blog posts; `<link rel="alternate">` added to the site `<head>` for browser auto-detection; RSS icon added to the blog page header
