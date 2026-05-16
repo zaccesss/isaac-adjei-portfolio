@@ -38,23 +38,32 @@ export async function GET() {
       return NextResponse.json([], { headers: { "Cache-Control": "no-store" } })
     }
 
-    const res = await fetch(
-      `https://api.beehiiv.com/v2/publications/${pubId}/posts?status=confirmed&order_by=publish_date&direction=desc&limit=20`,
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        signal: AbortSignal.timeout(8000),
-      }
+    const fetchStatus = (status: string) =>
+      fetch(
+        `https://api.beehiiv.com/v2/publications/${pubId}/posts?status=${status}&order_by=publish_date&direction=desc&limit=20`,
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          signal: AbortSignal.timeout(8000),
+        }
+      )
+
+    const [confirmedRes, archivedRes] = await Promise.all([
+      fetchStatus("confirmed"),
+      fetchStatus("archived"),
+    ])
+
+    const confirmedData = confirmedRes.ok ? (await confirmedRes.json()).data ?? [] : []
+    const archivedData = archivedRes.ok ? (await archivedRes.json()).data ?? [] : []
+
+    const combined = [...confirmedData, ...archivedData].sort(
+      (a: { publish_date?: number }, b: { publish_date?: number }) =>
+        (b.publish_date ?? 0) - (a.publish_date ?? 0)
     )
 
-    if (!res.ok) {
-      return NextResponse.json([], { headers: { "Cache-Control": "no-store" } })
-    }
-
-    const json = await res.json()
-    const issues: NewsletterIssue[] = (json.data ?? []).map((post: {
+    const issues: NewsletterIssue[] = combined.map((post: {
       id: string
       title: string
       subtitle?: string
