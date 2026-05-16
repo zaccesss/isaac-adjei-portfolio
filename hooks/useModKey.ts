@@ -1,19 +1,27 @@
 "use client"
 
-// I detect the OS after mount so the correct modifier key label renders on the client.
-// Starting with false (non-Mac) matches the SSR output and avoids hydration mismatches.
+// I use useSyncExternalStore so the server snapshot (false = non-Mac) is used during SSR
+// and the real client snapshot runs after hydration without triggering setState-in-effect lint errors.
 
-import { useState, useEffect } from "react"
+import { useSyncExternalStore } from "react"
+
+function subscribe() {
+  return () => {}
+}
+
+function getSnapshot() {
+  return (
+    navigator.platform.toUpperCase().includes("MAC") ||
+    /macintosh|mac os x/i.test(navigator.userAgent)
+  )
+}
+
+function getServerSnapshot() {
+  return false
+}
 
 export function useModKey() {
-  const [isMac, setIsMac] = useState(false)
-
-  useEffect(() => {
-    setIsMac(
-      navigator.platform.toUpperCase().includes("MAC") ||
-        /macintosh|mac os x/i.test(navigator.userAgent)
-    )
-  }, [])
+  const isMac = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
   const modLabel = isMac ? "⌘" : "Ctrl"
   const shortcut = (key: string) => (isMac ? `⌘${key}` : `Ctrl+${key}`)
