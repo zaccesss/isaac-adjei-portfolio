@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Calendar, Clock, Terminal } from "lucide-react"
+import { Calendar, Clock, Rss, Terminal } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { getPublishedPosts, POST_TYPES, type PostType } from "@/data/blog"
@@ -61,10 +61,7 @@ export default function BlogPage() {
     // Pin journey post to top always
     if (a.slug === "my-journey-so-far") return -1
     if (b.slug === "my-journey-so-far") return 1
-    // Pin week-1-aston to bottom always
-    if (a.slug === "week-1-aston") return 1
-    if (b.slug === "week-1-aston") return -1
-    // Then sort by date descending
+    // Sort all others by date descending (newest first)
     return new Date(b.date).getTime() - new Date(a.date).getTime()
   })
   const filtered =
@@ -73,10 +70,23 @@ export default function BlogPage() {
   return (
     <div className="container max-w-4xl py-24 space-y-12">
       <section className="space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">Writing</h1>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-4xl font-bold tracking-tight">Writing</h1>
+          <a
+            href="/feed.xml"
+            title="RSS feed"
+            aria-label="Subscribe via RSS"
+            className="inline-flex items-center gap-1.5 text-base font-medium text-primary hover:text-primary/70 transition-colors shrink-0"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Rss className="h-5 w-5 shrink-0" />
+            RSS
+          </a>
+        </div>
         <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
-          Engineering write-ups, project breakdowns, journal entries and research notes. Everything
-          I build, learn and think about.
+          Engineering and tech write-ups, project breakdowns, journal entries and research notes.
+          Everything I build, learn and think about.
         </p>
       </section>
 
@@ -101,11 +111,17 @@ export default function BlogPage() {
       {/* Post grid */}
       {filtered.length > 0 ? (
         <div className="space-y-6">
-          {filtered.map((post) => (
+          {filtered.map((post) => {
+            const isJourney = post.slug === "my-journey-so-far"
+            return (
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
-              className="group block rounded-lg border border-border/60 bg-muted/40 hover:bg-muted/60 hover:border-border transition-all px-6 py-5 space-y-3"
+              className={`group block rounded-lg border transition-all px-6 py-5 space-y-3 ${
+                isJourney
+                  ? "border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary/60"
+                  : "border-border/60 bg-muted/40 hover:bg-muted/60 hover:border-border"
+              }`}
             >
               <div className="flex items-center gap-2 flex-wrap">
                 <span
@@ -113,6 +129,11 @@ export default function BlogPage() {
                 >
                   {POST_TYPES.find((t) => t.value === post.type)?.label ?? post.type}
                 </span>
+                {isJourney && (
+                  <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                    Pinned
+                  </span>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -145,7 +166,8 @@ export default function BlogPage() {
                 </div>
               )}
             </Link>
-          ))}
+            )
+          })}
         </div>
       ) : (
         <div className="rounded-lg border border-dashed border-border/60 p-12 text-center space-y-2">

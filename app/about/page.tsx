@@ -6,6 +6,7 @@ import { education } from "@/data/education"
 import { societies } from "@/data/societies"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import ApproachAnimation from "@/components/shared/ApproachAnimation"
 import {
   GraduationCap,
   Users,
@@ -62,87 +63,63 @@ const languages = [
 
 export default function AboutPage() {
   return (
-    <div className="container max-w-4xl py-24 space-y-20">
+    <div className="container max-w-4xl py-24 space-y-12">
       {/* Intro */}
       <section className="space-y-6">
         <h1 className="text-4xl font-bold tracking-tight">About Me</h1>
         <div className="space-y-4 text-lg text-muted-foreground leading-relaxed">
           <p>
-            I&apos;m Isaac Adjei, most people know me as Zac. I&apos;m an Electronic Engineering
-            and Computer Science student at Aston University, Birmingham, working towards a First
-            Class BEng degree. I am a Top 40 Finalist for the Black Heritage Undergraduate of the
-            Year Award 2026 and was named Best and Most Hardworking Student at Stanmore College. My
-            goal is to build a career at the intersection of intelligent software and efficient
-            hardware: systems that solve real problems for real people.
+            I am Isaac Adjei. Most people know me as Zac. I am an Electronic Engineering and
+            Computer Science student at Aston University, Birmingham, working towards a First Class
+            BEng. My goal is to build at the intersection of intelligent software and efficient
+            hardware, creating systems that solve real problems for real people.
           </p>
           <p>
-            My journey began in Ghana, where curiosity and hands-on problem-solving shaped me from
-            an early age. I spent my senior high school years at Adisadel College in Cape Coast,
-            one of the most prestigious boys&apos; schools in Ghana, guided by the motto &ldquo;Vel
-            Primus, Vel Cum Primis&rdquo; (Either the first, or with the first). I lived in Thomas
-            Jonah House, serving as Dispensary Prefect, House Secretary and Vice President of APOSA.
-            I was also active in Robotics, Scripture Union, PENSA and the Debate Society. Adisadel instilled in me resilience,
-            discipline and a standard of excellence that continues to guide everything I do.
+            I grew up in Ghana, attending Adisadel College in Cape Coast, a school guided by the
+            motto &ldquo;Vel Primus, Vel Cum Primis&rdquo; (Either the first, or with the first).
+            It instilled in me resilience, discipline and a standard of excellence that still shape
+            everything I do. I was an active member of the Robotics Club, Scripture Union, PENSA
+            and the Debate Society. I lost sight in my right eye at age two due to retinoblastoma
+            and have lived with monocular vision my entire life. Rather than limiting me, it
+            sharpened my focus and shaped a deep commitment to accessible technology, building
+            systems that genuinely serve all users.
           </p>
           <p>
-            I lost the sight in my right eye at age two due to retinoblastoma. I have lived with
-            monocular vision my entire life. Rather than limiting me, it sharpened my discipline and
-            my determination to succeed. It taught me early that consistency and deliberate effort
-            matter more than what you start with. That lesson has shaped how I approach engineering,
-            studying and every challenge I take on.
+            My late father was a mechanical and refrigeration engineer. During school vacations I
+            accompanied him on site and watched engineering come to life in his hands. He always
+            said: &ldquo;Always strive to make things better.&rdquo; Between 2019 and 2021 I
+            worked as a Junior Apprentice HVAC Technician in Accra, servicing and installing over
+            50 air conditioning units in the field. In 2022 I relocated to the UK, and after two
+            months on a business course at Stanmore College I knew engineering was where I belonged.
+            I approached the college, sat the necessary entry exams and transferred onto the
+            engineering programme, graduating with D*DD in the Pearson BTEC Level 3 National
+            Extended Diploma in Engineering and being recognised as Best and Most Hardworking
+            Student in my cohort.
           </p>
           <p>
-            My hands-on engineering roots go back further than university. Between 2019 and 2021 I
-            worked as a Junior Apprentice HVAC Technician in Accra, Ghana, servicing and installing
-            over 50 air conditioning units on-site using diagnostic equipment and learning the
-            discipline of real field technical work. That foundation came directly from my late
-            father, who was a mechanical and refrigeration engineer. During school vacations I would
-            accompany him to work and watch engineering come to life in his hands. He used to say:
-            &ldquo;Always strive to make things better.&rdquo; He passed away in 2021. His words
-            and his example are a constant source of motivation.
-          </p>
-          <p>
-            In 2022 I relocated to the UK. I initially enrolled in a business course at Stanmore
-            College in London, but after two months I knew engineering was where I belonged. I
-            approached the college, sat the necessary exams to demonstrate my aptitude and
-            transferred onto the engineering programme. I graduated with D*DD (Distinction*,
-            Distinction, Distinction) in the Pearson BTEC Level 3 National Extended Diploma in
-            Engineering. That decision, to take a risk and back myself entirely, shaped how I
-            approach every challenge since.
-          </p>
-          <p>
-            My journey has required resilience, discipline and long-term consistency. Those values
-            now shape how I approach engineering and leadership. I care deeply about accessible
-            technology and practical systems that serve real users. I am a Student Representative
-            at Aston Students&apos; Union, a Student Member of the IET and
-            a member of the Aston Computing Society, Aston Ghana Society and Aston Gaming Society.
-          </p>
-          <p>
-            Beyond university I have gained professional experience across different sectors. In
-            2024 I completed internships at the Ghana High Commission London, first as a Consular
-            Intern supporting visa processing and public-facing enquiries, then as an Admin and
-            Estates Intern managing facilities and administrative operations. I also completed
-            virtual engineering programmes with British Airways, analysing A320 maintenance
-            schedules and producing material forecast reports, and with Yunex Traffic, exploring
-            intelligent transport systems and air quality sensor networks. Between 2022 and 2025
-            I worked as a Waiter and Food Runner at Casa do Frango Piccadilly, developing
-            communication, composure under pressure and customer service skills alongside my
-            studies.
+            At Aston I serve as Student Representative at the Students&apos; Union and am a
+            Student Member of the IET and a member of ESOC and the Aston African-Caribbean
+            Society. In 2026 I was shortlisted as a Top 40 Finalist for the Black
+            Heritage Undergraduate of the Year Award, run by TargetJobs and Sky to recognise
+            high-achieving undergraduates across the UK. Beyond university I have gained experience
+            in different sectors: internships at the Ghana High Commission London as a Consular
+            Intern and an Admin and Estates Intern, virtual engineering programmes with British
+            Airways and Yunex Traffic, and between 2022 and 2025, while studying full-time, working
+            as a Waiter and Food Runner at Casa do Frango Piccadilly.
           </p>
           <p>
             Technically I work across the full stack: bare-metal C and C++ on microcontrollers, PCB
-            design in KiCad and Proteus, full-stack web with Next.js and Python-based machine
-            learning with TensorFlow and PyTorch. I am also expanding into cloud computing, cyber
-            security and game development. My projects include a two-stage audio amplifier designed
-            and manufactured as a PCB from scratch, a 4x4x4 NeoPixel LED Cube with adaptive
-            brightness and four animation modes, a predictive maintenance platform (Phaemos) with a
-            FastAPI backend and Next.js dashboard, an open-source Git course with over 200
-            structured topic files and Zaccess, an ongoing accessibility tool that uses OCR and
-            text-to-speech to convert lecture slides and textbook pages into high-contrast readable
-            notes. I enjoy understanding how systems work at every layer and building things that
-            move from concept to code to real tangible output.
+            design in KiCad and Proteus, full-stack web with Next.js and TypeScript, and
+            Python-based machine learning with TensorFlow and PyTorch. I am also expanding into
+            Java, cloud computing, cyber security and game development. My projects include a
+            two-stage audio amplifier PCB built from scratch, a 4x4x4 NeoPixel LED Cube with four
+            animation modes, Phaemos (a predictive maintenance platform with a FastAPI backend and
+            Isolation Forest anomaly detection), an open-source Git course with over 200 structured
+            topic files and Zaccess, an accessibility tool that converts lecture slides and textbook
+            pages into high-contrast readable notes using OCR and text-to-speech.
           </p>
         </div>
+        <ApproachAnimation />
       </section>
 
       <Separator />

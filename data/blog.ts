@@ -47,7 +47,7 @@ export const posts: BlogPost[] = [
   {
     slug: "my-journey-so-far",
     title: "My Journey So Far",
-    date: "2025-01-01",
+    date: "2024-06-01",
     type: "journal",
     description:
       "From losing sight in one eye at age two, to losing my father, to moving countries and rebuilding from scratch. The full story of how I got to where I am today.",
@@ -55,6 +55,17 @@ export const posts: BlogPost[] = [
     readingTime: 15,
     published: true,
     content: [
+      {
+        type: "h2",
+        text: "Acknowledgements",
+      },
+      {
+        type: "p",
+        text: "Before anything else, I want to acknowledge the people who made this possible. To God, for every open door, every moment of clarity in difficulty and every grace that carried me further than I could carry myself. To my late father, whose hands built things and whose words, \"Always strive to make things better\", still guide everything I do. We hope you are proud, Dad. To my mum, who has had the single biggest impact on who I am. She has looked after us with everything she has, continuing to give, protect and pour into us even without our dad by her side. Her strength, sacrifice and love are behind every step I have taken. And to my siblings, who I carry with me in everything I do. This journey is for all of you.",
+      },
+      {
+        type: "divider",
+      },
       {
         type: "p",
         text: "I was not supposed to end up in engineering. Nobody sat me down and mapped a route. It happened gradually, shaped by a father who showed me what it meant to build things with your hands, by a school that demanded excellence and by a series of decisions I had to make on my own when the path was not obvious.",
@@ -190,14 +201,6 @@ export const posts: BlogPost[] = [
       {
         type: "p",
         text: "If you are struggling academically, if you are living with a disability or medical trauma, if you are an immigrant adapting to a new system, if you are dealing with grief or battling insecurity, if you feel like you are behind: you are not out. You are in the middle of something. The starting point does not define the outcome. I am living proof of that.",
-      },
-      {
-        type: "h2",
-        text: "Acknowledgements",
-      },
-      {
-        type: "p",
-        text: "To God, for every door that opened and every moment of clarity when things were difficult. To my mum, for the sacrifices she has made and continues to make. To my late father, whose hands built things and whose words still guide me every day. This journey is for all three of you.",
       },
     ],
   },
