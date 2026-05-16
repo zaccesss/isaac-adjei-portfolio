@@ -4,8 +4,13 @@
 // Contributions are scoped to the current calendar year via the GraphQL API.
 
 import { useEffect, useState } from "react"
-import { Github, Star, Users, BookOpen, ExternalLink, GitCommitHorizontal, GitPullRequest, CircleDot } from "lucide-react"
+import { Github, Star, Users, BookOpen, ExternalLink, GitCommitHorizontal, GitPullRequest, CircleDot, GitBranch } from "lucide-react"
 import type { GitHubStats, ContributionDay } from "@/app/api/github-stats/route"
+
+interface LastPush {
+  repo: string | null
+  relativeTime: string | null
+}
 
 function ContributionGrid({ days }: { days: ContributionDay[] }) {
   const max = Math.max(...days.map((d) => d.count), 1)
@@ -46,12 +51,19 @@ function ContributionGrid({ days }: { days: ContributionDay[] }) {
 
 export default function GitHubStats() {
   const [stats, setStats] = useState<GitHubStats | null>(null)
+  const [lastPush, setLastPush] = useState<LastPush | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch("/api/github-stats")
-      .then((r) => r.json())
-      .then((data) => { setStats(data); setLoading(false) })
+    Promise.all([
+      fetch("/api/github-stats").then((r) => r.json()),
+      fetch("/api/github-activity").then((r) => r.json()),
+    ])
+      .then(([statsData, activityData]) => {
+        setStats(statsData)
+        setLastPush(activityData)
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
   }, [])
 
@@ -94,6 +106,20 @@ export default function GitHubStats() {
 
       {!loading && stats && (
         <>
+          {/* Last pushed */}
+          {lastPush?.repo && (
+            <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
+              <GitBranch className="h-3.5 w-3.5 text-primary shrink-0" />
+              <p className="text-xs text-muted-foreground min-w-0">
+                <span className="text-foreground font-medium">pushed</span>{" "}
+                <span className="font-mono">{lastPush.repo}</span>
+                {lastPush.relativeTime && (
+                  <span className="text-muted-foreground/70"> · {lastPush.relativeTime}</span>
+                )}
+              </p>
+            </div>
+          )}
+
           {/* Profile stats */}
           <div className="grid grid-cols-3 gap-3">
             {[
