@@ -64,16 +64,16 @@ export default function GitHubStats() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/github-stats").then((r) => r.json()),
-      fetch("/api/github-activity").then((r) => r.json()),
-    ])
-      .then(([statsData, activityData]) => {
-        setStats(statsData)
-        setLastPush(activityData)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+    fetch("/api/github-stats")
+      .then((r) => r.json())
+      .then((data) => setStats(data))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+
+    fetch("/api/github-activity")
+      .then((r) => r.json())
+      .then((data) => setLastPush(data))
+      .catch(() => {})
   }, [])
 
   return (
