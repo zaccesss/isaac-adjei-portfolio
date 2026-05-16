@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Laptop, BatteryCharging, Battery, Wifi, WifiOff } from "lucide-react"
+import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, Github } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface SpotifyData {
@@ -21,6 +21,11 @@ interface MacbookData {
   charging: boolean | null
   lastSeen: string | null
   device: string | null
+}
+
+interface GithubData {
+  repo: string | null
+  relativeTime: string | null
 }
 
 function formatMs(ms: number): string {
@@ -71,6 +76,8 @@ export default function LiveStatusCards() {
     lastSeen: null,
     device: null,
   })
+  const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
+
   useEffect(() => {
     const tick = () => {
       setTime(londonTime())
@@ -102,6 +109,18 @@ export default function LiveStatusCards() {
     }
     fetch_()
     const id = setInterval(fetch_, 60000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    async function fetch_() {
+      try {
+        const res = await fetch("/api/github-activity")
+        if (res.ok) setGithub(await res.json())
+      } catch {}
+    }
+    fetch_()
+    const id = setInterval(fetch_, 300000)
     return () => clearInterval(id)
   }, [])
 
@@ -238,6 +257,23 @@ export default function LiveStatusCards() {
 
       </div>
 
+      {/* GitHub last pushed card */}
+      <div className="rounded-2xl border border-border/60 bg-card shadow-sm px-4 py-3 flex items-center gap-3">
+        <Github className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+        {github.repo ? (
+          <>
+            <span className="text-sm text-muted-foreground">
+              pushed{" "}
+              <span className="font-medium text-foreground/80">{github.repo}</span>
+            </span>
+            <span className="ml-auto text-xs text-muted-foreground/50 shrink-0">
+              {github.relativeTime}
+            </span>
+          </>
+        ) : (
+          <span className="text-sm text-muted-foreground/50">no recent activity</span>
+        )}
+      </div>
 
     </div>
   )
