@@ -72,9 +72,20 @@ export default function PastIssues() {
                     {issue.subtitle}
                   </p>
                 )}
-                <p className="text-[11px] font-mono text-muted-foreground">
-                  {formatDate(issue.publishDate)}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[11px] font-mono text-muted-foreground">
+                    {formatDate(issue.publishDate)}
+                  </p>
+                  {issue.status === "confirmed" ? (
+                    <span className="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-[10px] font-medium text-green-600 dark:text-green-400">
+                      Live
+                    </span>
+                  ) : (
+                    <span className="rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      Archived
+                    </span>
+                  )}
+                </div>
               </div>
               <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-0.5" />
             </a>

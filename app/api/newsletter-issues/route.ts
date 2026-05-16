@@ -22,6 +22,7 @@ export interface NewsletterIssue {
   publishDate: string
   webUrl: string
   thumbnailUrl: string | null
+  status: "confirmed" | "archived"
 }
 
 export async function GET() {
@@ -70,6 +71,7 @@ export async function GET() {
       publish_date?: number
       web_url?: string
       thumbnail_url?: string
+      status?: string
     }) => ({
       id: post.id,
       title: post.title,
@@ -79,6 +81,7 @@ export async function GET() {
         : new Date().toISOString(),
       webUrl: post.web_url ?? `https://newsletter.isaacadjei.me`,
       thumbnailUrl: post.thumbnail_url ?? null,
+      status: (post.status === "archived" ? "archived" : "confirmed") as "confirmed" | "archived",
     }))
 
     if (redis) await redis.set(CACHE_KEY, issues, { ex: CACHE_TTL })
