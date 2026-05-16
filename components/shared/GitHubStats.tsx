@@ -31,19 +31,28 @@ function ContributionGrid({ days }: { days: ContributionDay[] }) {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex gap-[3px] min-w-max">
-        {weeks.map((week, wi) => (
-          <div key={wi} className="flex flex-col gap-[3px]">
-            {week.map((day) => (
-              <div
-                key={day.date}
-                title={`${day.date}: ${day.count} contribution${day.count !== 1 ? "s" : ""}`}
-                className={`w-[10px] h-[10px] rounded-sm transition-colors ${intensity(day.count)}`}
-              />
-            ))}
-          </div>
+    <div className="space-y-1.5">
+      <div className="overflow-x-auto">
+        <div className="flex gap-[3px] min-w-max">
+          {weeks.map((week, wi) => (
+            <div key={wi} className="flex flex-col gap-[3px]">
+              {week.map((day) => (
+                <div
+                  key={day.date}
+                  title={`${day.date}: ${day.count} contribution${day.count !== 1 ? "s" : ""}`}
+                  className={`w-[10px] h-[10px] rounded-sm transition-colors ${intensity(day.count)}`}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center justify-end gap-1.5">
+        <span className="text-[10px] text-muted-foreground font-mono">Less</span>
+        {["bg-muted/40 dark:bg-zinc-800", "bg-primary/25", "bg-primary/50", "bg-primary/75", "bg-primary"].map((cls, i) => (
+          <div key={i} className={`w-[10px] h-[10px] rounded-sm ${cls}`} />
         ))}
+        <span className="text-[10px] text-muted-foreground font-mono">More</span>
       </div>
     </div>
   )
@@ -135,15 +144,15 @@ export default function GitHubStats() {
             ))}
           </div>
 
-          {/* Contributions this year */}
+          {/* Contributions */}
           {stats.contributions && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-                  contributions {new Date().getFullYear()}
+                  contributions
                 </p>
                 <span className="text-xs font-semibold text-foreground">
-                  {stats.contributions.total.toLocaleString()} total
+                  {stats.contributions.allTimeTotal.toLocaleString()} total
                 </span>
               </div>
 
