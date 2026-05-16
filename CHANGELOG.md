@@ -9,6 +9,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Beehiiv past issues integration** - `/api/newsletter-issues` route fetches confirmed and archived posts from Beehiiv API; `PastIssues` client component displays them on the newsletter page with Live and Archived badges; results cached in Redis for 10 minutes
+- **Related posts** - "You might also like" section at the bottom of each blog post showing up to 3 posts that share tags with the current post
+- **Command menu post search** - published blog post titles are now searchable in the Ctrl/Cmd+I command menu under a Posts group; Actions group moved before Posts
+- **Unsubscribe notes** - one-click unsubscribe reminder added below the newsletter form, in the footer newsletter widget and in the privacy policy newsletter section
 - **GitHub stats on Lab page** - new `/api/github-stats` route fetches public repos, followers and total stars from the GitHub API; `GitHubStats` component replaces LiveStatusCards on the lab page with repo stats, top languages and top repos; results cached in Redis for 10 minutes
 - **RSS XSL stylesheet** - `/feed.xsl` route serves an XSL stylesheet so browsers render the RSS feed as a styled HTML page with the site favicon instead of raw XML; feed items now include author and category tags
 - **`/feed.xsl`** route added to sitemap
