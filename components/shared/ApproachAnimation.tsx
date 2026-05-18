@@ -148,10 +148,10 @@ export default function ApproachAnimation() {
 
   return (
     <div
-      className="rounded-xl border border-border/60 bg-muted/50 dark:bg-zinc-900/60 p-5 overflow-x-auto"
-      aria-label="My approach — a code philosophy"
+      className="rounded-xl border border-border/60 bg-muted/50 dark:bg-zinc-900/60 p-5 overflow-x-auto h-[240px] overflow-y-hidden"
+      aria-label="My approach - a code philosophy"
     >
-      <div className="w-max font-mono text-xs leading-relaxed">
+      <div className="font-mono text-xs leading-relaxed">
         {displayedLines.map((line, i) => {
           const isLast = i === displayedLines.length - 1
           const tokens = tokenise(line)

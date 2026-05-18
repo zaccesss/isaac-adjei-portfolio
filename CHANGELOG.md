@@ -49,6 +49,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Sitemap** - removed `/privacy` from sitemap; it carries `noindex` so including it sent conflicting signals to Google Search Console
+- **`ApproachAnimation`** - container now has a fixed height (`h-[240px]`) so the box no longer expands line by line as the code types in; uses `overflow-y-hidden` to clip content to the reserved space
 - **`app/layout.tsx`** - JSON-LD schema `<script>` moved from `<body>` to `<head>` to resolve React console warning
 - **`app/lab/page.tsx`** - `suppressHydrationWarning` added to `modLabel` kbd element to resolve hydration mismatch between server and client OS detection
 - **`ApproachAnimation`** - typing loop rewritten using refs instead of mutable closure variables; fixes last character of each line being dropped due to React batching; rendering switched from `<pre>` to `w-max` div to prevent overflow clipping
