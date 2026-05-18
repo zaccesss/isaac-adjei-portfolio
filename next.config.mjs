@@ -23,6 +23,12 @@ const nextConfig = {
   },
   async headers() {
     return [
+      // I noindex OG and Twitter image generation routes - they are internal
+      // image endpoints, not content pages, and should not appear in search results.
+      { source: "/opengraph-image",          headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
+      { source: "/twitter-image",            headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
+      { source: "/:any+/opengraph-image",    headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
+      { source: "/:any+/twitter-image",      headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
       {
         source: "/(.*)",
         headers: [
