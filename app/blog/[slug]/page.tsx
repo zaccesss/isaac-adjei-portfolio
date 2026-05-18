@@ -231,8 +231,33 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     })
     .filter(Boolean) as TocHeading[]
 
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.description,
+    datePublished: post.date,
+    dateModified: post.date,
+    author: {
+      "@type": "Person",
+      name: "Isaac Adjei",
+      url: "https://www.isaacadjei.me",
+    },
+    publisher: {
+      "@type": "Person",
+      name: "Isaac Adjei",
+    },
+    url: `https://www.isaacadjei.me/blog/${slug}`,
+    keywords: post.tags.join(", "),
+    timeRequired: `PT${post.readingTime}M`,
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       <ReadingProgress />
     <div className="container max-w-2xl py-24 xl:max-w-5xl">
       {/* Back link */}

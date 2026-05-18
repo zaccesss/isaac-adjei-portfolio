@@ -184,8 +184,10 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 
 - **Custom favicon** - avatar image served as site icon via Next.js App Router convention (`app/icon.png`)
 - **Per-page metadata** - title, description and Open Graph tags on every page
-- **Sitemap** - `/sitemap.xml` auto-generated at build time, submitted to Google Search Console
-- **Schema.org JSON-LD** - `Person` structured data block in root layout for rich search results
+- **Dynamic OG images** - per-post and per-project social preview cards generated at the edge via Next.js ImageResponse; blog cards show post type, title and reading time; project cards show category and tech stack
+- **Article JSON-LD** - `BlogPosting` structured data injected on every published blog post for Google rich results
+- **Sitemap** - `/sitemap.xml` auto-generated at build time with real `lastModified` dates per route, submitted to Google Search Console
+- **Schema.org JSON-LD** - `Person` structured data block in root layout for knowledge graph disambiguation
 - **Next.js Image optimisation** - automatic AVIF/WebP format conversion, lazy loading and responsive sizes
 
 ---

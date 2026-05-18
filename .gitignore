@@ -71,3 +71,6 @@ blog-extract-my-testimony-and-journey/
 
 # Local project repo clones for reference - never commit
 astoncv/
+
+# Claude Code auto-memory - local only, never commit
+memory/

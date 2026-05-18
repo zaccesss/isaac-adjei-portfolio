@@ -7,8 +7,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [v2.2.0] - 2026-05-18
+
 ### Added
 
+- **Dynamic OG images** - `app/blog/[slug]/opengraph-image.tsx` and `app/projects/[slug]/opengraph-image.tsx` generate unique social preview cards per post and project using Next.js ImageResponse; blog cards show post type badge, title, description and reading time; project cards show category badge, title, description and tech stack chips
+- **Article JSON-LD on blog posts** - each published blog post now injects a `BlogPosting` structured data script with headline, description, datePublished, author, URL and keywords; helps Google surface rich results in search
 - **Beehiiv past issues integration** - `/api/newsletter-issues` route fetches confirmed and archived posts from Beehiiv API; `PastIssues` client component displays them on the newsletter page with Live and Archived badges; results cached in Redis for 10 minutes
 - **Related posts** - "You might also like" section at the bottom of each blog post showing up to 3 posts that share tags with the current post
 - **Command menu post search** - published blog post titles are now searchable in the Ctrl/Cmd+I command menu under a Posts group; Actions group moved before Posts
@@ -19,9 +25,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Project detail pages** - expanded `longDescription` for all ten projects with additional paragraphs covering design rationale, build process, engineering challenges and key decisions; expansions are grounded in existing data with no fabricated details
+- **Sitemap `lastModified` dates** - static routes now carry real dates instead of `new Date()` so Google can prioritise re-crawling pages that have actually changed; project routes use the project's stated year; blog routes already used post dates
+- **Homepage hero** - complete rewrite; removed repetition of tagline; added two-paragraph structure with contextual nav links (Projects, About, Lab terminal) that are permanently underlined; separator line added; "or just scroll for more" appended; broad language with no specific technology listed
+- **Homepage** - LiveStatusCards removed from the ContactCTA section
 - **Privacy policy** - intro corrected from "isaacadjei.me" to "Isaac Adjei"; analytics section no longer names specific services; contact form and newsletter sections now link to Resend and Beehiiv privacy policies respectively; cookies section expanded; rights section expanded with infringement guidance
 - **Lab terminal** - input auto-focuses after the boot sequence completes so users can type immediately without clicking; terminal body now has `overscroll-contain` so page does not scroll while scrolling inside the terminal
-- **Quick navigate button** - kbd elements increased from `text-[10px]` to `text-xs` with slightly more padding so the ⌘ symbol is clearly readable
+- **Quick navigate button** - kbd elements increased from `text-[10px]` to `text-xs` with slightly more padding so the symbol is clearly readable
 - **Homepage ContactCTA** - description expanded to mention collaboration ideas and general conversation alongside internship opportunities
 - **RSS feed** - added `managingEditor`, `image` channel elements and `author` and `category` tags on each item
 - **"My Approach" typing animation** - looping syntax-highlighted code philosophy block on the About page, typing letter by letter at 60ms per character with a 2.5s hold and clean loop; uses site colour tokens for dark and light mode
@@ -30,25 +40,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Privacy Policy page** - `/privacy` with original content covering Vercel Analytics, Google Analytics, contact form, Beehiiv newsletter, intellectual property, disclaimer and cookie usage; linked from the footer
 - **Journey post acknowledgements** - dedicated acknowledgements section added as the first content block on the Journey blog post, rendered in primary blue; covers God, late father, mum and siblings
 - **Journey card pinned styling** - Journey post card on the blog listing page has a blue border, subtle blue background tint and a "Pinned" badge to distinguish it from other posts
-
-### Changed
-
-- **Homepage hero** - complete rewrite; removed repetition of tagline; added two-paragraph structure with contextual nav links (Projects, About, Lab terminal) that are permanently underlined; separator line added; "or just scroll for more" appended; broad language with no specific technology listed
-- **Homepage** - LiveStatusCards removed from the ContactCTA section
-- **About page** - bio condensed from seven paragraphs to five; awards woven in contextually rather than leading; Adisadel roles corrected (removed House Secretary reference); father reference corrected from present to past tense throughout; student representative description simplified; `space-y-20` reduced to `space-y-12`
+- **About page** - bio condensed from seven paragraphs to five; awards woven in contextually rather than leading; Adisadel roles corrected; father reference corrected from present to past tense throughout; `space-y-20` reduced to `space-y-12`
 - **About page** - Aston Ghana Society and Aston Gaming Society commented out of `data/societies.ts`; IET, ESOC and ACS descriptions updated
-- **AboutPreview** - rewrote both paragraphs; father reference fixed from "My father is" to "My late father was"
 - **Blog page** - Journey post re-pinned to top; date corrected to June 2024; all other posts sort by date descending; description updated to include "tech write-ups"; RSS icon made blue and larger
 - **Navigation** - active nav link renders in primary blue with a thin underline indicator; mobile nav active state updated to primary blue
 - **Newsletter page** - "See my notes" cross-link icon changed from Zap to Book
-- **Notes page** - zaccess.com portfolio project entry updated with correct project link (`zaccesss/zacess-pages`) and GitHub repo
+- **Notes page** - zaccess.com portfolio project entry updated with correct project link and GitHub repo
 - **Prosthetics research page** - four Wikipedia references replaced with peer-reviewed PMC papers and NHS official sources
 - **Privacy Policy** - expanded to include intellectual property, use of content, disclaimer and changes-to-policy sections; contact page linked for concerns
 - **Contact page** - description expanded to include suggestions and feedback alongside professional opportunities
-- **Sitemap** - `/privacy` added
+- **WORKFLOW.md** - updated to require a CHANGELOG entry before every commit
 
 ### Fixed
 
+- **Noindex on OG/Twitter image routes** - added `X-Robots-Tag: noindex` headers in `next.config.mjs` for `/opengraph-image`, `/twitter-image` and all nested variants so Google stops treating these internal image generation endpoints as content pages
 - **Sitemap** - removed `/privacy` from sitemap; it carries `noindex` so including it sent conflicting signals to Google Search Console
 - **`ApproachAnimation`** - container now has a fixed height (`h-[240px]`) so the box no longer expands line by line as the code types in; uses `overflow-y-hidden` to clip content to the reserved space
 - **`app/layout.tsx`** - JSON-LD schema `<script>` moved from `<body>` to `<head>` to resolve React console warning
