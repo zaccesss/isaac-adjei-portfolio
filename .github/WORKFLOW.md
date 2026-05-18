@@ -13,7 +13,9 @@ for the correct flow.
 git checkout main && git pull
 git checkout -b fix/your-description
 
-# 2. Make your changes, then commit (conventional format, no em/en dashes, no Oxford commas)
+# 2. Update CHANGELOG.md - add entries under the relevant heading in [Unreleased]
+#    (Added / Changed / Fixed / Removed) before staging anything
+# Then stage and commit (conventional format, no em/en dashes, no Oxford commas)
 git add .
 git commit -m "fix: short description of what changed"
 
