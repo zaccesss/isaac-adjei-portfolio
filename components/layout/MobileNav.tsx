@@ -36,7 +36,7 @@ export default function MobileNav() {
                   onClick={() => setOpen(false)}
                   className={cn(
                     "px-4 py-3 text-base font-medium rounded-md transition-colors hover:bg-accent",
-                    pathname === link.href ? "bg-accent text-foreground" : "text-muted-foreground"
+                    pathname === link.href ? "bg-accent text-primary" : "text-muted-foreground"
                   )}
                 >
                   {link.label}

@@ -1,7 +1,7 @@
 const isDev = process.env.NODE_ENV === "development"
 
-const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com"]
-const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io"]
+const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com", "https://www.googletagmanager.com"]
+const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io", "https://www.google-analytics.com", "https://analytics.google.com"]
 
 if (isDev) {
   scriptSrc.push("'unsafe-eval'")
@@ -23,6 +23,12 @@ const nextConfig = {
   },
   async headers() {
     return [
+      // I noindex OG and Twitter image generation routes - they are internal
+      // image endpoints, not content pages, and should not appear in search results.
+      { source: "/opengraph-image",          headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
+      { source: "/twitter-image",            headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
+      { source: "/:any+/opengraph-image",    headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
+      { source: "/:any+/twitter-image",      headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
       {
         source: "/(.*)",
         headers: [

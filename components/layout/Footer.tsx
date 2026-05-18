@@ -1,6 +1,7 @@
 // Site footer - shown at the bottom of every page.
 // I calculate the copyright year dynamically so I never have to update it manually.
 
+import Link from "next/link"
 import SocialLinks from "@/components/shared/SocialLinks"
 import FooterNewsletter from "@/components/layout/FooterNewsletter"
 
@@ -14,7 +15,16 @@ export default function Footer() {
 
         <FooterNewsletter />
 
-        <p className="text-xs text-muted-foreground">&copy; {year} Isaac Adjei</p>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>&copy; {year} Isaac Adjei</span>
+          <span aria-hidden="true">·</span>
+          <Link
+            href="/privacy"
+            className="hover:text-foreground transition-colors"
+          >
+            Privacy Policy
+          </Link>
+        </div>
       </div>
     </footer>
   )

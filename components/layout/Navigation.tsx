@@ -14,18 +14,25 @@ export default function Navigation() {
 
   return (
     <nav className="hidden md:flex items-center gap-6">
-      {NAV_LINKS.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-foreground",
-            pathname === link.href ? "text-foreground" : "text-muted-foreground"
-          )}
-        >
-          {link.label}
-        </Link>
-      ))}
+      {NAV_LINKS.map((link) => {
+        const isActive = pathname === link.href
+        return (
+          <div key={link.href} className="relative flex flex-col items-center">
+            <Link
+              href={link.href}
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-foreground pb-1",
+                isActive ? "text-primary" : "text-muted-foreground"
+              )}
+            >
+              {link.label}
+            </Link>
+            {isActive && (
+              <span className="absolute bottom-0 h-0.5 w-4/5 rounded-full bg-primary" />
+            )}
+          </div>
+        )
+      })}
     </nav>
   )
 }

@@ -16,9 +16,12 @@ import {
   CommandList,
   CommandShortcut,
 } from "@/components/ui/command"
-import { Home, User, Briefcase, Code, Mail, Cpu, BookOpen, Link2, NotebookPen, FlaskConical } from "lucide-react"
+import { Home, User, Briefcase, Code, Mail, Cpu, BookOpen, Link2, NotebookPen, FlaskConical, FileText } from "lucide-react"
 import { DialogTitle } from "@/components/ui/dialog"
 import { useModKey } from "@/hooks/useModKey"
+import { getPublishedPosts } from "@/data/blog"
+
+const publishedPosts = getPublishedPosts()
 
 export default function CommandMenu() {
   const [open, setOpen] = useState(false)
@@ -130,6 +133,20 @@ export default function CommandMenu() {
             Links
             <CommandShortcut>{shortcut("L")}</CommandShortcut>
           </CommandItem>
+        </CommandGroup>
+
+        {/* Posts group - searchable blog post titles */}
+        <CommandGroup heading="Posts">
+          {publishedPosts.map((post) => (
+            <CommandItem
+              key={post.slug}
+              value={`${post.title} ${post.tags.join(" ")}`}
+              onSelect={() => go(`/blog/${post.slug}`)}
+            >
+              <FileText className="mr-2 h-4 w-4 shrink-0" />
+              {post.title}
+            </CommandItem>
+          ))}
         </CommandGroup>
       </CommandList>
     </CommandDialog>

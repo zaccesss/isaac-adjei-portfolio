@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+16+%7C+TypeScript+%7C+Tailwind+CSS;10+Projects+%7C+Blog+%7C+Newsletter+%7C+Lab+Terminal;Live+Status+%7C+Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1200&color=0066CC&center=true&vCenter=true&width=650&height=45&lines=Personal+Portfolio+Website;Next.js+16+%7C+TypeScript+%7C+Tailwind+CSS;Projects+%7C+Blog+%7C+Newsletter+%7C+Lab+Terminal;RSS+Feed+%7C+Privacy+Policy+%7C+My+Approach+Animation;Live+Status+%7C+Dark+%2F+Light+Mode+%7C+Fully+Responsive" />
 </p>
 
 <p align="center">
@@ -158,7 +158,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 - **iOS-style cards** on homepage, /notes and /lab showing real-time data
 - **Spotify now playing** - album art, track name, artist, progress bar and paused/playing state via Spotify Web API
 - **London time** - always `Europe/London` timezone, updates every second client-side, no API needed
-- **MacBook battery** - percentage, charging state and device name written by `scripts/mac-daemon.py` to Upstash Redis every 2 minutes, read via `/api/macbook`
+- **MacBook battery** - percentage, charging state and device name written by `scripts/mac-daemon.py` to Upstash Redis every 30 seconds, read via `/api/macbook`; device name and last battery percent persist via a `macbook:last-known` key (no TTL) so the card always shows "last seen X ago" instead of going blank
 - **GitHub last push** - last public repo pushed to and relative time via GitHub public API, cached in Redis for 5 minutes
 - **Online/away indicator** - green pulse if Mac daemon heartbeat is under 5 minutes old, grey if away or offline
 - **Theme-adaptive** - all cards use CSS variables and adapt to dark and light mode
@@ -184,8 +184,10 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 
 - **Custom favicon** - avatar image served as site icon via Next.js App Router convention (`app/icon.png`)
 - **Per-page metadata** - title, description and Open Graph tags on every page
-- **Sitemap** - `/sitemap.xml` auto-generated at build time, submitted to Google Search Console
-- **Schema.org JSON-LD** - `Person` structured data block in root layout for rich search results
+- **Dynamic OG images** - per-post and per-project social preview cards generated at the edge via Next.js ImageResponse; blog cards show post type, title and reading time; project cards show category and tech stack
+- **Article JSON-LD** - `BlogPosting` structured data injected on every published blog post for Google rich results
+- **Sitemap** - `/sitemap.xml` auto-generated at build time with real `lastModified` dates per route, submitted to Google Search Console
+- **Schema.org JSON-LD** - `Person` structured data block in root layout for knowledge graph disambiguation
 - **Next.js Image optimisation** - automatic AVIF/WebP format conversion, lazy loading and responsive sizes
 
 ---
@@ -320,6 +322,11 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 │   ├── constants.ts    # Nav links, routes, site URL
 │   └── utils.ts        # cn() utility
 │
+├── scripts/
+│   ├── mac-daemon.py   # Python daemon: writes battery/charging/device to Upstash Redis every 30s
+│   ├── spotify-auth.mjs # One-time OAuth helper to get a Spotify refresh token
+│   └── README.md       # Setup guide for mac-daemon (launchd plist, dependencies, env vars)
+│
 └── public/
     ├── images/
     │   └── projects/   # Project photos organised by project slug
@@ -413,6 +420,7 @@ SPOTIFY_REFRESH_TOKEN=your_spotify_refresh_token
 | `SPOTIFY_CLIENT_ID` | Optional | Spotify app client ID from [developer.spotify.com](https://developer.spotify.com). Required for live now-playing status |
 | `SPOTIFY_CLIENT_SECRET` | Optional | Spotify app client secret. Required alongside `SPOTIFY_CLIENT_ID` |
 | `SPOTIFY_REFRESH_TOKEN` | Optional | Long-lived OAuth refresh token. Run `node scripts/spotify-auth.mjs` once to generate it |
+| `GITHUB_PAT` | Optional | GitHub personal access token. Increases the rate limit for `/api/github-activity` from 60 to 5000 req/hr |
 
 ---
 

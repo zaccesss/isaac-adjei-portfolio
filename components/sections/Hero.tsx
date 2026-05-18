@@ -7,6 +7,7 @@
 import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import SocialLinks from "@/components/shared/SocialLinks"
 import { fadeUp, staggerContainer } from "@/lib/animations"
 import { useModKey } from "@/hooks/useModKey"
@@ -42,17 +43,26 @@ export default function Hero() {
           </p>
         </motion.div>
 
-        <motion.p
+        <motion.div
           variants={fadeUp}
-          className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+          className="max-w-2xl mx-auto space-y-4"
         >
-          Electronic Engineering &amp; Computer Science student at Aston University. Top 40
-          Finalist, Black Heritage Undergraduate of the Year 2026 and named Best and Most
-          Hardworking Student at Stanmore College. I build across the full stack of engineering,
-          from bare-metal firmware and PCB design to AI&nbsp;&amp;&nbsp;ML and full-stack web.
-          Passionate about embedded systems, IoT and accessible technology. Open to internships,
-          placements and professional opportunities in engineering and tech.
-        </motion.p>
+          <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+            EE &amp; CS student at Aston University, Birmingham, building across the full stack of
+            engineering and technology. Open to internships, placements and professional
+            opportunities.
+          </p>
+          <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+            Not sure where to start?{" "}
+            <Link href="/projects" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors font-medium">Projects</Link>
+            {" "}for the work,{" "}
+            <Link href="/about" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors font-medium">About</Link>
+            {" "}for the full story, or the{" "}
+            <Link href="/lab" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors font-medium">Lab terminal</Link>
+            {" "}if you want to explore on your own terms, or just scroll for more.
+          </p>
+          <div className="w-24 h-px bg-border mx-auto" />
+        </motion.div>
 
         <motion.div variants={fadeUp} className="flex justify-center">
           <SocialLinks iconSize="h-5 w-5" />
@@ -70,11 +80,11 @@ export default function Hero() {
           >
             <span>Quick navigate</span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] font-medium shadow-sm">
+              <kbd className="rounded border border-border bg-background px-2 py-0.5 font-mono text-xs font-medium shadow-sm">
                 {modLabel}
               </kbd>
               <span>+</span>
-              <kbd className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] font-medium shadow-sm">
+              <kbd className="rounded border border-border bg-background px-2 py-0.5 font-mono text-xs font-medium shadow-sm">
                 I
               </kbd>
             </span>

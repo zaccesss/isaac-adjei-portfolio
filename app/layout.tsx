@@ -91,6 +91,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Isaac Adjei"
+          href="/feed.xml"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+        />
         {GA_ID && (
           <>
             <Script
@@ -112,11 +122,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
         className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}
       >
-        {/* Schema.org JSON-LD - read by Google for rich search results and knowledge graph */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
-        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

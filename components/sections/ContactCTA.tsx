@@ -7,7 +7,6 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight, Mail, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import LiveStatusCards from "@/components/shared/LiveStatusCards"
 import { fadeUp } from "@/lib/animations"
 
 export default function ContactCTA() {
@@ -24,8 +23,9 @@ export default function ContactCTA() {
           <Mail className="mx-auto h-10 w-10 text-primary" />
           <h2 className="text-3xl font-bold tracking-tight">Let&apos;s work together</h2>
           <p className="text-muted-foreground text-lg">
-            I&apos;m actively looking for internship and placement opportunities. If you have a
-            project or role that fits, I&apos;d love to hear from you.
+            I am actively looking for internship and placement opportunities in engineering and
+            technology. Whether you have a role, a project, a collaboration idea or just want to
+            connect, I am always open to a conversation.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild size="lg">
@@ -51,8 +51,6 @@ export default function ContactCTA() {
               </a>
             </Button>
           </div>
-
-          <LiveStatusCards />
         </motion.div>
       </div>
     </section>
