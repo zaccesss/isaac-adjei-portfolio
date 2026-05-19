@@ -52,3 +52,34 @@
   - `app/api/gpc/route.ts`
   - Wire up Gaming PC card in LiveStatusCards.tsx
 - After Gaming PC: planned features (Hall of Fame, /consumed, /now, blog reactions, dark/light crossfade, full site search)
+
+---
+
+## 2026-05-19 - Stale charging fix and Gaming PC card restructure
+
+### What we did
+- Fixed the frozen "charging" status bug on MacBook and Lenovo cards
+- Added `isStale(ts)` helper in `LiveStatusCards.tsx` - returns true if `lastSeen` is >15 minutes ago
+- MacBook and Lenovo cards now only show `BatteryCharging` icon and "charging" text if `!isStale(lastSeen)` - otherwise fall back to plain Battery icon + percentage only
+- Added `GamingPCData` interface with fields for `online`, `lastSeen`, `gpu`, `cpu`, `currentGame`, `device`
+- Replaced hardcoded Gaming PC placeholder with a proper component that reads from `gamingPC` state - when offline only shows last-seen, GPU/CPU/game are live-only and hidden when offline
+- Updated `memory/AGENT_PROMPT.md` with stale charging rule and Gaming PC offline rule
+- Updated `CHANGELOG.md` with Fixed and Changed entries
+
+### Decisions made
+- 15 minutes threshold for stale charging: daemon sends every 30s, frontend polls every 60s. 10 minutes initially considered but 15 chosen to avoid false-positives on brief network hiccups or very short sleeps
+- Sleep mode: when device sleeps (suspend to RAM), daemon stops running - indistinguishable from off. Sleep <15 min: charging still shows. Sleep >15 min: charging hides. On wake, daemon resumes and charging reappears within 60s. This is the correct and expected behaviour.
+- Gaming PC state: hardcoded to `online: false, lastSeen: null` until the GPC daemon is built - the card safely shows "offline" / "daemon not set up" with no data fields
+
+### Files changed
+- `components/shared/LiveStatusCards.tsx`: added `isStale()` helper, `GamingPCData` interface, `gamingPC` state, stale-charging guard on MacBook and Lenovo battery display, restructured Gaming PC card
+- `CHANGELOG.md`: added Fixed and Changed entries under [Unreleased]
+- `memory/AGENT_PROMPT.md`: documented stale charging rule for MacBook and Lenovo, documented Gaming PC offline rule
+
+### Next session
+- Gaming PC daemon (ZACCESS-GPC)
+  - Confirm NVIDIA or AMD GPU before writing any GPU code
+  - CPU%, game detection via process scan
+  - `app/api/gpc/route.ts`
+  - Wire up Gaming PC card - fetch from `/api/gpc`, set `gamingPC` state (the interface and card are already built)
+- After Gaming PC: planned features (Hall of Fame, /consumed, /now, blog reactions, dark/light crossfade, full site search)
