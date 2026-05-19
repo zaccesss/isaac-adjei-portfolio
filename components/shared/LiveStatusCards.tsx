@@ -439,11 +439,12 @@ export default function LiveStatusCards() {
                     {gamingPC.lastSeen ? gSeenText : "offline"}
                   </span>
                 </div>
-                {gOnline && gamingPC.gpu && (
-                  <p className="text-xs text-muted-foreground truncate">GPU: {gamingPC.gpu}</p>
-                )}
-                {gOnline && gamingPC.cpu && (
-                  <p className="text-xs text-muted-foreground truncate">CPU: {gamingPC.cpu}</p>
+                {gOnline && (gamingPC.cpu || gamingPC.gpu) && (
+                  <p className="text-xs text-muted-foreground truncate">
+                    {gamingPC.cpu && <>CPU: {gamingPC.cpu}</>}
+                    {gamingPC.cpu && gamingPC.gpu && <span className="mx-1 opacity-40">|</span>}
+                    {gamingPC.gpu && <>GPU: {gamingPC.gpu}</>}
+                  </p>
                 )}
                 {gOnline && gamingPC.currentGame && (
                   <p className="text-xs text-muted-foreground truncate">Playing: {gamingPC.currentGame}</p>
