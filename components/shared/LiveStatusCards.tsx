@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, GitBranch, Monitor, Music2, Github } from "lucide-react"
+import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, GitBranch, Monitor, Github } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface LastPlayed {
@@ -164,7 +164,6 @@ export default function LiveStatusCards() {
   const { text: seenText, online } = relativeLastSeen(mac.lastSeen)
   const hasTrack = spotify.playing || spotify.paused
   const progress = hasTrack && spotify.durationMs ? liveProgressMs / spotify.durationMs : 0
-  const gpcActive = hasTrack && !!spotify.device?.toLowerCase().includes("zaccess-gpc")
   const spotifyLabel = spotify.playing
     ? spotify.device ? `Currently Listening on ${spotify.device}` : "Currently Listening..."
     : "Paused"
@@ -345,26 +344,11 @@ export default function LiveStatusCards() {
             <p className="text-xs font-semibold text-foreground/50 truncate">ZACCESS-GPC</p>
           </div>
           <div className="space-y-1.5">
-            {gpcActive ? (
-              <>
-                <div className="flex items-center gap-1.5">
-                  <Wifi className="h-3 w-3 text-blue-500 shrink-0" />
-                  <span className="text-xs text-blue-500">online</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Music2 className="h-3 w-3 text-blue-500 shrink-0" />
-                  <p className="text-xs text-blue-500 truncate">{spotify.track}</p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-1.5">
-                  <WifiOff className="h-3 w-3 text-muted-foreground/30 shrink-0" />
-                  <span className="text-xs text-muted-foreground/40">offline</span>
-                </div>
-                <p className="text-xs text-muted-foreground/30">daemon not set up</p>
-              </>
-            )}
+            <div className="flex items-center gap-1.5">
+              <WifiOff className="h-3 w-3 text-muted-foreground/30 shrink-0" />
+              <span className="text-xs text-muted-foreground/40">offline</span>
+            </div>
+            <p className="text-xs text-muted-foreground/30">daemon not set up</p>
           </div>
         </div>
 
