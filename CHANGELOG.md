@@ -7,6 +7,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Spotify device name in label** - "Currently Listening on ZACCESS-GPC" (or whichever device is active) shown above the track when playing; uses the `/me/player` endpoint instead of `/me/player/currently-playing` to access device info
+- **Podcast and episode support** - Spotify card now shows podcast episodes with episode title, show name and episode artwork just like tracks; `currently_playing_type` field used to detect episodes vs tracks
+- **Spotify last played** - when nothing is active the Spotify card shows the previous track or episode in a greyed-out grayscale state with a "Last Played" label instead of a blank card; stored in Redis under `spotify:last_played` with no expiry
+- **Real-time Spotify progress bar** - progress bar and timestamp tick forward every second client-side using a local interval; API response snaps the position back to the true value on each poll; no more needing to refresh to see it move
+- **Gaming PC status card** - new compact card in the live status grid showing ZACCESS-GPC; when Spotify is actively playing on that device the track name is shown with a music icon; otherwise shows offline
+- **Lenovo status card** - placeholder card added alongside the Gaming PC card ready for the Windows daemon; shows offline until the daemon is set up
+
+### Changed
+
+- **Live status layout** - Time card moved to the left column and MacBook card moved to the right column in the two-column row
+- **Spotify polling interval** - reduced from 30 seconds to 10 seconds so track changes and skips appear within 10 seconds without waiting for a full refresh
+- **GitHub icon** - replaced deprecated `Github` with `GitBranch` from lucide-react in the last-pushed card
+
 ---
 
 ## [v2.2.0] - 2026-05-18
