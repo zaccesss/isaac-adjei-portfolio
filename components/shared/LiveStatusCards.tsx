@@ -38,6 +38,13 @@ interface MacbookData {
   tempC: number | null
 }
 
+interface LenovoData {
+  battery: number | null
+  charging: boolean | null
+  lastSeen: string | null
+  device: string | null
+}
+
 interface GithubData {
   repo: string | null
   relativeTime: string | null
@@ -98,6 +105,7 @@ export default function LiveStatusCards() {
     countryCode: null, timezone: "Europe/London",
     weatherCondition: null, weatherEmoji: null, tempC: null,
   })
+  const [lenovo, setLenovo] = useState<LenovoData>({ battery: null, charging: null, lastSeen: null, device: null })
   const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
   const [liveProgressMs, setLiveProgressMs] = useState(0)
 
@@ -128,6 +136,18 @@ export default function LiveStatusCards() {
       try {
         const res = await fetch("/api/macbook")
         if (res.ok) setMac(await res.json())
+      } catch {}
+    }
+    fetch_()
+    const id = setInterval(fetch_, 60000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    async function fetch_() {
+      try {
+        const res = await fetch("/api/lenovo")
+        if (res.ok) setLenovo(await res.json())
       } catch {}
     }
     fetch_()
@@ -323,19 +343,44 @@ export default function LiveStatusCards() {
         </div>
 
         {/* Lenovo */}
-        <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Laptop className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-            <p className="text-xs font-semibold text-foreground/50 truncate">Lenovo</p>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1.5">
-              <WifiOff className="h-3 w-3 text-muted-foreground/30 shrink-0" />
-              <span className="text-xs text-muted-foreground/40">offline</span>
+        {(() => {
+          const { text: lSeenText, online: lOnline } = relativeLastSeen(lenovo.lastSeen)
+          return (
+            <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Laptop className="h-4 w-4 text-muted-foreground shrink-0" />
+                <p className="text-xs font-semibold truncate">{lenovo.device ?? "Lenovo"}</p>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  {lOnline ? (
+                    <Wifi className="h-3 w-3 text-blue-500 shrink-0" />
+                  ) : (
+                    <WifiOff className="h-3 w-3 text-muted-foreground/40 shrink-0" />
+                  )}
+                  <span className={cn("text-xs", lOnline ? "text-blue-500" : "text-muted-foreground/60")}>
+                    {lSeenText}
+                  </span>
+                </div>
+                {lenovo.battery !== null ? (
+                  <div className="flex items-center gap-1.5">
+                    {lenovo.charging ? (
+                      <BatteryCharging className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                    ) : (
+                      <Battery className={cn("h-3.5 w-3.5 shrink-0", lenovo.battery <= 20 ? "text-red-500" : "text-muted-foreground")} />
+                    )}
+                    <span className="text-xs font-mono text-muted-foreground">
+                      {lenovo.battery}%
+                      {lenovo.charging && <span className="text-blue-500"> charging</span>}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground/40">no data</p>
+                )}
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground/30">daemon not set up</p>
-          </div>
-        </div>
+          )
+        })()}
 
         {/* Gaming PC */}
         <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
