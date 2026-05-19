@@ -83,3 +83,45 @@
   - `app/api/gpc/route.ts`
   - Wire up Gaming PC card - fetch from `/api/gpc`, set `gamingPC` state (the interface and card are already built)
 - After Gaming PC: planned features (Hall of Fame, /consumed, /now, blog reactions, dark/light crossfade, full site search)
+
+---
+
+## 2026-05-19 - Gaming PC daemon and card
+
+### What we did
+- Confirmed GPU: NVIDIA GeForce RTX 4060 (user showed Task Manager screenshot)
+- Wrote `scripts/gpc-daemon.py` - writes CPU%, GPU% (via pynvml), active game name and timestamp to `gpc:status` (TTL 600s) and `gpc:last-known` every 30s; detects games by scanning Windows processes against KNOWN_GAMES dict (lowercase comparison for case-insensitive matching)
+- Wrote `app/api/gpc/route.ts` - reads live/last-known fallback; `online` is true if `gpc:status` key exists (within 600s TTL); CPU, GPU and game fields are null when offline so card never shows stale stats
+- Wired up Gaming PC card in `components/shared/LiveStatusCards.tsx` - replaced hardcoded `const [gamingPC]` with proper `setGamingPC` state + fetch effect polling every 30s; formats cpu/gpu as "42%" strings
+- Updated CHANGELOG.md under [Unreleased]
+- PR #124 merged to main via auto-merge
+
+### Decisions made
+- pynvml for GPU: NVIDIA confirmed, pynvml is the lightest approach - just `nvmlDeviceGetUtilizationRates(handle).gpu` returns integer percent
+- pynvml initialised at module load with fallback if not available - daemon still runs and writes CPU/game even if pynvml fails (GPU will be null)
+- `online` flag derived from TTL key presence not timestamp comparison - Redis does the stale check, API just returns what it sees
+- Offline rule: API returns null for cpu/gpu/game when `online: false` - enforced at API layer, not just UI, so nothing leaks stale stats even if the card logic changes later
+- Poll interval: 30s for Gaming PC (same as daemon write interval) vs 60s for Lenovo/MacBook
+
+### Problems and fixes
+- none - clean build, TypeScript strict mode passed with no errors
+
+### Files changed
+- `scripts/gpc-daemon.py`: new file - Gaming PC Windows daemon
+- `app/api/gpc/route.ts`: new file - API route for Gaming PC card
+- `components/shared/LiveStatusCards.tsx`: replaced const gamingPC with setGamingPC, added fetch effect polling /api/gpc every 30s
+- `CHANGELOG.md`: added Gaming PC entries under [Unreleased]
+- `memory/LOG.md`: this entry
+
+### Follow-up fixes (same session)
+- PR #125: combined CPU and GPU onto one line ("CPU: x% | GPU: y%") - Gaming PC card was expanding taller than other cards
+- PR #126: improved separator and icon visibility - switched from muted-foreground opacity to foreground-based opacity so elements are darker in light mode and lighter in dark mode; applied to both the CPU/GPU separator and the Github/GitBranch icons in the GitHub card
+
+### Next session
+- After daemon is live: planned features
+  - Hall of Fame reframe (God, mum, dad lead - then security researchers)
+  - /consumed page (monthly content log)
+  - /now page (static, what Isaac is doing in life)
+  - Blog reactions (ThumbsUp, Flame, Lightbulb, Heart via lucide-react, Redis per slug per type)
+  - Dark/light mode crossfade (~150ms CSS transition)
+  - Full site search in Cmd+I command menu (projects, notes, blog posts)
