@@ -13,6 +13,13 @@ const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET
 const REFRESH_TOKEN = process.env.SPOTIFY_REFRESH_TOKEN
 
+interface LastPlayed {
+  track: string
+  artist: string
+  albumArt: string | null
+  type: "track" | "episode"
+}
+
 async function getAccessToken(): Promise<string | null> {
   if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) return null
 
@@ -44,55 +51,93 @@ async function getAccessToken(): Promise<string | null> {
   return data.access_token
 }
 
+async function getLastPlayed() {
+  if (!redis) return null
+  return redis.get<LastPlayed>("spotify:last_played")
+}
+
 export async function GET() {
   try {
     const token = await getAccessToken()
     if (!token) {
-      return NextResponse.json({ playing: false }, { headers: { "Cache-Control": "no-store" } })
+      const last = await getLastPlayed()
+      return NextResponse.json(
+        { playing: false, lastPlayed: last ?? null },
+        { headers: { "Cache-Control": "no-store" } }
+      )
     }
 
-    const res = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
+    const res = await fetch("https://api.spotify.com/v1/me/player", {
       headers: { Authorization: `Bearer ${token}` },
     })
 
-    if (res.status === 204 || res.status === 404) {
-      return NextResponse.json({ playing: false }, { headers: { "Cache-Control": "no-store" } })
-    }
-
-    if (!res.ok) {
-      return NextResponse.json({ playing: false }, { headers: { "Cache-Control": "no-store" } })
+    if (res.status === 204 || res.status === 404 || !res.ok) {
+      const last = await getLastPlayed()
+      return NextResponse.json(
+        { playing: false, lastPlayed: last ?? null },
+        { headers: { "Cache-Control": "no-store" } }
+      )
     }
 
     const data = await res.json() as {
       is_playing: boolean
       progress_ms?: number
+      currently_playing_type?: string
+      device?: { name: string; type: string }
       item?: {
         name: string
         duration_ms: number
-        artists: { name: string }[]
-        album: { images: { url: string }[] }
+        artists?: { name: string }[]
+        album?: { images: { url: string }[] }
+        show?: { name: string; images: { url: string }[] }
+        images?: { url: string }[]
         external_urls: { spotify: string }
       }
     }
 
     if (!data.item) {
-      return NextResponse.json({ playing: false, paused: false }, { headers: { "Cache-Control": "no-store" } })
+      const last = await getLastPlayed()
+      return NextResponse.json(
+        { playing: false, lastPlayed: last ?? null },
+        { headers: { "Cache-Control": "no-store" } }
+      )
+    }
+
+    const isEpisode = data.currently_playing_type === "episode"
+    const title = data.item.name
+    const subtitle = isEpisode
+      ? (data.item.show?.name ?? "Podcast")
+      : (data.item.artists?.map((a) => a.name).join(", ") ?? "")
+    const images = isEpisode
+      ? (data.item.images ?? data.item.show?.images ?? [])
+      : (data.item.album?.images ?? [])
+    const albumArt = images[1]?.url ?? images[0]?.url ?? null
+
+    if (redis) {
+      await redis.set("spotify:last_played", { track: title, artist: subtitle, albumArt, type: isEpisode ? "episode" : "track" })
     }
 
     return NextResponse.json(
       {
         playing: data.is_playing,
         paused: !data.is_playing,
-        track: data.item.name,
-        artist: data.item.artists.map((a) => a.name).join(", "),
-        albumArt: data.item.album.images[1]?.url ?? data.item.album.images[0]?.url ?? null,
+        type: isEpisode ? "episode" : "track",
+        track: title,
+        artist: subtitle,
+        albumArt,
         url: data.item.external_urls.spotify,
         progressMs: data.progress_ms ?? 0,
         durationMs: data.item.duration_ms,
+        device: data.device?.name ?? null,
+        lastPlayed: null,
       },
       { headers: { "Cache-Control": "no-store" } }
     )
   } catch {
-    return NextResponse.json({ playing: false }, { headers: { "Cache-Control": "no-store" } })
+    const last = await getLastPlayed()
+    return NextResponse.json(
+      { playing: false, lastPlayed: last ?? null },
+      { headers: { "Cache-Control": "no-store" } }
+    )
   }
 }
