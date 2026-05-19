@@ -17,6 +17,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Gaming PC daemon** - `scripts/gpc-daemon.py` writes CPU%, GPU% (NVIDIA RTX 4060 via pynvml) and current game name to Redis keys `gpc:status` (TTL 600s) and `gpc:last-known` every 30s; detects active games by scanning Windows processes; runs via NSSM
+- **Gaming PC API route** - `app/api/gpc/route.ts` reads live/last-known fallback; CPU, GPU and game fields are only returned when the daemon is live (online=true)
+- **Gaming PC card wired up** - polls `/api/gpc` every 30s; shows CPU%, GPU% and current game when online; shows only last-seen when offline
+
 - **Lenovo daemon** - `scripts/lenovo-daemon.py` writes battery, charging state and timestamp to Redis keys `lenovo:status` (TTL 600s) and `lenovo:last-known` every 30s; runs on Windows via NSSM
 - **Lenovo API route** - `app/api/lenovo/route.ts` reads from Redis with live/last-known fallback, same structure as macbook route
 - **Lenovo card wired up** - live battery, charging state and last-seen status in the device grid; matches MacBook card behaviour
