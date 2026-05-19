@@ -126,6 +126,7 @@
   - Dark/light mode crossfade (~150ms CSS transition)
   - Full site search in Cmd+I command menu (projects, notes, blog posts)
 
+
 ---
 
 ## 2026-05-20 - /consumed page, /now page, CSP embed fix
