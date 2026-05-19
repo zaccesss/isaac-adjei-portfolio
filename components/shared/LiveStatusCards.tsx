@@ -45,6 +45,15 @@ interface LenovoData {
   device: string | null
 }
 
+interface GamingPCData {
+  online: boolean
+  lastSeen: string | null
+  gpu: string | null
+  cpu: string | null
+  currentGame: string | null
+  device: string | null
+}
+
 interface GithubData {
   repo: string | null
   relativeTime: string | null
@@ -64,6 +73,11 @@ function relativeLastSeen(ts: string | null): { text: string; online: boolean } 
   const hrs = Math.floor(mins / 60)
   if (hrs < 24) return { text: `last seen ${hrs}h ago`, online: false }
   return { text: `last seen ${Math.floor(hrs / 24)}d ago`, online: false }
+}
+
+function isStale(ts: string | null): boolean {
+  if (!ts) return true
+  return Date.now() - new Date(ts).getTime() > 15 * 60 * 1000
 }
 
 function currentTime(tz: string): string {
@@ -106,6 +120,7 @@ export default function LiveStatusCards() {
     weatherCondition: null, weatherEmoji: null, tempC: null,
   })
   const [lenovo, setLenovo] = useState<LenovoData>({ battery: null, charging: null, lastSeen: null, device: null })
+  const [gamingPC] = useState<GamingPCData>({ online: false, lastSeen: null, gpu: null, cpu: null, currentGame: null, device: "ZACCESS-GPC" })
   const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
   const [liveProgressMs, setLiveProgressMs] = useState(0)
 
@@ -326,14 +341,14 @@ export default function LiveStatusCards() {
             </div>
             {mac.battery !== null ? (
               <div className="flex items-center gap-1.5">
-                {mac.charging ? (
+                {mac.charging && !isStale(mac.lastSeen) ? (
                   <BatteryCharging className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                 ) : (
                   <Battery className={cn("h-3.5 w-3.5 shrink-0", mac.battery <= 20 ? "text-red-500" : "text-muted-foreground")} />
                 )}
                 <span className="text-xs font-mono text-muted-foreground">
                   {mac.battery}%
-                  {mac.charging && <span className="text-blue-500"> charging</span>}
+                  {mac.charging && !isStale(mac.lastSeen) && <span className="text-blue-500"> charging</span>}
                 </span>
               </div>
             ) : (
@@ -364,14 +379,14 @@ export default function LiveStatusCards() {
                 </div>
                 {lenovo.battery !== null ? (
                   <div className="flex items-center gap-1.5">
-                    {lenovo.charging ? (
+                    {lenovo.charging && !isStale(lenovo.lastSeen) ? (
                       <BatteryCharging className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                     ) : (
                       <Battery className={cn("h-3.5 w-3.5 shrink-0", lenovo.battery <= 20 ? "text-red-500" : "text-muted-foreground")} />
                     )}
                     <span className="text-xs font-mono text-muted-foreground">
                       {lenovo.battery}%
-                      {lenovo.charging && <span className="text-blue-500"> charging</span>}
+                      {lenovo.charging && !isStale(lenovo.lastSeen) && <span className="text-blue-500"> charging</span>}
                     </span>
                   </div>
                 ) : (
@@ -383,19 +398,41 @@ export default function LiveStatusCards() {
         })()}
 
         {/* Gaming PC */}
-        <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Monitor className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-            <p className="text-xs font-semibold text-foreground/50 truncate">ZACCESS-GPC</p>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1.5">
-              <WifiOff className="h-3 w-3 text-muted-foreground/30 shrink-0" />
-              <span className="text-xs text-muted-foreground/40">offline</span>
+        {(() => {
+          const { text: gSeenText, online: gOnline } = relativeLastSeen(gamingPC.lastSeen)
+          return (
+            <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Monitor className={cn("h-4 w-4 shrink-0", gOnline ? "text-muted-foreground" : "text-muted-foreground/40")} />
+                <p className={cn("text-xs font-semibold truncate", gOnline ? "" : "text-foreground/50")}>{gamingPC.device ?? "Gaming PC"}</p>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  {gOnline ? (
+                    <Wifi className="h-3 w-3 text-blue-500 shrink-0" />
+                  ) : (
+                    <WifiOff className="h-3 w-3 text-muted-foreground/30 shrink-0" />
+                  )}
+                  <span className={cn("text-xs", gOnline ? "text-blue-500" : "text-muted-foreground/40")}>
+                    {gamingPC.lastSeen ? gSeenText : "offline"}
+                  </span>
+                </div>
+                {gOnline && gamingPC.gpu && (
+                  <p className="text-xs text-muted-foreground truncate">GPU: {gamingPC.gpu}</p>
+                )}
+                {gOnline && gamingPC.cpu && (
+                  <p className="text-xs text-muted-foreground truncate">CPU: {gamingPC.cpu}</p>
+                )}
+                {gOnline && gamingPC.currentGame && (
+                  <p className="text-xs text-muted-foreground truncate">Playing: {gamingPC.currentGame}</p>
+                )}
+                {!gOnline && !gamingPC.lastSeen && (
+                  <p className="text-xs text-muted-foreground/30">daemon not set up</p>
+                )}
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground/30">daemon not set up</p>
-          </div>
-        </div>
+          )
+        })()}
 
         {/* GitHub last pushed */}
         <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">

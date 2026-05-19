@@ -7,6 +7,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Stale charging state on device cards** - if a device's last update is >15 minutes old, the charging icon and "charging" label are hidden; only the last known battery percentage is shown. Prevents the charging status freezing permanently when a device shuts down or sleeps for a long time while plugged in. Charging reappears within 60s once the daemon sends its next ping on wake.
+
+### Changed
+
+- **Gaming PC card** - restructured to properly show online/offline state; when offline only last-seen is displayed; GPU, CPU and current game fields are live-only and hidden when the device is not sending updates
+
 ### Added
 
 - **Lenovo daemon** - `scripts/lenovo-daemon.py` writes battery, charging state and timestamp to Redis keys `lenovo:status` (TTL 600s) and `lenovo:last-known` every 30s; runs on Windows via NSSM
