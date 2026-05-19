@@ -59,7 +59,7 @@
 
 ### What we did
 - Fixed the frozen "charging" status bug on MacBook and Lenovo cards
-- Added `isStale(ts)` helper in `LiveStatusCards.tsx` - returns true if `lastSeen` is >15 minutes ago
+- Added `isStale(ts)` helper in `LiveStatusCards.tsx` - returns true if `lastSeen` is >5 minutes ago
 - MacBook and Lenovo cards now only show `BatteryCharging` icon and "charging" text if `!isStale(lastSeen)` - otherwise fall back to plain Battery icon + percentage only
 - Added `GamingPCData` interface with fields for `online`, `lastSeen`, `gpu`, `cpu`, `currentGame`, `device`
 - Replaced hardcoded Gaming PC placeholder with a proper component that reads from `gamingPC` state - when offline only shows last-seen, GPU/CPU/game are live-only and hidden when offline
