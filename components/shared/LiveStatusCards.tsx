@@ -442,7 +442,7 @@ export default function LiveStatusCards() {
                 {gOnline && (gamingPC.cpu || gamingPC.gpu) && (
                   <p className="text-xs text-muted-foreground truncate">
                     {gamingPC.cpu && <>CPU: {gamingPC.cpu}</>}
-                    {gamingPC.cpu && gamingPC.gpu && <span className="mx-1 opacity-40">|</span>}
+                    {gamingPC.cpu && gamingPC.gpu && <span className="mx-1 text-foreground/30 dark:text-foreground/25">|</span>}
                     {gamingPC.gpu && <>GPU: {gamingPC.gpu}</>}
                   </p>
                 )}
@@ -460,9 +460,9 @@ export default function LiveStatusCards() {
         {/* GitHub last pushed */}
         <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
           <div className="flex items-center gap-1.5">
-            <Github className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="text-muted-foreground/40 text-xs select-none">|</span>
-            <GitBranch className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+            <Github className="h-4 w-4 text-foreground/60 dark:text-foreground/50 shrink-0" />
+            <span className="text-foreground/30 dark:text-foreground/25 text-xs select-none">|</span>
+            <GitBranch className="h-3.5 w-3.5 text-foreground/50 dark:text-foreground/40 shrink-0" />
           </div>
           {github.repo ? (
             <div className="space-y-0.5">
