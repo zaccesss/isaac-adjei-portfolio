@@ -148,16 +148,18 @@ export default function LiveStatusCards() {
   }, [])
 
   useEffect(() => {
-    setLiveProgressMs(spotify.progressMs ?? 0)
-  }, [spotify.progressMs, spotify.track])
-
-  useEffect(() => {
-    if (!spotify.playing) return
-    const id = setInterval(() => {
+    const reset = setTimeout(() => {
+      setLiveProgressMs(spotify.progressMs ?? 0)
+    }, 0)
+    if (!spotify.playing) return () => clearTimeout(reset)
+    const tick = setInterval(() => {
       setLiveProgressMs((p) => Math.min(p + 1000, spotify.durationMs ?? p))
     }, 1000)
-    return () => clearInterval(id)
-  }, [spotify.playing, spotify.durationMs])
+    return () => {
+      clearTimeout(reset)
+      clearInterval(tick)
+    }
+  }, [spotify.playing, spotify.durationMs, spotify.progressMs, spotify.track])
 
   const { text: seenText, online } = relativeLastSeen(mac.lastSeen)
   const hasTrack = spotify.playing || spotify.paused
