@@ -120,7 +120,7 @@ export default function LiveStatusCards() {
     weatherCondition: null, weatherEmoji: null, tempC: null,
   })
   const [lenovo, setLenovo] = useState<LenovoData>({ battery: null, charging: null, lastSeen: null, device: null })
-  const [gamingPC] = useState<GamingPCData>({ online: false, lastSeen: null, gpu: null, cpu: null, currentGame: null, device: "ZACCESS-GPC" })
+  const [gamingPC, setGamingPC] = useState<GamingPCData>({ online: false, lastSeen: null, gpu: null, cpu: null, currentGame: null, device: "ZACCESS-GPC" })
   const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
   const [liveProgressMs, setLiveProgressMs] = useState(0)
 
@@ -167,6 +167,28 @@ export default function LiveStatusCards() {
     }
     fetch_()
     const id = setInterval(fetch_, 60000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    async function fetch_() {
+      try {
+        const res = await fetch("/api/gpc")
+        if (res.ok) {
+          const data = await res.json()
+          setGamingPC({
+            online:      data.online,
+            lastSeen:    data.lastSeen,
+            device:      data.device,
+            cpu:         data.cpu !== null ? `${data.cpu}%` : null,
+            gpu:         data.gpu !== null ? `${data.gpu}%` : null,
+            currentGame: data.game,
+          })
+        }
+      } catch {}
+    }
+    fetch_()
+    const id = setInterval(fetch_, 30000)
     return () => clearInterval(id)
   }, [])
 
