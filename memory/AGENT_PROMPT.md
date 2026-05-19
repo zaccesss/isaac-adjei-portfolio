@@ -148,7 +148,7 @@ directly each session. Never store real credentials in any file that is committe
 ### MacBook card (top-left)
 - `macbook:status` (TTL 600s) with fallback to `macbook:last-known` (no TTL)
 - Last seen, battery %, charging state. Blue if online (<5 min), grey otherwise.
-- **Stale charging rule**: if `lastSeen` is >15 minutes ago, do NOT show the BatteryCharging icon or "charging" text - show plain Battery icon and just the percentage. This prevents "charging" freezing forever when the device shuts down while charging. When the daemon sends its next ping, charging reappears within 60s. Sleep <15 min is not affected.
+- **Stale charging rule**: if `lastSeen` is >5 minutes ago, do NOT show the BatteryCharging icon or "charging" text - show plain Battery icon and just the percentage. This prevents "charging" freezing forever when the device shuts down while charging. When the daemon sends its next ping, charging reappears within 60s. Sleep <5 min is not affected.
 
 ### Lenovo card (top-right)
 - DONE — live card showing last seen, battery %, charging state. Blue if online (<5 min), grey otherwise.
@@ -156,7 +156,7 @@ directly each session. Never store real credentials in any file that is committe
 - Redis keys: `lenovo:status` (TTL 600s), `lenovo:last-known` (no TTL)
 - API route: `app/api/lenovo/route.ts`
 - Daemon: `scripts/lenovo-daemon.py` running as Windows service via NSSM
-- **Stale charging rule**: same as MacBook - if `lastSeen` >15 minutes ago, hide charging state, show last battery % only.
+- **Stale charging rule**: same as MacBook - if `lastSeen` >5 minutes ago, hide charging state, show last battery % only.
 
 ### Gaming PC card (bottom-left)
 - Currently: offline placeholder, "daemon not set up"
