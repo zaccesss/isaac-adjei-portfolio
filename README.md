@@ -156,9 +156,11 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 ### Live status
 
 - **iOS-style cards** on homepage, /notes and /lab showing real-time data
-- **Spotify now playing** - album art, track name, artist, progress bar and paused/playing state via Spotify Web API
+- **Spotify now playing** - album art, track name, artist, progress bar and paused/playing state via Spotify Web API; supports tracks and podcast episodes; active device name shown in the label; progress bar ticks forward every second client-side and syncs with the API every 10 seconds
+- **Spotify last played** - when nothing is active the card shows the previous track or episode in a greyed-out grayscale state so the card is never blank
 - **London time** - always `Europe/London` timezone, updates every second client-side, no API needed
 - **MacBook battery** - percentage, charging state and device name written by `scripts/mac-daemon.py` to Upstash Redis every 30 seconds, read via `/api/macbook`; device name and last battery percent persist via a `macbook:last-known` key (no TTL) so the card always shows "last seen X ago" instead of going blank
+- **Gaming PC and Lenovo cards** - compact device row showing ZACCESS-GPC with live Spotify activity when playing on that device; Lenovo card ready for Windows daemon
 - **GitHub last push** - last public repo pushed to and relative time via GitHub public API, cached in Redis for 5 minutes
 - **Online/away indicator** - green pulse if Mac daemon heartbeat is under 5 minutes old, grey if away or offline
 - **Theme-adaptive** - all cards use CSS variables and adapt to dark and light mode
@@ -261,7 +263,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 | ------------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/api/contact`           | `POST` | Contact form submission with Upstash Redis rate limiting (3 req / 10 min per IP), honeypot check, optional Turnstile verification and optional Resend email delivery |
 | `/api/newsletter`        | `POST` | Newsletter subscription via Beehiiv API - validates email and adds subscriber with welcome email                                                                     |
-| `/api/spotify`           | `GET`  | Spotify now-playing: refreshes access token via Upstash Redis cache, returns track, artist, album art, progress and paused state                                     |
+| `/api/spotify`           | `GET`  | Spotify now-playing via `/me/player`: track or podcast episode with artwork, progress, device name, paused state and last-played fallback stored in Redis            |
 | `/api/macbook`           | `GET`  | Reads MacBook battery status (percentage, charging, device name, last seen) from Upstash Redis key written by `scripts/mac-daemon.py`                                |
 | `/api/github-activity`   | `GET`  | Fetches last public push event from GitHub API for `zaccesss`, cached in Redis for 5 minutes                                                                        |
 | `/api/cv-pdf`            | `GET`  | Serves the static CV PDF from `public/resume/Isaac_Adjei_CV.pdf`                                                                                                    |
