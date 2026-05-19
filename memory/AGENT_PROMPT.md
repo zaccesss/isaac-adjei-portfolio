@@ -120,7 +120,7 @@ directly each session. Never store real credentials in any file that is committe
 
 ---
 
-## Live status widget system — full state as of 2026-05-19
+## Live status widget system — full state as of 2026-05-19 (updated)
 
 ### Layout (component: components/shared/LiveStatusCards.tsx, used on /notes /home /lab)
 
@@ -150,10 +150,11 @@ directly each session. Never store real credentials in any file that is committe
 - Last seen, battery %, charging state. Blue if online (<5 min), grey otherwise.
 
 ### Lenovo card (top-right)
-- Currently: offline placeholder, "daemon not set up"
-- Target: same as MacBook — last seen + battery + charging
+- DONE — live card showing last seen, battery %, charging state. Blue if online (<5 min), grey otherwise.
+- Device name: ZACCESS-LNV (from hostname)
 - Redis keys: `lenovo:status` (TTL 600s), `lenovo:last-known` (no TTL)
-- New API route needed: `app/api/lenovo/route.ts`
+- API route: `app/api/lenovo/route.ts`
+- Daemon: `scripts/lenovo-daemon.py` running as Windows service via NSSM
 
 ### Gaming PC card (bottom-left)
 - Currently: offline placeholder, "daemon not set up"
@@ -184,6 +185,21 @@ directly each session. Never store real credentials in any file that is committe
 ## Windows daemons — NOT YET BUILT
 
 ### Build order: Lenovo first, Gaming PC second
+
+---
+
+### Windows NSSM daemon gotchas — learned from Lenovo session, apply to Gaming PC too
+
+- ALWAYS use full Python path in nssm install: `nssm install ServiceName "C:\Program Files\Python314\python.exe" scripts\script.py`
+  - "python" resolves in user shell but NOT for LocalSystem service
+- ALWAYS install pip packages to system site-packages for services: `& "C:\Program Files\Python314\python.exe" -m pip install psutil requests --target "C:\Program Files\Python314\Lib\site-packages"`
+  - User installs (C:\Users\zac\AppData\Roaming\Python\...) are invisible to LocalSystem
+- ALWAYS set multiple env vars in ONE nssm call: `nssm set ServiceName AppEnvironmentExtra "VAR1=val1" "VAR2=val2"`
+  - Two separate calls overwrite each other - only the last one is kept
+- SERVICE_PAUSED means the process CRASHED, not that it is paused - always check the log
+- Set up logging before starting: `nssm set ServiceName AppStdout C:\service.log` + `nssm set ServiceName AppStderr C:\service-err.log`
+- If service is stuck in deletion loop after remove, close all PowerShell windows and reopen (or reboot)
+- Run all nssm commands in admin PowerShell - non-admin silently fails or gives access denied
 
 ---
 
