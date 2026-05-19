@@ -125,3 +125,78 @@
   - Blog reactions (ThumbsUp, Flame, Lightbulb, Heart via lucide-react, Redis per slug per type)
   - Dark/light mode crossfade (~150ms CSS transition)
   - Full site search in Cmd+I command menu (projects, notes, blog posts)
+
+---
+
+## 2026-05-20 - /consumed page, /now page, CSP embed fix
+
+### What we did
+- Fixed broken YouTube and Spotify embeds on /consumed: root cause was CSP `frame-src` only allowed Cloudflare; added `https://www.youtube.com` and `https://open.spotify.com` to `frame-src` in `next.config.mjs`
+- Built `/consumed` page from scratch: `app/consumed/page.tsx` and `app/consumed/ConsumedContent.tsx`
+  - 49 YouTube videos with real upload dates (fetched from YouTube page HTML JSON-LD using Chrome User-Agent, batches of 8)
+  - 12 Spotify podcasts with real publish dates (fetched from Spotify episode pages using Googlebot User-Agent for server-side rendered HTML)
+  - 10 books, 2 per month
+  - All content sorted oldest to newest by real upload/publish date; oldest = January, newest = May; spread equally (videos: Jan 10 / Feb 10 / Mar 10 / Apr 10 / May 9, podcasts: Jan 2 / Feb 2 / Mar 3 / Apr 3 / May 2, books: 2 per month)
+  - "All" tab as first tab with LayoutList icon - shows all content grouped by month, January first, with count badge per month
+  - Click-to-play facade on video embeds - thumbnail shown by default, iframe only injected on click; keeps page fast with 49 embeds
+  - Spotify embeds in Podcasts tab only; compact link cards in All tab
+  - Month chips colour-coded: January blue, February violet, March emerald, April amber, May rose
+  - Stats line ("49 videos · 12 podcasts · 10 books") removed from header
+  - VideoCard: no "uploaded [date]" chip shown; month chip + one content tag only
+  - No podcast dates displayed anywhere (fetched for ordering accuracy only)
+  - Music section with Link to /notes page Spotify widget
+  - Description text: "Everything I have watched, listened to and read so far this year."
+- Confirmed /now page, /uses page, /colophon page, /changelog page, blog reactions, dark/light crossfade, post series grouping, Hall of Fame reframe and command menu improvements were all built in prior sessions (all marked done in todo list)
+- Updated CHANGELOG.md root with all Unreleased entries including items missing from previous sessions
+- Updated app/changelog/page.tsx with /consumed and CSP fix entries
+- Updated README.md: overview sentence and Pages table now include /consumed, /now, /uses, /colophon, /changelog
+- Updated memory/AGENT_PROMPT.md: marked /consumed and /now as DONE, added private dashboard planned feature, updated current version, added Beehiiv website styling task
+- Updated memory/MEMORY.md and created memory/project_private_dashboard.md
+
+### Decisions made
+- Month = consumed date, not upload date. Old content (2015 video) in January 2026 is correct because Isaac consumed it in January 2026.
+- Real upload dates required so content cannot be shown as consumed before it was uploaded (e.g. a video uploaded April 2026 cannot be shown as consumed in January 2026).
+- YouTube upload dates extracted from JSON-LD (`uploadDate` field) in raw page HTML using Chrome User-Agent - YouTube oEmbed does not include this field.
+- Spotify publish dates extracted from JSON-LD (`datePublished` field) using Googlebot User-Agent on full episode page - Spotify embed page is JS-rendered and too short; standard oEmbed has no date.
+- Oldest-first sort satisfies the consumed >= uploaded constraint naturally: 2015-2023 content in January is always valid.
+- Podcast dates not displayed in UI - user did not want them shown; kept in data as comments for ordering accuracy only.
+- VideoCard shows only month chip + 1 content tag - no upload date chip - cleaner and less cluttered.
+- "All" tab uses compact podcast cards (link only) not embedded Spotify players - keeps the tab usable without 12 iframes loading at once.
+
+### Problems and fixes
+- problem: YouTube/Spotify embeds showed "This content is blocked" in all browsers
+  root cause: `frame-src` in CSP (`next.config.mjs`) only allowed `https://challenges.cloudflare.com`
+  fix: added `https://www.youtube.com` and `https://open.spotify.com` to `frame-src`
+
+- problem: YouTube upload dates not available from oEmbed API
+  fix: fetched raw YouTube watch page HTML with Chrome User-Agent; extracted `"uploadDate":"..."` from JSON-LD structured data in the HTML
+
+- problem: Spotify episode publish dates not available from oEmbed or embed page (JS-rendered, too short)
+  fix: used Googlebot/2.1 User-Agent on full Spotify episode page which returns server-rendered HTML with `datePublished` JSON-LD
+
+- problem: original month assignments were wrong - videos ordered by the order Isaac sent URLs, not by upload date; a video uploaded April 2026 had been assigned January
+  fix: sorted all 49 videos oldest to newest by upload date, reassigned months in order (oldest 10 = January etc.)
+
+### Files changed
+- `next.config.mjs`: added YouTube and Spotify to `frame-src`
+- `app/consumed/page.tsx`: new file - page metadata and wrapper
+- `app/consumed/ConsumedContent.tsx`: new file - full /consumed page implementation (videos, podcasts, books, All tab, month tabs, VideoCard, click-to-play, music section)
+- `CHANGELOG.md`: fully updated [Unreleased] section with all missing entries from prior sessions plus /consumed and CSP fix
+- `app/changelog/page.tsx`: added /consumed, /now and CSP fix entries to Unreleased releases array
+- `README.md`: updated overview sentence and Pages table to include /consumed, /now, /uses, /colophon, /changelog
+- `memory/LOG.md`: this entry
+- `memory/AGENT_PROMPT.md`: updated planned features, added private dashboard section and Beehiiv task
+- `memory/MEMORY.md`: added private dashboard memory pointer
+- `memory/project_private_dashboard.md`: new file - full private dashboard spec for future session
+
+### Next session
+- Private dashboard (dedicated session needed):
+  - NextAuth.js + GitHub OAuth, restrict to Isaac's GitHub account only
+  - Supabase for persistent storage
+  - Three sections: Goals tracker, Module tracker, Internship tracker
+  - Protected route at `/dashboard` or `/private`
+  - See memory/project_private_dashboard.md for full spec
+- Beehiiv newsletter website styling:
+  - Isaac wants his Beehiiv publication page to match the portfolio aesthetic
+  - Needs custom CSS/branding on the Beehiiv hosted page
+  - Help needed with Beehiiv's custom design editor - do this in a dedicated session

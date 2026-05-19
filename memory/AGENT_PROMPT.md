@@ -252,41 +252,82 @@ Portfolio changes for Gaming PC:
 
 ---
 
-## Planned features — not yet built (build after Windows daemons)
+## Completed features (built — do not rebuild)
 
-### Hall of Fame — personal dedication
-- Reframe existing `/hall-of-fame` page as acknowledgements
-- Lead with God, mum and dad — then security researchers section below
-- Keep security section, it exists for a reason
+The following were all planned and are now live on the site:
 
-### `/consumed` — content log
-- Monthly log of books, YouTube videos, podcasts and articles
-- Organised by month: "May 2026", "June 2026" etc.
-- Each entry links to the actual content
-- Lives at `/consumed` — fits the public notebook theme
+- Hall of Fame reframe (God, mum, dad lead — security researchers below)
+- `/consumed` page — 49 YouTube videos, 12 podcasts, 10 books for 2026; All tab; click-to-play; real upload dates; month chips
+- `/now` page — static snapshot, manually updated; location, studying, building, reading, listening
+- `/uses` page — hardware, software, tools
+- `/colophon` page — how the site is built
+- `/changelog` page — public version history
+- Blog reactions (ThumbsUp, Flame, Lightbulb, Heart via lucide-react, Redis per slug per type)
+- Dark/light mode crossfade animation (150ms ease)
+- Next/prev post navigation on blog posts
+- Post series grouping (series + seriesPart fields, SeriesBanner component)
+- Full site search in Cmd+I command menu (projects, blog posts, all pages in More group)
+- Gaming PC daemon, API route and live card
+- Lenovo daemon, API route and live card
 
-### `/now` page
-- Single page: what is Isaac doing right now in life?
-- Current year at uni, active projects, what he is reading and listening to
-- Updated manually every few weeks. Simple static page, no API.
+---
 
-### Blog post reactions
-- Reaction buttons at the bottom of each full blog post only (not on listing cards)
-- Use lucide-react icons NOT emoji — emoji renders badly on Windows
-  Icons: ThumbsUp, Flame, Lightbulb, Heart
-- Count per reaction stored in Redis: `reactions:{slug}:{type}`
-- One click, no typing, no moderation
-- No comments — reactions only
+## Planned features — not yet built
 
-### Dark/light mode crossfade animation
-- ~150ms smooth crossfade on theme toggle instead of instant swap
-- CSS transition on background-color and color on the root element
+### Private dashboard (NEXT BIG PROJECT — dedicate a full session to this)
 
-### Full site search in command menu
-- Extend existing `Cmd+I` command menu to search projects, notes content and blog posts
-- Currently only searches nav links and blog titles
-- All data is static/build-time — index at build time, no runtime API needed
-- Results grouped by type: Pages, Posts, Projects
+A private section of the portfolio only Isaac can access. Fully detailed spec is in `memory/project_private_dashboard.md`.
+
+Summary:
+- Route: `/dashboard` (or `/private`) — protected, not linked from public nav
+- Auth: NextAuth.js v5 with GitHub OAuth provider, hardcoded allow-list of Isaac's GitHub user ID so only he can log in
+- Database: Supabase (PostgreSQL) for persistent storage; use `@supabase/supabase-js` client
+- Three sections inside the dashboard:
+
+1. **Goals tracker**
+   - Personal goals with title, description, target date, status (not started / in progress / done / abandoned)
+   - Ability to add, edit, mark complete and delete goals
+   - Goals grouped by category (e.g. Academic, Career, Personal, Health, Finance)
+   - Progress percentage shown on each goal if it has sub-tasks
+
+2. **Module tracker**
+   - University module records: module name, module code, credit weight, year, semester
+   - Grade entry per assessment (coursework, exam, lab, project)
+   - Automatic weighted average calculator
+   - Target grade vs actual grade display
+   - Status per module: ongoing / complete / resit
+
+3. **Internship tracker**
+   - Company name, role title, application date, deadline, status
+   - Status options: Drafting / Applied / OA / Phone Screen / Interview / Offer / Rejected / Withdrawn
+   - Notes field per application
+   - Link to job posting URL
+   - Priority flag (starred)
+   - Sortable table view with status filter
+   - Stats at top: total applied, in progress, offers, rejections
+
+Tech stack for the dashboard:
+- `next-auth` v5 (App Router compatible) with GitHub provider
+- `@supabase/supabase-js` for DB reads/writes
+- Supabase project needs creating at supabase.com — ask Isaac for the URL and anon key at session start
+- New env vars needed: `NEXTAUTH_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`
+- Dashboard layout: sidebar nav on desktop, bottom tabs on mobile
+- Uses existing shadcn/ui components (Table, Dialog, Badge, Select, Textarea)
+- No public API routes that touch the DB — all DB access via server actions or server components inside the auth guard
+- Isaac's GitHub username is `zaccesss` (3 s's) — use this for the OAuth allow-list
+
+Start the session by:
+1. Asking Isaac to create the Supabase project and provide the URL and anon key
+2. Asking Isaac to create a GitHub OAuth app at github.com/settings/developers and provide client ID + secret
+3. Then build auth layer first, confirm login works, then build the three sections one by one
+
+### Beehiiv newsletter website styling (future session)
+- Isaac wants his Beehiiv hosted publication page to match the portfolio aesthetic
+- Currently does not look good — needs custom CSS/branding
+- Beehiiv has a custom design editor in the dashboard
+- Help needed with editing the Beehiiv page styling (colours, fonts, layout) to match isaacadjei.me
+- This is done inside the Beehiiv dashboard, not in this repo
+- Dedicate a session to opening the Beehiiv editor together and styling it step by step
 
 ---
 

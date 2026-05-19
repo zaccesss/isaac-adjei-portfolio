@@ -54,12 +54,7 @@ export default function Hero() {
           </p>
           <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
             Not sure where to start?{" "}
-            <Link href="/projects" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors font-medium">Projects</Link>
-            {" "}for the work,{" "}
-            <Link href="/about" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors font-medium">About</Link>
-            {" "}for the full story, or the{" "}
-            <Link href="/lab" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors font-medium">Lab terminal</Link>
-            {" "}if you want to explore on your own terms, or just scroll for more.
+            <Link href="/all-pages" className="text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors font-medium">See all pages →</Link>
           </p>
           <div className="w-24 h-px bg-border mx-auto" />
         </motion.div>
