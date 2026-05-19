@@ -9,7 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- **Stale charging state on device cards** - if a device's last update is >15 minutes old, the charging icon and "charging" label are hidden; only the last known battery percentage is shown. Prevents the charging status freezing permanently when a device shuts down or sleeps for a long time while plugged in. Charging reappears within 60s once the daemon sends its next ping on wake.
+- **Stale charging state on device cards** - if a device's last update is >5 minutes old, the charging icon and "charging" label are hidden; only the last known battery percentage is shown. Prevents the charging status freezing permanently when a device shuts down or sleeps while plugged in. Charging reappears within 60s once the daemon sends its next ping on wake.
 
 ### Changed
 

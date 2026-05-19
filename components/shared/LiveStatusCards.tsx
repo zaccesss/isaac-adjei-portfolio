@@ -77,7 +77,7 @@ function relativeLastSeen(ts: string | null): { text: string; online: boolean } 
 
 function isStale(ts: string | null): boolean {
   if (!ts) return true
-  return Date.now() - new Date(ts).getTime() > 15 * 60 * 1000
+  return Date.now() - new Date(ts).getTime() > 5 * 60 * 1000
 }
 
 function currentTime(tz: string): string {
