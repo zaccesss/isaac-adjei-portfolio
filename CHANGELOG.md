@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [v2.3.0] - 2026-05-20
+
 ### Added
 
 - **`/consumed` page** - monthly content log for 2026; 49 YouTube videos, 12 Spotify podcasts and 10 books organised into January to May; "All" tab shows all content grouped by month with January first; click-to-play facade on video embeds keeps the page fast with many embeds; content sorted oldest to newest by real upload date; month chips colour-coded by month; music section links to the Notes page Spotify widget
@@ -32,6 +36,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Real-time Spotify progress bar** - progress bar and timestamp tick forward every second client-side using a local interval; API response snaps the position back to the true value on each poll
 - **Gaming PC status card** - new compact card in the live status grid showing ZACCESS-GPC; when Spotify is actively playing on that device the track name is shown with a music icon
 - **Lenovo status card** - placeholder card added alongside the Gaming PC card ready for the Windows daemon
+- **RSS feed "View raw XML" button** - opens `/feed.xml?raw` which renders a syntax-highlighted dark HTML view of the XML with colour-coded tags, attributes, CDATA and processing instructions; feed readers bypassing the browser still receive raw XML
+- **Scrolling marquee for long Spotify titles** - track title scrolls continuously when it overflows the card width, looping seamlessly; short titles stay static
 
 ### Changed
 
@@ -49,8 +55,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Sitemap missing pages** - `/now`, `/consumed`, `/uses`, `/changelog`, `/colophon`, `/all-pages` and `/privacy` were live but absent from `/sitemap.xml`; all seven added with correct `lastModified` dates and `changeFrequency` values so Google can index them
 - **RSS feed unstyled in Chrome** - Chrome 131 dropped XSLT support so the `<?xml-stylesheet?>` reference in the feed was silently ignored and visitors saw raw black-on-white XML; `/feed.xml` now detects `Accept: text/html` and serves a styled dark HTML page with avatar favicon and tag pills directly; feed readers still receive the raw XML they expect
 - **Spotify podcasts not showing in widget** - the `/v1/me/player` API call was missing `?additional_types=track,episode`; without it Spotify only returns track data and gives no response for podcast episodes; adding the parameter means episodes now appear with title, show name and artwork the same as tracks
-- **RSS feed raw XML inaccessible from browser** - added a "View raw XML" button on the styled feed page; clicking it opens `/feed.xml?raw` which bypasses the HTML render and serves the raw XML directly so the feed URL can be copied for RSS readers
-- **Spotify track title truncated on long titles** - replaced the static truncated `<p>` with a `MarqueeText` component; when the title overflows the card width it duplicates the text and scrolls it left continuously at a constant speed, seamlessly looping like Spotify; short titles that fit stay static
 
 ---
 
