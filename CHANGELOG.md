@@ -49,6 +49,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Sitemap missing pages** - `/now`, `/consumed`, `/uses`, `/changelog`, `/colophon`, `/all-pages` and `/privacy` were live but absent from `/sitemap.xml`; all seven added with correct `lastModified` dates and `changeFrequency` values so Google can index them
 - **RSS feed unstyled in Chrome** - Chrome 131 dropped XSLT support so the `<?xml-stylesheet?>` reference in the feed was silently ignored and visitors saw raw black-on-white XML; `/feed.xml` now detects `Accept: text/html` and serves a styled dark HTML page with avatar favicon and tag pills directly; feed readers still receive the raw XML they expect
 - **Spotify podcasts not showing in widget** - the `/v1/me/player` API call was missing `?additional_types=track,episode`; without it Spotify only returns track data and gives no response for podcast episodes; adding the parameter means episodes now appear with title, show name and artwork the same as tracks
+- **RSS feed raw XML inaccessible from browser** - added a "View raw XML" button on the styled feed page; clicking it opens `/feed.xml?raw` which bypasses the HTML render and serves the raw XML directly so the feed URL can be copied for RSS readers
+- **Spotify track title truncated on long titles** - replaced the static truncated `<p>` with a `MarqueeText` component; when the title overflows the card width it duplicates the text and scrolls it left continuously at a constant speed, seamlessly looping like Spotify; short titles that fit stay static
 
 ---
 

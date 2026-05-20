@@ -116,6 +116,14 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>) {
         border: 1px solid #3f3f46; border-radius: 9999px;
         padding: 0.125rem 0.625rem;
       }
+      .raw-btn {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        background: #18181b; border: 1px solid #3f3f46;
+        border-radius: 0.5rem; padding: 0.75rem 1.25rem;
+        font-size: 0.875rem; color: #a1a1aa; text-decoration: none;
+        margin-top: 0.75rem;
+      }
+      .raw-btn:hover { border-color: #71717a; color: #e4e4e7; }
       .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #27272a; font-size: 0.75rem; color: #52525b; }
       .footer a { color: #3b82f6; text-decoration: none; }
     </style>
@@ -136,6 +144,8 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>) {
           <a href="${SITE_URL}/feed.xml">isaacadjei.me/feed.xml</a>
           or browse the <a href="${SITE_URL}/blog">blog</a>.
         </div>
+        <br/>
+        <a class="raw-btn" href="${SITE_URL}/feed.xml?raw">&#60;/&#62; View raw XML</a>
       </div>
       <div class="posts">${items}
       </div>
@@ -150,12 +160,14 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>) {
 }
 
 export function GET(request: Request) {
+  const url = new URL(request.url)
   const accept = request.headers.get("accept") ?? ""
+  const forceRaw = url.searchParams.has("raw")
   const posts = getPublishedPosts().sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
 
-  if (accept.includes("text/html")) {
+  if (accept.includes("text/html") && !forceRaw) {
     return new Response(buildHtml(posts), {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
