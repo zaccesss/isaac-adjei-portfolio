@@ -67,7 +67,7 @@ export async function GET() {
       )
     }
 
-    const res = await fetch("https://api.spotify.com/v1/me/player", {
+    const res = await fetch("https://api.spotify.com/v1/me/player?additional_types=track,episode", {
       headers: { Authorization: `Bearer ${token}` },
     })
 
