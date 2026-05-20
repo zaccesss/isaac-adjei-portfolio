@@ -36,7 +36,9 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "overrides": {
-    "brace-expansion": "5.0.6"
+    "@typescript-eslint/typescript-estree": {
+      "brace-expansion": "5.0.6"
+    }
   },
   "devDependencies": {
     "@types/node": "^20.19.41",
