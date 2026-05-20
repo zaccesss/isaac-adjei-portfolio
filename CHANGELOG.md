@@ -22,6 +22,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- Dashboard login redirect loop - moved protected routes into `(protected)/` route group so the auth layout no longer wraps the login page; switched middleware from `getToken` (NextAuth v4) to `auth()` (NextAuth v5) so session tokens are read correctly in production
 - /all-pages keyboard shortcut now adapts to OS - shows `⌘+I` on Mac and `Ctrl+I` on Windows/Linux via `useModKey` hook; symbol size increased for visibility
 - `pages` command on /all-pages highlighted in primary colour and links directly to /lab
 
