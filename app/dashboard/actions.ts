@@ -3,7 +3,7 @@
 import { supabase } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
 
-// ── Goals ────────────────────────────────────────────────────
+// I group server actions by section to keep the file navigable
 
 export async function createGoal(data: {
   title: string
@@ -34,7 +34,7 @@ export async function deleteGoal(id: string) {
   revalidatePath("/dashboard/goals")
 }
 
-// ── Modules ──────────────────────────────────────────────────
+// Modules
 
 export async function updateAssessmentMark(id: string, mark: number | null) {
   await supabase.from("assessments").update({ mark_achieved: mark }).eq("id", id)
@@ -59,7 +59,7 @@ export async function updateModuleStatus(id: string, status: string) {
   revalidatePath("/dashboard/modules")
 }
 
-// ── Internships ──────────────────────────────────────────────
+// Internships
 
 export async function createApplication(data: {
   company: string

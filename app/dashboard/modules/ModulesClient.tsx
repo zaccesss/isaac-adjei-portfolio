@@ -291,7 +291,7 @@ const YEAR_LABELS: Record<number, string> = {
 export default function ModulesClient({ modules }: { modules: Module[] }) {
   const years = [...new Set(modules.map((m) => m.year ?? 0))].sort()
 
-  // overall year 1 stats
+  // I compute Year 1 stats from completed modules only so in-progress ones don't drag the average down
   const y1mods = modules.filter((m) => m.year === 1)
   const y1completed = y1mods.filter((m) => m.status === "complete")
   const y1marks = y1completed.map((m) => calcMark(m.assessments)).filter((x): x is number => x != null)

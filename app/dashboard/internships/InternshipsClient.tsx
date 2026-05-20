@@ -248,7 +248,7 @@ export default function InternshipsClient({ applications }: { applications: Appl
   const rest = filtered.filter((a) => !a.starred)
   const sorted = [...starred, ...rest]
 
-  // stats
+  // I derive stats from the full list, not the filtered one, so totals are always accurate
   const total = applications.length
   const inProgress = applications.filter((a) => ["oa","phone_screen","interview"].includes(a.status)).length
   const offers = applications.filter((a) => a.status === "offer").length
