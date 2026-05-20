@@ -9,7 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- /all-pages keyboard shortcut now adapts to OS - shows `⌘I` on Mac and `Ctrl+I` on Windows/Linux via `useModKey` hook
+- /all-pages keyboard shortcut now adapts to OS - shows `⌘+I` on Mac and `Ctrl+I` on Windows/Linux via `useModKey` hook; symbol size increased for visibility
 - `pages` command on /all-pages highlighted in primary colour and links directly to /lab
 
 ### Security
