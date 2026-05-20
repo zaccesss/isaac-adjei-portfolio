@@ -7,6 +7,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Private `/dashboard`** - protected section accessible only via GitHub OAuth; only Isaac's GitHub account can log in; not linked from public nav, sitemap or command menu
+- **Goals tracker** - add, edit and delete personal goals with category, status, target date and progress bar; grouped by category; filter by status and category
+- **Module tracker** - all Year 1, Year 2 and Final Year modules pre-seeded from official programme spec; click to expand and view assessments; click any mark to edit it inline; weighted average auto-calculated; First/2:1/2:2/Fail badge per module; Year 1 stats bar shows average, classification, credits and modules completed
+- **Internship tracker** - table of applications with company, role, dates, status and notes; status changes inline; star to prioritise; click row for detail panel; stats bar shows totals, in-progress, offers and rejections
+- **Course page** - programme structure replication of the official BEng EECS spec; all Stage 1-F modules listed with codes, credits and condonable flag; IET rules and grade thresholds; term dates; link to programme spec PDF
+- **Gym page** - 6-day split (push, pull, legs, cardio, shoulders, HIIT, rest) with exercises and sets; weekly schedule (Mon-Fri, Sat, Sun); nutrition plan with key rules and meal breakdown
+- NextAuth.js v5 GitHub OAuth provider with numeric user ID allow-list
+- Supabase PostgreSQL for all dashboard data; server actions only, no public DB routes
+
 ### Fixed
 
 - /all-pages keyboard shortcut now adapts to OS - shows `⌘+I` on Mac and `Ctrl+I` on Windows/Linux via `useModKey` hook; symbol size increased for visibility
