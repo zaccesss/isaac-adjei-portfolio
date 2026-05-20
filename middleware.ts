@@ -1,23 +1,33 @@
-import { auth } from "@/auth"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { getToken } from "next-auth/jwt"
 
-export default auth((req) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // allow the login page and NextAuth API routes through unconditionally
-  if (
-    pathname === "/dashboard/login" ||
-    pathname.startsWith("/api/auth")
-  ) {
+  // auth API routes always pass through
+  if (pathname.startsWith("/api/auth")) {
     return NextResponse.next()
   }
 
-  if (pathname.startsWith("/dashboard") && !req.auth) {
-    return NextResponse.redirect(new URL("/dashboard/login", req.url))
+  // login page always passes through - must not be guarded or it loops
+  if (pathname === "/dashboard/login") {
+    return NextResponse.next()
+  }
+
+  // all other /dashboard routes require a valid JWT
+  if (pathname.startsWith("/dashboard")) {
+    const token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+    })
+
+    if (!token) {
+      return NextResponse.redirect(new URL("/dashboard/login", req.url))
+    }
   }
 
   return NextResponse.next()
-})
+}
 
 export const config = {
   matcher: ["/dashboard/:path*", "/api/auth/:path*"],
