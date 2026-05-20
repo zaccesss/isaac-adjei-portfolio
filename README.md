@@ -105,6 +105,8 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 | `/contact`                         | Contact form with spam protection and email delivery via Resend                      |
 | `/cv`                              | CV viewer page with direct PDF download via `/api/cv-pdf` and printable HTML         |
 | `/links`                           | Linktree-style page with all social and professional links                           |
+| `/all-pages`                       | Full directory of every public page on the site                                      |
+| `/privacy`                         | Privacy policy covering data collected, cookies and third-party services             |
 | `/security-policy`                 | Responsible disclosure policy and reporting process                                  |
 | `/hall-of-fame`                    | Security researcher acknowledgements                                                 |
 
