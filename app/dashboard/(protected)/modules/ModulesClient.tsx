@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { updateAssessmentMark, updateModuleStatus, createAssessment } from "../actions"
+import { updateAssessmentMark, updateModuleStatus, createAssessment } from "../../actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
