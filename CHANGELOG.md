@@ -7,6 +7,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- /all-pages keyboard shortcut now adapts to OS - shows `⌘I` on Mac and `Ctrl+I` on Windows/Linux via `useModKey` hook
+- `pages` command on /all-pages highlighted in primary colour and links directly to /lab
+
 ### Security
 
 - Force `brace-expansion` to 5.0.6 via npm overrides to resolve CVE-2026-45149 (GHSA-jxxr-4gwj-5jf2)
