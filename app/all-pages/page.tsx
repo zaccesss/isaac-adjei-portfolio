@@ -5,6 +5,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { CommandShortcut } from "@/components/shared/CommandShortcut"
 
 export const metadata: Metadata = {
   title: "All Pages",
@@ -52,9 +53,9 @@ export default function AllPagesPage() {
         <h1 className="text-4xl font-bold tracking-tight">All Pages</h1>
         <p className="text-lg text-muted-foreground leading-relaxed">
           Every public page on this site. Use{" "}
-          <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs font-mono">Ctrl+I</kbd>{" "}
+          <CommandShortcut />{" "}
           to search them instantly from anywhere, or type{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">pages</code>{" "}
+          <Link href="/lab" className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-mono text-primary hover:bg-primary/20 transition-colors">pages</Link>{" "}
           in the lab terminal.
         </p>
       </section>
