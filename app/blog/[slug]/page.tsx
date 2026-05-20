@@ -7,13 +7,15 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, Clock, Calendar, ExternalLink } from "lucide-react"
-import { getPostBySlug, getPublishedPosts, posts, type ContentBlock, type PostType } from "@/data/blog"
+import { ArrowLeft, ArrowRight, Clock, Calendar, ExternalLink } from "lucide-react"
+import { getPostBySlug, getPublishedPosts, getAdjacentPosts, getSeriesPosts, SERIES_LABELS, posts, type ContentBlock, type PostType } from "@/data/blog"
 import { projects } from "@/data/projects"
 import { Badge } from "@/components/ui/badge"
 import ReadingProgress from "@/components/shared/ReadingProgress"
 import CodeBlock from "@/components/shared/CodeBlock"
 import TableOfContents, { type TocHeading } from "@/components/shared/TableOfContents"
+import BlogReactions from "@/components/shared/BlogReactions"
+import SeriesBanner from "@/components/shared/SeriesBanner"
 
 function slugify(text: string): string {
   return text
@@ -223,6 +225,10 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     .sort((a, b) => b.sharedTags - a.sharedTags)
     .slice(0, 3)
 
+  const { prev, next } = getAdjacentPosts(slug)
+  // I only fetch series data when the post actually belongs to one
+  const seriesPosts = post.series ? getSeriesPosts(post.series) : []
+  const seriesLabel = post.series ? (SERIES_LABELS[post.series] ?? post.series) : null
   const headingIds = buildHeadingIds(post.content)
   const tocHeadings: TocHeading[] = post.content
     .map((block, i) => {
@@ -337,6 +343,13 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       {/* Content + TOC */}
       <div className="xl:grid xl:grid-cols-[1fr_220px] xl:gap-12 xl:items-start">
         <div>
+          {seriesLabel && seriesPosts.length > 1 && (
+            <SeriesBanner
+              seriesLabel={seriesLabel}
+              posts={seriesPosts}
+              currentSlug={slug}
+            />
+          )}
           {post.published && post.content.length > 0 ? (
             <div className="space-y-5">
               {post.content.map((block, i) => renderBlock(block, i, headingIds, post.content[i - 1]))}
@@ -376,14 +389,55 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             </div>
           )}
 
-          {/* Footer */}
+          {/* Reactions */}
+          {post.published && (
+            <div className="mt-12 pt-6 border-t border-border/40">
+              <BlogReactions slug={slug} />
+            </div>
+          )}
+
+          {/* Prev/next navigation */}
           <div className="mt-8 pt-6 border-t border-border/40">
+            <div className="grid grid-cols-2 gap-3">
+              {prev ? (
+                <Link
+                  href={`/blog/${prev.slug}`}
+                  className="group flex flex-col gap-1 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 hover:border-primary/40 hover:bg-muted/30 transition-all"
+                >
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground font-mono">
+                    <ArrowLeft className="h-3 w-3" />
+                    Previous
+                  </span>
+                  <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                    {prev.title}
+                  </span>
+                </Link>
+              ) : (
+                <div />
+              )}
+              {next ? (
+                <Link
+                  href={`/blog/${next.slug}`}
+                  className="group flex flex-col gap-1 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 hover:border-primary/40 hover:bg-muted/30 transition-all text-right ml-auto w-full"
+                >
+                  <span className="flex items-center justify-end gap-1 text-xs text-muted-foreground font-mono">
+                    Next
+                    <ArrowRight className="h-3 w-3" />
+                  </span>
+                  <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                    {next.title}
+                  </span>
+                </Link>
+              ) : (
+                <div />
+              )}
+            </div>
             <Link
               href="/blog"
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="mt-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              Back to all writing
+              All writing
             </Link>
           </div>
         </div>

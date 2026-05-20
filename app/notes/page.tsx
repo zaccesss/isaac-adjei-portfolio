@@ -146,7 +146,7 @@ export default function NotesPage() {
       <section className="space-y-6">
         <div className="flex items-center gap-3">
           <Lightbulb className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-bold">Upcoming Project Ideas</h2>
+          <h2 className="text-xl font-bold">Upcoming Projects</h2>
         </div>
 
         <div className="space-y-4">

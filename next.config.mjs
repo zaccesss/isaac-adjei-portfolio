@@ -48,7 +48,7 @@ const nextConfig = {
               "font-src 'self' data:",
               "img-src 'self' data: blob: https:",
               `connect-src ${connectSrc.join(" ")}`,
-              "frame-src https://challenges.cloudflare.com",
+              "frame-src https://challenges.cloudflare.com https://www.youtube.com https://open.spotify.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

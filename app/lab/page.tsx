@@ -57,6 +57,7 @@ const NAV_COMMANDS: Record<string, string> = {
   blog: "https://www.isaacadjei.me/blog",
   notes: "https://www.isaacadjei.me/notes",
   newsletter: "https://www.isaacadjei.me/newsletter",
+  pages: "https://www.isaacadjei.me/all-pages",
   github: "https://github.com/zaccesss",
   linkedin: "https://www.linkedin.com/in/isaacadjei",
 }
@@ -83,6 +84,7 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "cmd-list", text: "  contact      -  open contact form" },
     { type: "cmd-list", text: "  links        -  open links page" },
     { type: "cmd-list", text: "  newsletter   -  open newsletter page" },
+    { type: "cmd-list", text: "  pages        -  full directory of all public pages" },
     { type: "cmd-list", text: "  github       -  open GitHub profile" },
     { type: "cmd-list", text: "  linkedin     -  open LinkedIn profile" },
     { type: "blank", text: "" },
@@ -139,6 +141,7 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "output", text: "  drwxr-xr-x  /contact      get in touch" },
     { type: "output", text: "  drwxr-xr-x  /newsletter   stay updated" },
     { type: "output", text: "  drwxr-xr-x  /lab          you are here" },
+    { type: "output", text: "  drwxr-xr-x  /all-pages    every public page" },
   ],
 
   pwd: () => [
@@ -484,6 +487,11 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "info", text: "opening: isaacadjei.me/newsletter" },
     { type: "output", text: "launching in new tab..." },
   ],
+  pages: () => [
+    { type: "info", text: "opening: isaacadjei.me/all-pages" },
+    { type: "output", text: "launching in new tab..." },
+    { type: "output", text: "every public page on this site in one place" },
+  ],
   github: () => [
     { type: "info", text: "opening: github.com/zaccesss" },
     { type: "output", text: "launching in new tab..." },
@@ -566,8 +574,9 @@ function renderLine(line: Line, i: number) {
             ? "text-green-400"
             : "text-amber-300"
 
-  // Split on → and ● live for colour, and highlight 'help' in amber with bold
-  const parts = line.text.split(/(→|● live|'help')/)
+  // Split on special tokens: → and ● live get their own colours; quoted command names turn green
+  const parts = line.text.split(/(→|● live|'[a-z-]+')/
+  )
   return (
     <div key={i} className={`font-mono text-xs leading-relaxed ${cls}`}>
       {parts.map((part, j) =>
@@ -575,8 +584,8 @@ function renderLine(line: Line, i: number) {
           <span key={j} className="text-cyan-400">{"→"}</span>
         ) : part === "● live" ? (
           <span key={j} className="text-green-400">{"● live"}</span>
-        ) : part === "'help'" ? (
-          <span key={j} className="text-green-400 font-bold tracking-wide">{'help'}</span>
+        ) : part.startsWith("'") && part.endsWith("'") ? (
+          <span key={j} className="text-green-400 font-bold tracking-wide">{part.slice(1, -1)}</span>
         ) : (
           <span key={j}>{part}</span>
         )
@@ -611,7 +620,8 @@ export default function LabPage() {
           setLines((prev) => [
             ...prev,
             { type: "output", text: "session initialised. type 'help' to explore." },
-            { type: "output", text: "try: ls, man, stack, build, future, faith, dad" },
+            { type: "output", text: "type 'pages' to see every public page on this site." },
+            { type: "output", text: "try: 'ls', 'man', 'stack', 'build', 'faith', 'dad'" },
             { type: "blank", text: "" },
           ])
         }, 350)
@@ -793,7 +803,7 @@ export default function LabPage() {
               aria-live="off"
               onClick={() => inputRef.current?.focus({ preventScroll: true })}
               className={`bg-zinc-950 px-5 py-4 overflow-y-auto overscroll-contain cursor-text select-text ${
-                isMaximized ? "flex-1" : "min-h-[420px] max-h-[580px]"
+                isMaximized ? "flex-1" : "h-[500px]"
               }`}
             >
               {lines.map((line, i) => renderLine(line, i))}

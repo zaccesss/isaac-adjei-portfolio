@@ -58,6 +58,24 @@
   }
 }
 
+/*
+  I apply theme transitions only while the toggle is firing, not permanently.
+  This prevents the transition from interfering with hover effects, Framer Motion
+  animations and anything else that sets its own transition.
+*/
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition:
+    background-color 100ms ease,
+    color 100ms ease,
+    border-color 100ms ease,
+    fill 100ms ease,
+    stroke 100ms ease !important;
+  transition-delay: 0s !important;
+}
+
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
