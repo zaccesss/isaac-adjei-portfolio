@@ -3,21 +3,31 @@
 import { useState, useTransition } from "react"
 import { createGoal, updateGoal, deleteGoal } from "../../actions"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Pencil, Trash2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Plus, Edit2, Trash2, ChevronLeft, Target, TrendingUp, BookOpen, Heart, DollarSign, Sparkles } from "lucide-react"
 
 type Goal = {
   id: string
   title: string
   description: string | null
-  category: string | null
+  category: string
   status: string
   target_date: string | null
   progress: number
+}
+
+const CATEGORIES = ["Personal", "Academic", "Career", "Health", "Finance", "Other"]
+const STATUSES = ["not_started", "in_progress", "done", "abandoned"]
+
+const STATUS_LABELS: Record<string, string> = {
+  not_started: "Not started",
+  in_progress: "In progress",
+  done: "Done",
+  abandoned: "Abandoned",
 }
 
 const STATUS_COLOURS: Record<string, string> = {
@@ -27,46 +37,50 @@ const STATUS_COLOURS: Record<string, string> = {
   abandoned: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  not_started: "Not started",
-  in_progress: "In progress",
-  done: "Done",
-  abandoned: "Abandoned",
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
+  Personal: Sparkles,
+  Academic: BookOpen,
+  Career: TrendingUp,
+  Health: Heart,
+  Finance: DollarSign,
+  Other: Target,
 }
 
-const CATEGORIES = ["Academic", "Career", "Personal", "Health", "Finance"]
+const CATEGORY_COLOURS: Record<string, string> = {
+  Personal: "from-purple-500/10 to-purple-500/5 border-purple-500/20",
+  Academic: "from-blue-500/10 to-blue-500/5 border-blue-500/20",
+  Career: "from-indigo-500/10 to-indigo-500/5 border-indigo-500/20",
+  Health: "from-rose-500/10 to-rose-500/5 border-rose-500/20",
+  Finance: "from-green-500/10 to-green-500/5 border-green-500/20",
+  Other: "from-amber-500/10 to-amber-500/5 border-amber-500/20",
+}
 
 const emptyForm = {
   title: "",
   description: "",
-  category: "Academic",
+  category: "Personal",
   status: "not_started",
   target_date: "",
   progress: 0,
 }
 
-function GoalForm({
-  initial,
-  onSave,
-  onClose,
-}: {
-  initial: typeof emptyForm
+function GoalForm({ initial, onSave, onCancel }: {
+  initial?: typeof emptyForm
   onSave: (data: typeof emptyForm) => void
-  onClose: () => void
+  onCancel: () => void
 }) {
-  const [form, setForm] = useState(initial)
-  const set = (k: keyof typeof emptyForm, v: string | number) =>
-    setForm((f) => ({ ...f, [k]: v }))
+  const [form, setForm] = useState(initial ?? emptyForm)
+  const set = (k: keyof typeof emptyForm, v: string | number) => setForm((f) => ({ ...f, [k]: v }))
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium">Title</label>
-        <Input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Goal title" />
+        <label className="text-sm font-medium">Goal <span className="text-destructive">*</span></label>
+        <Input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="What do I want to achieve?" autoFocus />
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Description</label>
-        <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Optional description" rows={3} />
+        <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={2} placeholder="More detail..." />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
@@ -83,7 +97,7 @@ function GoalForm({
           <Select value={form.status} onValueChange={(v) => set("status", v)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {Object.entries(STATUS_LABELS).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+              {STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -95,149 +109,195 @@ function GoalForm({
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Progress ({form.progress}%)</label>
-          <Input type="number" min={0} max={100} value={form.progress} onChange={(e) => set("progress", Number(e.target.value))} />
+          <input type="range" min={0} max={100} value={form.progress} onChange={(e) => set("progress", Number(e.target.value))} className="w-full accent-primary mt-2" />
         </div>
       </div>
       <div className="flex gap-2 justify-end pt-2">
-        <Button variant="ghost" onClick={onClose}>Cancel</Button>
-        <Button onClick={() => { if (form.title.trim()) onSave(form) }}>Save</Button>
+        <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+        <Button onClick={() => { if (form.title.trim()) onSave(form) }} disabled={!form.title.trim()}>Save</Button>
       </div>
     </div>
   )
 }
 
-export default function GoalsClient({ goals }: { goals: Goal[] }) {
-  const [open, setOpen] = useState(false)
-  const [editing, setEditing] = useState<Goal | null>(null)
-  const [filterStatus, setFilterStatus] = useState("all")
-  const [filterCategory, setFilterCategory] = useState("all")
+function GoalCard({ goal, onEdit, onDelete }: {
+  goal: Goal
+  onEdit: (goal: Goal) => void
+  onDelete: (id: string) => void
+}) {
+  return (
+    <div className="border border-border rounded-lg p-4 bg-card flex flex-col gap-3 hover:shadow-sm transition-shadow">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-col gap-1 min-w-0">
+          <p className="font-medium text-sm leading-snug">{goal.title}</p>
+          {goal.description && <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>}
+        </div>
+        <div className="flex gap-1 shrink-0">
+          <button type="button" onClick={() => onEdit(goal)} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" aria-label="Edit goal"><Edit2 className="h-3 w-3" /></button>
+          <button type="button" onClick={() => onDelete(goal.id)} className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors" aria-label="Delete goal"><Trash2 className="h-3 w-3" /></button>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 flex-wrap">
+        <Badge className={`text-xs px-2 py-0 ${STATUS_COLOURS[goal.status]}`}>{STATUS_LABELS[goal.status]}</Badge>
+        {goal.target_date && <span className="text-xs text-muted-foreground">by {new Date(goal.target_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>}
+      </div>
+      {goal.progress > 0 && (
+        <div className="flex items-center gap-2">
+          <div className="flex-1 bg-muted rounded-full h-1.5">
+            <div className="h-1.5 rounded-full bg-primary transition-all" style={{ width: `${goal.progress}%` }} />
+          </div>
+          <span className="text-xs text-muted-foreground shrink-0">{goal.progress}%</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CategoryCard({ category, goals, onAdd, onEdit, onDelete }: {
+  category: string
+  goals: Goal[]
+  onAdd: (category: string) => void
+  onEdit: (goal: Goal) => void
+  onDelete: (id: string) => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const Icon = CATEGORY_ICONS[category] ?? Target
+  const colourClass = CATEGORY_COLOURS[category] ?? CATEGORY_COLOURS.Other
+
+  const done = goals.filter((g) => g.status === "done").length
+  const inProgress = goals.filter((g) => g.status === "in_progress").length
+  const total = goals.length
+
+  if (expanded) {
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setExpanded(false)} aria-label="Back to categories" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <Icon className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm">{category}</h2>
+          <span className="text-xs text-muted-foreground ml-1">{total} goal{total !== 1 ? "s" : ""}</span>
+          <button type="button" onClick={() => onAdd(category)} className="ml-auto flex items-center gap-1 text-xs text-primary hover:underline">
+            <Plus className="h-3 w-3" /> Add
+          </button>
+        </div>
+        {goals.length === 0 ? (
+          <div className="border border-dashed border-border rounded-lg p-6 text-center">
+            <p className="text-sm text-muted-foreground">No {category.toLowerCase()} goals yet.</p>
+            <button type="button" onClick={() => onAdd(category)} className="text-sm text-primary hover:underline mt-1">Add my first one</button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {goals.map((g) => <GoalCard key={g.id} goal={g} onEdit={onEdit} onDelete={onDelete} />)}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setExpanded(true)}
+      className={`w-full text-left border rounded-xl p-4 bg-gradient-to-br ${colourClass} hover:shadow-md transition-all`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Icon className="h-5 w-5 text-muted-foreground" />
+          <span className="font-semibold text-sm">{category}</span>
+        </div>
+        <span className="text-xs text-muted-foreground">{total} goal{total !== 1 ? "s" : ""}</span>
+      </div>
+      <div className="flex gap-3 mt-3 text-xs text-muted-foreground">
+        <span className="text-green-600 dark:text-green-400 font-medium">{done} done</span>
+        <span className="text-blue-600 dark:text-blue-400">{inProgress} in progress</span>
+        <span>{total - done - inProgress} not started</span>
+      </div>
+      {total > 0 && (
+        <div className="mt-3 bg-muted/60 rounded-full h-1.5 overflow-hidden">
+          <div className="h-1.5 bg-green-500 rounded-full transition-all" style={{ width: `${(done / total) * 100}%` }} />
+        </div>
+      )}
+    </button>
+  )
+}
+
+export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
+  const [goals, setGoals] = useState<Goal[]>(initial)
+  const [addOpen, setAddOpen] = useState(false)
+  const [addCategory, setAddCategory] = useState("Personal")
+  const [editGoal, setEditGoal] = useState<Goal | null>(null)
   const [, startTransition] = useTransition()
 
-  const filtered = goals.filter((g) => {
-    if (filterStatus !== "all" && g.status !== filterStatus) return false
-    if (filterCategory !== "all" && g.category !== filterCategory) return false
-    return true
-  })
+  const total = goals.length
+  const done = goals.filter((g) => g.status === "done").length
 
-  const grouped = CATEGORIES.reduce<Record<string, Goal[]>>((acc, cat) => {
-    const items = filtered.filter((g) => g.category === cat)
-    if (items.length) acc[cat] = items
-    return acc
-  }, {})
+  function openAdd(category: string) {
+    setAddCategory(category)
+    setAddOpen(true)
+  }
 
-  const uncategorised = filtered.filter((g) => !g.category || !CATEGORIES.includes(g.category))
-  if (uncategorised.length) grouped["Other"] = uncategorised
-
-  function handleCreate(data: typeof emptyForm) {
-    startTransition(() => createGoal(data))
-    setOpen(false)
+  function handleAdd(data: typeof emptyForm) {
+    const optimistic: Goal = { ...data, id: crypto.randomUUID(), description: data.description || null, target_date: data.target_date || null, category: addCategory }
+    setGoals((prev) => [optimistic, ...prev])
+    setAddOpen(false)
+    startTransition(() => createGoal({ ...data, category: addCategory }))
   }
 
   function handleEdit(data: typeof emptyForm) {
-    if (!editing) return
-    startTransition(() => updateGoal(editing.id, data))
-    setEditing(null)
+    if (!editGoal) return
+    setGoals((prev) => prev.map((g) => g.id === editGoal.id ? { ...g, ...data } : g))
+    setEditGoal(null)
+    startTransition(() => updateGoal(editGoal.id, data))
   }
 
   function handleDelete(id: string) {
+    setGoals((prev) => prev.filter((g) => g.id !== id))
     startTransition(() => deleteGoal(id))
   }
 
   return (
     <div className="flex flex-col gap-6 max-w-3xl">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Goals</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <div>
+          <h1 className="text-xl font-semibold">My goals</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{done} of {total} achieved</p>
+        </div>
+        <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="gap-1"><Plus className="h-4 w-4" />Add goal</Button>
+            <Button size="sm" className="gap-1" onClick={() => setAddCategory("Personal")}>
+              <Plus className="h-4 w-4" /> Add goal
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>New goal</DialogTitle></DialogHeader>
-            <GoalForm initial={emptyForm} onSave={handleCreate} onClose={() => setOpen(false)} />
+            <GoalForm initial={{ ...emptyForm, category: addCategory }} onSave={handleAdd} onCancel={() => setAddOpen(false)} />
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* filters */}
-      <div className="flex gap-2 flex-wrap">
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-36 h-8 text-xs"><SelectValue placeholder="All statuses" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {Object.entries(STATUS_LABELS).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={filterCategory} onValueChange={setFilterCategory}>
-          <SelectTrigger className="w-36 h-8 text-xs"><SelectValue placeholder="All categories" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All categories</SelectItem>
-            {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {CATEGORIES.map((cat) => (
+          <CategoryCard
+            key={cat}
+            category={cat}
+            goals={goals.filter((g) => g.category === cat)}
+            onAdd={openAdd}
+            onEdit={(g) => setEditGoal(g)}
+            onDelete={handleDelete}
+          />
+        ))}
       </div>
 
-      {filtered.length === 0 && (
-        <p className="text-sm text-muted-foreground">No goals yet. Add one above.</p>
-      )}
-
-      {Object.entries(grouped).map(([cat, items]) => (
-        <div key={cat} className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{cat}</p>
-          {items.map((goal) => (
-            <div key={goal.id} className="border border-border rounded-lg p-4 flex flex-col gap-2 bg-card">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex flex-col gap-1 flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-sm">{goal.title}</span>
-                    <Badge className={`text-xs px-2 py-0 ${STATUS_COLOURS[goal.status] ?? STATUS_COLOURS.not_started}`}>
-                      {STATUS_LABELS[goal.status] ?? goal.status}
-                    </Badge>
-                  </div>
-                  {goal.description && <p className="text-xs text-muted-foreground">{goal.description}</p>}
-                  {goal.target_date && (
-                    <p className="text-xs text-muted-foreground">
-                      Target: {new Date(goal.target_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-1 shrink-0">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditing(goal)}>
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(goal.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-              {goal.progress > 0 && (
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full" style={{ width: `${goal.progress}%` }} />
-                  </div>
-                  <span className="text-xs text-muted-foreground w-8 text-right">{goal.progress}%</span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ))}
-
-      {/* Edit dialog */}
-      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null) }}>
+      <Dialog open={!!editGoal} onOpenChange={(o) => { if (!o) setEditGoal(null) }}>
         <DialogContent>
           <DialogHeader><DialogTitle>Edit goal</DialogTitle></DialogHeader>
-          {editing && (
+          {editGoal && (
             <GoalForm
-              initial={{
-                title: editing.title,
-                description: editing.description ?? "",
-                category: editing.category ?? "Academic",
-                status: editing.status,
-                target_date: editing.target_date ?? "",
-                progress: editing.progress,
-              }}
+              initial={{ title: editGoal.title, description: editGoal.description ?? "", category: editGoal.category, status: editGoal.status, target_date: editGoal.target_date ?? "", progress: editGoal.progress }}
               onSave={handleEdit}
-              onClose={() => setEditing(null)}
+              onCancel={() => setEditGoal(null)}
             />
           )}
         </DialogContent>

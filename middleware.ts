@@ -5,6 +5,7 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
 
   if (pathname.startsWith("/api/auth")) return NextResponse.next()
+  if (pathname.startsWith("/api/dashboard")) return NextResponse.next()
   if (pathname === "/dashboard/login") return NextResponse.next()
 
   if (pathname.startsWith("/dashboard") && !req.auth) {
@@ -15,5 +16,5 @@ export default auth((req) => {
 })
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/auth/:path*"],
+  matcher: ["/dashboard/:path*", "/api/auth/:path*", "/api/dashboard/:path*"],
 }

@@ -12,8 +12,10 @@ if (isDev) {
 const nextConfig = {
   images: {
     // domains[] is deprecated in Next.js 13+ - use remotePatterns instead.
-    // Both are empty because all images are served locally from /public.
-    remotePatterns: [],
+    remotePatterns: [
+      { protocol: "https", hostname: "avatars.githubusercontent.com" },
+      { protocol: "https", hostname: "www.google.com" },
+    ],
     // Serve images in AVIF (best compression) with WebP as a fallback.
     // Next.js negotiates the format automatically via Accept headers.
     formats: ["image/avif", "image/webp"],

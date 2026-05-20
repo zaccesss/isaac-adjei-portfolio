@@ -1,13 +1,17 @@
 import { supabase } from "@/lib/supabase"
-import VaultClient from "./VaultClient"
+import { cookies } from "next/headers"
+import VaultWrapper from "./VaultWrapper"
 
 export const dynamic = "force-dynamic"
+export const metadata = { robots: "noindex, nofollow" }
 
 export default async function VaultPage() {
-  const { data: entries } = await supabase
-    .from("vault")
-    .select("*")
-    .order("name")
+  const cookieStore = await cookies()
+  const pinVerified = cookieStore.get("dashboard_pin_verified")?.value === "1"
 
-  return <VaultClient entries={entries ?? []} />
+  const entries = pinVerified
+    ? (await supabase.from("vault").select("*").order("name")).data ?? []
+    : []
+
+  return <VaultWrapper pinVerified={pinVerified} entries={entries} />
 }

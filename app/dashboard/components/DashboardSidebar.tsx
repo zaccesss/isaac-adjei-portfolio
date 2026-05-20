@@ -3,21 +3,29 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { Target, BookOpen, Briefcase, GraduationCap, Dumbbell, Heart, Lock, Gift, BookMarked, Cpu, LogOut } from "lucide-react"
+import {
+  User, Heart, Target, Dumbbell, BookMarked, StickyNote,
+  Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
+  Flame, LogOut, ChevronLeft, ChevronRight, Menu, X
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { useState, useEffect } from "react"
 
 const nav = [
-  { href: "/dashboard/goals", label: "Goals", icon: Target },
-  { href: "/dashboard/modules", label: "Modules", icon: BookOpen },
-  { href: "/dashboard/internships", label: "Internships", icon: Briefcase },
-  { href: "/dashboard/course", label: "Course", icon: GraduationCap },
-  { href: "/dashboard/gym", label: "Gym", icon: Dumbbell },
+  { href: "/dashboard/me", label: "Me", icon: User },
   { href: "/dashboard/us", label: "Us", icon: Heart },
-  { href: "/dashboard/wishlist", label: "Wishlist", icon: Gift },
+  { href: "/dashboard/goals", label: "Goals", icon: Target },
+  { href: "/dashboard/health", label: "Health & Fitness", icon: Dumbbell },
   { href: "/dashboard/diary", label: "Diary", icon: BookMarked },
-  { href: "/dashboard/tech", label: "Tech", icon: Cpu },
+  { href: "/dashboard/notes", label: "Notes", icon: StickyNote },
+  { href: "/dashboard/wishlist", label: "Wishlist", icon: Gift },
+  { href: "/dashboard/inventory", label: "Inventory", icon: Package },
+  { href: "/dashboard/course", label: "Course", icon: GraduationCap },
+  { href: "/dashboard/modules", label: "Modules", icon: BookOpen },
+  { href: "/dashboard/applications", label: "Applications", icon: Briefcase },
   { href: "/dashboard/vault", label: "Vault", icon: Lock },
+  { href: "/dashboard/streaks", label: "Streaks", icon: Flame },
 ]
 
 export default function DashboardSidebar({
@@ -26,69 +34,169 @@ export default function DashboardSidebar({
   user: { name?: string | null; image?: string | null }
 }) {
   const pathname = usePathname()
+  const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  return (
+  useEffect(() => {
+    const saved = localStorage.getItem("nexus_sidebar_collapsed")
+    if (saved === "true") setCollapsed(true)
+  }, [])
+
+  function toggleCollapse() {
+    const next = !collapsed
+    setCollapsed(next)
+    localStorage.setItem("nexus_sidebar_collapsed", String(next))
+  }
+
+  const sidebarContent = (
     <>
-      {/* desktop sidebar */}
-      <aside className="hidden md:flex flex-col w-56 border-r border-border bg-muted/30 p-4 gap-6 min-h-screen sticky top-0 h-screen">
-        <div className="flex items-center gap-3 pt-2">
-          {user.image && (
-            <Image
-              src={user.image}
-              alt={user.name ?? "avatar"}
-              width={32}
-              height={32}
-              className="rounded-full"
-            />
-          )}
-          <span className="text-sm font-medium truncate">{user.name}</span>
-        </div>
+      {/* Header */}
+      <div className={`flex items-center pt-2 pb-1 ${collapsed ? "justify-center" : "justify-between"}`}>
+        {!collapsed && (
+          <div className="flex items-center gap-2.5 min-w-0">
+            {user.image && (
+              <Image
+                src={user.image}
+                alt={user.name ?? "avatar"}
+                width={28}
+                height={28}
+                className="rounded-full shrink-0"
+              />
+            )}
+            <div className="min-w-0">
+              <p className="text-xs font-semibold truncate leading-tight">Nexus</p>
+              <p className="text-xs text-muted-foreground truncate leading-tight">{user.name}</p>
+            </div>
+          </div>
+        )}
+        {collapsed && user.image && (
+          <Image
+            src={user.image}
+            alt={user.name ?? "avatar"}
+            width={28}
+            height={28}
+            className="rounded-full"
+          />
+        )}
+        <button
+          type="button"
+          onClick={toggleCollapse}
+          className="ml-auto p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+        </button>
+      </div>
 
-        <nav className="flex flex-col gap-1 flex-1">
-          {nav.map(({ href, label, icon: Icon }) => (
+      {/* Nav */}
+      <nav className="flex flex-col gap-0.5 flex-1 overflow-y-auto">
+        {nav.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href || pathname.startsWith(href + "/")
+          return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
-                pathname.startsWith(href)
+              onClick={() => setMobileOpen(false)}
+              title={collapsed ? label : undefined}
+              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
+                active
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
+              } ${collapsed ? "justify-center" : ""}`}
             >
-              <Icon className="h-4 w-4" />
-              {label}
+              <Icon className="h-4 w-4 shrink-0" />
+              {!collapsed && <span className="truncate">{label}</span>}
             </Link>
-          ))}
-        </nav>
+          )
+        })}
+      </nav>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          className="justify-start gap-2 text-muted-foreground"
-          onClick={() => signOut({ callbackUrl: "/dashboard/login" })}
-        >
-          <LogOut className="h-4 w-4" />
-          Sign out
-        </Button>
+      {/* Sign out */}
+      <Button
+        variant="ghost"
+        size="sm"
+        title={collapsed ? "Sign out" : undefined}
+        className={`justify-start gap-2 text-muted-foreground hover:text-foreground ${collapsed ? "justify-center px-2" : ""}`}
+        onClick={() => signOut({ callbackUrl: "/dashboard/login" })}
+      >
+        <LogOut className="h-4 w-4 shrink-0" />
+        {!collapsed && "Sign out"}
+      </Button>
+    </>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside
+        className={`hidden md:flex flex-col border-r border-border bg-muted/30 p-3 gap-3 min-h-screen sticky top-0 h-screen transition-all duration-200 ${
+          collapsed ? "w-14" : "w-52"
+        }`}
+      >
+        {sidebarContent}
       </aside>
 
-      {/* mobile bottom tab bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur flex z-50">
-        {nav.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs transition-colors ${
-              pathname.startsWith(href)
-                ? "text-primary"
-                : "text-muted-foreground"
-            }`}
-          >
-            <Icon className="h-5 w-5" />
-            {label}
-          </Link>
-        ))}
-      </nav>
+      {/* Mobile: hamburger + slide-over */}
+      <div className="md:hidden fixed top-3 left-3 z-50">
+        <button
+          type="button"
+          aria-label="Open navigation"
+          onClick={() => setMobileOpen(true)}
+          className="p-2 rounded-md bg-background border border-border shadow-sm"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      </div>
+
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          <div className="fixed inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
+          <aside className="relative flex flex-col w-64 bg-background border-r border-border p-3 gap-3 h-full overflow-y-auto z-10">
+            <div className="flex items-center justify-between pb-1">
+              <div className="flex items-center gap-2">
+                {user.image && (
+                  <Image src={user.image} alt={user.name ?? "avatar"} width={28} height={28} className="rounded-full" />
+                )}
+                <div>
+                  <p className="text-xs font-semibold">Nexus</p>
+                  <p className="text-xs text-muted-foreground">{user.name}</p>
+                </div>
+              </div>
+              <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="p-1 rounded hover:bg-muted">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <nav className="flex flex-col gap-0.5 flex-1">
+              {nav.map(({ href, label, icon: Icon }) => {
+                const active = pathname === href || pathname.startsWith(href + "/")
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
+                      active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{label}</span>
+                  </Link>
+                )
+              })}
+            </nav>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="justify-start gap-2 text-muted-foreground"
+              onClick={() => signOut({ callbackUrl: "/dashboard/login" })}
+            >
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </Button>
+          </aside>
+        </div>
+      )}
     </>
   )
 }
