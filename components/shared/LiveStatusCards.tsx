@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, GitBranch, Monitor, Github } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -57,6 +57,34 @@ interface GamingPCData {
 interface GithubData {
   repo: string | null
   relativeTime: string | null
+}
+
+function MarqueeText({ text, active, className }: { text: string; active: boolean; className?: string }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const measureRef = useRef<HTMLSpanElement>(null)
+  const [overflows, setOverflows] = useState(false)
+
+  useEffect(() => {
+    if (!containerRef.current || !measureRef.current) return
+    setOverflows(measureRef.current.scrollWidth > containerRef.current.clientWidth)
+  }, [text])
+
+  return (
+    <div ref={containerRef} className={cn("overflow-hidden min-w-0", className)}>
+      {/* hidden span always present so we can measure text width vs container */}
+      <span ref={measureRef} className="absolute invisible whitespace-nowrap pointer-events-none" aria-hidden>
+        {text}
+      </span>
+      {overflows && active ? (
+        <div className="flex whitespace-nowrap animate-marquee gap-10">
+          <span>{text}</span>
+          <span aria-hidden>{text}</span>
+        </div>
+      ) : (
+        <span className="block truncate">{text}</span>
+      )}
+    </div>
+  )
 }
 
 function formatMs(ms: number): string {
@@ -274,8 +302,8 @@ export default function LiveStatusCards() {
                   <span className="text-2xl">♫</span>
                 </div>
               )}
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm leading-tight truncate">{spotify.track}</p>
+              <div className="flex-1 min-w-0 relative">
+                <MarqueeText text={spotify.track ?? ""} active={spotify.playing} className="font-semibold text-sm leading-tight" />
                 <p className="text-xs text-muted-foreground truncate mt-0.5">{spotify.artist}</p>
               </div>
               {spotify.paused && (

@@ -96,6 +96,15 @@ html.theme-transitioning *::after {
   animation: fade-up 0.6s ease-out;
 }
 
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee-scroll 14s linear infinite;
+}
+
 /* Skills icon grid — fixed columns, centered */
 .skills-grid {
   display: grid;
