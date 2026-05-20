@@ -32,6 +32,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/notes/prosthetics-health-tech`, lastModified: new Date("2026-03-01"), changeFrequency: "monthly", priority: 0.5  },
     { url: `${SITE_URL}/lab`,                           lastModified: new Date("2026-05-15"), changeFrequency: "monthly", priority: 0.5  },
     { url: `${SITE_URL}/newsletter`,                    lastModified: new Date("2026-05-01"), changeFrequency: "yearly",  priority: 0.5  },
+    { url: `${SITE_URL}/now`,                           lastModified: new Date("2026-05-15"), changeFrequency: "weekly",  priority: 0.7  },
+    { url: `${SITE_URL}/consumed`,                      lastModified: new Date("2026-05-15"), changeFrequency: "weekly",  priority: 0.6  },
+    { url: `${SITE_URL}/uses`,                          lastModified: new Date("2026-04-01"), changeFrequency: "monthly", priority: 0.5  },
+    { url: `${SITE_URL}/changelog`,                     lastModified: new Date("2026-05-15"), changeFrequency: "weekly",  priority: 0.5  },
+    { url: `${SITE_URL}/colophon`,                      lastModified: new Date("2026-04-01"), changeFrequency: "yearly",  priority: 0.4  },
+    { url: `${SITE_URL}/all-pages`,                     lastModified: new Date("2026-05-15"), changeFrequency: "monthly", priority: 0.4  },
+    { url: `${SITE_URL}/privacy`,                       lastModified: new Date("2026-04-01"), changeFrequency: "yearly",  priority: 0.3  },
     { url: `${SITE_URL}/security-policy`,               lastModified: new Date("2026-04-01"), changeFrequency: "yearly",  priority: 0.3  },
     { url: `${SITE_URL}/hall-of-fame`,                  lastModified: new Date("2026-04-01"), changeFrequency: "yearly",  priority: 0.3  },
   ]
