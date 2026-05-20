@@ -28,6 +28,17 @@ type ChangeEntry = {
 // anything that has shipped to the site but has not yet been tagged.
 const releases: ChangeEntry[] = [
   {
+    version: "Unreleased",
+    date: "",
+    fixed: [
+      "/all-pages keyboard shortcut now adapts to OS - shows ⌘I on Mac and Ctrl+I on Windows/Linux",
+      "pages command on /all-pages highlighted in primary colour and links directly to /lab",
+    ],
+    security: [
+      "Force brace-expansion to 5.0.6 via npm overrides to resolve CVE-2026-45149 (GHSA-jxxr-4gwj-5jf2) - transitive dep via eslint-config-next",
+    ],
+  },
+  {
     version: "v2.3.0",
     date: "2026-05-20",
     added: [

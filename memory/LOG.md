@@ -2,6 +2,24 @@
 
 ---
 
+## 2026-05-20 - brace-expansion security fix
+
+### What we did
+- Dependabot alert #11: CVE-2026-45149 (GHSA-jxxr-4gwj-5jf2) - brace-expansion >= 5.0.0, < 5.0.6 allows DoS via large numeric range; severity 6.5 moderate
+- brace-expansion 5.0.5 pulled in as a transitive dep via eslint-config-next -> @typescript-eslint/typescript-estree; Dependabot could not auto-fix because no compatible parent update existed
+- Added `overrides: { "brace-expansion": "5.0.6" }` to package.json to force the patched version across the whole install
+- Ran `npm install` - lock file now resolves to 5.0.6; brace-expansion no longer appears in `npm audit`
+
+### Decisions made
+- Used npm `overrides` rather than waiting for eslint-config-next to ship an update - cleanest fix with no side effects since 5.0.6 satisfies the ^5.0.5 semver range that typescript-estree declares
+
+### /all-pages shortcut and pages highlight
+
+- `Ctrl+I` was hardcoded on /all-pages; created `components/shared/CommandShortcut.tsx` - a thin client component wrapping `useModKey` so the badge shows `⌘I` on Mac and `Ctrl+I` on Windows/Linux with no hydration flash
+- `pages` command text now rendered as a `<Link href="/lab">` with primary-colour highlight (`bg-primary/10 text-primary`) instead of plain muted code style
+
+---
+
 ## 2026-05-19 - Lenovo daemon, API route and live card
 
 ### What we did
