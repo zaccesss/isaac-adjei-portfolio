@@ -31,7 +31,7 @@ const releases: ChangeEntry[] = [
     version: "Unreleased",
     date: "",
     fixed: [
-      "/all-pages keyboard shortcut now adapts to OS - shows ⌘I on Mac and Ctrl+I on Windows/Linux",
+      "/all-pages keyboard shortcut shows ⌘+I on Mac and Ctrl+I on Windows/Linux; symbol size bumped to text-sm for visibility",
       "pages command on /all-pages highlighted in primary colour and links directly to /lab",
     ],
     security: [
