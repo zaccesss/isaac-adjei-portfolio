@@ -73,6 +73,19 @@ export default function ExperienceTimeline({ experiences }: Props) {
                 </li>
               ))}
             </ul>
+
+            {exp.technologies && exp.technologies.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {exp.technologies.map((tech) => (
+                  <span
+                    key={tech}
+                    className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-0.5 text-xs text-muted-foreground"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </motion.div>
       ))}

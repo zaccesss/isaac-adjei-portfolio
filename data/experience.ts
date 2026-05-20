@@ -83,6 +83,7 @@ export const experiences: Experience[] = [
       "Proposed risk-mitigation strategies for long-lead parts using data-driven forecasting",
       "Developed actionable planning reports aligned with EASA/CAA compliance and sustainability standards",
     ],
+    technologies: ["Excel", "Data Analysis", "Technical Writing", "EASA/CAA Compliance"],
   },
   {
     id: "yunex-traffic-virtual",
@@ -100,6 +101,7 @@ export const experiences: Experience[] = [
       "Created an infographic demonstrating Zephyr® air quality sensors monitoring NO₂, O₃ and PM₁₀ pollution in real time",
       "Gained professional insight into engineering, software and project management roles within Yunex Traffic",
     ],
+    technologies: ["IoT", "Sensor Networks", "Data Visualisation", "Smart City Systems"],
   },
   {
     id: "ghana-high-commission-consular",
@@ -198,5 +200,6 @@ export const experiences: Experience[] = [
       "Applied safety procedures and client etiquette during on-site technical visits",
       "Gained early hands-on technical experience and professional work ethic",
     ],
+    technologies: ["HVAC Systems", "Diagnostic Tools", "Electrical Safety", "On-site Maintenance"],
   },
 ]

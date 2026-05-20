@@ -3,9 +3,10 @@
 // formatDate converts the ISO date string to a readable UK date (e.g. 1 January 2025).
 
 import Link from "next/link"
-import { ArrowRight, Clock } from "lucide-react"
+import { ArrowRight, BookMarked, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { BlogPost, PostType } from "@/data/blog"
+import { SERIES_LABELS } from "@/data/blog"
 
 const TYPE_STYLES: Record<PostType, string> = {
   blog: "bg-primary/10 text-primary border-primary/20",
@@ -46,13 +47,21 @@ export default function PostCard({ post }: PostCardProps) {
       className="group block rounded-lg border border-border/60 bg-card p-6 transition-all duration-200 hover:border-primary/40 hover:shadow-sm"
     >
       <div className="flex flex-col gap-3">
-        {/* Top row: type badge + date */}
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${TYPE_STYLES[post.type]}`}
-          >
-            {TYPE_LABELS[post.type]}
-          </span>
+        {/* Top row: type badge + optional series tag + date */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+              className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${TYPE_STYLES[post.type]}`}
+            >
+              {TYPE_LABELS[post.type]}
+            </span>
+            {post.series && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-xs font-medium text-primary/70">
+                <BookMarked className="h-2.5 w-2.5" />
+                {SERIES_LABELS[post.series] ?? post.series}
+              </span>
+            )}
+          </div>
           <span className="font-mono text-xs text-muted-foreground">{formatDate(post.date)}</span>
         </div>
 

@@ -29,6 +29,9 @@ export interface BlogPost {
   published: boolean
   content: ContentBlock[]
   projectSlug?: string
+  // I use series + seriesPart to group related posts. Both fields must be set together.
+  series?: string
+  seriesPart?: number
 }
 
 export const POST_TYPES: { label: string; value: PostType | "all" }[] = [
@@ -1595,6 +1598,8 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     tags: ["University", "EECS", "Year 2"],
     readingTime: 3,
     published: true,
+    series: "life-at-aston",
+    seriesPart: 1,
     content: [],
   },
 
@@ -1729,4 +1734,36 @@ export function getPublishedPosts(): BlogPost[] {
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
   return posts.find((p) => p.slug === slug)
+}
+
+// I keep human-readable series titles here so the banner can display them
+export const SERIES_LABELS: Record<string, string> = {
+  "life-at-aston": "Life at Aston",
+}
+
+// I return all published posts that share the same series slug, sorted by part number
+export function getSeriesPosts(series: string): Pick<BlogPost, "slug" | "title" | "seriesPart">[] {
+  return getPublishedPosts()
+    .filter((p) => p.series === series)
+    .sort((a, b) => (a.seriesPart ?? 0) - (b.seriesPart ?? 0))
+    .map(({ slug, title, seriesPart }) => ({ slug, title, seriesPart }))
+}
+
+// I sort published posts newest-first and return the posts immediately before
+// and after the given slug so the post page can render prev/next navigation.
+export function getAdjacentPosts(slug: string): {
+  prev: Pick<BlogPost, "slug" | "title"> | null
+  next: Pick<BlogPost, "slug" | "title"> | null
+} {
+  const published = getPublishedPosts().sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
+  const index = published.findIndex((p) => p.slug === slug)
+  if (index === -1) return { prev: null, next: null }
+  const prev = index < published.length - 1 ? published[index + 1] : null
+  const next = index > 0 ? published[index - 1] : null
+  return {
+    prev: prev ? { slug: prev.slug, title: prev.title } : null,
+    next: next ? { slug: next.slug, title: next.title } : null,
+  }
 }

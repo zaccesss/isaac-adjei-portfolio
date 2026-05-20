@@ -7,38 +7,45 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Fixed
-
-- **Gaming PC card CPU and GPU on one line** - combined into "CPU: x% | GPU: y%" to prevent the card expanding taller than the others in the grid
-
-- **Stale charging state on device cards** - if a device's last update is >5 minutes old, the charging icon and "charging" label are hidden; only the last known battery percentage is shown. Prevents the charging status freezing permanently when a device shuts down or sleeps while plugged in. Charging reappears within 60s once the daemon sends its next ping on wake.
-
-### Changed
-
-- **Gaming PC card** - restructured to properly show online/offline state; when offline only last-seen is displayed; GPU, CPU and current game fields are live-only and hidden when the device is not sending updates
-
 ### Added
 
+- **`/consumed` page** - monthly content log for 2026; 49 YouTube videos, 12 Spotify podcasts and 10 books organised into January to May; "All" tab shows all content grouped by month with January first; click-to-play facade on video embeds keeps the page fast with many embeds; content sorted oldest to newest by real upload date; month chips colour-coded by month; music section links to the Notes page Spotify widget
+- **`/now` page** - static snapshot of what Isaac is doing in his life at this moment; sections cover location, studying, building, reading, thinking about, outside of work and listening; inspired by nownownow.com; updated manually
+- **`/uses` page** - hardware, software and tools Isaac uses day to day
+- **`/colophon` page** - how the site is built, the stack and decisions behind it
+- **`/changelog` page** - public changelog at `/changelog`, full version history of the site from first commit
+- **Dark/light mode crossfade animation** - 150ms ease transition on theme toggle instead of instant swap
+- **Next and previous post navigation** - prev/next links at the bottom of every blog post
+- **Blog reactions** - thumbs up, flame, lightbulb and heart reaction buttons per post, stored in Redis under `reactions:{slug}:{type}`; lucide-react icons, one click, no comments
+- **Post series grouping** - `series` and `seriesPart` fields on BlogPost; SeriesBanner component on post pages; series indicator on post cards
+- **Hall of Fame reframe** - personal acknowledgements (God, mum, dad) lead the page before the security researchers section
+- **Command menu** - now searches projects and includes all hidden/unlisted pages in a More group
 - **Gaming PC daemon** - `scripts/gpc-daemon.py` writes CPU%, GPU% (NVIDIA RTX 4060 via pynvml) and current game name to Redis keys `gpc:status` (TTL 600s) and `gpc:last-known` every 30s; detects active games by scanning Windows processes; runs via NSSM
 - **Gaming PC API route** - `app/api/gpc/route.ts` reads live/last-known fallback; CPU, GPU and game fields are only returned when the daemon is live (online=true)
 - **Gaming PC card wired up** - polls `/api/gpc` every 30s; shows CPU%, GPU% and current game when online; shows only last-seen when offline
-
 - **Lenovo daemon** - `scripts/lenovo-daemon.py` writes battery, charging state and timestamp to Redis keys `lenovo:status` (TTL 600s) and `lenovo:last-known` every 30s; runs on Windows via NSSM
 - **Lenovo API route** - `app/api/lenovo/route.ts` reads from Redis with live/last-known fallback, same structure as macbook route
 - **Lenovo card wired up** - live battery, charging state and last-seen status in the device grid; matches MacBook card behaviour
-
 - **Spotify device name in label** - "Currently Listening on ZACCESS-GPC" (or whichever device is active) shown above the track when playing; uses the `/me/player` endpoint instead of `/me/player/currently-playing` to access device info
 - **Podcast and episode support** - Spotify card now shows podcast episodes with episode title, show name and episode artwork just like tracks; `currently_playing_type` field used to detect episodes vs tracks
 - **Spotify last played** - when nothing is active the Spotify card shows the previous track or episode in a greyed-out grayscale state with a "Last Played" label instead of a blank card; stored in Redis under `spotify:last_played` with no expiry
-- **Real-time Spotify progress bar** - progress bar and timestamp tick forward every second client-side using a local interval; API response snaps the position back to the true value on each poll; no more needing to refresh to see it move
-- **Gaming PC status card** - new compact card in the live status grid showing ZACCESS-GPC; when Spotify is actively playing on that device the track name is shown with a music icon; otherwise shows offline
-- **Lenovo status card** - placeholder card added alongside the Gaming PC card ready for the Windows daemon; shows offline until the daemon is set up
+- **Real-time Spotify progress bar** - progress bar and timestamp tick forward every second client-side using a local interval; API response snaps the position back to the true value on each poll
+- **Gaming PC status card** - new compact card in the live status grid showing ZACCESS-GPC; when Spotify is actively playing on that device the track name is shown with a music icon
+- **Lenovo status card** - placeholder card added alongside the Gaming PC card ready for the Windows daemon
 
 ### Changed
 
+- **`/consumed` description** - updated to "so far this year" to better reflect ongoing additions
+- **Gaming PC card** - restructured to properly show online/offline state; when offline only last-seen is displayed; GPU, CPU and current game fields are live-only and hidden when the device is not sending updates
 - **Live status layout** - Time card moved to the left column and MacBook card moved to the right column in the two-column row
 - **Spotify polling interval** - reduced from 30 seconds to 10 seconds so track changes and skips appear within 10 seconds without waiting for a full refresh
 - **GitHub icon** - replaced deprecated `Github` with `GitBranch` from lucide-react in the last-pushed card
+
+### Fixed
+
+- **YouTube and Spotify embeds blocked by CSP** - added `https://www.youtube.com` and `https://open.spotify.com` to `frame-src` in `next.config.mjs`; embeds on `/consumed` were showing "content blocked" in all browsers
+- **Gaming PC card CPU and GPU on one line** - combined into "CPU: x% | GPU: y%" to prevent the card expanding taller than the others in the grid
+- **Stale charging state on device cards** - if a device's last update is >5 minutes old, the charging icon and "charging" label are hidden; only the last known battery percentage is shown; charging reappears within 60s once the daemon sends its next ping on wake
 
 ---
 

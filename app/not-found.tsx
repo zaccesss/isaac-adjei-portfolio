@@ -8,7 +8,7 @@ const LINES = [
   { text: "isaacadjei-lab v1.0.0", delay: 0 },
   { text: "kernel: loading...", delay: 120 },
   { text: "resolving path...", delay: 240 },
-  { text: "error: 404 — directory not found", delay: 420, error: true },
+  { text: "error: 404 - directory not found", delay: 420, error: true },
   { text: "", delay: 560 },
   { text: "the page you are looking for does not exist.", delay: 640 },
   { text: "try one of these instead:", delay: 800 },

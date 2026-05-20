@@ -52,7 +52,7 @@
 
 ## Overview
 
-Personal portfolio website for **Isaac Adjei (Zac)** - Top 40 Finalist, Black Heritage Undergraduate of the Year 2026 and Electronic Engineering and Computer Science student at Aston University (Predicted First Class). Built to showcase 10 engineering and software projects with full image galleries and lightboxes, alongside 13 published blog posts, a newsletter, a public notes notebook, an interactive lab terminal and a live status widget showing Spotify, London time, MacBook battery and GitHub activity.
+Personal portfolio website for **Isaac Adjei (Zac)** - Top 40 Finalist, Black Heritage Undergraduate of the Year 2026 and Electronic Engineering and Computer Science student at Aston University (Predicted First Class). Built to showcase 10 engineering and software projects with full image galleries and lightboxes, alongside 13 published blog posts, a newsletter, a public notes notebook, an interactive lab terminal, a live status widget showing Spotify, London time, MacBook battery and GitHub activity, a `/consumed` content log and a `/now` snapshot page.
 
 The site is a proper **Next.js 16 App Router** application with TypeScript, Tailwind CSS, Framer Motion animations and full dark/light mode support. Every page is server-rendered or statically generated where possible, with client components only where interactivity requires it.
 
@@ -95,6 +95,11 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 | `/notes`                           | Public notebook with live status, current builds, summer plans and upcoming projects  |
 | `/notes/world-cup-ai-predictor`    | Detail page: World Cup 2026 AI predictor project plan with references                |
 | `/notes/prosthetics-health-tech`   | Detail page: ocular prosthetics and bio-integrated electronics research              |
+| `/consumed`                        | Monthly content log: 49 YouTube videos, 12 podcasts and 10 books for 2026, sorted by real upload date across January to May with an All tab |
+| `/now`                             | Snapshot of what Isaac is doing right now: studying, building, reading and listening; updated manually |
+| `/uses`                            | Hardware, software and tools used day to day                                         |
+| `/colophon`                        | How the site is built, the stack and the decisions behind it                         |
+| `/changelog`                       | Public version history from the first commit to the latest update                   |
 | `/lab`                             | Interactive terminal with 30+ commands and live status cards                         |
 | `/newsletter`                      | Newsletter signup page via Beehiiv with topic cards and cross-links                  |
 | `/contact`                         | Contact form with spam protection and email delivery via Resend                      |

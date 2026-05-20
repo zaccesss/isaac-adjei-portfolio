@@ -13,6 +13,15 @@ export const ROUTES = {
   lab: "/lab",
   contact: "/contact",
   links: "/links",
+  // Secondary pages - not in the main nav but discoverable via command menu and footer
+  now: "/now",
+  uses: "/uses",
+  colophon: "/colophon",
+  changelog: "/changelog",
+  consumed: "/consumed",
+  newsletter: "/newsletter",
+  hallOfFame: "/hall-of-fame",
+  allPages: "/all-pages",
 } as const
 
 // The label + href for each item shown in the nav bar
