@@ -10,6 +10,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - **Private `/dashboard`** - protected section accessible only via GitHub OAuth; only Isaac's GitHub account can log in; not linked from public nav, sitemap or command menu
+- **Wishlist** - categorised wishlist with wanted/saving/got-it status, tick-to-mark-obtained, priority flags and add/delete
+- **Diary** - private journal with mood tagging, expandable entries, edit and delete; only visible to Isaac
 - **Goals tracker** - add, edit and delete personal goals with category, status, target date and progress bar; grouped by category; filter by status and category
 - **Module tracker** - all Year 1, Year 2 and Final Year modules pre-seeded from official programme spec; click to expand and view assessments; click any mark to edit it inline; weighted average auto-calculated; First/2:1/2:2/Fail badge per module; Year 1 stats bar shows average, classification, credits and modules completed
 - **Internship tracker** - table of applications with company, role, dates, status and notes; status changes inline; star to prioritise; click row for detail panel; stats bar shows totals, in-progress, offers and rejections

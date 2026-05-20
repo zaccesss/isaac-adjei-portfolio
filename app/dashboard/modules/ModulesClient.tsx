@@ -274,7 +274,7 @@ function ModuleCard({ mod }: { mod: Module }) {
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Add assessment — {mod.code}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Add assessment - {mod.code}</DialogTitle></DialogHeader>
           <AddAssessmentDialog moduleId={mod.id} onClose={() => setAddOpen(false)} />
         </DialogContent>
       </Dialog>
@@ -283,9 +283,9 @@ function ModuleCard({ mod }: { mod: Module }) {
 }
 
 const YEAR_LABELS: Record<number, string> = {
-  1: "Year 1 — Stage 1 (Level 4)",
-  2: "Year 2 — Stage 2 (Level 5)",
-  3: "Final Year — Stage F (Level 6)",
+  1: "Year 1 - Stage 1 (Level 4)",
+  2: "Year 2 - Stage 2 (Level 5)",
+  3: "Final Year - Stage F (Level 6)",
 }
 
 export default function ModulesClient({ modules }: { modules: Module[] }) {

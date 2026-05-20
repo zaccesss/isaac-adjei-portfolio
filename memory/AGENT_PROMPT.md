@@ -269,39 +269,11 @@ The following were all planned and are now live on the site:
 - Full site search in Cmd+I command menu (projects, blog posts, all pages in More group)
 - Gaming PC daemon, API route and live card
 - Lenovo daemon, API route and live card
+- Private `/dashboard` - NextAuth.js v5 GitHub OAuth (numeric user ID allow-list), Supabase PostgreSQL, 9 sections: Goals, Modules, Internships, Course, Gym, Us, Wishlist, Diary, Vault. Not linked from public nav, sitemap, footer or command menu. SQL seed file at `supabase-setup.sql`.
 
 ---
 
-## Planned features — not yet built
-
-### Private dashboard (NEXT BIG PROJECT — dedicate a full session to this)
-
-A private section of the portfolio only Isaac can access. Fully detailed spec is in `memory/project_private_dashboard.md`.
-
-Summary:
-- Route: `/dashboard` (or `/private`) — protected, not linked from public nav
-- Auth: NextAuth.js v5 with GitHub OAuth provider, hardcoded allow-list of Isaac's GitHub user ID so only he can log in
-- Database: Supabase (PostgreSQL) for persistent storage; use `@supabase/supabase-js` client
-- Three sections inside the dashboard:
-
-1. **Goals tracker**
-   - Personal goals with title, description, target date, status (not started / in progress / done / abandoned)
-   - Ability to add, edit, mark complete and delete goals
-   - Goals grouped by category (e.g. Academic, Career, Personal, Health, Finance)
-   - Progress percentage shown on each goal if it has sub-tasks
-
-2. **Module tracker**
-   - University module records: module name, module code, credit weight, year, semester
-   - Grade entry per assessment (coursework, exam, lab, project)
-   - Automatic weighted average calculator
-   - Target grade vs actual grade display
-   - Status per module: ongoing / complete / resit
-
-3. **Internship tracker**
-   - Company name, role title, application date, deadline, status
-   - Status options: Drafting / Applied / OA / Phone Screen / Interview / Offer / Rejected / Withdrawn
-   - Notes field per application
-   - Link to job posting URL
+## Planned features - not yet built
    - Priority flag (starred)
    - Sortable table view with status filter
    - Stats at top: total applied, in progress, offers, rejections

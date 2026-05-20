@@ -5,64 +5,64 @@ const days = [
     day: "Day 1",
     label: "Chest & Triceps (Push)",
     exercises: [
-      "Barbell Bench Press – 4 × 8–10",
-      "Incline Dumbbell Press – 3 × 10–12",
-      "Cable Flyes – 3 × 12–15",
-      "Tricep Dips – 3 × 8–10",
-      "Tricep Pushdowns – 3 × 12–15",
-      "Overhead Dumbbell Tricep Extensions – 3 × 10–12",
-      "Push-Ups (finisher) – 2 × max reps",
+      "Barbell Bench Press - 4 × 8-10",
+      "Incline Dumbbell Press - 3 × 10-12",
+      "Cable Flyes - 3 × 12-15",
+      "Tricep Dips - 3 × 8-10",
+      "Tricep Pushdowns - 3 × 12-15",
+      "Overhead Dumbbell Tricep Extensions - 3 × 10-12",
+      "Push-Ups (finisher) - 2 × max reps",
     ],
   },
   {
     day: "Day 2",
     label: "Back & Biceps (Pull)",
     exercises: [
-      "Deadlifts – 4 × 6–8",
-      "Lat Pulldowns – 3 × 10–12",
-      "Bent-Over Barbell Rows – 3 × 8–10",
-      "Seated Rows – 3 × 10–12",
-      "Dumbbell Bicep Curls – 3 × 10–12",
-      "Hammer Curls – 3 × 10–12",
-      "Face Pulls (rear delt + traps) – 3 × 12–15",
+      "Deadlifts - 4 × 6-8",
+      "Lat Pulldowns - 3 × 10-12",
+      "Bent-Over Barbell Rows - 3 × 8-10",
+      "Seated Rows - 3 × 10-12",
+      "Dumbbell Bicep Curls - 3 × 10-12",
+      "Hammer Curls - 3 × 10-12",
+      "Face Pulls (rear delt + traps) - 3 × 12-15",
     ],
   },
   {
     day: "Day 3",
     label: "Legs",
     exercises: [
-      "Barbell Squats – 4 × 8–10",
-      "Romanian Deadlifts – 3 × 8–10",
-      "Walking Lunges (each leg) – 3 × 12–15",
-      "Leg Press – 3 × 10–12",
-      "Leg Extensions – 3 × 12–15",
-      "Calf Raises – 4 × 12–15",
-      "Glute Bridges or Hip Thrusts – 3 × 10–12",
+      "Barbell Squats - 4 × 8-10",
+      "Romanian Deadlifts - 3 × 8-10",
+      "Walking Lunges (each leg) - 3 × 12-15",
+      "Leg Press - 3 × 10-12",
+      "Leg Extensions - 3 × 12-15",
+      "Calf Raises - 4 × 12-15",
+      "Glute Bridges or Hip Thrusts - 3 × 10-12",
     ],
   },
   {
     day: "Day 4",
     label: "Cardio, Core & Mobility",
     exercises: [
-      "Treadmill / Outdoor Run – 25–30 mins",
-      "Plank Variations – 3 × 45–60 sec",
-      "Russian Twists – 3 × 15 each side",
-      "Hanging Leg Raises – 3 × 10–12",
-      "Mountain Climbers – 3 × 20 each leg",
-      "Dynamic Stretching – 10–15 mins",
+      "Treadmill / Outdoor Run - 25-30 mins",
+      "Plank Variations - 3 × 45-60 sec",
+      "Russian Twists - 3 × 15 each side",
+      "Hanging Leg Raises - 3 × 10-12",
+      "Mountain Climbers - 3 × 20 each leg",
+      "Dynamic Stretching - 10-15 mins",
     ],
   },
   {
     day: "Day 5",
     label: "Shoulders & Arms",
     exercises: [
-      "Barbell Overhead Press – 4 × 8–10",
-      "Arnold Press – 3 × 10–12",
-      "Dumbbell Lateral Raises – 3 × 12–15",
-      "Front Raises – 3 × 10–12",
-      "Barbell Curls – 3 × 8–10",
-      "Skull Crushers – 3 × 8–10",
-      "Shrugs (traps) – 3 × 12–15",
+      "Barbell Overhead Press - 4 × 8-10",
+      "Arnold Press - 3 × 10-12",
+      "Dumbbell Lateral Raises - 3 × 12-15",
+      "Front Raises - 3 × 10-12",
+      "Barbell Curls - 3 × 8-10",
+      "Skull Crushers - 3 × 8-10",
+      "Shrugs (traps) - 3 × 12-15",
     ],
   },
   {
@@ -78,7 +78,7 @@ const days = [
     day: "Day 7",
     label: "Rest & Recovery",
     exercises: [
-      "Stretching, yoga or light walk (30–40 mins)",
+      "Stretching, yoga or light walk (30-40 mins)",
       "Focus on mobility, hydration and sleep",
     ],
   },
@@ -108,13 +108,13 @@ const nutrition = [
 ]
 
 const rules = [
-  "Protein goal: 1.6–2g per kg bodyweight",
+  "Protein goal: 1.6-2g per kg bodyweight",
   "Save most carbs for post-workout meals",
   "Healthy fats (avocado, nuts, olive oil): moderate",
   "Minimum 3L water daily",
-  "Supplements: Creatine 3–5g daily, Whey Protein, Omega-3, Vitamin D",
+  "Supplements: Creatine 3-5g daily, Whey Protein, Omega-3, Vitamin D",
   "No alcohol · Less sugar",
-  "Eating window: 3PM – 8PM (2 meals)",
+  "Eating window: 3PM - 8PM (2 meals)",
 ]
 
 export default function GymPage() {
@@ -122,7 +122,7 @@ export default function GymPage() {
     <div className="flex flex-col gap-8 max-w-3xl">
       <div>
         <h1 className="text-xl font-semibold">Gym</h1>
-        <p className="text-sm text-muted-foreground mt-1">6-day split — strength, conditioning and recovery</p>
+        <p className="text-sm text-muted-foreground mt-1">6-day split - strength, conditioning and recovery</p>
       </div>
 
       {/* Weekly split */}
@@ -138,7 +138,7 @@ export default function GymPage() {
               <ul className="flex flex-col gap-1">
                 {d.exercises.map((e, i) => (
                   <li key={i} className="text-xs text-muted-foreground flex gap-1.5">
-                    <span className="text-foreground/30 shrink-0">–</span>
+                    <span className="text-foreground/30 shrink-0">-</span>
                     <span>{e}</span>
                   </li>
                 ))}
@@ -158,7 +158,7 @@ export default function GymPage() {
           <ul className="flex flex-col gap-1">
             {rules.map((r, i) => (
               <li key={i} className="text-xs text-muted-foreground flex gap-1.5">
-                <span className="text-foreground/30 shrink-0">–</span>
+                <span className="text-foreground/30 shrink-0">-</span>
                 <span>{r}</span>
               </li>
             ))}
@@ -176,7 +176,7 @@ export default function GymPage() {
               <ul className="flex flex-col gap-1">
                 {n.items.map((item, i) => (
                   <li key={i} className="text-xs text-muted-foreground flex gap-1.5">
-                    <span className="text-foreground/30 shrink-0">–</span>
+                    <span className="text-foreground/30 shrink-0">-</span>
                     <span>{item}</span>
                   </li>
                 ))}

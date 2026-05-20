@@ -186,7 +186,7 @@ function AppRow({ app }: { app: Application }) {
       <Dialog open={detail && !editing} onOpenChange={(o) => { if (!o) setDetail(false) }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{app.company} — {app.role}</DialogTitle>
+            <DialogTitle>{app.company} - {app.role}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3">
             <Badge className={`self-start text-xs px-2 py-0.5 ${STATUS_COLOURS[app.status]}`}>{STATUS_LABELS[app.status]}</Badge>
