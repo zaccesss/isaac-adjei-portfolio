@@ -1,3 +1,7 @@
+# private - never commit
+supabase-setup.sql
+module-course-extract/
+
 # dependencies
 /node_modules
 /.pnp
