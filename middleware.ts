@@ -4,17 +4,17 @@ import { getToken } from "next-auth/jwt"
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // auth API routes always pass through
+  // I let auth API routes pass unconditionally so NextAuth can handle its own callbacks
   if (pathname.startsWith("/api/auth")) {
     return NextResponse.next()
   }
 
-  // login page always passes through - must not be guarded or it loops
+  // I exempt the login page explicitly - guarding it causes an infinite redirect loop
   if (pathname === "/dashboard/login") {
     return NextResponse.next()
   }
 
-  // all other /dashboard routes require a valid JWT
+  // I use getToken directly rather than the auth() wrapper to avoid NextAuth triggering its own redirects
   if (pathname.startsWith("/dashboard")) {
     const token = await getToken({
       req,
