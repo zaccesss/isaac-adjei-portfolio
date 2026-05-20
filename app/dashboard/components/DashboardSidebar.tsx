@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { Target, BookOpen, Briefcase, GraduationCap, Dumbbell, Heart, Lock, LogOut } from "lucide-react"
+import { Target, BookOpen, Briefcase, GraduationCap, Dumbbell, Heart, Lock, Gift, BookMarked, Cpu, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 
@@ -14,6 +14,9 @@ const nav = [
   { href: "/dashboard/course", label: "Course", icon: GraduationCap },
   { href: "/dashboard/gym", label: "Gym", icon: Dumbbell },
   { href: "/dashboard/us", label: "Us", icon: Heart },
+  { href: "/dashboard/wishlist", label: "Wishlist", icon: Gift },
+  { href: "/dashboard/diary", label: "Diary", icon: BookMarked },
+  { href: "/dashboard/tech", label: "Tech", icon: Cpu },
   { href: "/dashboard/vault", label: "Vault", icon: Lock },
 ]
 

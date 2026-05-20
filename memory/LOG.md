@@ -2,6 +2,60 @@
 
 ---
 
+## 2026-05-20 - Private dashboard full build
+
+### What we did
+- Set up NextAuth.js v5 with GitHub OAuth provider; allow-list uses Isaac's numeric GitHub user ID (190771985) so only zaccesss can log in
+- Created Supabase project (isaac-portfolio-dashboard, West Europe London, eu-west-2)
+- Built 9 dashboard sections: Goals, Modules, Internships, Course, Gym, Us, Wishlist, Diary, Vault
+- Modules pre-seeded with full Year 1 data from Isaac's Excel grade tracker (all 8 modules, all assessments, real marks); Year 2 and Final Year shells added
+- Goals seeded from Isaac's 2025/26 blueprint (27 goals across Academic, Career, Health, Personal, Finance)
+- Wishlist seeded with all categories (55 items) from Isaac's wishlist
+- Diary has Ghana addresses entry pre-seeded
+- Us page contains The Book - the full covenant document, both routines (Zac and Pam), notes about Pam
+- Tech page has all devices: MacBook Air M5, Gaming PC, Lenovo ThinkPad, iPhone 14 Pro Max, iPad Pro M5, Apple Watch Series 5, PS5, monitors, VISIONKEY-100 keyboard
+- Vault is a password manager with show/hide eye toggle and copy buttons
+- Created supabase-setup.sql with all tables, RLS policies and seed data in one file
+- Removed all em/en dashes and Oxford commas from dashboard files
+- Confirmed no public pages reference /dashboard
+- Updated AGENT_PROMPT.md to mark dashboard as done
+
+### Decisions made
+- 9 sections in sidebar: Goals, Modules, Internships, Course, Gym, Us, Wishlist, Diary, Vault + Tech
+- noindex/nofollow on all dashboard pages; not in sitemap, changelog or command menu
+- Passwords stored as plain text in Supabase vault table - acceptable for single-user private dashboard behind GitHub auth
+- Supabase publishable key (sb_publishable_) used instead of legacy anon key
+- GitHub OAuth only (no password + OAuth combo) - GitHub 2FA is the second factor
+- Auth tests on deployed site only (no localhost callback URL on GitHub OAuth app)
+- supabase-setup.sql kept in repo root as a temp reference file to run in Supabase SQL Editor
+
+### Problems and fixes
+- problem: `supabaseUrl is required` at build time with no .env.local
+  fix: placeholder fallback strings in lib/supabase.ts so module initialises without crashing during CI build
+- problem: GitHub OAuth apps only support one callback URL (not multiple like GitHub Apps)
+  fix: kept production URL only; test auth on live site after deploy
+- problem: `session.user` could be undefined in dashboard layout
+  fix: `session.user ?? {}` fallback
+
+### Files changed
+- `auth.ts`: NextAuth config with GitHub provider and numeric ID allow-list
+- `middleware.ts`: guards all /dashboard/** routes
+- `lib/supabase.ts`: Supabase client with placeholder fallback
+- `app/api/auth/[...nextauth]/route.ts`: NextAuth route handler
+- `app/dashboard/` (entire folder): layout, login, page, actions, sidebar, all 9 sections
+- `public/eecs-programme-spec.pdf`: programme spec PDF for Course page
+- `components/ui/input.tsx`, `select.tsx`, `textarea.tsx`: new shadcn components
+- `supabase-setup.sql`: full SQL setup file for Supabase
+- `memory/AGENT_PROMPT.md`: updated completed features list
+
+### Next session
+- Run supabase-setup.sql in Supabase SQL Editor (all tables + seed data in one file)
+- Add Supabase env vars to Vercel: SUPABASE_URL and SUPABASE_ANON_KEY
+- Test login at isaacadjei.me/dashboard after deploy
+- Delete supabase-setup.sql from repo once Supabase is confirmed working (contains seed data, not credentials, but cleaner to remove)
+
+---
+
 ## 2026-05-20 - brace-expansion security fix
 
 ### What we did

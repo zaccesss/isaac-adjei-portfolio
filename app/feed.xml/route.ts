@@ -75,7 +75,7 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>) {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Isaac Adjei — RSS Feed</title>
+    <title>Isaac Adjei - RSS Feed</title>
     <link rel="icon" type="image/png" href="${SITE_URL}/images/avatar.png" />
     <link rel="alternate" type="application/rss+xml" title="Isaac Adjei RSS" href="${SITE_URL}/feed.xml" />
     <style>
@@ -187,7 +187,7 @@ function buildRawHtml(xml: string): string {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Isaac Adjei — RSS Feed (raw XML)</title>
+    <title>Isaac Adjei - RSS Feed (raw XML)</title>
     <link rel="icon" type="image/png" href="${SITE_URL}/images/avatar.png" />
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }

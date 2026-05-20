@@ -89,7 +89,7 @@ export default function CoursePage() {
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-semibold">Course</h1>
-          <p className="text-sm text-muted-foreground mt-1">BEng Electronic Engineering and Computer Science — Aston University</p>
+          <p className="text-sm text-muted-foreground mt-1">BEng Electronic Engineering and Computer Science - Aston University</p>
         </div>
         <a
           href="/eecs-programme-spec.pdf"
@@ -136,11 +136,11 @@ export default function CoursePage() {
         <div className="flex gap-2 flex-wrap">
           {[
             { label: "First", range: "≥80%", colour: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" },
-            { label: "2:1", range: "60–79%", colour: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" },
-            { label: "2:2", range: "40–59%", colour: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" },
+            { label: "2:1", range: "60-79%", colour: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" },
+            { label: "2:2", range: "40-59%", colour: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" },
             { label: "Fail", range: "<40%", colour: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" },
           ].map(({ label, range, colour }) => (
-            <div key={label} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${colour}`}>{label} — {range}</div>
+            <div key={label} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${colour}`}>{label} - {range}</div>
           ))}
         </div>
       </div>
@@ -149,40 +149,40 @@ export default function CoursePage() {
       <div className="flex flex-col gap-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Term dates 2025/26</p>
         <div className="flex flex-col gap-1 text-sm">
-          <div className="flex gap-3"><span className="text-muted-foreground w-16">Term 1</span><span>22 Sept – 12 Dec 2025</span></div>
-          <div className="flex gap-3"><span className="text-muted-foreground w-16">Term 2</span><span>5 Jan – 28 March 2026</span></div>
-          <div className="flex gap-3"><span className="text-muted-foreground w-16">Term 3</span><span>23 April – 6 June 2026</span></div>
+          <div className="flex gap-3"><span className="text-muted-foreground w-16">Term 1</span><span>22 Sept - 12 Dec 2025</span></div>
+          <div className="flex gap-3"><span className="text-muted-foreground w-16">Term 2</span><span>5 Jan - 28 March 2026</span></div>
+          <div className="flex gap-3"><span className="text-muted-foreground w-16">Term 3</span><span>23 April - 6 June 2026</span></div>
         </div>
       </div>
 
       {/* Stage 1 */}
       <div className="flex flex-col gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stage 1 — Year 1 (Level 4, 120 credits)</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stage 1 - Year 1 (Level 4, 120 credits)</p>
         <ModuleTable modules={stage1} />
       </div>
 
       {/* Stage 2 */}
       <div className="flex flex-col gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stage 2 — Year 2 (Level 5, 120 credits)</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stage 2 - Year 2 (Level 5, 120 credits)</p>
         <ModuleTable modules={stage2} />
       </div>
 
       {/* Placement */}
       <div className="flex flex-col gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stage 3P — Placement Year (optional)</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stage 3P - Placement Year (optional)</p>
         <div className="border border-border rounded-lg p-3 text-sm text-muted-foreground">
-          EPSP01 — EPS Placement Year (120 credits, Level P)
+          EPSP01 - EPS Placement Year (120 credits, Level P)
         </div>
       </div>
 
       {/* Final year */}
       <div className="flex flex-col gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stage F — Final Year (Level 6, 120 credits)</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stage F - Final Year (Level 6, 120 credits)</p>
         <p className="text-xs text-muted-foreground">Core (90 credits)</p>
         <ModuleTable modules={stageF_core} />
-        <p className="text-xs text-muted-foreground mt-2">Section A — choose 15 credits from:</p>
+        <p className="text-xs text-muted-foreground mt-2">Section A - choose 15 credits from:</p>
         <ModuleTable modules={stageF_sectionA} />
-        <p className="text-xs text-muted-foreground mt-2">Section B — choose 15 credits from:</p>
+        <p className="text-xs text-muted-foreground mt-2">Section B - choose 15 credits from:</p>
         <ModuleTable modules={stageF_sectionB} />
       </div>
     </div>
