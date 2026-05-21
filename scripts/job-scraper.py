@@ -78,14 +78,65 @@ STUDENT_TERMS = [
     "undergraduate", "student", "campus", "university",
 ]
 
-# I include "global" and "anywhere" to avoid discarding remote-first companies
-# that do not specify a UK city in their job postings.
+# I only include London, Birmingham, Manchester (and areas within ~10 miles)
+# plus Remote/Hybrid UK. Anything explicitly US or non-UK is rejected.
 TARGET_LOCATIONS = [
-    "london", "birmingham", "manchester", "cambridge", "bristol",
-    "reading", "remote", "hybrid", "work from home", "england",
-    "uk", "united kingdom", "nationwide", "flexible", "europe",
-    "global", "anywhere",
+    # London and Greater London
+    "london", "canary wharf", "croydon", "ilford", "bromley", "harrow",
+    "sutton", "kingston", "richmond", "wimbledon", "stratford", "greenwich",
+    "hackney", "islington", "lambeth", "southwark", "wandsworth",
+    # Birmingham and within ~10 miles
+    "birmingham", "coventry", "wolverhampton", "solihull", "walsall",
+    "west bromwich", "dudley", "sandwell", "sutton coldfield",
+    # Manchester and within ~10 miles
+    "manchester", "salford", "stockport", "oldham", "rochdale",
+    "bolton", "bury", "trafford", "altrincham", "stretford",
+    # Remote UK
+    "remote", "work from home", "hybrid",
+    # UK-wide (no city specified)
+    "uk", "united kingdom", "england", "nationwide", "great britain",
 ]
+
+# I reject any location that is explicitly in the US or clearly non-UK.
+US_LOCATIONS = [
+    "new york", "san francisco", "los angeles", "los angeles, ca",
+    "seattle", "boston", "chicago", "austin", "denver", "atlanta",
+    "miami", "dallas", "philadelphia", "portland", "san jose",
+    "california", "new jersey", "texas", "washington, dc", "washington d.c.",
+    "united states", "usa", "u.s.a", "u.s.", "north america",
+]
+
+# I only keep roles where the closing date is in the 2025/26 recruitment
+# cycle (on or after Sep 2025) and has not already passed.
+CYCLE_CUTOFF = datetime(2025, 9, 1)
+
+
+def is_date_relevant(closing_date_str: "str | None") -> bool:
+    """True if the role's closing date is within the current cycle and not expired."""
+    if not closing_date_str:
+        return True  # no deadline = include (unknown)
+    try:
+        d = datetime.strptime(closing_date_str, "%Y-%m-%d")
+        now = datetime.now()
+        return d >= CYCLE_CUTOFF and d >= now
+    except ValueError:
+        return True
+
+
+def is_location_ok(location: str, is_priority: bool) -> bool:
+    """True if the location is one of Isaac's target areas or unknown."""
+    if not location:
+        return True  # no location = include (many postings omit it)
+    loc = location.lower()
+    # Explicitly US = always reject regardless of company tier
+    if any(us in loc for us in US_LOCATIONS):
+        return False
+    # UK target city/region = always accept
+    if any(uk in loc for uk in TARGET_LOCATIONS):
+        return True
+    # Priority company + unknown non-US foreign location = accept
+    # (e.g. "Global" or "Europe" at Goldman Sachs is likely London-relevant)
+    return is_priority
 
 # I apply a looser filter for priority companies because a Software Engineer
 # role at Google is still worth knowing about even if "intern" is absent.
@@ -208,29 +259,26 @@ def is_relevant(
     location: str = "",
     dept_names: list[str] | None = None,
 ) -> bool:
-    """Return True if this role should be saved."""
-    company_lower = company.lower()
-    title_lower = title.lower()
-    loc_lower = location.lower()
+    """True if this role should be saved.
 
-    # I apply a looser filter for priority companies: a tech keyword or student
-    # signal is enough. I do not want to miss a Citadel role because "intern"
-    # is absent from the title.
-    if any(p in company_lower for p in PRIORITY_COMPANIES):
-        has_keyword = any(k in title_lower for k in TECH_KEYWORDS)
-        return has_keyword or is_student_role(title, dept_names)
-
-    # I apply a stricter triple gate for unknown companies to keep noise low:
-    # role must be student-facing AND tech-related AND in a target location.
+    I require a student signal and a tech keyword for ALL companies - no
+    exceptions. Priority companies only get a pass on strict location matching
+    (they may not always label UK offices explicitly), but US locations are
+    rejected for everyone.
+    """
+    # Step 1: must be student-facing - no full-time roles, ever
     if not is_student_role(title, dept_names):
         return False
+
+    # Step 2: must be tech-related
+    title_lower = title.lower()
     has_keyword = any(k in title_lower for k in TECH_KEYWORDS)
-    # I skip location filtering when location is unknown rather than discarding
-    # the role - an empty field almost certainly means it was just omitted.
-    loc_ok = not location or any(
-        loc in loc_lower for loc in TARGET_LOCATIONS
-    )
-    return has_keyword and loc_ok
+    if not has_keyword:
+        return False
+
+    # Step 3: location must be Isaac's target areas (or unknown)
+    is_priority = any(p in company.lower() for p in PRIORITY_COMPANIES)
+    return is_location_ok(location, is_priority)
 
 
 def infer_type(title: str) -> str:
@@ -257,6 +305,10 @@ def infer_type(title: str) -> str:
 # ─── INSERT ─────────────────────────────────────────────────────────────────
 
 def insert_job(job: dict, existing_keys: set) -> bool:
+    # Skip if the deadline is outside the current cycle (pre-Sep 2025 or expired)
+    if not is_date_relevant(job.get("deadline")):
+        return False
+
     # I check the in-memory set before hitting the DB so deduplication costs
     # zero network round trips.
     key = dedupe_key(job["company"], job["role"], job.get("url", ""))
@@ -277,6 +329,7 @@ def insert_job(job: dict, existing_keys: set) -> bool:
         # applied to yet - they sit in "scraped" status until I pursue them.
         "applied_date": None,
         "deadline":     job.get("deadline"),
+        "opening_date": job.get("opening_date"),
         "salary_range": job.get("salary_range", ""),
         "work_mode":    job.get("work_mode", ""),
         "source":       job.get("source", ""),
@@ -444,16 +497,13 @@ def scrape_trackr_all(existing_keys: set) -> int:
                     # I store the opening date in notes because there is no
                     # dedicated column for it.
                     if insert_job({
-                        "company":  company,
-                        "role":     programme,
-                        "type":     job_type,
-                        "url":      job_url or "",
-                        "source":   "The Trackr",
-                        "deadline": closing_date,
-                        "notes": (
-                            f"Opening: {opening_date}"
-                            if opening_date else ""
-                        ),
+                        "company":      company,
+                        "role":         programme,
+                        "type":         job_type,
+                        "url":          job_url or "",
+                        "source":       "The Trackr",
+                        "deadline":     closing_date,
+                        "opening_date": opening_date,
                     }, existing_keys):
                         count += 1
 
@@ -1370,12 +1420,25 @@ SMARTRECRUITERS_COMPANIES = [
 
 # ─── MAIN ───────────────────────────────────────────────────────────────────
 
+def reset_scraped_entries() -> None:
+    # I delete all previously scraped entries before each run so the DB
+    # reflects only the latest scraper output. Manually added entries are safe
+    # because they have a status other than "scraped".
+    try:
+        supabase.table("applications").delete().eq("status", "scraped").execute()
+        print("Cleared previous scraped entries")
+    except Exception as e:
+        print(f"Warning: could not clear scraped entries: {e}")
+
+
 def main():
     print(f"Job scraper starting at {datetime.now().isoformat()}")
-    # I load existing keys once at the start rather than querying the DB per
-    # insert - every duplicate check is then an O(1) in-memory set lookup.
+    # I wipe all previous scraped rows first so stale/bad entries never
+    # accumulate. Only manually-added rows (status != "scraped") are preserved.
+    reset_scraped_entries()
+    # I load existing keys after the reset so the set only contains manual entries.
     existing_keys = load_existing_keys()
-    print(f"Found {len(existing_keys)} existing applications in DB")
+    print(f"Found {len(existing_keys)} manual applications in DB")
 
     total = 0
 

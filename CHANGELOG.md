@@ -7,6 +7,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Applications Add dialog crash** - Radix UI Select v2 does not accept empty-string `value` on `SelectItem`; all five optional Select fields in AppForm (category, CV, cover letter, written answers, visa) now use sentinel values (`"auto"` / `"none"`) with onValueChange converting back to empty string
+- **Job scraper - full-time jobs ingested** - removed the priority-company exception that bypassed the student-role check; all companies now require a student/intern/placement term in the title or department
+- **Job scraper - US/international jobs ingested** - added `US_LOCATIONS` reject list; US cities and states are now explicitly excluded for all companies; priority companies still get a location pass for unknown foreign locations but never for explicit US ones
+- **Job scraper - stale 2024 entries** - added `CYCLE_CUTOFF = 2025-09-01` date filter; roles with a known closing date before Sep 2025 or already expired are silently skipped
+- **Job scraper - opening date stored in notes** - `opening_date` is now inserted into the proper DB column instead of appended to the notes field
+- **Job scraper - bad data accumulates across runs** - scraper now deletes all `status = scraped` entries at the start of each run before repopulating; manually-added entries (any other status) are preserved
+
 ### Added
 
 - **Private `/dashboard`** - protected section accessible only via GitHub OAuth; only Isaac's GitHub account can log in; not linked from public nav, sitemap or command menu
