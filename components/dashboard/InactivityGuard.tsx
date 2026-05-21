@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react"
 import { signOut } from "next-auth/react"
 
+// I use 1 hour so the session survives a long reading session without forcing a re-login mid-task
 const TIMEOUT_MS = 60 * 60 * 1000 // 1 hour
 
 export default function InactivityGuard() {
@@ -16,7 +17,9 @@ export default function InactivityGuard() {
       }, TIMEOUT_MS)
     }
 
+    // I listen to these five events to cover both desktop and mobile activity
     const events = ["mousemove", "keydown", "scroll", "click", "touchstart"]
+    // I use passive listeners so they never block scrolling performance
     events.forEach((e) => window.addEventListener(e, reset, { passive: true }))
     reset()
 
@@ -26,5 +29,6 @@ export default function InactivityGuard() {
     }
   }, [])
 
+  // I render nothing - this component exists purely for its side-effect
   return null
 }

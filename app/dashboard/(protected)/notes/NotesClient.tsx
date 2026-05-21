@@ -48,6 +48,7 @@ export default function NotesClient({ notes: initial }: { notes: Note[] }) {
   const [, startTransition] = useTransition()
   const router = useRouter()
 
+  // I derive folders and tags from the live notes array so they stay in sync after edits without an extra fetch
   const folders = ["All", ...Array.from(new Set(notes.map((n) => n.folder))).filter(Boolean)]
   const allTags = Array.from(new Set(notes.flatMap((n) => n.tags)))
 
@@ -65,6 +66,7 @@ export default function NotesClient({ notes: initial }: { notes: Note[] }) {
   const unpinned = filtered.filter((n) => !n.pinned)
 
   function startNew() {
+    // I pre-fill the folder from the active filter so new notes land in the right place by default
     setDraft({ title: "", content: "", folder: activeFolder === "All" ? "General" : activeFolder, tags: [], color: null, locked: false, pinned: false })
     setSelected(null)
     setEditing(true)
@@ -109,16 +111,19 @@ export default function NotesClient({ notes: initial }: { notes: Note[] }) {
   }
 
   function exportNote(note: Note) {
+    // I create a temporary anchor rather than opening a new window so the browser treats it as a download
     const blob = new Blob([`# ${note.title}\n\n${note.content}`], { type: "text/markdown" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
     a.download = `${note.title.replace(/\s+/g, "-").toLowerCase()}.md`
     a.click()
+    // I revoke immediately after click so the browser releases the object URL memory
     URL.revokeObjectURL(url)
   }
 
   function openNote(note: Note) {
+    // I intercept locked notes before displaying them so the content never renders in the DOM unprotected
     if (note.locked) {
       setUnlockingNote(note)
     } else {

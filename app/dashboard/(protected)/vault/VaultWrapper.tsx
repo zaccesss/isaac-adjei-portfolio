@@ -33,6 +33,7 @@ export default function VaultWrapper({ pinVerified, entries }: {
   const router = useRouter()
 
   if (!pinVerified) {
+    // I call router.refresh() on unlock so the server re-runs the page and passes pinVerified=true
     return <PinGate pageName="Vault" onUnlock={() => router.refresh()} />
   }
 

@@ -9,6 +9,7 @@ export default async function ProtectedDashboardLayout({
   children: React.ReactNode
 }) {
   const session = await auth()
+  // I redirect here as a server-side safety net even though middleware already guards this path
   if (!session) redirect("/dashboard/login")
 
   return (

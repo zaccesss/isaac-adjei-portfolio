@@ -33,6 +33,7 @@ export function AssessmentBarChart({ data }: { data: AssessmentPoint[] }) {
             formatter={(v) => [`${v}%`, "Mark"]}
             contentStyle={{ fontSize: 12, borderRadius: 8 }}
           />
+              {/* I draw grade threshold lines so I can see at a glance whether a bar hits First or 2:1 */}
           <ReferenceLine y={80} stroke="#22c55e" strokeDasharray="4 4" strokeOpacity={0.6} />
           <ReferenceLine y={60} stroke="#f59e0b" strokeDasharray="4 4" strokeOpacity={0.6} />
           <Bar dataKey="mark" radius={[3, 3, 0, 0]} fill="#6366f1" />
@@ -43,7 +44,9 @@ export function AssessmentBarChart({ data }: { data: AssessmentPoint[] }) {
 }
 
 export function ProgressLineChart({ data }: { data: AssessmentPoint[] }) {
+  // I map to a sequential index rather than using the name on the x-axis so the trend reads left-to-right over time
   const points = data.filter((d) => d.mark != null).map((d, i) => ({ ...d, index: i + 1 }))
+  // I require at least two points because a single point cannot show a trend
   if (points.length < 2) return null
 
   return (

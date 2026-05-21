@@ -69,6 +69,8 @@ At the end of every session:
 - No em dashes (`-`), no en dashes (`-`): use a hyphen `-` instead
 - No Oxford commas: write `x, y and z` not `x, y, and z`
 - No AI co-author credits anywhere
+- All inline code comments must be first-person: "I use..." or "I check..." not "This function..." or "The component..."
+- PR descriptions, LOG.md entries and WORKFLOW.md must all use first-person where applicable ("I'll run this in Supabase...", "I changed X because...")
 
 ---
 

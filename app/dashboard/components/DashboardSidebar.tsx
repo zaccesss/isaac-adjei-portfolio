@@ -35,7 +35,9 @@ export default function DashboardSidebar({
 }) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(() => {
+    // I guard against SSR where window is undefined, defaulting to expanded
     if (typeof window === "undefined") return false
+    // I read from localStorage so the preference survives page navigations
     return localStorage.getItem("nexus_sidebar_collapsed") === "true"
   })
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -44,6 +46,7 @@ export default function DashboardSidebar({
   function toggleCollapse() {
     const next = !collapsed
     setCollapsed(next)
+    // I persist the new state so it is restored on the next page load
     localStorage.setItem("nexus_sidebar_collapsed", String(next))
   }
 
@@ -90,11 +93,13 @@ export default function DashboardSidebar({
       {/* Nav */}
       <nav className="flex flex-col gap-0.5 flex-1 overflow-y-auto">
         {nav.map(({ href, label, icon: Icon }) => {
+          // I also highlight the link when on a sub-route so nested pages feel connected
           const active = pathname === href || pathname.startsWith(href + "/")
           return (
             <Link
               key={href}
               href={href}
+              // I close the mobile drawer on navigation so the content is not obscured
               onClick={() => setMobileOpen(false)}
               title={collapsed ? label : undefined}
               className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
