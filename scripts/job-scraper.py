@@ -106,19 +106,21 @@ US_LOCATIONS = [
     "united states", "usa", "u.s.a", "u.s.", "north america",
 ]
 
-# I only keep roles where the closing date is in the 2025/26 recruitment
-# cycle (on or after Sep 2025) and has not already passed.
+# Internship cycle cutoff: Sep 2025 start of 2025/26 recruiting season.
 CYCLE_CUTOFF = datetime(2025, 9, 1)
+# Full-time job cutoff: Jan 2026 - only include recently posted roles.
+JOB_CUTOFF = datetime(2026, 1, 1)
 
 
-def is_date_relevant(closing_date_str: "str | None") -> bool:
-    """True if the role's closing date is within the current cycle and not expired."""
+def is_date_relevant(closing_date_str: "str | None", cutoff: "datetime | None" = None) -> bool:
+    """True if the role's closing date is within the expected cycle and not expired."""
     if not closing_date_str:
         return True  # no deadline = include (unknown)
     try:
         d = datetime.strptime(closing_date_str, "%Y-%m-%d")
         now = datetime.now()
-        return d >= CYCLE_CUTOFF and d >= now
+        effective_cutoff = cutoff if cutoff is not None else CYCLE_CUTOFF
+        return d >= effective_cutoff and d >= now
     except ValueError:
         return True
 
@@ -253,6 +255,18 @@ def is_student_role(
     return False
 
 
+def is_relevant_job(title: str) -> bool:
+    """True if this is a full-time tech role (NOT a student/intern role).
+
+    I use this for the Jobs tab. No location check - Jobs are anywhere.
+    """
+    # Must NOT be a student-facing role
+    if is_student_role(title, None):
+        return False
+    title_lower = title.lower()
+    return any(k in title_lower for k in TECH_KEYWORDS)
+
+
 def is_relevant(
     title: str,
     company: str,
@@ -305,8 +319,9 @@ def infer_type(title: str) -> str:
 # ─── INSERT ─────────────────────────────────────────────────────────────────
 
 def insert_job(job: dict, existing_keys: set) -> bool:
-    # Skip if the deadline is outside the current cycle (pre-Sep 2025 or expired)
-    if not is_date_relevant(job.get("deadline")):
+    # I use a different date cutoff for full-time jobs (Jan 2026) vs internships (Sep 2025)
+    cutoff = JOB_CUTOFF if job.get("type") == "Full-time Job" else CYCLE_CUTOFF
+    if not is_date_relevant(job.get("deadline"), cutoff):
         return False
 
     # I check the in-memory set before hitting the DB so deduplication costs
@@ -570,20 +585,26 @@ def scrape_greenhouse(
                 for d in (job.get("departments") or [])
             ]
 
-            if not is_relevant(
-                title, company_name, location, dept_names
-            ):
-                continue
-
-            if insert_job({
-                "company":  company_name,
-                "role":     title,
-                "type":     infer_type(title),
-                "url":      job_url,
-                "location": location,
-                "source":   "Greenhouse",
-            }, existing_keys):
-                count += 1
+            if is_relevant(title, company_name, location, dept_names):
+                if insert_job({
+                    "company":  company_name,
+                    "role":     title,
+                    "type":     infer_type(title),
+                    "url":      job_url,
+                    "location": location,
+                    "source":   "Greenhouse",
+                }, existing_keys):
+                    count += 1
+            elif is_relevant_job(title):
+                if insert_job({
+                    "company":  company_name,
+                    "role":     title,
+                    "type":     "Full-time Job",
+                    "url":      job_url,
+                    "location": location,
+                    "source":   "Greenhouse",
+                }, existing_keys):
+                    count += 1
 
         # I sleep 0.5 seconds between companies to be a polite scraper.
         time.sleep(0.5)
@@ -614,18 +635,26 @@ def scrape_lever(
             # I prefer hostedUrl over applyUrl because it shows the full JD.
             job_url = job.get("hostedUrl", "")
 
-            if not is_relevant(title, company_name, location):
-                continue
-
-            if insert_job({
-                "company":  company_name,
-                "role":     title,
-                "type":     infer_type(title),
-                "url":      job_url,
-                "location": location,
-                "source":   "Lever",
-            }, existing_keys):
-                count += 1
+            if is_relevant(title, company_name, location):
+                if insert_job({
+                    "company":  company_name,
+                    "role":     title,
+                    "type":     infer_type(title),
+                    "url":      job_url,
+                    "location": location,
+                    "source":   "Lever",
+                }, existing_keys):
+                    count += 1
+            elif is_relevant_job(title):
+                if insert_job({
+                    "company":  company_name,
+                    "role":     title,
+                    "type":     "Full-time Job",
+                    "url":      job_url,
+                    "location": location,
+                    "source":   "Lever",
+                }, existing_keys):
+                    count += 1
 
         time.sleep(0.5)
     except Exception as e:
@@ -683,18 +712,26 @@ def scrape_ashby(
                 or f"{url}/{job.get('id', '')}"
             )
 
-            if not is_relevant(title, company_name, location):
-                continue
-
-            if insert_job({
-                "company":  company_name,
-                "role":     title,
-                "type":     infer_type(title),
-                "url":      job_url,
-                "location": location,
-                "source":   "Ashby",
-            }, existing_keys):
-                count += 1
+            if is_relevant(title, company_name, location):
+                if insert_job({
+                    "company":  company_name,
+                    "role":     title,
+                    "type":     infer_type(title),
+                    "url":      job_url,
+                    "location": location,
+                    "source":   "Ashby",
+                }, existing_keys):
+                    count += 1
+            elif is_relevant_job(title):
+                if insert_job({
+                    "company":  company_name,
+                    "role":     title,
+                    "type":     "Full-time Job",
+                    "url":      job_url,
+                    "location": location,
+                    "source":   "Ashby",
+                }, existing_keys):
+                    count += 1
 
         time.sleep(0.5)
     except Exception as e:
@@ -1418,6 +1455,55 @@ SMARTRECRUITERS_COMPANIES = [
 ]
 
 
+# ─── REMOTIVE (remote full-time tech jobs, worldwide) ────────────────────────
+
+def scrape_remotive(existing_keys: set) -> int:
+    # I use Remotive's free public API which returns currently open remote jobs.
+    # I filter to full_time only so internship/contract listings are excluded.
+    print("\nScraping Remotive (remote full-time jobs)...")
+    count = 0
+    categories = ["software-dev", "devops-sysadmin", "data", "product"]
+    seen_ids: set = set()
+    for cat in categories:
+        url = f"https://remotive.com/api/remote-jobs?category={cat}&limit=100"
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=15)
+            if resp.status_code != 200:
+                print(f"  Remotive {cat}: HTTP {resp.status_code}")
+                continue
+            for job in resp.json().get("jobs", []):
+                job_id = job.get("id")
+                if job_id in seen_ids:
+                    continue
+                seen_ids.add(job_id)
+                if job.get("job_type") != "full_time":
+                    continue
+                title = job.get("title", "")
+                company = job.get("company_name", "")
+                job_url = job.get("url", "")
+                location = job.get("candidate_required_location", "")
+                salary = job.get("salary", "")
+                pub_str = (job.get("publication_date") or "")[:10] or None
+                if not is_relevant_job(title):
+                    continue
+                if insert_job({
+                    "company":      company,
+                    "role":         title,
+                    "type":         "Full-time Job",
+                    "url":          job_url,
+                    "location":     location,
+                    "salary_range": salary or "",
+                    "opening_date": pub_str,
+                    "source":       "Remotive",
+                }, existing_keys):
+                    count += 1
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"  Error Remotive {cat}: {e}")
+    print(f"  Added {count} from Remotive")
+    return count
+
+
 # ─── MAIN ───────────────────────────────────────────────────────────────────
 
 def reset_scraped_entries() -> None:
@@ -1486,6 +1572,10 @@ def main():
     total += scrape_brightnetwork(existing_keys)
     total += scrape_totaljobs(existing_keys)
     total += scrape_prospects(existing_keys)
+
+    # I run Remotive last because it is a dedicated full-time job source
+    # (not an internship source) and only feeds the Jobs tab.
+    total += scrape_remotive(existing_keys)
 
     print(f"\nDone. Added {total} new jobs.")
 

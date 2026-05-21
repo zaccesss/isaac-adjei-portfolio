@@ -149,7 +149,7 @@ function detectCategory(company: string, role: string): Category {
   return "Software Engineering"
 }
 
-const TAB_TYPES = ["Summer Internships", "Industrial Placements", "Graduate Schemes", "Spring Weeks", "Events"] as const
+const TAB_TYPES = ["Summer Internships", "Industrial Placements", "Graduate Schemes", "Spring Weeks", "Events", "Jobs"] as const
 type Tab = (typeof TAB_TYPES)[number]
 
 function appBelongsToTab(app: Application, tab: Tab): boolean {
@@ -160,6 +160,7 @@ function appBelongsToTab(app: Application, tab: Tab): boolean {
   if (tab === "Graduate Schemes") return t === "Graduate"
   if (tab === "Spring Weeks") return t === "Spring Week"
   if (tab === "Events") return t === "Event"
+  if (tab === "Jobs") return t === "Full-time Job"
   return false
 }
 
@@ -184,6 +185,7 @@ const APP_TYPE_OPTIONS = [
   "Graduate",
   "Spring Week",
   "Event",
+  "Full-time Job",
   "Internship",
   "Other",
 ]
