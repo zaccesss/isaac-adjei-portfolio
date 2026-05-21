@@ -9,8 +9,7 @@ import { GeistMono } from "geist/font/mono"
 import Script from "next/script"
 import "./globals.css"
 import "@/styles/animations.css"
-import Header from "@/components/layout/Header"
-import Footer from "@/components/layout/Footer"
+import PublicShell from "@/components/layout/PublicShell"
 import CommandMenu from "@/components/shared/CommandMenu"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { SITE_URL } from "@/lib/constants"
@@ -128,11 +127,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           enableSystem
           disableTransitionOnChange
         >
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
+          <PublicShell>{children}</PublicShell>
           <CommandMenu />
         </ThemeProvider>
       </body>
