@@ -66,45 +66,116 @@ TECH_KEYWORDS = [
     "signal processing", "rf", "photonics", "asic", "vlsi", "soc",
 ]
 
-# I require at least one of these terms to confirm the role is student-facing
-# rather than a permanent position that happens to mention "software".
-STUDENT_TERMS = [
-    "intern", "internship", "placement", "spring week", "spring insight",
-    "insight week", "insight programme", "industrial placement",
-    "year in industry", "summer", "co-op", "coop", "apprentice",
-    "apprenticeship", "early career", "early talent", "new grad",
-    "graduate scheme", "graduate programme", "off-cycle",
-    "discovery programme", "work experience", "penultimate",
-    "undergraduate", "student", "campus", "university",
+# ─── PER-CATEGORY STUDENT TERM SETS ────────────────────────────────────────
+# I split student terms by category so the scraper can identify the correct
+# application type for each role rather than lumping everything into one bag.
+
+INTERNSHIP_TERMS = [
+    "intern", "internship", "co-op", "coop", "student researcher",
+    "undergraduate researcher", "research intern", "off-cycle intern",
+    "summer 2026", "summer intern", "2026 intern", "technology intern",
+    "software intern", "engineering intern", "data intern", "ai intern",
+    "tech intern",
 ]
 
-# I only include London, Birmingham, Manchester (and areas within ~10 miles)
-# plus Remote/Hybrid UK. Anything explicitly US or non-UK is rejected.
-TARGET_LOCATIONS = [
-    # London and Greater London
+PLACEMENT_TERMS = [
+    "placement", "year in industry", "industrial placement",
+    "sandwich year", "12 month placement", "12-month placement",
+    "year-long placement", "year long placement", "12 months placement",
+    "placement year", "industrial year", "work placement",
+]
+
+SPRING_WEEK_TERMS = [
+    "spring week", "spring insight", "insight week", "insight programme",
+    "spring programme", "discovery programme", "explore programme",
+    "spring intern", "first year", "penultimate", "women in tech",
+    "diversity programme", "access programme",
+]
+
+GRADUATE_TERMS = [
+    "graduate scheme", "graduate programme", "grad scheme",
+    "new grad", "entry level", "early careers",
+    "early talent", "technology graduate", "software graduate",
+    "engineering graduate", "apprenticeship",
+]
+
+EVENT_TERMS = [
+    "hackathon", "coding challenge", "coding competition",
+    "open day", "careers fair", "workshop", "conference",
+    "networking", "virtual event", "online event",
+]
+
+# Combined flat list for quick is_student_role checks
+STUDENT_TERMS = (
+    INTERNSHIP_TERMS + PLACEMENT_TERMS + SPRING_WEEK_TERMS + GRADUATE_TERMS
+)
+
+# UK and major European tech hubs - broad enough to catch all UK roles and
+# nearby European offices that UK students commonly get placed to.
+UK_EU_TERMS = [
+    # UK national terms
+    "uk", "united kingdom", "england", "scotland", "wales",
+    "great britain", "britain", "gb", "u.k.",
+    # London and Greater London boroughs
     "london", "canary wharf", "croydon", "ilford", "bromley", "harrow",
-    "sutton", "kingston", "richmond", "wimbledon", "stratford", "greenwich",
-    "hackney", "islington", "lambeth", "southwark", "wandsworth",
-    # Birmingham and within ~10 miles
-    "birmingham", "coventry", "wolverhampton", "solihull", "walsall",
-    "west bromwich", "dudley", "sandwell", "sutton coldfield",
-    # Manchester and within ~10 miles
-    "manchester", "salford", "stockport", "oldham", "rochdale",
-    "bolton", "bury", "trafford", "altrincham", "stretford",
-    # Remote UK
-    "remote", "work from home", "hybrid",
-    # UK-wide (no city specified)
-    "uk", "united kingdom", "england", "nationwide", "great britain",
+    "sutton", "kingston upon thames", "richmond", "wimbledon", "stratford",
+    "greenwich", "hackney", "islington", "lambeth", "southwark", "wandsworth",
+    "shoreditch", "hoxton", "bank", "city of london", "westminster",
+    # Major UK cities
+    "birmingham", "manchester", "edinburgh", "glasgow", "bristol",
+    "cambridge", "oxford", "reading", "leeds", "sheffield",
+    "liverpool", "nottingham", "coventry", "leicester", "southampton",
+    "portsmouth", "exeter", "bath", "brighton", "norwich", "york",
+    "cardiff", "belfast", "newcastle", "sunderland", "middlesbrough",
+    "hull", "stoke", "wolverhampton", "derby", "worcester",
+    "milton keynes", "luton", "slough", "guildford", "basingstoke",
+    "watford", "hertford", "ipswich", "chelmsford", "stevenage",
+    "guildford", "guildford", "woking", "farnborough", "eastleigh",
+    "solihull", "walsall", "west bromwich", "dudley", "sandwell",
+    "salford", "stockport", "oldham", "rochdale", "bolton", "trafford",
+    # Remote / flexible
+    "remote", "work from home", "hybrid", "flexible", "distributed",
+    "anywhere in the uk", "home based", "home-based",
+    # Republic of Ireland (many UK students work in Dublin)
+    "ireland", "dublin",
+    # Key European tech hubs
+    "amsterdam", "berlin", "munich", "paris", "lisbon",
+    "madrid", "barcelona", "stockholm", "zurich", "geneva",
+    "brussels", "luxembourg",
+    # Generic region terms
+    "europe", "emea", "european", "worldwide", "global",
+    "nationwide",
 ]
 
-# I reject any location that is explicitly in the US or clearly non-UK.
+# Explicitly US/non-EU locations - always rejected even for priority companies.
 US_LOCATIONS = [
-    "new york", "san francisco", "los angeles", "los angeles, ca",
+    "new york", "san francisco", "los angeles", "san jose",
     "seattle", "boston", "chicago", "austin", "denver", "atlanta",
-    "miami", "dallas", "philadelphia", "portland", "san jose",
-    "california", "new jersey", "texas", "washington, dc", "washington d.c.",
+    "miami", "dallas", "philadelphia", "portland", "minneapolis",
+    "raleigh", "charlotte", "salt lake city", "phoenix", "las vegas",
+    "california", "new jersey", "texas", "north carolina", "colorado",
+    "washington, dc", "washington d.c.", "washington, d.c.",
     "united states", "usa", "u.s.a", "u.s.", "north america",
+    # Canada (separate from UK/EU)
+    "toronto", "vancouver", "montreal", "canada",
+    # Asia-Pacific
+    "singapore", "hong kong", "sydney", "melbourne", "tokyo",
+    "bangalore", "hyderabad", "india", "china",
+    # Exclude honolulu, hawaii specifically
+    "honolulu", "hawaii",
 ]
+
+# Known standalone UK city names used for location normalisation.
+# When a posting says just "London" we store it as "London, UK".
+UK_CITIES = {
+    "london", "birmingham", "manchester", "edinburgh", "glasgow",
+    "bristol", "cambridge", "oxford", "reading", "leeds", "sheffield",
+    "liverpool", "nottingham", "coventry", "leicester", "southampton",
+    "portsmouth", "exeter", "bath", "brighton", "norwich", "york",
+    "cardiff", "belfast", "newcastle upon tyne", "newcastle",
+    "milton keynes", "guildford", "basingstoke", "watford",
+    "wolverhampton", "derby", "worcester", "ipswich",
+}
 
 # Internship cycle cutoff: Sep 2025 start of 2025/26 recruiting season.
 CYCLE_CUTOFF = datetime(2025, 9, 1)
@@ -125,19 +196,48 @@ def is_date_relevant(closing_date_str: "str | None", cutoff: "datetime | None" =
         return True
 
 
-def is_location_ok(location: str, is_priority: bool) -> bool:
-    """True if the location is one of Isaac's target areas or unknown."""
+def normalize_location(location: str) -> str:
+    """Append ', UK' to bare UK city names that lack a country suffix.
+
+    Greenhouse/Lever often return just "London" or "Birmingham". I append
+    ', UK' so the table clearly shows the country.
+    """
     if not location:
-        return True  # no location = include (many postings omit it)
+        return location
+    stripped = location.strip()
+    lower = stripped.lower()
+    # Already has a country or region indicator - leave as is
+    if any(c in lower for c in [
+        "uk", "united kingdom", "england", "scotland", "wales",
+        "remote", "hybrid", "europe", "emea", "global", "worldwide",
+        "ireland", "berlin", "amsterdam", "paris", "lisbon", "zurich",
+    ]):
+        return stripped
+    # Known bare UK city - append ", UK"
+    for city in UK_CITIES:
+        if city in lower:
+            return f"{stripped}, UK"
+    return stripped
+
+
+def is_location_ok(location: str, is_priority: bool) -> bool:
+    """True if the location is UK/Europe or unknown.
+
+    I accept all of UK (any city), Remote/Hybrid and major European tech
+    hubs. I reject explicit US locations for all companies regardless of
+    tier. For priority companies I also accept unknown/unrecognised foreign
+    locations because they likely have UK offices not labelled in every post.
+    """
+    if not location:
+        return True  # unknown = include
     loc = location.lower()
-    # Explicitly US = always reject regardless of company tier
+    # Explicit US/non-EU = always reject
     if any(us in loc for us in US_LOCATIONS):
         return False
-    # UK target city/region = always accept
-    if any(uk in loc for uk in TARGET_LOCATIONS):
+    # UK / EU match = accept
+    if any(uk in loc for uk in UK_EU_TERMS):
         return True
-    # Priority company + unknown non-US foreign location = accept
-    # (e.g. "Global" or "Europe" at Goldman Sachs is likely London-relevant)
+    # Priority company + unrecognised foreign location = accept
     return is_priority
 
 # I apply a looser filter for priority companies because a Software Engineer
@@ -255,16 +355,22 @@ def is_student_role(
     return False
 
 
-def is_relevant_job(title: str) -> bool:
-    """True if this is a full-time tech role (NOT a student/intern role).
+def is_relevant_job(
+    title: str,
+    company: str = "",
+    location: str = "",
+) -> bool:
+    """True if this is a full-time tech role for the Jobs tab.
 
-    I use this for the Jobs tab. No location check - Jobs are anywhere.
+    Jobs use the same UK/Europe location filter as internships - no point
+    showing a San Francisco full-time role to someone based in the UK.
     """
-    # Must NOT be a student-facing role
     if is_student_role(title, None):
         return False
-    title_lower = title.lower()
-    return any(k in title_lower for k in TECH_KEYWORDS)
+    if not any(k in title.lower() for k in TECH_KEYWORDS):
+        return False
+    is_priority = any(p in company.lower() for p in PRIORITY_COMPANIES)
+    return is_location_ok(location, is_priority)
 
 
 def is_relevant(
@@ -275,37 +381,43 @@ def is_relevant(
 ) -> bool:
     """True if this internship/placement/graduate role should be saved.
 
-    No location restriction - the location is stored and shown in the UI so
-    Isaac can filter by city himself. I only require student terms + tech
-    keyword so no good opportunity is missed due to geography.
+    Requires student term + tech keyword + UK/Europe location. The location
+    check accepts any UK city, Remote/Hybrid and major European tech hubs.
+    For priority companies an empty or unknown location is also accepted
+    because they often have UK offices not labelled in every posting.
     """
-    # Must be student-facing - no full-time roles
     if not is_student_role(title, dept_names):
         return False
-    # Must be tech-related
-    title_lower = title.lower()
-    return any(k in title_lower for k in TECH_KEYWORDS)
+    if not any(k in title.lower() for k in TECH_KEYWORDS):
+        return False
+    is_priority = any(p in company.lower() for p in PRIORITY_COMPANIES)
+    return is_location_ok(location, is_priority)
 
 
-def infer_type(title: str) -> str:
-    # I infer the role type from keywords in the title rather than relying on
-    # the source's categorisation because different boards use inconsistent
-    # labels for the same role type.
+def infer_type(title: str, default: str = "Summer Internship") -> str:
+    """Determine application type from the role title using per-category term sets.
+
+    I check placement and spring week terms first because they are more
+    specific than the general 'intern' / 'summer' terms. Graduate schemes
+    and events are checked last.
+    """
     t = title.lower()
-    if "placement" in t or "year in industry" in t or "industrial" in t:
+    # Industrial Placement - 12-month / year in industry
+    if any(term in t for term in PLACEMENT_TERMS):
         return "Industrial Placement"
-    if "graduate scheme" in t or "graduate programme" in t:
-        return "Graduate"
-    if "spring" in t or "insight" in t or "discovery" in t:
+    # Spring Week / Insight
+    if any(term in t for term in SPRING_WEEK_TERMS):
         return "Spring Week"
-    if "summer" in t:
-        return "Summer Internship"
-    if "apprentice" in t:
-        return "Apprenticeship"
-    if "new grad" in t or "university grad" in t:
+    # Graduate Scheme
+    if any(term in t for term in GRADUATE_TERMS):
         return "Graduate"
-    # I default to "internship" so the DB type column is never empty.
-    return "internship"
+    # Events
+    if any(term in t for term in EVENT_TERMS):
+        return "Event"
+    # General Internship
+    if any(term in t for term in INTERNSHIP_TERMS):
+        return "Summer Internship"
+    return default
 
 
 # ─── URL CHECKS AND LOCATION ENRICHMENT ─────────────────────────────────────
@@ -398,7 +510,7 @@ def insert_job(job: dict, existing_keys: set) -> bool:
         # manually added in the dashboard.
         "status":       "scraped",
         "url":          job.get("url", ""),
-        "location":     job.get("location", ""),
+        "location":     normalize_location(job.get("location", "")),
         "notes":        job.get("notes", ""),
         # I leave applied_date as None because scraped roles have not been
         # applied to yet - they sit in "scraped" status until I pursue them.
@@ -662,7 +774,7 @@ def scrape_greenhouse(
                     "source":   "Greenhouse",
                 }, existing_keys):
                     count += 1
-            elif is_relevant_job(title):
+            elif is_relevant_job(title, company_name, location):
                 if insert_job({
                     "company":  company_name,
                     "role":     title,
@@ -723,7 +835,7 @@ def scrape_lever(
                     "source":    "Lever",
                 }, existing_keys):
                     count += 1
-            elif is_relevant_job(title):
+            elif is_relevant_job(title, company_name, location):
                 if insert_job({
                     "company":   company_name,
                     "role":      title,
@@ -801,7 +913,7 @@ def scrape_ashby(
                     "source":   "Ashby",
                 }, existing_keys):
                     count += 1
-            elif is_relevant_job(title):
+            elif is_relevant_job(title, company_name, location):
                 if insert_job({
                     "company":  company_name,
                     "role":     title,
@@ -1395,21 +1507,31 @@ GREENHOUSE_COMPANIES = [
     ("anthropic",         "Anthropic"),
     ("databricks",        "Databricks"),
     ("snowflakecomputing", "Snowflake"),
+    ("nvidia",            "NVIDIA"),
     ("coinbase",          "Coinbase"),
     ("samsara",           "Samsara"),
     ("coreweave",         "CoreWeave"),
     ("anduril",           "Anduril Industries"),
     ("scaleai",           "Scale AI"),
+    # Finance & banking
+    ("goldmansachs",      "Goldman Sachs"),
+    ("wise",              "Wise"),
+    ("revolut",           "Revolut"),
     # Fintech & payments
     ("brex",              "Brex"),
     ("ramp",              "Ramp"),
     ("plaid",             "Plaid"),
     ("rippling",          "Rippling"),
+    ("adyen",             "Adyen"),
+    ("klarna",            "Klarna"),
     # Trading & quant
     ("citadel",           "Citadel"),
     ("citadelsecurities", "Citadel Securities"),
     ("akunacapital",      "Akuna Capital"),
     ("imc",               "IMC Trading"),
+    ("janestreet",        "Jane Street"),
+    ("twosigma",          "Two Sigma"),
+    ("optiver",           "Optiver"),
     # Developer tools & infra
     ("hashicorp",         "HashiCorp"),
     ("grafana",           "Grafana Labs"),
@@ -1427,6 +1549,8 @@ GREENHOUSE_COMPANIES = [
     ("intercom",          "Intercom"),
     ("squareup",          "Block (Square)"),
     ("robinhood",         "Robinhood"),
+    ("atlassian",         "Atlassian"),
+    ("zendesk",           "Zendesk"),
     # Cloud & security
     ("crowdstrike",       "CrowdStrike"),
     ("okta",              "Okta"),
@@ -1439,6 +1563,7 @@ GREENHOUSE_COMPANIES = [
     ("pagerduty",         "PagerDuty"),
     ("sumo-logic",        "Sumo Logic"),
     ("harness",           "Harness"),
+    ("wiz-io",            "Wiz"),
     # More developer tools
     ("1password",         "1Password"),
     ("zapier",            "Zapier"),
@@ -1457,6 +1582,10 @@ GREENHOUSE_COMPANIES = [
     ("darktrace",         "Darktrace"),
     ("onfido",            "Onfido"),
     ("improbable",        "Improbable"),
+    ("monzo",             "Monzo"),
+    ("checkout",          "Checkout.com"),
+    ("starlingbank",      "Starling Bank"),
+    ("benevolentai",      "BenevolentAI"),
     # Data & analytics
     ("fivetran",          "Fivetran"),
     ("dbtlabs",           "dbt Labs"),
@@ -1473,6 +1602,9 @@ GREENHOUSE_COMPANIES = [
     ("cockroachlabs",     "CockroachDB"),
     ("weaviate",          "Weaviate"),
     ("pinecone",          "Pinecone"),
+    # Defence & aerospace
+    ("baesystems",        "BAE Systems"),
+    ("leidos",            "Leidos"),
 ]
 
 # (lever_slug, display_name)
@@ -1499,6 +1631,11 @@ LEVER_COMPANIES = [
     ("deel",         "Deel"),
     ("ripple",       "Ripple"),
     ("figma",        "Figma"),
+    ("deliveroo",    "Deliveroo"),
+    ("skyscanner",   "Skyscanner"),
+    ("getmomo",      "Momo"),
+    ("arm",          "ARM"),
+    ("wayve",        "Wayve"),
 ]
 
 # (ashby_slug, display_name)
@@ -1516,6 +1653,10 @@ ASHBY_COMPANIES = [
     ("neon",         "Neon"),
     ("turso",        "Turso"),
     ("planetscale",  "PlanetScale"),
+    ("openai",       "OpenAI"),
+    ("deepmind",     "Google DeepMind"),
+    ("waymo",        "Waymo"),
+    ("anyscale",     "Anyscale"),
 ]
 
 # I use SmartRecruiters for large UK employers that are not on Greenhouse or
@@ -1531,7 +1672,266 @@ SMARTRECRUITERS_COMPANIES = [
     ("DXC",            "DXC Technology"),
     ("BT",             "BT"),
     ("Virgin",         "Virgin Media O2"),
+    ("Siemens",        "Siemens"),
+    ("IBM",            "IBM"),
+    ("NatWest",        "NatWest"),
+    ("Barclays",       "Barclays"),
+    ("HSBC",           "HSBC"),
+    ("BritishAirways", "British Airways"),
+    ("RollsRoyce",     "Rolls-Royce"),
+    ("BAEsystems",     "BAE Systems"),
+    ("Airbus",         "Airbus"),
+    ("AstraZeneca",    "AstraZeneca"),
+    ("GlaxoSmithKline","GSK"),
+    ("BPGlobal",       "BP"),
+    ("Shell",          "Shell"),
+    ("Deloitte",       "Deloitte"),
+    ("PwC",            "PwC"),
+    ("EY",             "EY"),
 ]
+
+
+# ─── APPLE CAREERS ──────────────────────────────────────────────────────────
+
+def scrape_apple(existing_keys: set) -> int:
+    """Scrape Apple UK internships via their public jobs search API."""
+    print("\nScraping Apple Careers (UK)...")
+    count = 0
+    page = 1
+    while page <= 10:
+        try:
+            resp = requests.get(
+                "https://jobs.apple.com/api/role/search",
+                params={
+                    "filters": json.dumps({
+                        "postingpostLocation": ["postLocation-GBR"],
+                        "employmentType": ["INTERNS"],
+                    }),
+                    "page": str(page),
+                    "locale": "en-US",
+                },
+                headers={**HEADERS, "Referer": "https://jobs.apple.com/"},
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                print(f"  Apple: HTTP {resp.status_code}")
+                break
+            data = resp.json()
+            results = data.get("searchResults", [])
+            if not results:
+                break
+            for role in results:
+                title = role.get("postingTitle", "")
+                locs = role.get("locations", [])
+                location = locs[0].get("name", "") if locs else ""
+                pid = role.get("positionId", "")
+                job_url = (
+                    f"https://jobs.apple.com/en-gb/details/{pid}"
+                    if pid else ""
+                )
+                if not is_relevant(title, "Apple", location):
+                    continue
+                if insert_job({
+                    "company":  "Apple",
+                    "role":     title,
+                    "type":     infer_type(title),
+                    "url":      job_url,
+                    "location": location,
+                    "source":   "Apple Careers",
+                }, existing_keys):
+                    count += 1
+            if len(results) < 20:
+                break
+            page += 1
+            time.sleep(1)
+        except Exception as e:
+            print(f"  Error Apple p{page}: {e}")
+            break
+    print(f"  Added {count} from Apple Careers")
+    return count
+
+
+# ─── GOOGLE CAREERS ──────────────────────────────────────────────────────────
+
+def scrape_google(existing_keys: set) -> int:
+    """Scrape Google UK internships via their careers search API."""
+    print("\nScraping Google Careers (UK)...")
+    count = 0
+    search_terms = ["intern", "internship", "placement"]
+    seen: set = set()
+    for term in search_terms:
+        try:
+            resp = requests.get(
+                "https://careers.google.com/api/v3/search/",
+                params={
+                    "q": term,
+                    "location.address": "United Kingdom",
+                    "employment_type": "INTERN",
+                    "jlo": "en_US",
+                    "num": 50,
+                },
+                headers={**HEADERS, "Referer": "https://careers.google.com/"},
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                print(f"  Google ({term}): HTTP {resp.status_code}")
+                continue
+            for job in resp.json().get("jobs", []):
+                jid = job.get("id") or job.get("title", "")
+                if jid in seen:
+                    continue
+                seen.add(jid)
+                title = job.get("title", "")
+                location = ""
+                for loc in job.get("locations", []):
+                    if isinstance(loc, dict):
+                        location = loc.get("display", "") or loc.get("city", "")
+                        if location:
+                            break
+                    elif isinstance(loc, str):
+                        location = loc
+                        break
+                rel_url = job.get("relative_url") or job.get("apply_url") or ""
+                job_url = (
+                    f"https://careers.google.com{rel_url}"
+                    if rel_url and rel_url.startswith("/")
+                    else rel_url
+                )
+                if not is_relevant(title, "Google", location):
+                    continue
+                if insert_job({
+                    "company":  "Google",
+                    "role":     title,
+                    "type":     infer_type(title),
+                    "url":      job_url,
+                    "location": location,
+                    "source":   "Google Careers",
+                }, existing_keys):
+                    count += 1
+            time.sleep(1)
+        except Exception as e:
+            print(f"  Error Google ({term}): {e}")
+    print(f"  Added {count} from Google Careers")
+    return count
+
+
+# ─── MICROSOFT CAREERS ────────────────────────────────────────────────────────
+
+def scrape_microsoft(existing_keys: set) -> int:
+    """Scrape Microsoft UK internships from their careers portal."""
+    print("\nScraping Microsoft Careers (UK)...")
+    count = 0
+    page = 1
+    while page <= 10:
+        try:
+            resp = requests.get(
+                "https://jobs.careers.microsoft.com/api/jobs/search",
+                params={
+                    "q": "intern",
+                    "lc": "United Kingdom",
+                    "l": "en_us",
+                    "pg": str(page),
+                    "pgSz": "20",
+                    "o": "Relevance",
+                    "flt": "true",
+                },
+                headers={
+                    **HEADERS,
+                    "Referer": "https://jobs.careers.microsoft.com/",
+                },
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                print(f"  Microsoft: HTTP {resp.status_code}")
+                break
+            data = resp.json()
+            jobs_list = (
+                data.get("operationResult", {})
+                    .get("result", {})
+                    .get("jobs", [])
+            )
+            if not jobs_list:
+                break
+            for job in jobs_list:
+                title = job.get("title", "")
+                props = job.get("properties", {})
+                location = props.get("primaryWorkLocation", "")
+                jid = job.get("jobId", "")
+                job_url = (
+                    f"https://jobs.careers.microsoft.com/global/en/job/{jid}"
+                    if jid else ""
+                )
+                if not is_relevant(title, "Microsoft", location):
+                    continue
+                if insert_job({
+                    "company":  "Microsoft",
+                    "role":     title,
+                    "type":     infer_type(title),
+                    "url":      job_url,
+                    "location": location,
+                    "source":   "Microsoft Careers",
+                }, existing_keys):
+                    count += 1
+            if len(jobs_list) < 20:
+                break
+            page += 1
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"  Error Microsoft p{page}: {e}")
+            break
+    print(f"  Added {count} from Microsoft Careers")
+    return count
+
+
+# ─── AMAZON JOBS ─────────────────────────────────────────────────────────────
+
+def scrape_amazon(existing_keys: set) -> int:
+    """Scrape Amazon UK student roles from amazon.jobs JSON API."""
+    print("\nScraping Amazon Jobs (UK)...")
+    count = 0
+    for query in ["software intern", "data intern", "engineer intern"]:
+        try:
+            resp = requests.get(
+                "https://www.amazon.jobs/en/search.json",
+                params={
+                    "base_query": query,
+                    "country":    "GBR",
+                    "result_limit": "50",
+                    "sort":       "relevant",
+                },
+                headers={**HEADERS, "Referer": "https://www.amazon.jobs/"},
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                print(f"  Amazon ({query}): HTTP {resp.status_code}")
+                continue
+            for job in resp.json().get("jobs", []):
+                title = job.get("title", "")
+                city = job.get("city", "")
+                country_code = job.get("country_code", "")
+                location = (
+                    f"{city}, UK"
+                    if city and country_code == "GBR"
+                    else city or ""
+                )
+                path = job.get("job_path", "")
+                job_url = f"https://www.amazon.jobs{path}" if path else ""
+                if not is_relevant(title, "Amazon", location):
+                    continue
+                if insert_job({
+                    "company":  "Amazon",
+                    "role":     title,
+                    "type":     infer_type(title),
+                    "url":      job_url,
+                    "location": location,
+                    "source":   "Amazon Jobs",
+                }, existing_keys):
+                    count += 1
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"  Error Amazon ({query}): {e}")
+    print(f"  Added {count} from Amazon Jobs")
+    return count
 
 
 # ─── REMOTIVE (remote full-time tech jobs, worldwide) ────────────────────────
@@ -1563,7 +1963,7 @@ def scrape_remotive(existing_keys: set) -> int:
                 location = job.get("candidate_required_location", "")
                 salary = job.get("salary", "")
                 pub_str = (job.get("publication_date") or "")[:10] or None
-                if not is_relevant_job(title):
+                if not is_relevant_job(title, company, location):
                     continue
                 if insert_job({
                     "company":      company,
@@ -1643,8 +2043,16 @@ def main():
             print(f"  {name}: {n}")
         total += n
 
-    # I run the HTML scrapers last because they are the slowest and most
-    # fragile - they are also the most likely to get rate-limited.
+    # Custom scrapers for big-tech companies that use their own ATS platforms
+    # and are therefore not reachable via Greenhouse/Lever/Ashby.
+    print("\n--- Big Tech Custom Scrapers ---")
+    total += scrape_apple(existing_keys)
+    total += scrape_google(existing_keys)
+    total += scrape_microsoft(existing_keys)
+    total += scrape_amazon(existing_keys)
+
+    # I run the HTML scrapers after the API scrapers because they are slower
+    # and more fragile - they are also the most likely to get rate-limited.
     total += scrape_gradcracker(existing_keys)
     total += scrape_ratemyplacement(existing_keys)
     total += scrape_targetjobs(existing_keys)
