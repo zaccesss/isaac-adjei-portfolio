@@ -28,21 +28,32 @@ type Application = {
 }
 
 const APP_TYPES = ["Internship","Summer Internship","Industrial Placement","Part-time","Full-time","Graduate","Apprenticeship","Other"]
-const STATUSES = ["drafting","applied","oa","phone_screen","interview","offer","rejected","withdrawn"]
+const STATUSES = ["scraped","drafting","interested","applied","oa","case_study","hirevue","phone_screen","video_interview","interview","face_to_face","assessment_centre","offer","rejected","withdrawn","not_interested"]
 const STATUS_LABELS: Record<string, string> = {
-  drafting: "Drafting", applied: "Applied", oa: "Online Assessment",
-  phone_screen: "Phone Screen", interview: "Interview",
-  offer: "Offer", rejected: "Rejected", withdrawn: "Withdrawn",
+  scraped: "New (Scraped)", drafting: "Drafting", interested: "Interested",
+  applied: "Applied", oa: "Online Assessment", case_study: "Case Study",
+  hirevue: "HireVue", phone_screen: "Phone Screen", video_interview: "Video Interview",
+  interview: "Interview", face_to_face: "Face-to-face Interview",
+  assessment_centre: "Assessment Centre", offer: "Offer",
+  rejected: "Rejected", withdrawn: "Withdrawn", not_interested: "Not Interested",
 }
 const STATUS_COLOURS: Record<string, string> = {
+  scraped: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300",
   drafting: "bg-muted text-muted-foreground",
+  interested: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
   applied: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
   oa: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+  case_study: "bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300",
+  hirevue: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
   phone_screen: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+  video_interview: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
   interview: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  face_to_face: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+  assessment_centre: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
   offer: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
   rejected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
   withdrawn: "bg-slate-100 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400",
+  not_interested: "bg-slate-100 text-slate-400 dark:bg-slate-800/30 dark:text-slate-500",
 }
 
 const emptyForm = {

@@ -26,7 +26,7 @@ type Log = {
 function calcCurrentStreak(logs: Log[], streakId: string, today: string): number {
   const done = new Set(logs.filter((l) => l.streak_id === streakId && l.completed).map((l) => l.date))
   let streak = 0
-  let d = new Date(today)
+  const d = new Date(today)
   while (true) {
     const ds = d.toISOString().split("T")[0]
     if (done.has(ds)) {
@@ -71,34 +71,22 @@ function HeatmapGrid({ logs, streakId, today }: { logs: Log[]; streakId: string;
   return (
     <div className="flex gap-1 flex-wrap">
       {days.map((d) => (
-        <div
-          key={d}
-          title={d}
-          className={`w-4 h-4 rounded-sm transition-colors ${done.has(d) ? "bg-green-500" : "bg-muted"}`}
-        />
+        <div key={d} title={d} className={`w-4 h-4 rounded-sm transition-colors ${done.has(d) ? "bg-green-500" : "bg-muted"}`} />
       ))}
     </div>
   )
 }
 
-function StreakCard({ streak, logs, today, onDelete }: {
+function StreakCard({ streak, logs, today, onDelete, onCheckIn }: {
   streak: Streak
   logs: Log[]
   today: string
   onDelete: (id: string) => void
+  onCheckIn: (streakId: string, date: string, undo: boolean) => void
 }) {
-  const [, startTransition] = useTransition()
   const checkedInToday = logs.some((l) => l.streak_id === streak.id && l.date === today && l.completed)
   const current = calcCurrentStreak(logs, streak.id, today)
   const longest = calcLongestStreak(logs, streak.id)
-
-  function handleCheckIn() {
-    if (checkedInToday) {
-      startTransition(() => undoStreakCheckIn(streak.id, today))
-    } else {
-      startTransition(() => checkInStreak(streak.id, today))
-    }
-  }
 
   return (
     <div className="border border-border rounded-xl bg-card p-4 flex flex-col gap-4">
@@ -110,12 +98,8 @@ function StreakCard({ streak, logs, today, onDelete }: {
             {streak.description && <p className="text-xs text-muted-foreground">{streak.description}</p>}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => onDelete(streak.id)}
-          aria-label="Delete streak"
-          className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors"
-        >
+        <button type="button" onClick={() => onDelete(streak.id)} aria-label="Delete streak"
+          className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors">
           <Trash2 className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -143,10 +127,10 @@ function StreakCard({ streak, logs, today, onDelete }: {
         size="sm"
         variant={checkedInToday ? "outline" : "default"}
         className={`w-full gap-2 ${checkedInToday ? "text-green-600 border-green-300 dark:border-green-700" : ""}`}
-        onClick={handleCheckIn}
+        onClick={() => onCheckIn(streak.id, today, checkedInToday)}
       >
         <Check className="h-4 w-4" />
-        {checkedInToday ? "Checked in today" : "Check in"}
+        {checkedInToday ? "Checked in today ✓" : "Check in"}
       </Button>
     </div>
   )
@@ -237,6 +221,7 @@ export default function StreaksClient({ streaks: initial, logs: initialLogs, tod
               logs={logs}
               today={today}
               onDelete={handleDelete}
+              onCheckIn={handleCheckIn}
             />
           ))}
         </div>
