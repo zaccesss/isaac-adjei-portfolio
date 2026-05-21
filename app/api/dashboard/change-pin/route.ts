@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifyPin, changePinHash } from "@/lib/pin"
-import { getToken } from "next-auth/jwt"
+import { auth } from "@/auth"
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
-  if (!token) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
 
   const { currentPin, newPin } = await req.json()
   if (!currentPin || !newPin || typeof currentPin !== "string" || typeof newPin !== "string") {

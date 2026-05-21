@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifyPin } from "@/lib/pin"
-import { getToken } from "next-auth/jwt"
+import { auth } from "@/auth"
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
-  if (!token) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
 
   const { pin } = await req.json()
   if (!pin || typeof pin !== "string") {
@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
-  if (!token) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
 
   const res = NextResponse.json({ ok: true })
   res.cookies.delete("dashboard_pin_verified")
