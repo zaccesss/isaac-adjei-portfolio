@@ -189,6 +189,7 @@ export default function InventoryClient({ items: initial }: { items: Item[] }) {
   const [editItem, setEditItem] = useState<Item | null>(null)
   const [, startTransition] = useTransition()
 
+  // I merge default categories with item categories so custom categories from existing items are always visible
   const categories = Array.from(new Set([...DEFAULT_CATEGORIES, ...items.map((i) => i.category)]))
 
   function openAdd(cat: string) {
@@ -197,6 +198,7 @@ export default function InventoryClient({ items: initial }: { items: Item[] }) {
   }
 
   function handleAdd(data: typeof emptyForm) {
+    // I coerce empty strings to null so optional fields are stored as NULL in Supabase rather than empty text
     const optimistic: Item = {
       id: crypto.randomUUID(), ...data, category: addCategory,
       description: data.description || null, purchase_date: data.purchase_date || null,

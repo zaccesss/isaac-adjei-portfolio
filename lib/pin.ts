@@ -1,12 +1,13 @@
 import bcrypt from "bcryptjs"
 import { supabase } from "@/lib/supabase"
 
+// I use 12 rounds - high enough to be slow for brute-force but fast enough for interactive use
 export async function hashPin(pin: string): Promise<string> {
   return bcrypt.hash(pin, 12)
 }
 
 export async function verifyPin(pin: string): Promise<boolean> {
-  // Check DB first for an in-app-set PIN hash
+  // I check the DB first in case I changed my PIN in-app (stored as a bcrypt hash)
   const { data } = await supabase
     .from("config")
     .select("value")
@@ -15,18 +16,17 @@ export async function verifyPin(pin: string): Promise<boolean> {
 
   const storedHash = data?.value as string | undefined
 
-  // If hash is set in DB, verify against it
   if (storedHash && storedHash !== "unset") {
     return bcrypt.compare(pin, storedHash)
   }
 
-  // Fall back to env var (plain text comparison, hashed on first successful use)
+  // I fall back to the Vercel env var on first use, then hash and persist it so
+  // subsequent checks never compare plain text again
   const envPin = process.env.AUTH_SECONDARY_PIN
   if (!envPin) return false
 
   const match = pin === envPin
   if (match) {
-    // Persist hash to DB so future verifications are secure
     const hash = await hashPin(pin)
     await supabase
       .from("config")

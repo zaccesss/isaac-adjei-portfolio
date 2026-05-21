@@ -28,6 +28,7 @@ except ImportError:
 
 UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL")
 UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+# I poll every 30s - frequent enough for a live widget but gentle on the free Upstash tier
 INTERVAL = 30
 
 if not UPSTASH_URL or not UPSTASH_TOKEN:
@@ -66,7 +67,9 @@ def write_status():
                 "Content-Type": "application/json",
             },
             json=[
+                # I set a 600-second TTL so the key disappears when the daemon stops, signalling the device is offline
                 ["SET", "lenovo:status", json.dumps(payload), "EX", 600],
+                # I write a TTL-free key so the dashboard can still show the last-known state when offline
                 ["SET", "lenovo:last-known", json.dumps(payload)],
             ],
             timeout=10,

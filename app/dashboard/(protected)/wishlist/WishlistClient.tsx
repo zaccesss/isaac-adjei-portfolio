@@ -187,6 +187,7 @@ export default function WishlistClient({ items: initial }: { items: Item[] }) {
   function openAdd(cat: string) { setAddCategory(cat); setAddOpen(true) }
 
   function handleAdd(data: typeof emptyForm) {
+    // I prefer addCategory over data.category because it was set by the "Add" button on a specific section
     const optimistic: Item = { id: crypto.randomUUID(), ...data, category: addCategory || data.category, notes: data.notes || null }
     setItems((prev) => [...prev, optimistic])
     setAddOpen(false)
@@ -206,7 +207,9 @@ export default function WishlistClient({ items: initial }: { items: Item[] }) {
   }
 
   function handleToggleGotIt(id: string, current: string) {
+    // I toggle between "got_it" and "wanted" so tapping the checkbox a second time undoes the check
     const newStatus = current === "got_it" ? "wanted" : "got_it"
+    // I update optimistically so the strikethrough and tick appear instantly
     setItems((prev) => prev.map((i) => i.id === id ? { ...i, status: newStatus } : i))
     startTransition(() => updateWishlistItem(id, { status: newStatus }))
   }

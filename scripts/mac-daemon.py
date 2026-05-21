@@ -32,7 +32,9 @@ except ImportError:
 
 UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL")
 UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+# I poll every 30s - frequent enough for a live widget but light on the Upstash free tier
 INTERVAL = 30
+# I refresh weather every 10 cycles (~5 min) to stay within the Open-Meteo free limit
 WEATHER_EVERY = 10
 
 if not UPSTASH_URL or not UPSTASH_TOKEN:
@@ -42,6 +44,7 @@ if not UPSTASH_URL or not UPSTASH_TOKEN:
     )
     sys.exit(1)
 
+# I strip the .local suffix and hyphens so the device name reads cleanly in the dashboard
 DEVICE = socket.gethostname().replace(".local", "").replace("-", " ")
 
 print(
@@ -83,11 +86,13 @@ _weather = {}
 def fetch_location():
     global _location
     try:
+        # I use ipinfo.io because it returns coordinates without requiring an API key
         r = requests.get("https://ipinfo.io/json", timeout=5)
         if r.ok:
             data = r.json()
             loc = data.get("loc", "")
             country_code = data.get("country", "")
+            # I fall back to Europe/London so timezone-aware displays degrade gracefully
             timezone = data.get("timezone", "Europe/London")
             if loc and country_code:
                 lat, lon = loc.split(",")
@@ -108,9 +113,11 @@ def fetch_location():
 def fetch_weather():
     global _weather
     if not _location:
+        # I skip the weather fetch until location is known so I have valid coordinates to pass
         print("[weather] skipping - no location yet", flush=True)
         return
     try:
+        # I use Open-Meteo because it is free with no API key and covers global locations
         r = requests.get(
             "https://api.open-meteo.com/v1/forecast",
             params={
@@ -164,7 +171,9 @@ def write_status():
                 "Content-Type": "application/json",
             },
             json=[
+                # I set a 600-second TTL so the key expires when the daemon stops, signalling offline
                 ["SET", "macbook:status", json.dumps(payload), "EX", 600],
+                # I write a TTL-free key so the dashboard can show the last-known state when offline
                 ["SET", "macbook:last-known", json.dumps(payload)],
             ],
             timeout=10,
