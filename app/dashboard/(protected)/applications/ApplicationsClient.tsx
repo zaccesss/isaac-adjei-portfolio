@@ -1,18 +1,6 @@
-/*
- * SQL - run in Supabase SQL editor before using new fields:
- *
- * ALTER TABLE applications
- *   ADD COLUMN IF NOT EXISTS opening_date date,
- *   ADD COLUMN IF NOT EXISTS last_year_opening date,
- *   ADD COLUMN IF NOT EXISTS housing_location text,
- *   ADD COLUMN IF NOT EXISTS cv_required text,
- *   ADD COLUMN IF NOT EXISTS cover_letter_required text,
- *   ADD COLUMN IF NOT EXISTS written_answers text,
- *   ADD COLUMN IF NOT EXISTS sponsors_visa text,
- *   ADD COLUMN IF NOT EXISTS category text DEFAULT 'Software Engineering';
- */
-
 "use client"
+
+// SQL already applied - all new columns are in the applications table.
 
 import { useState, useTransition } from "react"
 import { createApplication, updateApplication, deleteApplication } from "../../actions"
