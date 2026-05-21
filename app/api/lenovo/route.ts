@@ -25,11 +25,13 @@ export async function GET() {
       )
     }
 
+    // lenovo:status has a 600s TTL set by the daemon; lenovo:last-known has no TTL so I always have something to show
     const [live, lastKnown] = await Promise.all([
       redis.get<StatusPayload>("lenovo:status"),
       redis.get<StatusPayload>("lenovo:last-known"),
     ])
 
+    // I prefer live data, but fall back to last-known rather than returning null so the card always renders
     const source = live ?? lastKnown
 
     if (!source) {

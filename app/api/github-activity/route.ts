@@ -22,11 +22,13 @@ function relativeTime(dateStr: string): string {
 
 export async function GET() {
   try {
+    // I cache the last push for 5 minutes to avoid hammering the GitHub API on every page load
     if (redis) {
       const cached = await redis.get<{ repo: string; pushedAt: string; relativeTime: string }>(
         "github:last_push"
       )
       if (cached) {
+        // I recompute relativeTime on cache hit so "2m ago" stays accurate even though the push data is frozen
         return NextResponse.json(
           { ...cached, relativeTime: relativeTime(cached.pushedAt) },
           { headers: { "Cache-Control": "no-store" } }
@@ -74,6 +76,7 @@ export async function GET() {
     const result = { repo: repoShort, pushedAt: push.created_at, relativeTime: relativeTime(push.created_at) }
 
     if (redis) {
+      // I store only repo and pushedAt - relativeTime is intentionally excluded so it is always recalculated fresh on read
       await redis.set("github:last_push", { repo: repoShort, pushedAt: push.created_at }, { ex: 300 })
     }
 

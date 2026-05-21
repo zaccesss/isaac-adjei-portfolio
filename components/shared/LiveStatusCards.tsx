@@ -170,6 +170,7 @@ export default function LiveStatusCards() {
       } catch {}
     }
     fetch_()
+    // I poll every 10s - Spotify updates its playing state roughly that fast and polling more often wastes API quota
     const id = setInterval(fetch_, 10000)
     return () => clearInterval(id)
   }, [])
@@ -182,6 +183,7 @@ export default function LiveStatusCards() {
       } catch {}
     }
     fetch_()
+    // I poll every 60s - battery and location change slowly so a tighter interval would just burn Vercel invocations
     const id = setInterval(fetch_, 60000)
     return () => clearInterval(id)
   }, [])
@@ -194,6 +196,7 @@ export default function LiveStatusCards() {
       } catch {}
     }
     fetch_()
+    // Lenovo battery changes slowly - 60s matches the macbook poll cadence
     const id = setInterval(fetch_, 60000)
     return () => clearInterval(id)
   }, [])
@@ -208,6 +211,7 @@ export default function LiveStatusCards() {
             online:      data.online,
             lastSeen:    data.lastSeen,
             device:      data.device,
+            // I format the percentages here because the API returns raw numbers and the card needs the % suffix
             cpu:         data.cpu !== null ? `${data.cpu}%` : null,
             gpu:         data.gpu !== null ? `${data.gpu}%` : null,
             currentGame: data.game,
@@ -216,6 +220,7 @@ export default function LiveStatusCards() {
       } catch {}
     }
     fetch_()
+    // I poll every 30s - the GPC daemon writes every ~10s so 30s gives a fresh-enough online signal without excess calls
     const id = setInterval(fetch_, 30000)
     return () => clearInterval(id)
   }, [])

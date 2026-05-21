@@ -47,7 +47,8 @@ export async function GET() {
     let status: "success" | "failure" | "unknown" = "unknown"
     if (run?.conclusion === "success") status = "success"
     else if (run?.conclusion === "failure") status = "failure"
-
+    // I pass hasToken back so the client can decide whether to render the Run now button
+    // without needing a separate endpoint to check capability
     return NextResponse.json(
       { lastRun: run?.created_at ?? null, status, hasToken },
       { headers: { "Cache-Control": "no-store" } }

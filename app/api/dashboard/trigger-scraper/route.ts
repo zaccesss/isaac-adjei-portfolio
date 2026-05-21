@@ -8,6 +8,8 @@ export async function POST() {
   }
 
   const token = process.env.GH_PAT ?? process.env.GITHUB_PAT ?? null
+  // I return 403 rather than 401 here because the user IS authenticated - they just lack the server-side
+  // token needed to call GitHub. The client uses this to show an explanatory message instead of a Run button.
   if (!token) {
     return NextResponse.json(
       { error: "No token" },

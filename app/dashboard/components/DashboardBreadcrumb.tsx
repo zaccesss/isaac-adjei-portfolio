@@ -8,6 +8,8 @@ type Crumb = {
   href?: string
 }
 
+// I render the last crumb without an href as bold plain text - clicking the current page is a no-op
+// and treating it as a non-link makes the current location visually distinct from navigable ancestors
 export default function DashboardBreadcrumb({ crumbs }: { crumbs: Crumb[] }) {
   return (
     <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
