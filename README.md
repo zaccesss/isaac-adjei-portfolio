@@ -285,6 +285,7 @@ The site is a proper **Next.js 16 App Router** application with TypeScript, Tail
 
 ```
 ├── app/
+│   ├── dashboard/      # Private dashboard (not linked from public pages, auth required)
 │   ├── about/          # About page - story, education, awards, societies
 │   ├── api/contact/    # Contact form API route (rate limiting, Turnstile, Resend)
 │   ├── api/cv-pdf/     # Server-side CV PDF generation endpoint
@@ -430,6 +431,16 @@ SPOTIFY_REFRESH_TOKEN=your_spotify_refresh_token
 | `SPOTIFY_CLIENT_SECRET` | Optional | Spotify app client secret. Required alongside `SPOTIFY_CLIENT_ID` |
 | `SPOTIFY_REFRESH_TOKEN` | Optional | Long-lived OAuth refresh token. Run `node scripts/spotify-auth.mjs` once to generate it |
 | `GITHUB_PAT` | Optional | GitHub personal access token. Increases the rate limit for `/api/github-activity` from 60 to 5000 req/hr |
+| `SUPABASE_URL` | Optional | Supabase project URL. Required for the private dashboard database |
+| `SUPABASE_ANON_KEY` | Optional | Supabase anon key. Required for the private dashboard database |
+| `ALLOWED_GITHUB_ID` | Optional | Numeric GitHub user ID allowed to access the private dashboard |
+| `AUTH_SECRET` | Optional | NextAuth.js secret. Required for private dashboard authentication |
+| `AUTH_GITHUB_ID` | Optional | GitHub OAuth app client ID for dashboard login |
+| `AUTH_GITHUB_SECRET` | Optional | GitHub OAuth app client secret for dashboard login |
+| `AUTH_SECONDARY_PIN` | Optional | Secondary PIN for PIN-gated dashboard pages (Diary, Notes, Vault) |
+| `CRON_SECRET` | Optional | Shared secret for Vercel cron routes. Required for the weekly email digest |
+| `DIGEST_EMAIL` | Optional | Email address to receive the weekly dashboard summary digest |
+| `GH_PAT` | Optional | GitHub PAT with workflow permissions. Enables manual scraper trigger from dashboard settings |
 
 ---
 
@@ -502,7 +513,8 @@ Hosted on **Vercel**, connected to this GitHub repo. Every push to `main` trigge
 1. Vercel - import GitHub repo - Next.js auto-detected, no build config needed
 2. Custom domain added: `isaacadjei.me`
 3. Cloudflare DNS updated to point to Vercel
-4. Environment variables set in Vercel project settings (`RESEND_API_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)
+4. Environment variables set in Vercel project settings (see table above)
+5. `vercel.json` cron configured for weekly email digest (Sundays 6pm UTC)
 
 ### To deploy an update
 
