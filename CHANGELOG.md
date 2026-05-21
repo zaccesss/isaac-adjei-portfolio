@@ -16,6 +16,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Job scraper - opening date stored in notes** - `opening_date` is now inserted into the proper DB column instead of appended to the notes field
 - **Job scraper - bad data accumulates across runs** - scraper now deletes all `status = scraped` entries at the start of each run before repopulating; manually-added entries (any other status) are preserved
 
+### Added (Applications tracker)
+
+- **Jobs tab** - full-time tech roles in their own tab (`type = Full-time Job`); never mixed with internships, placements, spring weeks or events
+- **Remotive scraper** - pulls remote full-time tech jobs from Remotive public API (software-dev, devops, data, product categories); publication date stored as opening_date
+- **Dual-pass scraping** - Greenhouse, Lever and Ashby scrapers now check both student roles (internship tab) and full-time roles (jobs tab) per posting; mutually exclusive so no role appears in both
+- **Location column** - location shown in every row; London coloured green, Birmingham blue, Manchester violet for quick scanning
+- **Location filter** - filter by London / Birmingham / Manchester / Remote-Hybrid / Other across all tabs
+- **Keyword filter** - filter by Software / Data / Cloud / DevOps / Security / Finance-Quant / Embedded / Consulting (derived from auto-detected category); works across all tabs
+- **Location priority sort** - within each category group, London entries appear first, then Birmingham, Manchester, Remote, then other locations
+- **Location in search** - search bar now matches location field in addition to company and role name
+- **No location restriction on internships** - internships are now scraped worldwide; location shown in table so Isaac can decide; priority companies remain the focus
+
 ### Added
 
 - **Private `/dashboard`** - protected section accessible only via GitHub OAuth; only Isaac's GitHub account can log in; not linked from public nav, sitemap or command menu
