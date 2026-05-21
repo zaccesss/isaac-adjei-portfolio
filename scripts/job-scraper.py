@@ -308,12 +308,80 @@ def infer_type(title: str) -> str:
     return "internship"
 
 
+# ─── URL CHECKS AND LOCATION ENRICHMENT ─────────────────────────────────────
+
+def is_url_alive(url: str) -> bool:
+    """Return False only if the URL definitively 404s or 410s (gone for good).
+
+    I use a HEAD request so no body is transferred - fast enough to run per
+    job. On any network error I assume the URL is alive rather than silently
+    dropping valid roles.
+    """
+    if not url or not url.startswith("http"):
+        return True
+    try:
+        resp = requests.head(url, headers=HEADERS, timeout=8,
+                             allow_redirects=True)
+        return resp.status_code not in (404, 410)
+    except Exception:
+        return True  # network issue - assume alive
+
+
+def fetch_greenhouse_location(slug: str, job_id: int) -> str:
+    """Call the Greenhouse job detail endpoint to get the office/city name.
+
+    I only call this when the main listing API returned no location. The
+    detail endpoint includes an 'offices' array with city-level names.
+    """
+    url = (
+        f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs/{job_id}"
+    )
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=10)
+        if resp.status_code == 200:
+            offices = resp.json().get("offices") or []
+            names = [
+                o.get("name", "") for o in offices if o.get("name")
+            ]
+            if names:
+                return ", ".join(names)
+    except Exception:
+        pass
+    return ""
+
+
+def fetch_lever_details(slug: str, posting_id: str) -> dict:
+    """Call the Lever individual posting endpoint for extra fields.
+
+    Lever's list API sometimes omits location at the top level. The single
+    posting endpoint returns the same structure but can have additional
+    fields populated - I extract location and any workplaceType hint.
+    """
+    url = f"https://api.lever.co/v0/postings/{slug}/{posting_id}"
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            loc = data.get("categories", {}).get("location", "")
+            wt  = data.get("workplaceType", "")
+            return {"location": loc, "work_mode": wt}
+    except Exception:
+        pass
+    return {}
+
+
 # ─── INSERT ─────────────────────────────────────────────────────────────────
 
 def insert_job(job: dict, existing_keys: set) -> bool:
     # I use a different date cutoff for full-time jobs (Jan 2026) vs internships (Sep 2025)
     cutoff = JOB_CUTOFF if job.get("type") == "Full-time Job" else CYCLE_CUTOFF
     if not is_date_relevant(job.get("deadline"), cutoff):
+        return False
+
+    # I skip dead links before touching the DB - a HEAD request is cheap
+    # and saves polluting the table with 404 entries.
+    url = job.get("url", "")
+    if url and not is_url_alive(url):
         return False
 
     # I check the in-memory set before hitting the DB so deduplication costs
@@ -568,6 +636,13 @@ def scrape_greenhouse(
                 location = (
                     job.get("location") or {}
                 ).get("name", "")
+            # I call the detail endpoint when location is still empty because
+            # the detail response includes an 'offices' array with city names
+            # that the listing endpoint sometimes omits.
+            if not location and job.get("id"):
+                location = fetch_greenhouse_location(slug, job["id"])
+                if location:
+                    time.sleep(0.2)
 
             # I extract department names so is_student_role can check them
             # alongside the title. Some companies like Bloomberg tag their
@@ -624,27 +699,39 @@ def scrape_lever(
             # I use "text" because Lever calls it that rather than "title".
             title = job.get("text", "")
             location = job.get("categories", {}).get("location", "")
+            work_mode = job.get("workplaceType", "")
             # I prefer hostedUrl over applyUrl because it shows the full JD.
             job_url = job.get("hostedUrl", "")
+            posting_id = job.get("id", "")
+            # I call the detail endpoint when location is empty because
+            # Lever's listing API sometimes omits the location field.
+            if not location and posting_id:
+                extra = fetch_lever_details(slug, posting_id)
+                location = extra.get("location", "")
+                work_mode = work_mode or extra.get("work_mode", "")
+                if location:
+                    time.sleep(0.2)
 
             if is_relevant(title, company_name, location):
                 if insert_job({
-                    "company":  company_name,
-                    "role":     title,
-                    "type":     infer_type(title),
-                    "url":      job_url,
-                    "location": location,
-                    "source":   "Lever",
+                    "company":   company_name,
+                    "role":      title,
+                    "type":      infer_type(title),
+                    "url":       job_url,
+                    "location":  location,
+                    "work_mode": work_mode,
+                    "source":    "Lever",
                 }, existing_keys):
                     count += 1
             elif is_relevant_job(title):
                 if insert_job({
-                    "company":  company_name,
-                    "role":     title,
-                    "type":     "Full-time Job",
-                    "url":      job_url,
-                    "location": location,
-                    "source":   "Lever",
+                    "company":   company_name,
+                    "role":      title,
+                    "type":      "Full-time Job",
+                    "url":       job_url,
+                    "location":  location,
+                    "work_mode": work_mode,
+                    "source":    "Lever",
                 }, existing_keys):
                     count += 1
 
