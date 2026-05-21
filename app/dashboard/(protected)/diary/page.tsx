@@ -1,13 +1,17 @@
 import { supabase } from "@/lib/supabase"
-import DiaryClient from "./DiaryClient"
+import { cookies } from "next/headers"
+import DiaryWrapper from "./DiaryWrapper"
 
 export const dynamic = "force-dynamic"
+export const metadata = { robots: "noindex, nofollow" }
 
 export default async function DiaryPage() {
-  const { data: entries } = await supabase
-    .from("diary")
-    .select("*")
-    .order("created_at", { ascending: false })
+  const cookieStore = await cookies()
+  const pinVerified = cookieStore.get("dashboard_pin_verified")?.value === "1"
 
-  return <DiaryClient entries={entries ?? []} />
+  const entries = pinVerified
+    ? (await supabase.from("diary").select("*").order("created_at", { ascending: false })).data ?? []
+    : []
+
+  return <DiaryWrapper pinVerified={pinVerified} entries={entries} />
 }

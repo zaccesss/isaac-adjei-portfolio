@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import DashboardSidebar from "../components/DashboardSidebar"
+import InactivityGuard from "@/components/dashboard/InactivityGuard"
 
 export default async function ProtectedDashboardLayout({
   children,
@@ -11,9 +12,10 @@ export default async function ProtectedDashboardLayout({
   if (!session) redirect("/dashboard/login")
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-background">
+    <div className="min-h-screen flex bg-background">
+      <InactivityGuard />
       <DashboardSidebar user={session.user ?? {}} />
-      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-auto">
+      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-auto min-w-0">
         {children}
       </main>
     </div>

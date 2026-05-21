@@ -13,8 +13,9 @@ for the correct flow.
 git checkout main && git pull
 git checkout -b fix/your-description
 
-# 2. Update CHANGELOG.md - add entries under the relevant heading in [Unreleased]
-#    (Added / Changed / Fixed / Removed) before staging anything
+# 2. Update CHANGELOG.md for public changes OR LOG.md for private dashboard changes
+#    Add entries under the relevant heading in [Unreleased] (Added / Changed / Fixed / Removed)
+#    NEVER add private dashboard details to CHANGELOG.md - use LOG.md only
 # Then stage and commit (conventional format, no em/en dashes, no Oxford commas)
 git add .
 git commit -m "fix: short description of what changed"
@@ -39,8 +40,35 @@ Total time from commit to live: about 3-5 minutes.
 The `.githooks/commit-msg` hook rejects commits that violate these:
 
 - Use conventional prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`
-- No em dashes (`—`) or en dashes (`–`): use a hyphen `-` instead
+- No em dashes (`-`) or en dashes (`-`): use a hyphen `-` instead
 - No Oxford comma (`x, y, and z`): write `x, y and z`
+- No AI co-author credits or AI attribution in any commit message
+- UK English only throughout all files and commit messages
+
+---
+
+## Changelog rules
+
+- `CHANGELOG.md` is public-facing. Never include private dashboard changes in it.
+- All private dashboard changes go in `LOG.md` at the repo root.
+- Update `LOG.md` in the same commit as any private dashboard change.
+
+---
+
+## Session end rules
+
+At the end of every session:
+1. Delete all local branches except `main`: `git branch | grep -v main | xargs git branch -D`
+2. Delete all remote branches except `main`: `git branch -r | grep -v main | grep -v HEAD | sed 's/origin\///' | xargs -I {} git push origin --delete {}`
+
+---
+
+## Language and style rules
+
+- UK English only (colour not color, behaviour not behavior, etc.)
+- No em dashes (`-`), no en dashes (`-`): use a hyphen `-` instead
+- No Oxford commas: write `x, y and z` not `x, y, and z`
+- No AI co-author credits anywhere
 
 ---
 
@@ -100,6 +128,7 @@ Current variables (see `.env.example` for full list):
 | `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile CAPTCHA (server) |
 | `UPSTASH_REDIS_REST_URL` | Rate limiting for contact form |
 | `UPSTASH_REDIS_REST_TOKEN` | Rate limiting for contact form |
+| `AUTH_SECONDARY_PIN` | Master PIN for Diary, Notes and Vault (bcrypt hash stored in DB overrides this) |
 
 ---
 
