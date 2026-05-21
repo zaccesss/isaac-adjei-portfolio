@@ -33,6 +33,7 @@ export async function GET() {
 
     // live key has a 600s TTL - if it exists the daemon pinged in the last 10 minutes
     const online = live !== null
+    // I prefer live data, but fall back to last-known so lastSeen is always available even when the PC is off
     const source = live ?? lastKnown
 
     if (!source) {
@@ -47,8 +48,10 @@ export async function GET() {
         online,
         lastSeen:  source.timestamp,
         device:    source.device ?? null,
+        // I only expose CPU, GPU and game when online - stale values from last-known would be misleading
         cpu:       online ? source.cpu_percent : null,
         gpu:       online ? source.gpu_percent : null,
+        // game is detected by the Windows daemon watching foreground process names
         game:      online ? (source.game ?? null) : null,
       },
       { headers: { "Cache-Control": "no-store" } }

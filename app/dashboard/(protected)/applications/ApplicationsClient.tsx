@@ -56,7 +56,8 @@ const MY_STATUSES = [
   "Not Interested",
 ] as const
 
-// Normalise legacy DB values to display values
+// I normalise legacy DB values so the UI always works with the current status labels regardless
+// of when the row was written - the job scraper and early manual entries used different keys
 function normaliseStatus(raw: string): string {
   const map: Record<string, string> = {
     scraped: "Not Applied",
@@ -106,6 +107,8 @@ const CATEGORIES = [
 
 type Category = (typeof CATEGORIES)[number]
 
+// I auto-detect category from company and role so scraped entries get a sensible default
+// without requiring manual tagging of every row - the user can always override in the edit form
 function detectCategory(company: string, role: string): Category {
   const r = role.toLowerCase()
   const c = company.toLowerCase()
@@ -152,6 +155,8 @@ function detectCategory(company: string, role: string): Category {
 const TAB_TYPES = ["Summer Internships", "Industrial Placements", "Graduate Schemes", "Spring Weeks", "Events", "Jobs"] as const
 type Tab = (typeof TAB_TYPES)[number]
 
+// I map the raw type field to a tab rather than relying on exact string equality because the
+// job scraper writes inconsistent casing and the legacy "scraped" type predates the current taxonomy
 function appBelongsToTab(app: Application, tab: Tab): boolean {
   const t = app.type
   if (tab === "Summer Internships")

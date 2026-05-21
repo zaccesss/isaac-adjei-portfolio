@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { createGoal, updateGoal, deleteGoal } from "../../actions"
+import Link from "next/link"
+import { createGoal } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Edit2, Trash2, ChevronLeft, Target, TrendingUp, BookOpen, Heart, DollarSign, Sparkles } from "lucide-react"
+import { Plus, Edit2, Trash2, Target, TrendingUp, BookOpen, Heart, DollarSign, Sparkles } from "lucide-react"
 
 type Goal = {
   id: string
@@ -64,7 +65,7 @@ const emptyForm = {
   progress: 0,
 }
 
-function GoalForm({ initial, onSave, onCancel }: {
+export function GoalForm({ initial, onSave, onCancel }: {
   initial?: typeof emptyForm
   onSave: (data: typeof emptyForm) => void
   onCancel: () => void
@@ -120,7 +121,7 @@ function GoalForm({ initial, onSave, onCancel }: {
   )
 }
 
-function GoalCard({ goal, onEdit, onDelete }: {
+export function GoalCard({ goal, onEdit, onDelete }: {
   goal: Goal
   onEdit: (goal: Goal) => void
   onDelete: (id: string) => void
@@ -153,14 +154,10 @@ function GoalCard({ goal, onEdit, onDelete }: {
   )
 }
 
-function CategoryCard({ category, goals, onAdd, onEdit, onDelete }: {
+function CategoryCard({ category, goals }: {
   category: string
   goals: Goal[]
-  onAdd: (category: string) => void
-  onEdit: (goal: Goal) => void
-  onDelete: (id: string) => void
 }) {
-  const [expanded, setExpanded] = useState(false)
   const Icon = CATEGORY_ICONS[category] ?? Target
   const colourClass = CATEGORY_COLOURS[category] ?? CATEGORY_COLOURS.Other
 
@@ -168,39 +165,11 @@ function CategoryCard({ category, goals, onAdd, onEdit, onDelete }: {
   const inProgress = goals.filter((g) => g.status === "in_progress").length
   const total = goals.length
 
-  if (expanded) {
-    return (
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setExpanded(false)} aria-label="Back to categories" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <Icon className="h-4 w-4 text-muted-foreground" />
-          <h2 className="font-semibold text-sm">{category}</h2>
-          <span className="text-xs text-muted-foreground ml-1">{total} goal{total !== 1 ? "s" : ""}</span>
-          <button type="button" onClick={() => onAdd(category)} className="ml-auto flex items-center gap-1 text-xs text-primary hover:underline">
-            <Plus className="h-3 w-3" /> Add
-          </button>
-        </div>
-        {goals.length === 0 ? (
-          <div className="border border-dashed border-border rounded-lg p-6 text-center">
-            <p className="text-sm text-muted-foreground">No {category.toLowerCase()} goals yet.</p>
-            <button type="button" onClick={() => onAdd(category)} className="text-sm text-primary hover:underline mt-1">Add my first one</button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {goals.map((g) => <GoalCard key={g.id} goal={g} onEdit={onEdit} onDelete={onDelete} />)}
-          </div>
-        )}
-      </div>
-    )
-  }
-
+  // I navigate to the category sub-page so the full goal list has its own route
   return (
-    <button
-      type="button"
-      onClick={() => setExpanded(true)}
-      className={`w-full text-left border rounded-xl p-4 bg-gradient-to-br ${colourClass} hover:shadow-md transition-all`}
+    <Link
+      href={`/dashboard/goals/${category.toLowerCase()}`}
+      className={`block border rounded-xl p-4 bg-gradient-to-br ${colourClass} hover:shadow-md transition-all`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -219,7 +188,7 @@ function CategoryCard({ category, goals, onAdd, onEdit, onDelete }: {
           <div className="h-1.5 bg-green-500 rounded-full transition-all" style={{ width: `${(done / total) * 100}%` }} />
         </div>
       )}
-    </button>
+    </Link>
   )
 }
 
@@ -227,16 +196,10 @@ export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
   const [goals, setGoals] = useState<Goal[]>(initial)
   const [addOpen, setAddOpen] = useState(false)
   const [addCategory, setAddCategory] = useState("Personal")
-  const [editGoal, setEditGoal] = useState<Goal | null>(null)
   const [, startTransition] = useTransition()
 
   const total = goals.length
   const done = goals.filter((g) => g.status === "done").length
-
-  function openAdd(category: string) {
-    setAddCategory(category)
-    setAddOpen(true)
-  }
 
   function handleAdd(data: typeof emptyForm) {
     // I prepend a local optimistic record so the new goal appears instantly before the DB round-trip
@@ -244,19 +207,6 @@ export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
     setGoals((prev) => [optimistic, ...prev])
     setAddOpen(false)
     startTransition(() => createGoal({ ...data, category: addCategory }))
-  }
-
-  function handleEdit(data: typeof emptyForm) {
-    if (!editGoal) return
-    setGoals((prev) => prev.map((g) => g.id === editGoal.id ? { ...g, ...data } : g))
-    setEditGoal(null)
-    startTransition(() => updateGoal(editGoal.id, data))
-  }
-
-  function handleDelete(id: string) {
-    // I remove optimistically so the card vanishes immediately rather than waiting for the server
-    setGoals((prev) => prev.filter((g) => g.id !== id))
-    startTransition(() => deleteGoal(id))
   }
 
   return (
@@ -285,25 +235,9 @@ export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
             key={cat}
             category={cat}
             goals={goals.filter((g) => g.category === cat)}
-            onAdd={openAdd}
-            onEdit={(g) => setEditGoal(g)}
-            onDelete={handleDelete}
           />
         ))}
       </div>
-
-      <Dialog open={!!editGoal} onOpenChange={(o) => { if (!o) setEditGoal(null) }}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Edit goal</DialogTitle></DialogHeader>
-          {editGoal && (
-            <GoalForm
-              initial={{ title: editGoal.title, description: editGoal.description ?? "", category: editGoal.category, status: editGoal.status, target_date: editGoal.target_date ?? "", progress: editGoal.progress }}
-              onSave={handleEdit}
-              onCancel={() => setEditGoal(null)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

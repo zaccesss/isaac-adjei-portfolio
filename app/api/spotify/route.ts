@@ -45,6 +45,7 @@ async function getAccessToken(): Promise<string | null> {
   const data = await res.json() as { access_token: string; expires_in: number }
 
   if (redis) {
+    // I cache for 3300s (55 min) so the token is refreshed before Spotify's 60-min expiry
     await redis.set("spotify:access_token", data.access_token, { ex: 3300 })
   }
 
@@ -67,10 +68,12 @@ export async function GET() {
       )
     }
 
+    // I use /me/player rather than recently-played so I can detect the live playing state and progress_ms
     const res = await fetch("https://api.spotify.com/v1/me/player?additional_types=track,episode", {
       headers: { Authorization: `Bearer ${token}` },
     })
 
+    // 204 means no active device - I fall back to last_played so the card never goes blank
     if (res.status === 204 || res.status === 404 || !res.ok) {
       const last = await getLastPlayed()
       return NextResponse.json(
@@ -103,6 +106,7 @@ export async function GET() {
       )
     }
 
+    // I check currently_playing_type because podcast episodes share the same endpoint but have no artists array
     const isEpisode = data.currently_playing_type === "episode"
     const title = data.item.name
     const subtitle = isEpisode
@@ -126,6 +130,7 @@ export async function GET() {
         artist: subtitle,
         albumArt,
         url: data.item.external_urls.spotify,
+        // I return progress_ms as a snapshot; the client ticks it forward every second so the bar stays smooth between 10s polls
         progressMs: data.progress_ms ?? 0,
         durationMs: data.item.duration_ms,
         device: data.device?.name ?? null,
