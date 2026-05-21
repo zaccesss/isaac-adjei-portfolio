@@ -22,9 +22,11 @@ export async function verifyPin(pin: string): Promise<boolean> {
 
   // Fall back to env var (plain text comparison, hashed on first successful use)
   const envPin = process.env.AUTH_SECONDARY_PIN
+  console.log("[pin] storedHash:", storedHash, "| envPin set:", !!envPin, "| envPin length:", envPin?.length)
   if (!envPin) return false
 
   const match = pin === envPin
+  console.log("[pin] match:", match, "| pin length:", pin.length)
   if (match) {
     // Persist hash to DB so future verifications are secure
     const hash = await hashPin(pin)
