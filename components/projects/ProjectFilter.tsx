@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 
 type Category = Project["category"] | "all"
 
+// I include "all" as a synthetic option - it is not a real Project category so the parent treats it as "no filter"
 const categories: { value: Category; label: string }[] = [
   { value: "all", label: "All" },
   { value: "embedded", label: "Embedded" },

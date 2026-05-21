@@ -238,10 +238,12 @@ export default function LiveStatusCards() {
   }, [])
 
   useEffect(() => {
+    // I reset progress in a setTimeout so the state update is not batched with the effect trigger and the bar snaps correctly
     const reset = setTimeout(() => {
       setLiveProgressMs(spotify.progressMs ?? 0)
     }, 0)
     if (!spotify.playing) return () => clearTimeout(reset)
+    // I tick every second client-side so the progress bar moves smoothly; the API only polls every 10s
     const tick = setInterval(() => {
       setLiveProgressMs((p) => Math.min(p + 1000, spotify.durationMs ?? p))
     }, 1000)
@@ -264,6 +266,7 @@ export default function LiveStatusCards() {
       {/* Weather + Time card */}
       <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 flex items-center justify-between gap-4">
         <div className="min-w-0">
+          {/* I show country only - never city - to avoid disclosing precise location */}
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
             Currently in {countryName(mac.countryCode)}
           </p>
@@ -334,6 +337,7 @@ export default function LiveStatusCards() {
             </div>
           </div>
         ) : spotify.lastPlayed ? (
+          // I render last_played at reduced opacity with a grayscale thumbnail to signal the track is not currently active
           <div className="p-4 space-y-3 opacity-50">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Last Played
@@ -396,6 +400,7 @@ export default function LiveStatusCards() {
             </div>
             {mac.battery !== null ? (
               <div className="flex items-center gap-1.5">
+                {/* I suppress the charging indicator when lastSeen > 5 min - the cable may have been unplugged since the last ping */}
                 {mac.charging && !isStale(mac.lastSeen) ? (
                   <BatteryCharging className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                 ) : (

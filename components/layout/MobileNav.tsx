@@ -24,7 +24,7 @@ export default function MobileNav() {
 
       {open && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop sits at z-40 so the panel at z-50 always renders above it */}
           <div className="fixed inset-0 top-16 z-40 bg-black/60" onClick={() => setOpen(false)} />
           {/* Menu panel */}
           <div className="fixed inset-x-0 top-16 z-50 bg-background border-t shadow-xl">
