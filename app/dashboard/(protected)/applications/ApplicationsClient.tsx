@@ -310,12 +310,12 @@ function AppForm({
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Category</label>
-          <Select value={form.category} onValueChange={(v) => set("category", v)}>
+          <Select value={form.category || "auto"} onValueChange={(v) => set("category", v === "auto" ? "" : v)}>
             <SelectTrigger className="h-9">
               <SelectValue placeholder="Auto-detect" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Auto-detect</SelectItem>
+              <SelectItem value="auto">Auto-detect</SelectItem>
               {CATEGORIES.map((c) => (
                 <SelectItem key={c} value={c}>
                   {c}
@@ -329,12 +329,12 @@ function AppForm({
       <div className="grid grid-cols-3 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">CV</label>
-          <Select value={form.cv_required} onValueChange={(v) => set("cv_required", v)}>
+          <Select value={form.cv_required || "none"} onValueChange={(v) => set("cv_required", v === "none" ? "" : v)}>
             <SelectTrigger className="h-9">
               <SelectValue placeholder="-" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">-</SelectItem>
+              <SelectItem value="none">-</SelectItem>
               {YES_NO_OPTIONAL.map((v) => (
                 <SelectItem key={v} value={v}>
                   {v}
@@ -345,12 +345,12 @@ function AppForm({
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Cover Letter</label>
-          <Select value={form.cover_letter_required} onValueChange={(v) => set("cover_letter_required", v)}>
+          <Select value={form.cover_letter_required || "none"} onValueChange={(v) => set("cover_letter_required", v === "none" ? "" : v)}>
             <SelectTrigger className="h-9">
               <SelectValue placeholder="-" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">-</SelectItem>
+              <SelectItem value="none">-</SelectItem>
               {YES_NO_OPTIONAL.map((v) => (
                 <SelectItem key={v} value={v}>
                   {v}
@@ -361,12 +361,12 @@ function AppForm({
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Written Answers</label>
-          <Select value={form.written_answers} onValueChange={(v) => set("written_answers", v)}>
+          <Select value={form.written_answers || "none"} onValueChange={(v) => set("written_answers", v === "none" ? "" : v)}>
             <SelectTrigger className="h-9">
               <SelectValue placeholder="-" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">-</SelectItem>
+              <SelectItem value="none">-</SelectItem>
               {YES_NO_OPTIONAL.map((v) => (
                 <SelectItem key={v} value={v}>
                   {v}
@@ -380,12 +380,12 @@ function AppForm({
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Sponsors Visa</label>
-          <Select value={form.sponsors_visa} onValueChange={(v) => set("sponsors_visa", v)}>
+          <Select value={form.sponsors_visa || "none"} onValueChange={(v) => set("sponsors_visa", v === "none" ? "" : v)}>
             <SelectTrigger className="h-9">
               <SelectValue placeholder="-" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">-</SelectItem>
+              <SelectItem value="none">-</SelectItem>
               {["Yes", "No"].map((v) => (
                 <SelectItem key={v} value={v}>
                   {v}
