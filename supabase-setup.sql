@@ -796,23 +796,28 @@ insert into config (key, value) values
 --    year 3 = Placement Year (optional), year 4 = Final Year.
 --
 -- ============================================================
--- SESSION 2026-05-21: CLEANUP - run this in the SQL editor now
+-- SESSION 2026-05-21: APPLIED MIGRATIONS
 -- ============================================================
 --
--- No schema changes are needed this session. The table already has
--- all required columns (opening_date, type text, etc.).
+-- All columns listed below were added via ALTER TABLE and are now
+-- included in the CREATE TABLE definition above. No need to run these
+-- again on a fresh setup - they are here as a migration history only.
 --
--- ACTION REQUIRED: Delete all bad scraped entries (full-time jobs,
--- US roles, 2024 dates) that were inserted before the scraper fix.
--- The scraper now resets status=scraped on every run going forward,
--- but you need to clear the existing bad data manually once:
+-- Migration applied 2026-05-21 (applications new columns):
+--   ALTER TABLE applications
+--     ADD COLUMN IF NOT EXISTS opening_date date,
+--     ADD COLUMN IF NOT EXISTS last_year_opening date,
+--     ADD COLUMN IF NOT EXISTS housing_location text,
+--     ADD COLUMN IF NOT EXISTS cv_required text,
+--     ADD COLUMN IF NOT EXISTS cover_letter_required text,
+--     ADD COLUMN IF NOT EXISTS written_answers text,
+--     ADD COLUMN IF NOT EXISTS sponsors_visa text,
+--     ADD COLUMN IF NOT EXISTS category text DEFAULT 'Software Engineering';
 --
-DELETE FROM applications WHERE status = 'scraped';
+-- One-time cleanup applied 2026-05-21 (clear bad scraped data before scraper fix):
+--   DELETE FROM applications WHERE status = 'scraped';
 --
--- After running the DELETE above, trigger a fresh scraper run from
--- GitHub Actions to repopulate with correctly filtered data:
---
+-- After cleanup, trigger a fresh scraper run:
 --   gh workflow run job-scraper.yml --ref main
 --
--- That is all. No ALTER TABLE or INSERT needed this session.
 -- ============================================================
