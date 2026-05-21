@@ -41,7 +41,6 @@ const PAGE_GROUPS = [
       { href: "/hall-of-fame",label: "Hall of Fame",description: "Acknowledgements and security researchers" },
       { href: "/consumed",    label: "Consumed",    description: "Books, videos and podcasts I am working through" },
       { href: "/lab",         label: "Lab",         description: "Interactive terminal and GitHub stats" },
-      { href: "/cv",          label: "CV",          description: "View and download my CV" },
     ],
   },
 ]
