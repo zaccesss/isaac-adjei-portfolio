@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
 import {
-  createHealthSection, updateHealthSection, deleteHealthSection,
+  createHealthSection, deleteHealthSection,
   createHealthWorkout, updateHealthWorkout, deleteHealthWorkout,
   updateHealthNutrition, createHealthNutrition, deleteHealthNutrition,
 } from "@/app/dashboard/actions"
@@ -497,6 +497,7 @@ export default function HealthSectionClient({
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">Type</label>
                 <select
+                  aria-label="Section type"
                   value={newSection.type}
                   onChange={(e) => setNewSection((s) => ({ ...s, type: e.target.value, icon: SECTION_TYPE_ICONS[e.target.value] ?? "⚡" }))}
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
