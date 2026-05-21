@@ -288,7 +288,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- GitHub username corrected from zaccessss (4 s) to zaccesss (3 s) across all data files, layout and README
+- GitHub username corrected from zaccesss (4 s) to zaccesss (3 s) across all data files, layout and README
 
 ---
 

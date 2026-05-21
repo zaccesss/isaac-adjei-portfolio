@@ -163,7 +163,7 @@ const releases: ChangeEntry[] = [
       "Per-page canonical tags on all routes",
     ],
     fixed: [
-      "GitHub username corrected from zaccessss to zaccesss throughout",
+      "GitHub username corrected from zaccesss to zaccesss throughout",
     ],
   },
   {
