@@ -309,9 +309,18 @@ Dashboard tech stack (already installed and working):
 - AUTH_SECONDARY_PIN env var on Vercel for PIN gate
 - PIN fix note: the routes use `auth()` from @/auth, NOT `getToken` from next-auth/jwt (that is a NextAuth v4 pattern and always returned null here)
 
+---
+
+### CV page update (do this next session)
+
+- The CV at `/cv` is currently out of date - Isaac wants to update the content on that page
+- The CV page itself (`app/cv/page.tsx`), the Download CV button in ContactCTA and the Download CV button on the experience page should all remain - do NOT remove them
+- Isaac will tell you what to change on the CV in that session
+- The CV page reads `public/resume/cv.html` and serves it via CVViewer - edits go in that HTML file
+
 ### Beehiiv newsletter website styling (future session)
 - Isaac wants his Beehiiv hosted publication page to match the portfolio aesthetic
-- Currently does not look good — needs custom CSS/branding
+- Currently does not look good - needs custom CSS/branding
 - Beehiiv has a custom design editor in the dashboard
 - Help needed with editing the Beehiiv page styling (colours, fonts, layout) to match isaacadjei.me
 - This is done inside the Beehiiv dashboard, not in this repo

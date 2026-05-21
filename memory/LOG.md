@@ -2,6 +2,37 @@
 
 ---
 
+## 2026-05-21 - use client fixes, scraper ubuntu pin, CV removed from all-pages
+
+### What we did
+- Fixed white screen on Add Entry dialog in Applications page: `"use client"` was on line 15 (after a comment block) in `ApplicationsClient.tsx` - Next.js requires it on line 1, otherwise the component is treated as a server component and crashes on any useState call
+- Found same issue in `app/skills/page.tsx` (directive on line 3) and fixed it
+- Pinned job scraper GitHub Actions workflow to `ubuntu-22.04` - `ubuntu-latest` now maps to Ubuntu 24.04 (Noble) which renamed `libasound2` to `libasound2t64`, breaking Playwright install with exit code 100
+- Removed CV entry from `/all-pages` listing - Isaac does not want the CV page discoverable from the all-pages directory. The CV page itself, the Download CV button in ContactCTA, and the Download CV button on the experience page are all untouched.
+- PRs #149, #150, #151 merged to main via auto-merge
+- Cleaned up stale local and remote branches (feat/nexus-dashboard-overhaul, fix/pin-debug, fix/dashboard-login-redirect-loop, fix/streaks-nav-scraper-v2, fix/supabase-json-syntax)
+
+### Decisions made
+- CV page kept live but removed from all-pages: Isaac wants to update the CV content before making it discoverable again; the page and all download buttons remain working in the meantime
+
+### Problems and fixes
+- problem: ContactCTA.tsx was half-edited in a previous session - Download import removed but the JSX button still used `<Download>`
+  fix: reverted the file to clean state with `git restore` before making any other changes
+
+### Files changed
+- `app/dashboard/(protected)/applications/ApplicationsClient.tsx`: moved "use client" to line 1
+- `app/skills/page.tsx`: moved "use client" to line 1
+- `.github/workflows/job-scraper.yml`: pinned runner from ubuntu-latest to ubuntu-22.04
+- `app/all-pages/page.tsx`: removed CV entry from pages list
+- `memory/LOG.md`: this entry
+- `memory/AGENT_PROMPT.md`: added CV page update reminder for next session
+
+### Next session
+- CV page content update - Isaac will describe what to change; edits go in `public/resume/cv.html`
+- Job scraper still needs to be verified working after ubuntu-22.04 fix (trigger a manual run at start of session)
+
+---
+
 ## 2026-05-20 - Private dashboard full build
 
 ### What we did
