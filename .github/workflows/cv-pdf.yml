@@ -1,0 +1,57 @@
+name: Regenerate CV PDF
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "public/resume/cv.html"
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate PDF from cv.html
+        run: |
+          node -e "
+          const puppeteer = require('puppeteer');
+          const path = require('path');
+          const fs = require('fs');
+          (async () => {
+            const browser = await puppeteer.launch({
+              headless: true,
+              args: ['--no-sandbox', '--disable-setuid-sandbox']
+            });
+            const page = await browser.newPage();
+            const filePath = 'file://' + path.resolve('public/resume/cv.html');
+            await page.goto(filePath, { waitUntil: 'networkidle0' });
+            const pdf = await page.pdf({
+              format: 'A4',
+              margin: { top: '11mm', right: '14mm', bottom: '11mm', left: '14mm' },
+              printBackground: true,
+              preferCSSPageSize: true,
+            });
+            await browser.close();
+            fs.writeFileSync('public/resume/Isaac_Adjei_CV.pdf', pdf);
+            console.log('PDF generated:', pdf.length, 'bytes');
+          })();
+          "
+
+      - name: Commit updated PDF
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/resume/Isaac_Adjei_CV.pdf
+          git diff --staged --quiet || git commit -m "chore: regenerate CV PDF from cv.html [skip ci]"
+          git push
