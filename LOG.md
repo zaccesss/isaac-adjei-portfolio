@@ -5,6 +5,62 @@ See CHANGELOG.md for public site changes only.
 
 ---
 
+## 2026-05-21 - Full Dashboard Overhaul, CV Update and Codebase Comments
+
+### Branch: `feat/dashboard-overhaul`
+
+### What we did
+
+- Dashboard home page at `/dashboard` - replaced redirect with a mission-control overview showing stat cards (goals, applications, streaks, modules, diary, wishlist, vault, notes) with colour accents, Framer Motion animations and links to each section
+- Settings page at `/dashboard/settings` - change PIN form, lock-all button, job scraper status with Run Now trigger, session info
+- Manual lock button and Cmd+L keyboard shortcut on Diary, Notes and Vault pages
+- Sub-pages for all sections that needed them: Goals by category, Modules by year, Health by section (Gym/Nutrition/Running), Vault by type, Wishlist by category, Inventory by category, Notes by folder - all using dynamic [param] routes
+- Weekly email digest via Vercel cron every Sunday 6pm - pulls weekly stats and sends via Resend to DIGEST_EMAIL
+- New API routes: /api/dashboard/scraper-status, /api/dashboard/trigger-scraper, /api/dashboard/weekly-digest
+- DashboardBreadcrumb shared component for all sub-page navigation
+- dashboardPage, dashboardCard, dashboardGrid Framer Motion variants added to lib/animations.ts
+- Settings link added to sidebar above Sign out
+- getDashboardSummary server action (parallel Supabase queries for all section counts)
+- Security audit: all dashboard API routes verified to check auth(), PIN cookie checks confirmed server-side, dashboard excluded from sitemap, robots.txt updated to disallow /dashboard
+- First-person comments added across all new dashboard files, public API routes (spotify, macbook, lenovo, gpc, github-activity) and components (LiveStatusCards, ContactForm, MobileNav, ProjectFilter)
+- CV updated: profile rewritten, one-page target, Java removed from skills, Web and Frameworks / AI/ML and Data headings, Jupyter Notebooks added, git-unlocked corrected to 217+ files, PHAEMOS marked as in active development, AstonCV website link updated to astoncv.zacess.com, volunteering merged to 1 bullet each, bold key terms in experience and volunteering
+
+### Files changed
+- lib/animations.ts
+- app/dashboard/page.tsx
+- app/dashboard/DashboardHome.tsx
+- app/dashboard/actions.ts (getDashboardSummary)
+- app/dashboard/components/DashboardSidebar.tsx
+- app/dashboard/components/DashboardBreadcrumb.tsx
+- app/dashboard/(protected)/settings/page.tsx + SettingsClient.tsx
+- app/dashboard/(protected)/goals/GoalsClient.tsx + [category]/page.tsx + [category]/GoalsCategoryClient.tsx
+- app/dashboard/(protected)/modules/ModulesClient.tsx + [year]/page.tsx + [year]/ModulesYearClient.tsx
+- app/dashboard/(protected)/health/HealthClient.tsx + [section]/page.tsx + [section]/HealthSectionClient.tsx
+- app/dashboard/(protected)/vault/VaultClient.tsx + VaultWrapper.tsx + [type]/page.tsx + [type]/VaultTypeClient.tsx
+- app/dashboard/(protected)/wishlist/WishlistClient.tsx + [category]/page.tsx + [category]/WishlistCategoryClient.tsx
+- app/dashboard/(protected)/inventory/InventoryClient.tsx + [category]/page.tsx + [category]/InventoryCategoryClient.tsx
+- app/dashboard/(protected)/notes/NotesClient.tsx + NotesWrapper.tsx + [folder]/page.tsx + [folder]/NotesFolderClient.tsx
+- app/dashboard/(protected)/diary/DiaryWrapper.tsx
+- app/api/dashboard/scraper-status/route.ts
+- app/api/dashboard/trigger-scraper/route.ts
+- app/api/dashboard/weekly-digest/route.ts
+- vercel.json (cron config)
+- .env.example (CRON_SECRET, DIGEST_EMAIL, GH_PAT)
+- public/robots.txt (Disallow: /dashboard)
+- public/resume/cv.html
+
+### New env vars needed in Vercel
+- CRON_SECRET - random secret for weekly digest cron authentication
+- DIGEST_EMAIL - email to receive weekly digest
+- GH_PAT - GitHub PAT for trigger-scraper (optional)
+
+### Next session
+- Run the Supabase SQL for any missing columns if not already done
+- Set CRON_SECRET and DIGEST_EMAIL in Vercel env vars
+- Set GH_PAT in Vercel if you want the Run Now button in Settings to work
+
+---
+
 ## 2026-05-21 - Applications, Job Scraper and Bug Fixes
 
 ### Current branch: `fix/pin-auth-and-scraper`

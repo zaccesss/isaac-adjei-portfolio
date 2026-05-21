@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react"
 import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
-  Flame, LogOut, ChevronLeft, ChevronRight, Menu, X
+  Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -115,17 +115,36 @@ export default function DashboardSidebar({
         })}
       </nav>
 
-      {/* Sign out */}
-      <Button
-        variant="ghost"
-        size="sm"
-        title={collapsed ? "Sign out" : undefined}
-        className={`justify-start gap-2 text-muted-foreground hover:text-foreground ${collapsed ? "justify-center px-2" : ""}`}
-        onClick={() => signOut({ callbackUrl: "/dashboard/login" })}
-      >
-        <LogOut className="h-4 w-4 shrink-0" />
-        {!collapsed && "Sign out"}
-      </Button>
+      {/* Settings + sign out at the bottom */}
+      <div className="flex flex-col gap-0.5 border-t border-border/60 pt-2 mt-1">
+        {(() => {
+          const active = pathname === "/dashboard/settings" || pathname.startsWith("/dashboard/settings/")
+          return (
+            <Link
+              href="/dashboard/settings"
+              title={collapsed ? "Settings" : undefined}
+              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
+                active
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              } ${collapsed ? "justify-center" : ""}`}
+            >
+              <Settings className="h-4 w-4 shrink-0" />
+              {!collapsed && <span>Settings</span>}
+            </Link>
+          )
+        })()}
+        <Button
+          variant="ghost"
+          size="sm"
+          title={collapsed ? "Sign out" : undefined}
+          className={`justify-start gap-2 text-muted-foreground hover:text-foreground ${collapsed ? "justify-center px-2" : ""}`}
+          onClick={() => signOut({ callbackUrl: "/dashboard/login" })}
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!collapsed && "Sign out"}
+        </Button>
+      </div>
     </>
   )
 
@@ -188,15 +207,32 @@ export default function DashboardSidebar({
                 )
               })}
             </nav>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="justify-start gap-2 text-muted-foreground"
-              onClick={() => signOut({ callbackUrl: "/dashboard/login" })}
-            >
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </Button>
+            <div className="flex flex-col gap-0.5 border-t border-border/60 pt-2 mt-1">
+              {(() => {
+                const active = pathname === "/dashboard/settings" || pathname.startsWith("/dashboard/settings/")
+                return (
+                  <Link
+                    href="/dashboard/settings"
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
+                      active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <Settings className="h-4 w-4 shrink-0" />
+                    <span>Settings</span>
+                  </Link>
+                )
+              })()}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start gap-2 text-muted-foreground"
+                onClick={() => signOut({ callbackUrl: "/dashboard/login" })}
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </Button>
+            </div>
           </aside>
         </div>
       )}

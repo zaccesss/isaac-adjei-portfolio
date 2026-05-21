@@ -7,7 +7,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- CV updated to target one page: profile rewritten, skills headings renamed (Skills (Professional and Technical), Web and Frameworks, AI/ML and Data), Jupyter Notebooks added, git-unlocked corrected to 217+ files, volunteer roles merged to one bullet each, bold key terms added, AstonCV website link updated
+
 ### Fixed
+
+- robots.txt now explicitly disallows /dashboard for crawlers
 
 - **Applications Add dialog crash** - Radix UI Select v2 does not accept empty-string `value` on `SelectItem`; all five optional Select fields in AppForm (category, CV, cover letter, written answers, visa) now use sentinel values (`"auto"` / `"none"`) with onValueChange converting back to empty string
 - **Job scraper - full-time jobs ingested** - removed the priority-company exception that bypassed the student-role check; all companies now require a student/intern/placement term in the title or department

@@ -1,3 +1,4 @@
+// I import bcrypt server-side only - it must never be bundled into the browser because it exposes the hash logic
 import bcrypt from "bcryptjs"
 import { supabase } from "@/lib/supabase"
 

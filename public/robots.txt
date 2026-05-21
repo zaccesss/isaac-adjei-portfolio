@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard
 
 Sitemap: https://www.isaacadjei.me/sitemap.xml

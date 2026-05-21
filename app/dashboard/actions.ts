@@ -578,3 +578,82 @@ export async function deleteInventoryItem(id: string) {
   await supabase.from("inventory_items").delete().eq("id", id)
   revalidatePath("/dashboard/inventory")
 }
+
+// ─── Dashboard summary ───────────────────────────────────────
+
+// I run these queries in parallel with Promise.all so the home overview page loads as one
+// round trip rather than 8 sequential ones. Each query only fetches the minimum columns needed.
+export async function getDashboardSummary() {
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const today = new Date().toISOString().split("T")[0]
+
+  const [
+    { data: goals },
+    { count: appCount },
+    { count: offerCount },
+    { data: streaks },
+    { data: streakLogs },
+    { data: modules },
+    { data: assessments },
+    { data: diaryRecent },
+    { count: wishlistCount },
+    { count: vaultCount },
+    { count: notesCount },
+    { data: notesRecent },
+  ] = await Promise.all([
+    supabase.from("goals").select("id,status"),
+    supabase.from("applications").select("id", { count: "exact", head: true })
+      .not("status", "in", '("Not Applied","Not Interested","Rejected")'),
+    supabase.from("applications").select("id", { count: "exact", head: true })
+      .eq("status", "Offer Received"),
+    supabase.from("streaks").select("id,name,color").eq("active", true).order("order_index"),
+    supabase.from("streak_logs").select("streak_id,date")
+      .gte("date", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
+      .lte("date", today),
+    supabase.from("modules").select("id,year,credits,status"),
+    supabase.from("assessments").select("module_id,weight_percent,mark_achieved,mark_max"),
+    supabase.from("diary").select("id,mood,created_at").order("created_at", { ascending: false }).limit(1),
+    supabase.from("wishlist").select("id", { count: "exact", head: true }),
+    supabase.from("vault").select("id", { count: "exact", head: true }),
+    supabase.from("notes").select("id", { count: "exact", head: true }),
+    supabase.from("notes").select("updated_at").order("updated_at", { ascending: false }).limit(1),
+  ])
+
+  // I compute the overall weighted average for year 3 (or the latest year with marks) as a GPA proxy
+  const modulesWithMarks = (modules ?? []).filter((m) => {
+    const mAssessments = (assessments ?? []).filter((a) => a.module_id === m.id)
+    return mAssessments.some((a) => a.mark_achieved !== null)
+  })
+  let gpaEstimate: number | null = null
+  if (modulesWithMarks.length > 0) {
+    const allAssessments = (assessments ?? []).filter((a) => a.mark_achieved !== null)
+    const totalWeight = allAssessments.reduce((s, a) => s + a.weight_percent, 0)
+    if (totalWeight > 0) {
+      const weightedSum = allAssessments.reduce((s, a) => s + ((a.mark_achieved! / a.mark_max) * 100 * a.weight_percent), 0)
+      gpaEstimate = Math.round((weightedSum / totalWeight) * 10) / 10
+    }
+  }
+
+  // I compute today's check-in count from the logs so the home page shows live streak data
+  const todayLogs = new Set((streakLogs ?? []).filter((l) => l.date === today).map((l) => l.streak_id))
+  const totalStreaks = (streaks ?? []).length
+
+  const goalsDone = (goals ?? []).filter((g) => g.status === "done").length
+  const goalsInProgress = (goals ?? []).filter((g) => g.status === "in_progress").length
+  const goalsTotal = (goals ?? []).length
+
+  return {
+    goals: { total: goalsTotal, done: goalsDone, inProgress: goalsInProgress },
+    applications: { active: appCount ?? 0, offers: offerCount ?? 0 },
+    streaks: { total: totalStreaks, checkedInToday: todayLogs.size },
+    modules: { gpaEstimate },
+    diary: {
+      lastMood: diaryRecent?.[0]?.mood ?? null,
+      lastEntry: diaryRecent?.[0]?.created_at ?? null,
+    },
+    wishlist: { total: wishlistCount ?? 0 },
+    vault: { total: vaultCount ?? 0 },
+    notes: { total: notesCount ?? 0, lastUpdated: notesRecent?.[0]?.updated_at ?? null },
+    updatedAt: weekAgo,
+  }
+}

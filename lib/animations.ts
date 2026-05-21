@@ -52,3 +52,34 @@ export const scaleIn: Variants = {
     transition: { duration: 0.4, ease: "easeOut" },
   },
 }
+
+// I use a faster, tighter fade for dashboard pages so navigation feels snappy rather than slow
+export const dashboardPage: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.25, ease: "easeOut" },
+  },
+}
+
+// Card entrance used on overview grids - each card staggers via the staggerContainer parent
+export const dashboardCard: Variants = {
+  hidden: { opacity: 0, y: 8, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.2, ease: "easeOut" },
+  },
+}
+
+// Fast stagger for dense grids - tighter interval than staggerContainer to keep grids feeling cohesive
+export const dashboardGrid: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.06,
+    },
+  },
+}
