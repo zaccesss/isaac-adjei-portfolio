@@ -273,26 +273,18 @@ def is_relevant(
     location: str = "",
     dept_names: list[str] | None = None,
 ) -> bool:
-    """True if this role should be saved.
+    """True if this internship/placement/graduate role should be saved.
 
-    I require a student signal and a tech keyword for ALL companies - no
-    exceptions. Priority companies only get a pass on strict location matching
-    (they may not always label UK offices explicitly), but US locations are
-    rejected for everyone.
+    No location restriction - the location is stored and shown in the UI so
+    Isaac can filter by city himself. I only require student terms + tech
+    keyword so no good opportunity is missed due to geography.
     """
-    # Step 1: must be student-facing - no full-time roles, ever
+    # Must be student-facing - no full-time roles
     if not is_student_role(title, dept_names):
         return False
-
-    # Step 2: must be tech-related
+    # Must be tech-related
     title_lower = title.lower()
-    has_keyword = any(k in title_lower for k in TECH_KEYWORDS)
-    if not has_keyword:
-        return False
-
-    # Step 3: location must be Isaac's target areas (or unknown)
-    is_priority = any(p in company.lower() for p in PRIORITY_COMPANIES)
-    return is_location_ok(location, is_priority)
+    return any(k in title_lower for k in TECH_KEYWORDS)
 
 
 def infer_type(title: str) -> str:
