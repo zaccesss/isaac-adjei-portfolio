@@ -273,15 +273,32 @@ The following were all planned and are now live on the site:
 
 ---
 
-## Planned for next session on the dashboard (agreed 2026-05-21)
+## Planned for next session (agreed 2026-05-21)
 
-1. Sub-pages for all dashboard pages - instead of long expanding pages, use preview card grids:
-   - /dashboard/goals/personal, /goals/academic, /goals/career, /goals/health, /goals/finance
-   - /dashboard/modules/year-1, /modules/year-2, /modules/placement, /modules/final
-   - /dashboard/health/gym, /health/nutrition, /health/running
-   - All main pages become card-grid overview pages; detailed work happens on sub-pages
-2. Manual lock button on Vault, Notes and Diary - calls DELETE /api/dashboard/verify-pin to clear the cookie and re-show the PIN gate
-3. Settings page at /dashboard/settings: change PIN, lock all PIN-protected pages, inactivity timeout, job scraper status
+### First-person comments - entire codebase (do this first)
+The dashboard files already have first-person comments added. Next session must extend this to the WHOLE repo - every public page, component, API route, lib file, hook and script. Not just /dashboard files.
+
+Files that still need first-person comments (non-dashboard):
+- app/ public pages (about, blog, projects, uses, colophon, etc.)
+- components/ public components (nav, footer, command menu, live status cards, etc.)
+- app/api/ public API routes (spotify, contact, newsletter, github, macbook, lenovo, gpc, etc.)
+- lib/ utilities (animations.ts, constants.ts, utils.ts)
+- hooks/ (useModKey, useTheme, useScrollPosition, useCommandMenu, useMediaQuery)
+- data/ files (education.ts, experience.ts, etc.)
+- scripts/mac-daemon.py, scripts/lenovo-daemon.py, scripts/gpc-daemon.py
+
+Rule: first-person only ("I use...", "I check..."). No third-person. No em/en dashes in comments. UK English. Only add a comment where the WHY is non-obvious - not on self-explanatory lines.
+
+### Dashboard sub-pages
+Sub-pages for all dashboard pages - instead of long expanding pages, use preview card grids:
+- /dashboard/goals/personal, /goals/academic, /goals/career, /goals/health, /goals/finance
+- /dashboard/modules/year-1, /modules/year-2, /modules/placement, /modules/final
+- /dashboard/health/gym, /health/nutrition, /health/running
+- All main pages become card-grid overview pages; detailed work happens on sub-pages
+
+### Dashboard PIN quality-of-life
+- Manual lock button on Vault, Notes and Diary - calls DELETE /api/dashboard/verify-pin to clear the cookie and re-show the PIN gate
+- Settings page at /dashboard/settings: change PIN, lock all PIN-protected pages, inactivity timeout, job scraper status
 
 **Dashboard is fully built and deployed.** Do not rebuild anything from scratch - only extend.
 
