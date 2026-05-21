@@ -541,6 +541,22 @@ function AppRow({
         )}
       </td>
 
+      {/* Location */}
+      <td className="px-2 py-1.5 whitespace-nowrap text-xs text-muted-foreground">
+        {app.location ? (
+          <span className={
+            app.location.toLowerCase().includes("london") ? "text-emerald-600 dark:text-emerald-400 font-medium" :
+            app.location.toLowerCase().includes("birmingham") ? "text-blue-600 dark:text-blue-400 font-medium" :
+            app.location.toLowerCase().includes("manchester") ? "text-violet-600 dark:text-violet-400 font-medium" :
+            ""
+          }>
+            {app.location}
+          </span>
+        ) : (
+          <span className="opacity-40">-</span>
+        )}
+      </td>
+
       {isEvent ? (
         <>
           {/* Eligibility (location reuse) */}
@@ -696,6 +712,8 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const [filterOpenStatus, setFilterOpenStatus] = useState("All")
   const [filterCoverLetter, setFilterCoverLetter] = useState("All")
   const [filterMyStatus, setFilterMyStatus] = useState("All")
+  const [filterLocation, setFilterLocation] = useState("All")
+  const [filterKeyword, setFilterKeyword] = useState("All")
   const [addOpen, setAddOpen] = useState(false)
   const [editApp, setEditApp] = useState<Application | null>(null)
   const [, startTransition] = useTransition()
@@ -710,7 +728,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   // Apply filters
   const filtered = tabApps.filter((a) => {
     const q = search.toLowerCase()
-    if (q && !a.company.toLowerCase().includes(q) && !a.role.toLowerCase().includes(q)) return false
+    if (q && !a.company.toLowerCase().includes(q) && !a.role.toLowerCase().includes(q) && !(a.location ?? "").toLowerCase().includes(q)) return false
 
     if (filterMyStatus !== "All") {
       if (normaliseStatus(a.status) !== filterMyStatus) return false
@@ -729,6 +747,34 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       if ((a.cover_letter_required ?? "") !== filterCoverLetter) return false
     }
 
+    if (filterLocation !== "All") {
+      const loc = (a.location ?? "").toLowerCase()
+      if (filterLocation === "London" && !loc.includes("london")) return false
+      if (filterLocation === "Birmingham" && !loc.includes("birmingham")) return false
+      if (filterLocation === "Manchester" && !loc.includes("manchester")) return false
+      if (filterLocation === "Remote / Hybrid" && !loc.includes("remote") && !loc.includes("hybrid") && !loc.includes("work from home")) return false
+      if (filterLocation === "Other") {
+        const isKnown = loc.includes("london") || loc.includes("birmingham") || loc.includes("manchester") || loc.includes("remote") || loc.includes("hybrid")
+        if (isKnown || !loc) return false
+      }
+    }
+
+    if (filterKeyword !== "All") {
+      const cat = (a.category || detectCategory(a.company, a.role) || "").toLowerCase()
+      const kwMap: Record<string, string> = {
+        "Software":      "software",
+        "Data":          "data",
+        "Cloud":         "cloud",
+        "DevOps":        "devops",
+        "Security":      "security",
+        "Finance/Quant": "finance",
+        "Embedded":      "embedded",
+        "Consulting":    "consulting",
+      }
+      const needle = kwMap[filterKeyword]
+      if (needle && !cat.includes(needle)) return false
+    }
+
     return true
   })
 
@@ -739,13 +785,25 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const statsOffers = filtered.filter((a) => normaliseStatus(a.status) === "Offer Received").length
   const statsRejected = filtered.filter((a) => normaliseStatus(a.status) === "Rejected").length
 
-  // Group by category
+  // Group by category then sort: London/Birmingham first, then Manchester, then remote, then other
+  function locPriority(loc: string | null): number {
+    const l = (loc ?? "").toLowerCase()
+    if (l.includes("london")) return 0
+    if (l.includes("birmingham")) return 1
+    if (l.includes("manchester")) return 2
+    if (l.includes("remote") || l.includes("hybrid")) return 3
+    if (!l) return 4
+    return 5
+  }
   const grouped: Record<string, Application[]> = {}
   for (const cat of CATEGORIES) grouped[cat] = []
   for (const app of filtered) {
     const cat = (app.category as Category) || detectCategory(app.company, app.role)
     if (cat in grouped) grouped[cat].push(app)
     else grouped["Miscellaneous"].push(app)
+  }
+  for (const cat of CATEGORIES) {
+    grouped[cat].sort((a, b) => locPriority(a.location) - locPriority(b.location))
   }
 
   // ─── Handlers ───────────────────────────────────────────────
@@ -999,6 +1057,37 @@ export default function ApplicationsClient({ applications: initial }: { applicat
             <SelectItem value="Optional">Optional</SelectItem>
           </SelectContent>
         </Select>
+
+        <Select value={filterLocation} onValueChange={setFilterLocation}>
+          <SelectTrigger className="h-8 text-xs w-44">
+            <SelectValue placeholder="Location" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All">All Locations</SelectItem>
+            <SelectItem value="London">London</SelectItem>
+            <SelectItem value="Birmingham">Birmingham</SelectItem>
+            <SelectItem value="Manchester">Manchester</SelectItem>
+            <SelectItem value="Remote / Hybrid">Remote / Hybrid</SelectItem>
+            <SelectItem value="Other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filterKeyword} onValueChange={setFilterKeyword}>
+          <SelectTrigger className="h-8 text-xs w-44">
+            <SelectValue placeholder="Keyword" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All">All Keywords</SelectItem>
+            <SelectItem value="Software">Software</SelectItem>
+            <SelectItem value="Data">Data</SelectItem>
+            <SelectItem value="Cloud">Cloud</SelectItem>
+            <SelectItem value="DevOps">DevOps</SelectItem>
+            <SelectItem value="Security">Security</SelectItem>
+            <SelectItem value="Finance/Quant">Finance / Quant</SelectItem>
+            <SelectItem value="Embedded">Embedded</SelectItem>
+            <SelectItem value="Consulting">Consulting</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
@@ -1020,6 +1109,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
                   <th className="px-2 py-2 text-left font-semibold whitespace-nowrap">My Status</th>
                   <th className="px-2 py-2 text-left font-semibold whitespace-nowrap">Company</th>
                   <th className="px-2 py-2 text-left font-semibold whitespace-nowrap">Programme Name</th>
+                  <th className="px-2 py-2 text-left font-semibold whitespace-nowrap">Location</th>
                   {isEvent ? (
                     <>
                       <th className="px-2 py-2 text-left font-semibold whitespace-nowrap">Eligibility</th>

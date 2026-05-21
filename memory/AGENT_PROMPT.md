@@ -273,7 +273,27 @@ The following were all planned and are now live on the site:
 
 ---
 
-## Planned for next session (agreed 2026-05-21)
+## Planned for next session
+
+### START OF SESSION CHECKLIST
+1. Run `gh workflow run job-scraper.yml --ref main` to get fresh data with the fixed scraper
+2. Verify Applications page: Jobs tab shows full-time roles, Summer Internships shows student roles only, no US-only entries without location, London/Birmingham sorted first
+3. Test the Add button - should open dialog without crashing now
+
+### CV page update (do this next session)
+- The CV at `/cv` needs content updating - Isaac will describe what to change
+- Edits go in `public/resume/cv.html` - the page reads that file and serves it via CVViewer
+- The CV page itself, the Download CV button in ContactCTA and on the experience page are all untouched
+
+### Applications tracker - state as of 2026-05-21
+FULLY BUILT. Do not rebuild. The scraper:
+- Deletes all status=scraped entries at run start (reset_scraped_entries)
+- Student roles go to Summer Internships/Placements/Graduate/Spring Weeks tabs
+- Full-time roles go to Jobs tab (type = Full-time Job)
+- Sources: The Trackr (Playwright), Greenhouse API, Lever API, Ashby API, Gradcracker, RateMyPlacement, TargetJobs, BrightNetwork, TotalJobs, Prospects, Remotive
+- Internships: no location restriction; location shown in table, London/Birmingham sorted first
+- Jobs: anywhere in world, Jan 2026 cutoff
+- Filters: My Status, Open/Closed, Cover Letter, Location (London/Birmingham/Manchester/Remote/Other), Keyword (Software/Data/Cloud/DevOps/Security/Finance/Embedded/Consulting)
 
 ### First-person comments - entire codebase (do this first)
 The dashboard files already have first-person comments added. Next session must extend this to the WHOLE repo - every public page, component, API route, lib file, hook and script. Not just /dashboard files.

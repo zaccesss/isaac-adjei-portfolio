@@ -2,6 +2,58 @@
 
 ---
 
+## 2026-05-21 - Applications tracker overhaul: Add dialog fix, scraper rewrite, Jobs tab, filters
+
+### What we did
+- Fixed Add/Edit dialog white screen: root cause was Radix UI Select v2 rejecting `value=""` on SelectItem; replaced all 5 optional Selects (category, CV, cover letter, written answers, visa) with sentinel values `"auto"` / `"none"` using `value={form.field || sentinel}` + onValueChange conversion
+- Fixed scraper ingesting full-time jobs (Staff PM, SWE II at Brex etc.) and US jobs (Databricks LA): removed priority-company exception from `is_relevant` so ALL companies require student terms; added `US_LOCATIONS` reject list
+- Fixed 2024/expired entries: added `CYCLE_CUTOFF = 2025-09-01` date filter in `insert_job`
+- Fixed opening_date stored in notes string: now written to proper `opening_date` DB column
+- Fixed stale data accumulating: `reset_scraped_entries()` deletes all `status=scraped` rows at run start
+- Added Jobs tab: full-time tech roles (`type = Full-time Job`), never mixed with internships/placements/events
+- Added dual-pass scraping: Greenhouse/Lever/Ashby now check student AND full-time roles per posting (mutually exclusive)
+- Added `is_relevant_job()`: tech keyword required, student role explicitly excluded, no location restriction
+- Added `JOB_CUTOFF = Jan 2026` for full-time jobs (internships keep Sep 2025 cutoff)
+- Added Remotive scraper: remote full-time jobs, categories: software-dev/devops/data/product
+- Removed location restriction from internship scraping: internships are now worldwide; location shown in table
+- Added Location column to table: London=green, Birmingham=blue, Manchester=violet
+- Added location priority sort: London first, then Birmingham, Manchester, Remote, Other within each category group
+- Added Location filter dropdown: All / London / Birmingham / Manchester / Remote-Hybrid / Other
+- Added Keyword filter dropdown: Software / Data / Cloud / DevOps / Security / Finance-Quant / Embedded / Consulting
+- Search bar now also matches location field
+- Fixed ContactCTA.tsx half-edit from previous session (Download import removed but button still present); reverted to clean state
+- Removed CV entry from all-pages listing (CV page itself and all download buttons untouched)
+- Pinned job scraper workflow to ubuntu-22.04 (ubuntu-latest is now 24.04; libasound2 renamed breaks Playwright)
+- PRs #149, #150, #151, #152, #153, #154 all merged to main
+
+### Decisions made
+- Internships: no location restriction in scraper (too many good roles filtered out); location shown in table for manual filtering; London/Birmingham sorted first
+- Jobs tab: anywhere in world, Jan 2026 cutoff, same Greenhouse/Lever/Ashby sources + Remotive
+- reset_scraped_entries on each scraper run: ensures dead links never accumulate; manually-added entries (status != scraped) are always preserved
+- Radix Select empty string: cannot use value="" on SelectItem in v2; sentinel pattern is the clean fix
+
+### Problems and fixes
+- problem: Add dialog crashed with "This page couldn't load" even after use client fix
+  root cause: Radix UI Select v2 does not allow value="" on SelectItem; throws when form renders
+  fix: sentinel values (auto/none) on all 5 optional Selects
+
+- problem: 995 entries after first scraper run including Brex SF jobs, Databricks LA, 2024 dates
+  root cause: priority company exception bypassed student check; no date cutoff; no US reject
+  fix: rewrote is_relevant; added US_LOCATIONS; added CYCLE_CUTOFF; added reset_scraped_entries
+
+### Files changed
+- `app/dashboard/(protected)/applications/ApplicationsClient.tsx`: Select sentinel fix, Jobs tab, Location column, location sort, location + keyword filters
+- `scripts/job-scraper.py`: is_relevant rewrite, is_relevant_job, JOB_CUTOFF, dual-pass greenhouse/lever/ashby, Remotive scraper, reset_scraped_entries, opening_date in proper column
+- `CHANGELOG.md`: all new entries under Unreleased
+- `memory/LOG.md`: this entry
+- `memory/AGENT_PROMPT.md`: updated planned features
+
+### Next session
+- CV page content update - Isaac will describe what to change; edits go in `public/resume/cv.html`
+- Verify scraper output after this session's fixes - run `gh workflow run job-scraper.yml --ref main` at session start and confirm only correct entries appear
+
+---
+
 ## 2026-05-21 - use client fixes, scraper ubuntu pin, CV removed from all-pages
 
 ### What we did

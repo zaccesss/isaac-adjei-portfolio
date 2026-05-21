@@ -794,4 +794,25 @@ insert into config (key, value) values
 --
 -- 3. Module years: year 1 = Stage 1, year 2 = Stage 2,
 --    year 3 = Placement Year (optional), year 4 = Final Year.
+--
+-- ============================================================
+-- SESSION 2026-05-21: CLEANUP - run this in the SQL editor now
+-- ============================================================
+--
+-- No schema changes are needed this session. The table already has
+-- all required columns (opening_date, type text, etc.).
+--
+-- ACTION REQUIRED: Delete all bad scraped entries (full-time jobs,
+-- US roles, 2024 dates) that were inserted before the scraper fix.
+-- The scraper now resets status=scraped on every run going forward,
+-- but you need to clear the existing bad data manually once:
+--
+DELETE FROM applications WHERE status = 'scraped';
+--
+-- After running the DELETE above, trigger a fresh scraper run from
+-- GitHub Actions to repopulate with correctly filtered data:
+--
+--   gh workflow run job-scraper.yml --ref main
+--
+-- That is all. No ALTER TABLE or INSERT needed this session.
 -- ============================================================
