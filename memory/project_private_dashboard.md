@@ -1,150 +1,100 @@
 ---
 name: project-private-dashboard
-description: Full spec for the private /dashboard section of isaacadjei.me — NextAuth.js GitHub OAuth, Supabase, Goals tracker, Module tracker and Internship tracker. Discussed 2026-05-20.
+description: Full spec and current state of the private /dashboard section - Nexus. NextAuth.js v5 GitHub OAuth, Supabase, all pages built and deployed.
 metadata:
   type: project
 ---
 
-# Private dashboard
+# Private dashboard (Nexus)
 
-A private section of the portfolio accessible only to Isaac. Not linked from the public nav. Discussed and fully planned in the session of 2026-05-20.
+A private section at `/dashboard` accessible only to Isaac. Not linked from public nav, sitemap or command menu. The display name is "Nexus" (the URL stays /dashboard).
 
-**Why:** Isaac wants a personal productivity layer inside the portfolio — goals, uni module tracking and internship applications — all in one place he already visits and maintains.
-
-**How to apply:** Dedicate a full session to this. Do not start mid-session. Auth layer must be confirmed working before building any of the three sections.
-
----
-
-## Route and access
-
-- Route: `/dashboard` (protected layout, not in public nav or sitemap)
-- Any unauthenticated visit redirects to `/dashboard/login`
-- Login page: single "Sign in with GitHub" button, no username/password
-- After login, only Isaac's GitHub account is allowed in — all other GitHub accounts hit an "Access denied" page
-- Isaac's GitHub username: `zaccesss` (3 s's). Use the numeric GitHub user ID (not username) in the allow-list so a username change cannot break access.
+**Auth:** NextAuth.js v5 (Auth.js) GitHub OAuth, numeric user ID allow-list, `ALLOWED_GITHUB_ID` env var.
+**Database:** Supabase PostgreSQL. All DB access via server actions only - never direct Supabase calls from client components.
+**PIN gate:** `AUTH_SECONDARY_PIN` env var (plain text on Vercel). On first successful login, I hash it with bcrypt and store in the `config` table so subsequent checks never compare plain text. Cookie `dashboard_pin_verified` (httpOnly, 4-hour maxAge) unlocks Diary, Notes and Vault for the session.
 
 ---
 
-## Auth stack
+## Routes built (all live as of 2026-05-21)
 
-- **NextAuth.js v5** (also called Auth.js v5) — App Router compatible, uses the new `auth()` helper
-- GitHub OAuth provider
-- Session stored as a JWT (no database needed for the session itself)
-- Middleware (`middleware.ts`) guards all `/dashboard/**` routes — redirects to `/dashboard/login` if no valid session
-- Allow-list: hardcode Isaac's GitHub numeric user ID in an env var `ALLOWED_GITHUB_ID`
-- New env vars required:
-  - `NEXTAUTH_SECRET` — random 32-byte secret, generate with `openssl rand -hex 32`
-  - `AUTH_GITHUB_ID` — GitHub OAuth app client ID
-  - `AUTH_GITHUB_SECRET` — GitHub OAuth app client secret
-  - `ALLOWED_GITHUB_ID` — Isaac's GitHub numeric user ID (find at `api.github.com/users/zaccesss`)
-
-### Session start checklist for this feature
-1. Ask Isaac to go to github.com/settings/developers and create a new OAuth App
-   - Application name: "Isaac Portfolio Dashboard"
-   - Homepage URL: `https://isaacadjei.me`
-   - Callback URL: `https://isaacadjei.me/api/auth/callback/github` (and `http://localhost:3000/api/auth/callback/github` for dev)
-2. Ask Isaac to create a Supabase project at supabase.com and provide the Project URL and anon key
-3. Ask Isaac to provide his GitHub numeric user ID (check `https://api.github.com/users/zaccesss`)
-4. Add all env vars to `.env.local` for dev and to Vercel project settings for production
+| Route | Page | Notes |
+|---|---|---|
+| /dashboard/me | Me | Personal profile, editable, config table key `me_profile` |
+| /dashboard/us | Us | Relationship page, editable, config table key `us_data` |
+| /dashboard/goals | Goals | Category cards (Personal, Academic, Career, Health, Finance) |
+| /dashboard/health | Health and Fitness | Gym split, nutrition, running - migrated from /gym |
+| /dashboard/diary | Diary | PIN gated, mood picker, word count, server actions |
+| /dashboard/notes | Notes | PIN gated, markdown, folders, tags, lock per note |
+| /dashboard/wishlist | Wishlist | Category cards, priority colour border |
+| /dashboard/inventory | Inventory | Tech devices, categories - migrated from /tech |
+| /dashboard/course | Course | Editable modules table, programme spec PDF link, Aston URL |
+| /dashboard/modules | Modules | Excel-like, year cards, assessment tracker, Recharts |
+| /dashboard/applications | Applications | Trackr-like table - see below |
+| /dashboard/vault | Vault | Bitwarden-like, PIN gated, Account/Note/APIKey/Card/Identity types |
+| /dashboard/streaks | Streaks | LeetCode, GitHub, LinkedIn, Bible etc., 30-day heatmap |
+| /dashboard/gym | - | Redirects to /health |
+| /dashboard/internships | - | Redirects to /applications |
+| /dashboard/tech | - | Redirects to /inventory |
 
 ---
 
-## Database — Supabase
+## Applications page (rebuilt 2026-05-21 to match The Trackr)
 
-- Supabase (PostgreSQL) for all dashboard data
-- Client: `@supabase/supabase-js`
-- Server-side only — no direct Supabase calls from client components; use server actions or route handlers
-- New env vars: `SUPABASE_URL`, `SUPABASE_ANON_KEY` (anon key is safe for server-side use with RLS)
-- Row Level Security (RLS): enable on all tables; policy: `auth.uid() = user_id` or just leave open since only one user will ever exist
+Tabs: Summer Internships / Industrial Placements / Graduate Schemes / Spring Weeks / Events.
+Full-width table: My Status (inline dropdown), Company, Programme, Opening Date, Closing Date, Last Year Opening, Find Housing, CV, Cover Letter, Written Answers, Sponsors Visa, Notes.
+Category groups with expand/collapse: FAANG+, Software Engineering, Data Science, AI and Machine Learning, DevOps and Infrastructure, Quant Developer, Tech Consulting, Cyber Security, Startups, IT, Miscellaneous.
+My Status values: Not Applied, Interested, Application Submitted, Online Assessment, Case Study, HireVue, Telephone Interview, Video Interview, Face-to-face Interview, Assessment Centre, Offer Received, Rejected, Not Interested.
 
-### Tables
-
+**SQL I still need to run in Supabase after the next deploy:**
 ```sql
--- Goals tracker
-create table goals (
-  id uuid primary key default gen_random_uuid(),
-  created_at timestamptz default now(),
-  title text not null,
-  description text,
-  category text, -- Academic, Career, Personal, Health, Finance
-  status text default 'not_started', -- not_started, in_progress, done, abandoned
-  target_date date,
-  progress int default 0 -- 0-100 percent
-);
-
--- Module tracker
-create table modules (
-  id uuid primary key default gen_random_uuid(),
-  created_at timestamptz default now(),
-  name text not null,
-  code text,
-  credits int,
-  year int, -- 1, 2, 3
-  semester int, -- 1 or 2
-  status text default 'ongoing' -- ongoing, complete, resit
-);
-
-create table assessments (
-  id uuid primary key default gen_random_uuid(),
-  module_id uuid references modules(id) on delete cascade,
-  name text not null, -- "Coursework 1", "Final Exam"
-  type text, -- coursework, exam, lab, project
-  weight_percent int, -- contribution to module mark
-  mark_achieved numeric, -- actual mark out of max
-  mark_max numeric default 100,
-  target_mark numeric
-);
-
--- Internship tracker
-create table applications (
-  id uuid primary key default gen_random_uuid(),
-  created_at timestamptz default now(),
-  company text not null,
-  role text not null,
-  applied_date date,
-  deadline date,
-  status text default 'drafting', -- drafting, applied, oa, phone_screen, interview, offer, rejected, withdrawn
-  notes text,
-  url text,
-  starred boolean default false
-);
+ALTER TABLE applications
+  ADD COLUMN IF NOT EXISTS opening_date date,
+  ADD COLUMN IF NOT EXISTS last_year_opening date,
+  ADD COLUMN IF NOT EXISTS housing_location text,
+  ADD COLUMN IF NOT EXISTS cv_required text,
+  ADD COLUMN IF NOT EXISTS cover_letter_required text,
+  ADD COLUMN IF NOT EXISTS written_answers text,
+  ADD COLUMN IF NOT EXISTS sponsors_visa text,
+  ADD COLUMN IF NOT EXISTS category text DEFAULT 'Software Engineering';
 ```
 
 ---
 
-## Dashboard layout
+## Job scraper (scripts/job-scraper.py)
 
-- Sidebar navigation on desktop (collapsible), bottom tab bar on mobile
-- Three sections: Goals, Modules, Internships
-- Top bar: Isaac's GitHub avatar + name, Sign out button
-- Uses existing shadcn/ui components: Table, Dialog, Badge, Select, Textarea, Button, Input, Card
+Runs via GitHub Actions every 30 minutes. Sources:
+- The Trackr (Playwright - JS-rendered React app)
+- Greenhouse JSON API - 50+ companies (Cloudflare, Citadel, CrowdStrike, GitLab, Databricks etc.)
+- Lever JSON API - Palantir, Canva, Shopify, Tailscale etc.
+- Ashby Next.js embed - Linear, Perplexity, Cursor, Vercel, Supabase etc.
+- SmartRecruiters API - KPMG, Vodafone, Capgemini, Accenture, BT etc.
+- HTML scrapers - Gradcracker, RateMyPlacement, TargetJobs, BrightNetwork, TotalJobs, Prospects
 
-### Goals section
-- Card grid or table of all goals
-- Status badge (colour-coded: not started = muted, in progress = blue, done = green, abandoned = red)
-- Add new goal via Dialog (title, description, category, target date, status)
-- Edit/delete inline
-- Filter by status and category
+GitHub secrets needed: `SUPABASE_URL` and `SUPABASE_ANON_KEY` (must use legacy `eyJ...` format, not new `sb_publishable_` key).
 
-### Modules section
-- Module cards grouped by year/semester
-- Expand a module to see assessments and grades
-- Weighted average auto-calculated from `(sum of mark_achieved/mark_max * weight_percent)` across assessments
-- Colour: green if >= target, amber if close, red if below
-
-### Internships section
-- Table view: Company | Role | Applied | Deadline | Status | Starred
-- Filter row by status
-- Stats bar at top: Total applied | In progress | Offers | Rejections
-- Click row to open a side panel / dialog with full notes and URL
-- Add new row via dialog
-- Status changes via Select dropdown inline in the table
+Student-role filter: only saves internships, placements, spring weeks and graduate schemes. Full-time permanent roles are skipped unless from a priority company.
 
 ---
 
-## What NOT to do
+## Packages installed for dashboard
 
-- Do not expose any Supabase writes through public API routes — server actions only
-- Do not link `/dashboard` from the public nav, footer, sitemap or command menu
-- Do not add a public-facing profile for the dashboard data
-- Do not use `any` types — strict TypeScript throughout
+recharts, react-day-picker, react-markdown, remark-gfm, bcryptjs, @types/bcryptjs, @radix-ui/react-popover, @radix-ui/react-checkbox, @radix-ui/react-switch, playwright (Python scripts/requirements.txt)
+
+---
+
+## Known issues as of 2026-05-21
+
+- PIN gate was returning 401 because `getToken` (NextAuth v4) was used instead of `auth()` (NextAuth v5). Fixed in PR #146.
+- The new applications DB columns do not exist yet - I need to run the SQL above after PR #146 merges.
+- Job scraper GitHub secrets must use the legacy anon key format.
+
+---
+
+## Planned for next session
+
+1. **Sub-pages for all dashboard pages** - instead of long expanding pages, use preview card grids linking to sub-routes:
+   - /dashboard/goals/personal, /dashboard/goals/academic, /dashboard/goals/career etc.
+   - /dashboard/modules/year-1, /dashboard/modules/year-2, /dashboard/modules/final
+   - /dashboard/health/gym, /dashboard/health/nutrition, /dashboard/health/running
+2. **Manual lock button** on Vault, Notes and Diary to call DELETE /api/dashboard/verify-pin and re-trigger the PIN gate
+3. **Settings page** at /dashboard/settings covering: change PIN, lock all PIN-protected pages, inactivity timeout, scraper status

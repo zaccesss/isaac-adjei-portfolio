@@ -273,25 +273,24 @@ The following were all planned and are now live on the site:
 
 ---
 
-## Planned features - not yet built
-   - Priority flag (starred)
-   - Sortable table view with status filter
-   - Stats at top: total applied, in progress, offers, rejections
+## Planned for next session on the dashboard (agreed 2026-05-21)
 
-Tech stack for the dashboard:
-- `next-auth` v5 (App Router compatible) with GitHub provider
-- `@supabase/supabase-js` for DB reads/writes
-- Supabase project needs creating at supabase.com — ask Isaac for the URL and anon key at session start
-- New env vars needed: `NEXTAUTH_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`
-- Dashboard layout: sidebar nav on desktop, bottom tabs on mobile
-- Uses existing shadcn/ui components (Table, Dialog, Badge, Select, Textarea)
-- No public API routes that touch the DB — all DB access via server actions or server components inside the auth guard
-- Isaac's GitHub username is `zaccesss` (3 s's) — use this for the OAuth allow-list
+1. Sub-pages for all dashboard pages - instead of long expanding pages, use preview card grids:
+   - /dashboard/goals/personal, /goals/academic, /goals/career, /goals/health, /goals/finance
+   - /dashboard/modules/year-1, /modules/year-2, /modules/placement, /modules/final
+   - /dashboard/health/gym, /health/nutrition, /health/running
+   - All main pages become card-grid overview pages; detailed work happens on sub-pages
+2. Manual lock button on Vault, Notes and Diary - calls DELETE /api/dashboard/verify-pin to clear the cookie and re-show the PIN gate
+3. Settings page at /dashboard/settings: change PIN, lock all PIN-protected pages, inactivity timeout, job scraper status
 
-Start the session by:
-1. Asking Isaac to create the Supabase project and provide the URL and anon key
-2. Asking Isaac to create a GitHub OAuth app at github.com/settings/developers and provide client ID + secret
-3. Then build auth layer first, confirm login works, then build the three sections one by one
+**Dashboard is fully built and deployed.** Do not rebuild anything from scratch - only extend.
+
+Dashboard tech stack (already installed and working):
+- NextAuth.js v5 (Auth.js) with GitHub provider, numeric user ID allow-list
+- Supabase PostgreSQL, all DB access via server actions only
+- recharts, react-day-picker, react-markdown, remark-gfm, bcryptjs, playwright
+- AUTH_SECONDARY_PIN env var on Vercel for PIN gate
+- PIN fix note: the routes use `auth()` from @/auth, NOT `getToken` from next-auth/jwt (that is a NextAuth v4 pattern and always returned null here)
 
 ### Beehiiv newsletter website styling (future session)
 - Isaac wants his Beehiiv hosted publication page to match the portfolio aesthetic
