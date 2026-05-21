@@ -130,7 +130,7 @@ export default function MeClient({ profile: initial }: { profile: Profile }) {
   }
 
   const age = profile.dob
-    ? Math.floor((Date.now() - new Date(profile.dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+    ? Math.floor((new Date().getTime() - new Date(profile.dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : null
 
   return (

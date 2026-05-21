@@ -6,7 +6,7 @@ export const metadata = { robots: "noindex, nofollow" }
 
 export default async function StreaksPage() {
   const today = new Date().toISOString().split("T")[0]
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  const thirtyDaysAgo = new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
 
   const [{ data: streaks }, { data: logs }] = await Promise.all([
     supabase.from("streaks").select("*").eq("active", true).order("order_index"),
