@@ -1,6 +1,6 @@
-// I mark this as a Client Component because I use React hooks (useEffect, useRef, useState).
-// Server Components can't use hooks, so this directive is required.
 "use client"
+
+// I use React hooks (useEffect, useRef, useState) so this must be a client component.
 
 import { useEffect, useRef, useState } from "react"
 import { skillCategories, professionalSkillGroups, type Skill } from "@/data/skills"
