@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 
 const nav = [
   { href: "/dashboard/me", label: "Me", icon: User },
@@ -34,13 +34,12 @@ export default function DashboardSidebar({
   user: { name?: string | null; image?: string | null }
 }) {
   const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false
+    return localStorage.getItem("nexus_sidebar_collapsed") === "true"
+  })
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  useEffect(() => {
-    const saved = localStorage.getItem("nexus_sidebar_collapsed")
-    if (saved === "true") setCollapsed(true)
-  }, [])
 
   function toggleCollapse() {
     const next = !collapsed
