@@ -63,8 +63,7 @@ export default function DashboardSidebar({
               />
             )}
             <div className="min-w-0">
-              <p className="text-xs font-semibold truncate leading-tight">Nexus</p>
-              <p className="text-xs text-muted-foreground truncate leading-tight">{user.name}</p>
+              <p className="text-xs font-semibold truncate leading-tight">{user.name}</p>
             </div>
           </div>
         )}
