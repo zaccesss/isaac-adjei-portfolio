@@ -19,16 +19,21 @@ type Streak = {
 type Log = {
   id: string
   streak_id: string
-  date: string
+  date: string      // ISO yyyy-mm-dd - I avoid Date objects in state to dodge timezone offset bugs
   completed: boolean
 }
 
+// I compute the current streak purely on the client from the logs array rather than storing it
+// in the DB - that way it is always consistent with whatever logs are in local state and there
+// is no risk of a cached counter going stale after an undo operation
 function calcCurrentStreak(logs: Log[], streakId: string, today: string): number {
+  // I build a Set of completed dates for this streak so the inner loop is O(1) per day
   const done = new Set(logs.filter((l) => l.streak_id === streakId && l.completed).map((l) => l.date))
   let streak = 0
   const d = new Date(today)
+  // I walk backwards from today counting consecutive completed days until there is a gap
   while (true) {
-    const ds = d.toISOString().split("T")[0]
+    const ds = d.toISOString().split("T")[0]  // I re-slice each iteration because setDate mutates d in place
     if (done.has(ds)) {
       streak++
       d.setDate(d.getDate() - 1)
@@ -40,6 +45,7 @@ function calcCurrentStreak(logs: Log[], streakId: string, today: string): number
 }
 
 function calcLongestStreak(logs: Log[], streakId: string): number {
+  // I sort the dates ascending first because the DB returns them in insertion order not date order
   const dates = logs
     .filter((l) => l.streak_id === streakId && l.completed)
     .map((l) => l.date)
@@ -49,20 +55,26 @@ function calcLongestStreak(logs: Log[], streakId: string): number {
   for (let i = 1; i < dates.length; i++) {
     const prev = new Date(dates[i - 1])
     const curr = new Date(dates[i])
+    // I compute the gap in whole days by dividing the millisecond difference
     const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24)
     if (diff === 1) {
+      // I only increment when the diff is exactly 1 day - duplicates (diff=0) correctly break the chain
       current++
       longest = Math.max(longest, current)
     } else if (diff > 1) {
+      // I reset current to 1 (not 0) because the date at index i starts a new potential streak
       current = 1
     }
   }
   return longest
 }
 
+// I show the last 30 days as a GitHub-style heatmap so it is immediately obvious
+// whether habits are consistent or patchy without needing to look at a number
 function HeatmapGrid({ logs, streakId, today }: { logs: Log[]; streakId: string; today: string }) {
   const done = new Set(logs.filter((l) => l.streak_id === streakId && l.completed).map((l) => l.date))
   const days: string[] = []
+  // I build the day array from 29 days ago to today so index 0 is the oldest and the last item is today
   for (let i = 29; i >= 0; i--) {
     const d = new Date(today)
     d.setDate(d.getDate() - i)
@@ -71,6 +83,7 @@ function HeatmapGrid({ logs, streakId, today }: { logs: Log[]; streakId: string;
   return (
     <div className="flex gap-1 flex-wrap">
       {days.map((d) => (
+        // I put the date in the title attribute so hovering reveals the exact day
         <div key={d} title={d} className={`w-4 h-4 rounded-sm transition-colors ${done.has(d) ? "bg-green-500" : "bg-muted"}`} />
       ))}
     </div>
@@ -84,6 +97,8 @@ function StreakCard({ streak, logs, today, onDelete, onCheckIn }: {
   onDelete: (id: string) => void
   onCheckIn: (streakId: string, date: string, undo: boolean) => void
 }) {
+  // I check checkedInToday before rendering so the button reflects the correct state immediately
+  // even before the server action has finished
   const checkedInToday = logs.some((l) => l.streak_id === streak.id && l.date === today && l.completed)
   const current = calcCurrentStreak(logs, streak.id, today)
   const longest = calcLongestStreak(logs, streak.id)
@@ -104,6 +119,7 @@ function StreakCard({ streak, logs, today, onDelete, onCheckIn }: {
         </button>
       </div>
 
+      {/* I put current streak first because it is the number people care about day-to-day */}
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-1 text-sm font-bold">
@@ -123,11 +139,12 @@ function StreakCard({ streak, logs, today, onDelete, onCheckIn }: {
 
       <HeatmapGrid logs={logs} streakId={streak.id} today={today} />
 
+      {/* I toggle the button variant to "outline" when already checked in so the checked state is obvious */}
       <Button
         size="sm"
         variant={checkedInToday ? "outline" : "default"}
         className={`w-full gap-2 ${checkedInToday ? "text-green-600 border-green-300 dark:border-green-700" : ""}`}
-        onClick={() => onCheckIn(streak.id, today, checkedInToday)}
+        onClick={() => onCheckIn(streak.id, today, checkedInToday)}  // I pass the current checkedIn state as `undo` so the handler knows which direction to go
       >
         <Check className="h-4 w-4" />
         {checkedInToday ? "Checked in today ✓" : "Check in"}
@@ -136,42 +153,51 @@ function StreakCard({ streak, logs, today, onDelete, onCheckIn }: {
   )
 }
 
+// I keep the empty form object in a constant outside the component so I can reset to it cheaply
+// without creating a new object reference on every render
 const emptyForm = { name: "", icon: "🔥", description: "", color: "#6366f1" }
 
 export default function StreaksClient({ streaks: initial, logs: initialLogs, today }: {
   streaks: Streak[]
   logs: Log[]
-  today: string
+  today: string  // I receive today from the server so the client and server always agree on the current date
 }) {
   const [streaks, setStreaks] = useState<Streak[]>(initial)
   const [logs, setLogs] = useState<Log[]>(initialLogs)
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(emptyForm)
+  // I use useTransition so all server action calls run in the background without blocking the UI
   const [, startTransition] = useTransition()
 
+  // I derive checkedInCount directly from logs so it updates instantly on any check-in without a separate state var
   const checkedInCount = streaks.filter((s) =>
     logs.some((l) => l.streak_id === s.id && l.date === today && l.completed)
   ).length
 
   function handleAdd() {
     if (!form.name.trim()) return
+    // I create an optimistic streak with crypto.randomUUID() so it renders immediately -
+    // the real DB id will be used on next page load but the experience feels instant
     const optimistic: Streak = { id: crypto.randomUUID(), ...form, order_index: streaks.length }
-    setStreaks((s) => [...s, optimistic])
+    setStreaks((s) => [...s, optimistic])  // I append to the end because order_index is based on current length
     setOpen(false)
-    setForm(emptyForm)
+    setForm(emptyForm)  // I reset the form before the transition fires so the dialog feels snappy
     startTransition(() => createStreak({ ...form, order_index: optimistic.order_index }))
   }
 
   function handleDelete(id: string) {
+    // I remove locally first so the card disappears instantly - no loading state needed
     setStreaks((s) => s.filter((x) => x.id !== id))
     startTransition(() => deleteStreak(id))
   }
 
   function handleCheckIn(streakId: string, date: string, undo: boolean) {
     if (undo) {
+      // I filter out the specific log entry so the heatmap cell and streak count update in the same render
       setLogs((l) => l.filter((x) => !(x.streak_id === streakId && x.date === date)))
       startTransition(() => undoStreakCheckIn(streakId, date))
     } else {
+      // I append a synthetic log entry so calcCurrentStreak sees it immediately
       const newLog: Log = { id: crypto.randomUUID(), streak_id: streakId, date, completed: true }
       setLogs((l) => [...l, newLog])
       startTransition(() => checkInStreak(streakId, date))
@@ -183,6 +209,8 @@ export default function StreaksClient({ streaks: initial, logs: initialLogs, tod
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Streaks</h1>
+          {/* I show the checked-in count as a quick daily progress indicator so I know at a glance
+              whether I still have habits to complete today */}
           <p className="text-xs text-muted-foreground mt-0.5">{checkedInCount} of {streaks.length} checked in today</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -192,6 +220,7 @@ export default function StreaksClient({ streaks: initial, logs: initialLogs, tod
           <DialogContent>
             <DialogHeader><DialogTitle>New streak</DialogTitle></DialogHeader>
             <div className="flex flex-col gap-3">
+              {/* I put icon and name in a 4-column grid so they sit on one line without a label row */}
               <div className="grid grid-cols-4 gap-2">
                 <Input value={form.icon} onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))} placeholder="🔥" className="text-xl text-center col-span-1" />
                 <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Streak name" className="col-span-3" autoFocus />
@@ -199,6 +228,7 @@ export default function StreaksClient({ streaks: initial, logs: initialLogs, tod
               <Input value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Description (optional)" />
               <div className="flex gap-2 justify-end pt-2">
                 <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+                {/* I disable Add until the name field has non-whitespace content */}
                 <Button onClick={handleAdd} disabled={!form.name.trim()}>Add streak</Button>
               </div>
             </div>
@@ -213,12 +243,13 @@ export default function StreaksClient({ streaks: initial, logs: initialLogs, tod
           <p className="text-xs text-muted-foreground mt-1">Track daily habits and build consistency.</p>
         </div>
       ) : (
+        // I use a responsive grid so cards are single-column on mobile and 3-column on desktop
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {streaks.map((s) => (
             <StreakCard
               key={s.id}
               streak={s}
-              logs={logs}
+              logs={logs}      // I pass the full logs array down and let each card filter to its own streakId
               today={today}
               onDelete={handleDelete}
               onCheckIn={handleCheckIn}

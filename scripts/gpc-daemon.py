@@ -30,14 +30,17 @@ except ImportError:
 try:
     import pynvml
     pynvml.nvmlInit()
+    # I grab the handle once at startup rather than on every poll to avoid repeated driver calls
     _nvml_handle = pynvml.nvmlDeviceGetHandleByIndex(0)
     NVML_AVAILABLE = True
 except Exception as e:
+    # I fall back gracefully so the daemon still runs on machines without NVIDIA drivers
     print(f"pynvml not available or no NVIDIA GPU found: {e}", flush=True)
     NVML_AVAILABLE = False
 
 UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL")
 UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+# I poll every 30s - frequent enough for a live widget but gentle on the free Upstash tier
 INTERVAL = 30
 
 if not UPSTASH_URL or not UPSTASH_TOKEN:
@@ -111,7 +114,9 @@ def write_status():
                 "Content-Type": "application/json",
             },
             json=[
+                # I set a 600-second TTL so the key disappears if the daemon stops, signalling the PC is offline
                 ["SET", "gpc:status", json.dumps(payload), "EX", 600],
+                # I also write a TTL-free key so the dashboard can show the last-known state when offline
                 ["SET", "gpc:last-known", json.dumps(payload)],
             ],
             timeout=10,

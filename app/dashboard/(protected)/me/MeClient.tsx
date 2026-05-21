@@ -125,10 +125,13 @@ export default function MeClient({ profile: initial }: { profile: Profile }) {
 
   function update<K extends keyof Profile>(key: K, value: Profile[K]) {
     const updated = { ...profile, [key]: value }
+    // I update local state first so the UI responds immediately without waiting for the server
     setProfile(updated)
+    // I persist the whole profile object as one config blob rather than having a separate row per field
     startTransition(() => setConfig("me_profile", updated))
   }
 
+  // I use 365.25 days per year to account for leap years in the age calculation
   const age = profile.dob
     ? Math.floor((new Date().getTime() - new Date(profile.dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : null

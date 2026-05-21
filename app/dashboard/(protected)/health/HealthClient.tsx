@@ -189,9 +189,11 @@ export default function HealthClient({ sections: initSections, workouts: initWor
 
   function handleAddSection() {
     if (!newSection.name.trim()) return
+    // I append the section optimistically so the card appears before the DB responds
     const optimistic: Section = { id: crypto.randomUUID(), ...newSection, order_index: sections.length }
     setSections((s) => [...s, optimistic])
     setAddSectionOpen(false)
+    // I reset the form after closing so the next add starts clean
     setNewSection({ name: "", type: "gym", icon: "💪", color: "#6366f1" })
     startTransition(() => createHealthSection({ ...newSection, order_index: sections.length }))
   }
@@ -225,6 +227,7 @@ export default function HealthClient({ sections: initSections, workouts: initWor
   }
 
   function handleUpdateNutrition(id: string, data: Partial<Nutrition>) {
+    // I merge the partial update locally so list edits feel instant
     setNutrition((n) => n.map((x) => x.id === id ? { ...x, ...data } : x))
     startTransition(() => updateHealthNutrition(id, data))
   }

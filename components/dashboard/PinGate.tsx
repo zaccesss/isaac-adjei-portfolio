@@ -25,6 +25,7 @@ export default function PinGate({ pageName, onUnlock }: Props) {
     setLoading(true)
     setError("")
     try {
+      // I call a server-side route rather than verifying in the browser so the hash never leaves the server
       const res = await fetch("/api/dashboard/verify-pin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -33,6 +34,7 @@ export default function PinGate({ pageName, onUnlock }: Props) {
       if (res.ok) {
         onUnlock()
       } else {
+        // I clear the field on a wrong attempt so the user starts fresh
         setError("Wrong PIN. Try again.")
         setPin("")
       }

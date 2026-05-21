@@ -135,6 +135,7 @@ export default function CourseClient({ modules: initial, config: initialConfig }
   const [, startTransition] = useTransition()
 
   function handleAdd(data: typeof emptyModForm) {
+    // I add the module to local state immediately so the table row appears without waiting for the DB
     const optimistic: CourseModule = { id: crypto.randomUUID(), ...data, section: data.section || null, prerequisites: data.prerequisites || null }
     setModules((m) => [...m, optimistic])
     setAddOpen(false)
@@ -155,7 +156,9 @@ export default function CourseClient({ modules: initial, config: initialConfig }
 
   function updateConfigField<K extends keyof CourseConfig>(key: K, value: CourseConfig[K]) {
     const updated = { ...config, [key]: value }
+    // I update local state first so the page reflects the change while the server round-trip is in flight
     setConfigState(updated)
+    // I persist the entire config object as a single blob to avoid managing multiple config keys
     startTransition(() => setConfig("course_data", updated))
   }
 
@@ -269,9 +272,12 @@ export default function CourseClient({ modules: initial, config: initialConfig }
         )
       })}
 
-      <div className="border border-border rounded-xl p-4 bg-muted/20">
-        <a href="https://www.aston.ac.uk/study/courses/electronic-engineering-and-computer-science-beng-hons" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline w-fit">
-          <ExternalLink className="h-4 w-4" />View official programme specification
+      <div className="border border-border rounded-xl p-4 bg-muted/20 flex flex-col gap-2">
+        <a href="https://www.aston.ac.uk/study/courses/electronic-engineering-and-computer-science-beng/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline w-fit">
+          <ExternalLink className="h-4 w-4" />View course page (Aston University)
+        </a>
+        <a href="/documents/eecs-programme-spec.pdf" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline w-fit">
+          <ExternalLink className="h-4 w-4" />View programme specification (PDF)
         </a>
       </div>
 

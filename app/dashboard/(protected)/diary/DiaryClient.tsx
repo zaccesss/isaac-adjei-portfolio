@@ -92,6 +92,7 @@ function EntryCard({ entry, onEdit, onDelete }: {
 }) {
   const [expanded, setExpanded] = useState(false)
   const mood = getMood(entry.mood)
+  // I truncate at 180 characters so card heights stay consistent in the feed
   const preview = entry.content.slice(0, 180) + (entry.content.length > 180 ? "..." : "")
   const wordCount = entry.content.trim().split(/\s+/).filter(Boolean).length
   const date = new Date(entry.created_at)
@@ -144,9 +145,11 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
   const [, startTransition] = useTransition()
 
   function handleAdd(data: typeof emptyForm) {
+    // I place the new entry at the top because diary entries are always shown newest-first
     const optimistic: Entry = {
       id: crypto.randomUUID(),
       ...data,
+      // I coerce an empty mood string to null to match the nullable DB column
       mood: data.mood || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

@@ -239,6 +239,7 @@ export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
   }
 
   function handleAdd(data: typeof emptyForm) {
+    // I prepend a local optimistic record so the new goal appears instantly before the DB round-trip
     const optimistic: Goal = { ...data, id: crypto.randomUUID(), description: data.description || null, target_date: data.target_date || null, category: addCategory }
     setGoals((prev) => [optimistic, ...prev])
     setAddOpen(false)
@@ -253,6 +254,7 @@ export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
   }
 
   function handleDelete(id: string) {
+    // I remove optimistically so the card vanishes immediately rather than waiting for the server
     setGoals((prev) => prev.filter((g) => g.id !== id))
     startTransition(() => deleteGoal(id))
   }

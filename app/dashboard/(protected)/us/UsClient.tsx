@@ -159,7 +159,9 @@ export default function UsClient({ data: initial }: { data: UsData }) {
 
   function update<K extends keyof UsData>(key: K, value: UsData[K]) {
     const updated = { ...data, [key]: value }
+    // I update local state first so edits feel instant without waiting for Supabase
     setData(updated)
+    // I store the entire UsData object as a single config key rather than one row per field
     startTransition(() => setConfig("us_data", updated))
   }
 
