@@ -1,4 +1,4 @@
 requests==2.33.0
 beautifulsoup4==4.12.3
 supabase==2.7.2
-lxml==5.2.2
+lxml==6.1.0
