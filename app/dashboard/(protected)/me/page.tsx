@@ -19,7 +19,7 @@ const DEFAULT_PROFILE = {
   interests: ["Software development", "Electronics and embedded systems", "AI and machine learning", "Gaming and streaming", "Football", "Music and keyboard", "Fashion and style"],
   personality: "Ambitious, creative and deeply driven. I work best when I have clear goals and creative freedom. I value authenticity and real relationships over surface-level connections.",
   github: "zaccesss",
-  linkedin: "isaac-adjei",
+  linkedin: "isaacadjei",
   website: "isaacadjei.me",
   height: "",
   weight: "",
