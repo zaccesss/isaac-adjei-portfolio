@@ -20,7 +20,7 @@ All rules that apply to every session. No exceptions.
 - Format: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`
 - No em dashes or en dashes in commit messages - use hyphens
 - No Oxford comma in commit messages
-- No AI attribution lines or Co-Authored-By lines anywhere
+- No AI attribution lines, Co-Authored-By lines or Cursor footers (e.g. Made with Cursor) anywhere
 - The `.githooks/commit-msg` hook enforces all of the above and hard-rejects violations
 
 ---
