@@ -19,6 +19,20 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-24 - CV content edits
+
+### Group C - CV content edits (fix/cv-content-edits)
+
+- Added cybersecurity to profile
+- Merged Aston University education bullets into one
+- Added pipe school/country format to both education awards; added font-weight: normal to .edu-award
+- Added Java to Languages; changed PHP 8.2 to PHP in Web/Frameworks; added Kubernetes to Cloud/DevOps
+- AstonCV project: 11 -> 12+ security controls; Implemented -> Engineered
+- Synonyms: LED Cube Implemented -> Introduced; CNC Implemented -> Engineered; BA Analysed -> Reviewed; Yunex Analysed -> Examined
+- Ghana High Commission roles: merged to single technical bullet each
+
+---
+
 ## 2026-05-24 - CV Word download
 
 ### Group D - CV Word download (feat/cv-word-download)
