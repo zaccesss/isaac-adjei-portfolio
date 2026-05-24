@@ -34,9 +34,19 @@ export async function POST() {
     if (!res.ok) {
       const text = await res.text()
       console.error("GitHub dispatch failed:", res.status, text)
+      const status = res.status
+      // I map common GitHub API status codes to readable explanations so the
+      // settings UI can show a useful message rather than a generic failure.
+      const errorMessages: Record<number, string> = {
+        401: "PAT invalid or expired - regenerate in GitHub Settings",
+        403: "PAT lacks the workflow permission scope",
+        404: "Workflow file not found in repository",
+        422: "Workflow not dispatchable - check workflow_dispatch trigger in the YAML file",
+      }
+      const error = errorMessages[status] ?? `GitHub API returned HTTP ${status}`
       return NextResponse.json(
-        { error: "Failed to trigger workflow" },
-        { status: 500, headers: { "Cache-Control": "no-store" } }
+        { error },
+        { status, headers: { "Cache-Control": "no-store" } }
       )
     }
 
