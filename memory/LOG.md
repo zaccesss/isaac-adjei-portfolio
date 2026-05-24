@@ -4,6 +4,14 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-24 - CV awards and experience emphasis
+
+- Removed duplicated school names from education award lines in `public/resume/cv.html`
+- Restored bold keyword emphasis in Experience bullets and regenerated CV PDF/DOCX artefacts
+- Updated CV artefact workflow to regenerate PDF/DOCX on PR branches instead of pushing to protected `main`
+
+---
+
 ## 2026-05-24 - CV download artefacts regenerated
 
 - Regenerated `public/resume/Isaac_Adjei_CV.pdf` from the merged CV HTML after PR #164
