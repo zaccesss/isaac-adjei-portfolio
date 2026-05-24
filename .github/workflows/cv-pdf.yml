@@ -82,9 +82,10 @@ jobs:
           git switch -c "$branch"
           git commit -m "chore: regenerate CV PDF and DOCX from cv.html"
           git push -u origin "$branch"
-          gh pr create \
+          PR_URL=$(gh pr create \
             --base main \
             --head "$branch" \
             --title "chore: regenerate CV download artefacts" \
-            --body "Automatically regenerates the committed CV PDF and DOCX after cv.html changed on main."
-          gh pr merge "$branch" --auto --squash --delete-branch
+            --body "Automatically regenerates the committed CV PDF and DOCX after cv.html changed on main." \
+            --json url -q .url)
+          gh pr edit "$PR_URL" --add-label automerge

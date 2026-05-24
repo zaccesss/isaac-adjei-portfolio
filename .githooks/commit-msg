@@ -24,4 +24,10 @@ if echo "$MSG" | grep -Eiq '^Co-authored-by:'; then
   exit 1
 fi
 
+# Reject Cursor attribution footer
+if echo "$MSG" | grep -Eiq 'Made with.*cursor|cursor\.com'; then
+  echo "ERROR: Cursor attribution is not allowed in commit messages. See memory/RULES.md." >&2
+  exit 1
+fi
+
 exit 0
