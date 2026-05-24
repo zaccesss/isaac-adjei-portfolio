@@ -4,6 +4,13 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-24 - CV download artefacts regenerated
+
+- Regenerated `public/resume/Isaac_Adjei_CV.pdf` from the merged CV HTML after PR #164
+- Added `public/resume/Isaac_Adjei_CV.docx` so Word download has a committed artefact
+
+---
+
 ## 2026-05-24 - Dashboard fixes and login redesign
 
 ### Group A + B - Dashboard fixes and login redesign (feat/dashboard-fixes-login)
