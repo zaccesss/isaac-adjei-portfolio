@@ -16,6 +16,7 @@ Deduplicates by URL when present, falls back to company+role.
 """
 
 import os
+import re
 import time
 import json
 import hashlib
@@ -23,6 +24,15 @@ import requests
 from bs4 import BeautifulSoup
 from supabase import create_client, Client
 from datetime import datetime
+
+# I use whole-word matching for "intern" so words like "internal" and
+# "international" do not trigger a false positive intern classification.
+_INTERN_WHOLE_WORD_RE = re.compile(
+    r'\b(intern|internship|internships|interns)\b', re.IGNORECASE
+)
+_EXCLUDE_INTERN_RE = re.compile(
+    r'\b(internal|international|internally)\b', re.IGNORECASE
+)
 
 # I read credentials from environment variables set by GitHub Actions secrets
 # so nothing sensitive ever touches the repository.
@@ -324,13 +334,19 @@ def load_existing_keys() -> set:
         res = supabase.table("applications").select(
             "company,role,url"
         ).execute()
-        return {
+        existing_keys = {
             dedupe_key(r["company"], r["role"], r.get("url") or "")
             for r in (res.data or [])
         }
+        if not existing_keys:
+            # I warn here because an empty result on a populated DB usually
+            # means RLS is blocking the SELECT - the upsert below will still
+            # prevent duplicates at the DB level so this is non-fatal.
+            print("WARNING: 0 existing rows loaded - RLS may be blocking reads. Continuing with upsert deduplication.")
+        return existing_keys
     except Exception as e:
-        # I log and continue rather than crashing - worst case I insert some
-        # duplicates which are easy to clean up in Supabase.
+        # I log and continue rather than crashing - the upsert strategy means
+        # no duplicates are created even if this pre-load fails.
         print(f"Warning: could not load existing keys: {e}")
         return set()
 
@@ -340,11 +356,30 @@ def load_existing_keys() -> set:
 def is_student_role(
     title: str, dept_names: list[str] | None = None
 ) -> bool:
-    """Return True if this role is student/intern/placement facing."""
+    """Return True if this role is student/intern/placement facing.
+
+    I use whole-word regex for intern-related terms to avoid false positives
+    from words like "internal", "international" and "internally". If those
+    words appear without a stronger signal (placement, spring week, etc.) the
+    role is treated as full-time.
+    """
     # I check the title first because it is always present.
     t = title.lower()
-    if any(term in t for term in STUDENT_TERMS):
+
+    # Non-intern student terms (placement, graduate, spring, event) are safe
+    # to match with a simple substring check - none share a root with common
+    # English words that would produce false positives.
+    NON_INTERN_TERMS = PLACEMENT_TERMS + SPRING_WEEK_TERMS + GRADUATE_TERMS + EVENT_TERMS
+    if any(term in t for term in NON_INTERN_TERMS):
         return True
+
+    # For intern-family terms I require a whole-word match AND no explicit
+    # exclusion word ("internal", "international", "internally").
+    has_intern_word = _INTERN_WHOLE_WORD_RE.search(t)
+    has_exclude_word = _EXCLUDE_INTERN_RE.search(t)
+    if has_intern_word and not has_exclude_word:
+        return True
+
     # I fall back to department names as a secondary signal for companies that
     # route all graduate roles through a dedicated department without labelling
     # each title individually.
@@ -394,7 +429,7 @@ def is_relevant(
     return is_location_ok(location, is_priority)
 
 
-def infer_type(title: str, default: str = "Summer Internship") -> str:
+def infer_type(title: str, default: str = "Internship") -> str:
     """Determine application type from the role title using per-category term sets.
 
     I check placement and spring week terms first because they are more
@@ -416,7 +451,7 @@ def infer_type(title: str, default: str = "Summer Internship") -> str:
         return "Event"
     # General Internship
     if any(term in t for term in INTERNSHIP_TERMS):
-        return "Summer Internship"
+        return "Internship"
     return default
 
 
@@ -525,14 +560,17 @@ def insert_job(job: dict, existing_keys: set) -> bool:
     }
 
     try:
-        supabase.table("applications").insert(record).execute()
+        # I use upsert rather than insert so that even if load_existing_keys
+        # returned an empty set (e.g. due to RLS blocking the SELECT) the DB
+        # itself deduplicates on the url column and no row is created twice.
+        supabase.table("applications").upsert(record, on_conflict="url").execute()
         # I add the key to the in-memory set immediately so subsequent
         # duplicates within the same run are caught without another DB query.
         existing_keys.add(key)
         print(f"  + {job['company']} | {job['role']}")
         return True
     except Exception as e:
-        print(f"  ! Failed to insert {job['company']}: {e}")
+        print(f"  ! Failed to upsert {job['company']}: {e}")
         return False
 
 
@@ -549,7 +587,7 @@ def scrape_trackr_all(existing_keys: set) -> int:
 
     # I map each URL slug to the type label I want to store in the DB.
     categories = [
-        ("summer-internships",    "Summer Internship"),
+        ("summer-internships",    "Internship"),
         ("industrial-placements", "Industrial Placement"),
         ("graduate-schemes",      "Graduate"),
         ("spring-weeks",          "Spring Week"),
@@ -1041,7 +1079,7 @@ def scrape_ratemyplacement(existing_keys: set) -> int:
         (
             "https://www.ratemyplacement.co.uk/jobs"
             "?role=technology&type=summer-internship",
-            "Summer Internship",
+            "Internship",
         ),
         (
             "https://www.ratemyplacement.co.uk/jobs"

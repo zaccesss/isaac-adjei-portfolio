@@ -107,10 +107,13 @@ export default function SettingsClient() {
     setTriggerMessage(null)
     try {
       const res = await fetch("/api/dashboard/trigger-scraper", { method: "POST" })
+      // I read the body regardless of status so I can surface the specific
+      // error message returned by the route rather than a generic fallback.
+      const data = await res.json() as { ok?: boolean; error?: string }
       if (res.ok) {
         setTriggerMessage({ text: "Triggered successfully.", ok: true })
       } else {
-        setTriggerMessage({ text: "Failed to trigger scraper.", ok: false })
+        setTriggerMessage({ text: data.error ?? "Failed to trigger scraper.", ok: false })
       }
     } catch {
       setTriggerMessage({ text: "Something went wrong.", ok: false })

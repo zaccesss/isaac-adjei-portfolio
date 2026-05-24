@@ -152,15 +152,15 @@ function detectCategory(company: string, role: string): Category {
   return "Software Engineering"
 }
 
-const TAB_TYPES = ["Summer Internships", "Industrial Placements", "Graduate Schemes", "Spring Weeks", "Events", "Jobs"] as const
+const TAB_TYPES = ["Internships", "Industrial Placements", "Graduate Schemes", "Spring Weeks", "Events", "Jobs"] as const
 type Tab = (typeof TAB_TYPES)[number]
 
 // I map the raw type field to a tab rather than relying on exact string equality because the
 // job scraper writes inconsistent casing and the legacy "scraped" type predates the current taxonomy
 function appBelongsToTab(app: Application, tab: Tab): boolean {
   const t = app.type
-  if (tab === "Summer Internships")
-    return t === "Summer Internship" || t === "internship" || t === "scraped" || t === "Internship"
+  if (tab === "Internships")
+    return t === "Internship" || t === "internship" || t === "scraped" || t === "Summer Internship"
   if (tab === "Industrial Placements") return t === "Industrial Placement"
   if (tab === "Graduate Schemes") return t === "Graduate"
   if (tab === "Spring Weeks") return t === "Spring Week"
@@ -185,13 +185,12 @@ function isDatePast(dateStr: string | null): boolean {
 // ─── Form ─────────────────────────────────────────────────────────────────────
 
 const APP_TYPE_OPTIONS = [
-  "Summer Internship",
+  "Internship",
   "Industrial Placement",
   "Graduate",
   "Spring Week",
   "Event",
   "Full-time Job",
-  "Internship",
   "Other",
 ]
 
@@ -200,7 +199,7 @@ const YES_NO_OPTIONAL = ["Yes", "No", "Optional"]
 const emptyForm = {
   company: "",
   role: "",
-  type: "Summer Internship",
+  type: "Internship",
   status: "Not Applied",
   url: "",
   notes: "",
@@ -712,7 +711,7 @@ function CategoryGroup({
 
 export default function ApplicationsClient({ applications: initial }: { applications: Application[] }) {
   const [apps, setApps] = useState<Application[]>(initial)
-  const [activeTab, setActiveTab] = useState<Tab>("Summer Internships")
+  const [activeTab, setActiveTab] = useState<Tab>("Internships")
   const [search, setSearch] = useState("")
   const [filterOpenStatus, setFilterOpenStatus] = useState("All")
   const [filterCoverLetter, setFilterCoverLetter] = useState("All")
