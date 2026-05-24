@@ -18,4 +18,10 @@ if echo "$MSG" | grep -Eq '[^,]+,\s*[^,]+,\s*and\s+[^,]+'; then
   exit 1
 fi
 
+# Reject any Co-authored-by trailer (memory/RULES.md)
+if echo "$MSG" | grep -Eiq '^Co-authored-by:'; then
+  echo "ERROR: Co-authored-by lines are not allowed. See memory/RULES.md." >&2
+  exit 1
+fi
+
 exit 0
