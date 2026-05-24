@@ -16,6 +16,18 @@ export default function CVViewer({ cvHtml }: CVViewerProps) {
     }
   }
 
+  // I fetch the DOCX from the API route and trigger a browser download
+  const handleWordDownload = async () => {
+    const res = await fetch("/api/cv-word")
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "Isaac_Adjei_CV.docx"
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6 md:px-6">
       <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
@@ -53,6 +65,13 @@ export default function CVViewer({ cvHtml }: CVViewerProps) {
           >
             Download HTML
           </a>
+          <button
+            type="button"
+            onClick={handleWordDownload}
+            className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium transition hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900"
+          >
+            Download Word
+          </button>
         </div>
       </div>
 

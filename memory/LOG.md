@@ -4,6 +4,17 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-24 - CV Word download
+
+### Group D - CV Word download (feat/cv-word-download)
+
+- Installed html-to-docx package
+- Created app/api/cv-word/route.ts - reads cv.html live, returns .docx with correct MIME type
+- Added "Download Word" button to CVViewer next to existing download buttons
+- Extended .github/workflows/cv-pdf.yml to also generate Isaac_Adjei_CV.docx on cv.html changes
+
+---
+
 ## 2026-05-21 - Full dashboard overhaul, CV update, codebase comments
 
 ### What we did
