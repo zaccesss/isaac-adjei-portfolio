@@ -141,3 +141,22 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 ### Stale charging fix
 - Added isStale() helper in LiveStatusCards.tsx - if lastSeen > 5 min, hide charging state
 - Prevents charging icon freezing when device shuts down while plugged in
+
+---
+
+## 2026-05-24 - Session end status (for next agent)
+
+### COMPLETED this session (all merged to main)
+- Group D: CV Word download - /api/cv-word route, Download Word button in CVViewer, DOCX in cv-pdf.yml workflow
+- Group E: Applications tab renamed to "Internships", scraper whole-word regex fix, upsert dedup, error messages
+- Group C: CV edits - cybersecurity in profile, Aston bullets merged, award pipe format, Java + Kubernetes + PHP fix, AstonCV 12+ controls, synonyms replaced, Ghana HC bullets merged
+- Group A+B: Tab title fix, LinkedIn URL fix, sidebar on dashboard home, Course + Modules PIN gates, dark mode in Settings, test digest button, scraper error messages, login page redesign
+
+### NOT DONE - do these next session
+- Group F: 3-dot menus (Edit/Hide/Pin/Lock) on Diary, Notes and Vault entries + Now section on Notes home page. SQL must be run in Supabase first - see memory/SUGGESTIONS.md for exact SQL and full spec.
+- Group G: CV templates (6 role-specific HTML files + /cv/templates picker page) - can start now that Group C is merged.
+- SUGGESTIONS.md: full list of future features and dashboard improvements
+
+### Manual steps still needed
+1. Run SQL in Supabase (see SUGGESTIONS.md Group F section) BEFORE Group F code deploys
+2. Go to /dashboard/me and update LinkedIn slug from "isaac-adjei" to "isaacadjei" (no hyphen) after Group A+B deploys
