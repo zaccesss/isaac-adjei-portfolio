@@ -4,7 +4,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import {
   Target, Briefcase, Flame, BookOpen, BookMarked,
-  Gift, Lock, StickyNote
+  Gift, Lock, StickyNote, ArrowRight
 } from "lucide-react"
 import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
 
@@ -139,11 +139,21 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
       animate="visible"
       className="flex flex-col gap-8"
     >
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">
-          {greeting}, Zac
-        </h1>
-        <p className="text-muted-foreground">Here is your week at a glance.</p>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold tracking-tight">
+            {greeting}, Zac
+          </h1>
+          <p className="text-muted-foreground">Here is your week at a glance.</p>
+        </div>
+        {/* I show a CTA so there is a clear path into the dashboard after login */}
+        <Link
+          href="/dashboard/me"
+          className="self-start flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          Open Dashboard
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
 
       <motion.div

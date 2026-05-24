@@ -4,6 +4,21 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-24 - Dashboard fixes and login redesign
+
+### Group A + B - Dashboard fixes and login redesign (feat/dashboard-fixes-login)
+
+- A1: Added metadata export to `(protected)/layout.tsx` so all dashboard tabs show "Isaac Adjei | Dashboard" without affecting the public site root layout
+- A2: Fixed LinkedIn URL template in `MeClient.tsx` to use `www` and a trailing slash
+- A3: Created `(protected)/page.tsx` so the dashboard home grid renders inside the sidebar layout; deleted the outer `page.tsx` (was causing TypeScript error); added "Open Dashboard" CTA button linking to `/dashboard/me`
+- A4: Added PIN gate to Course and Modules pages via new `CourseWrapper.tsx` and `ModulesWrapper.tsx` client components; updated Settings PIN-protected pages text to include Course and Modules
+- A5: Added "Preferences" section to `SettingsClient.tsx` with a Sun/Moon toggle that calls `setTheme` from `next-themes`
+- A6: Created `app/api/dashboard/trigger-digest/route.ts` as an authenticated wrapper around the weekly-digest route; added "Weekly Digest" section in Settings with "Send test" button and success/error feedback
+- A7: Mapped GitHub API status codes in `trigger-scraper/route.ts` to human-readable messages; Settings scraper handler now shows the specific `error` field from the API response
+- B: Redesigned login page with avatar image, bold name, styled card and full-width GitHub sign-in button
+
+---
+
 ## 2026-05-24 - CV Word download
 
 ### Group D - CV Word download (feat/cv-word-download)
