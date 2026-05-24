@@ -4,6 +4,21 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-24 - Dashboard fixes and login redesign
+
+### Group A + B - Dashboard fixes and login redesign (feat/dashboard-fixes-login)
+
+- A1: Added metadata export to `(protected)/layout.tsx` so all dashboard tabs show "Isaac Adjei | Dashboard" without affecting the public site root layout
+- A2: Fixed LinkedIn URL template in `MeClient.tsx` to use `www` and a trailing slash
+- A3: Created `(protected)/page.tsx` so the dashboard home grid renders inside the sidebar layout; deleted the outer `page.tsx` (was causing TypeScript error); added "Open Dashboard" CTA button linking to `/dashboard/me`
+- A4: Added PIN gate to Course and Modules pages via new `CourseWrapper.tsx` and `ModulesWrapper.tsx` client components; updated Settings PIN-protected pages text to include Course and Modules
+- A5: Added "Preferences" section to `SettingsClient.tsx` with a Sun/Moon toggle that calls `setTheme` from `next-themes`
+- A6: Created `app/api/dashboard/trigger-digest/route.ts` as an authenticated wrapper around the weekly-digest route; added "Weekly Digest" section in Settings with "Send test" button and success/error feedback
+- A7: Mapped GitHub API status codes in `trigger-scraper/route.ts` to human-readable messages; Settings scraper handler now shows the specific `error` field from the API response
+- B: Redesigned login page with avatar image, bold name, styled card and full-width GitHub sign-in button
+
+---
+
 ## 2026-05-24 - CV content edits
 
 ### Group C - CV content edits (fix/cv-content-edits)
@@ -140,3 +155,22 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 ### Stale charging fix
 - Added isStale() helper in LiveStatusCards.tsx - if lastSeen > 5 min, hide charging state
 - Prevents charging icon freezing when device shuts down while plugged in
+
+---
+
+## 2026-05-24 - Session end status (for next agent)
+
+### COMPLETED this session (all merged to main)
+- Group D: CV Word download - /api/cv-word route, Download Word button in CVViewer, DOCX in cv-pdf.yml workflow
+- Group E: Applications tab renamed to "Internships", scraper whole-word regex fix, upsert dedup, error messages
+- Group C: CV edits - cybersecurity in profile, Aston bullets merged, award pipe format, Java + Kubernetes + PHP fix, AstonCV 12+ controls, synonyms replaced, Ghana HC bullets merged
+- Group A+B: Tab title fix, LinkedIn URL fix, sidebar on dashboard home, Course + Modules PIN gates, dark mode in Settings, test digest button, scraper error messages, login page redesign
+
+### NOT DONE - do these next session
+- Group F: 3-dot menus (Edit/Hide/Pin/Lock) on Diary, Notes and Vault entries + Now section on Notes home page. SQL must be run in Supabase first - see memory/SUGGESTIONS.md for exact SQL and full spec.
+- Group G: CV templates (6 role-specific HTML files + /cv/templates picker page) - can start now that Group C is merged.
+- SUGGESTIONS.md: full list of future features and dashboard improvements
+
+### Manual steps still needed
+1. Run SQL in Supabase (see SUGGESTIONS.md Group F section) BEFORE Group F code deploys
+2. Go to /dashboard/me and update LinkedIn slug from "isaac-adjei" to "isaacadjei" (no hyphen) after Group A+B deploys

@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useTheme } from "next-themes"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   KeyRound, Shield, Cpu, Clock, CheckCircle2, XCircle,
-  RefreshCw, Lock
+  RefreshCw, Lock, Sun, Moon, Palette, Mail
 } from "lucide-react"
 
 type ScraperStatus = {
@@ -30,6 +31,7 @@ function relativeTime(isoString: string): string {
 
 export default function SettingsClient() {
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
 
   // PIN section state
   const [currentPin, setCurrentPin] = useState("")
@@ -43,6 +45,10 @@ export default function SettingsClient() {
   const [scraperLoading, setScraperLoading] = useState(false)
   const [triggerLoading, setTriggerLoading] = useState(false)
   const [triggerMessage, setTriggerMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
+  // Weekly digest section state
+  const [digestLoading, setDigestLoading] = useState(false)
+  const [digestMessage, setDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
   // I fetch scraper status once on mount so the settings page shows live data
   useEffect(() => {
@@ -109,9 +115,9 @@ export default function SettingsClient() {
       const res = await fetch("/api/dashboard/trigger-scraper", { method: "POST" })
       // I read the body regardless of status so I can surface the specific
       // error message returned by the route rather than a generic fallback.
-      const data = await res.json() as { ok?: boolean; error?: string }
+      const data = await res.json().catch(() => ({})) as { ok?: boolean; error?: string }
       if (res.ok) {
-        setTriggerMessage({ text: "Triggered successfully.", ok: true })
+        setTriggerMessage({ text: "Scraper triggered successfully.", ok: true })
       } else {
         setTriggerMessage({ text: data.error ?? "Failed to trigger scraper.", ok: false })
       }
@@ -119,6 +125,24 @@ export default function SettingsClient() {
       setTriggerMessage({ text: "Something went wrong.", ok: false })
     } finally {
       setTriggerLoading(false)
+    }
+  }
+
+  async function handleTriggerDigest() {
+    setDigestLoading(true)
+    setDigestMessage(null)
+    try {
+      const res = await fetch("/api/dashboard/trigger-digest", { method: "POST" })
+      const data = await res.json().catch(() => ({})) as { error?: string }
+      if (res.ok) {
+        setDigestMessage({ text: "Digest sent to your email.", ok: true })
+      } else {
+        setDigestMessage({ text: data.error ?? "Failed to send digest.", ok: false })
+      }
+    } catch {
+      setDigestMessage({ text: "Something went wrong.", ok: false })
+    } finally {
+      setDigestLoading(false)
     }
   }
 
@@ -278,7 +302,70 @@ export default function SettingsClient() {
           </div>
           <div className="flex items-center justify-between py-1">
             <span className="text-muted-foreground">PIN-protected pages</span>
-            <span className="font-medium">Diary, Notes and Vault</span>
+            <span className="font-medium">Course, Modules, Diary, Notes and Vault</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Preferences section */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <Palette className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Preferences</h2>
+        </div>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2">
+              {theme === "dark" ? (
+                <Moon className="h-4 w-4 text-muted-foreground shrink-0" />
+              ) : (
+                <Sun className="h-4 w-4 text-muted-foreground shrink-0" />
+              )}
+              <span className="text-sm font-medium">Appearance</span>
+            </div>
+            <p className="text-xs text-muted-foreground pl-6">Toggle between light and dark mode</p>
+          </div>
+          {/* I use the same icon transition pattern as ThemeToggle.tsx in the public site */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="flex items-center gap-2"
+          >
+            <Sun className="h-3.5 w-3.5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-3.5 w-3.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </Button>
+        </div>
+      </section>
+
+      {/* Weekly digest section */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Weekly Digest</h2>
+        </div>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium">Send test now</span>
+            <p className="text-xs text-muted-foreground">Trigger the weekly digest email immediately</p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleTriggerDigest()}
+              disabled={digestLoading}
+              className="flex items-center gap-1.5"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${digestLoading ? "animate-spin" : ""}`} />
+              {digestLoading ? "Sending..." : "Send test"}
+            </Button>
+            {digestMessage && (
+              <span className={`text-xs ${digestMessage.ok ? "text-green-600" : "text-destructive"}`}>
+                {digestMessage.text}
+              </span>
+            )}
           </div>
         </div>
       </section>

@@ -155,7 +155,7 @@ export default function MeClient({ profile: initial }: { profile: Profile }) {
               </a>
             )}
             {profile.linkedin && (
-              <a href={`https://linkedin.com/in/${profile.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs">
+              <a href={`https://www.linkedin.com/in/${profile.linkedin}/`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs">
                 <Linkedin className="h-3.5 w-3.5" />{profile.linkedin}
               </a>
             )}
