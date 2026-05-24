@@ -9,6 +9,7 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 - Removed duplicated school names from education award lines in `public/resume/cv.html`
 - Restored bold keyword emphasis in Experience bullets and regenerated CV PDF/DOCX artefacts
 - Updated CV artefact workflow to regenerate PDF/DOCX on PR branches instead of pushing to protected `main`
+- Routed the Experience page CV download button through `/api/cv-pdf` to match the other PDF CTAs
 
 ---
 

@@ -72,5 +72,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/resume/Isaac_Adjei_CV.pdf public/resume/Isaac_Adjei_CV.docx
-          git diff --staged --quiet || git commit -m "chore: regenerate CV PDF and DOCX from cv.html [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: regenerate CV PDF and DOCX from cv.html"
           git push origin HEAD:${{ github.head_ref }}
