@@ -1,50 +1,32 @@
 name: Regenerate CV PDF
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
     paths:
       - "public/resume/cv.html"
   workflow_dispatch:
 
 jobs:
   regenerate:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
-          token: ${{ secrets.GITHUB_PAT || github.token }}
-
-      - name: Check whether cv.html changed in the latest commit
-        id: cv_changed
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          elif ! git rev-parse HEAD^ >/dev/null 2>&1; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          elif git diff --name-only HEAD^ HEAD | grep -qx "public/resume/cv.html"; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          fi
+          token: ${{ secrets.GH_PAT || secrets.GITHUB_PAT }}
 
       - uses: actions/setup-node@v4
-        if: steps.cv_changed.outputs.changed == 'true'
         with:
           node-version: 20
           cache: npm
 
       - run: npm ci
-        if: steps.cv_changed.outputs.changed == 'true'
 
       - name: Generate PDF from cv.html
-        if: steps.cv_changed.outputs.changed == 'true'
         run: |
           node -e "
           const puppeteer = require('puppeteer');
@@ -71,7 +53,6 @@ jobs:
           "
 
       - name: Generate DOCX from cv.html
-        if: steps.cv_changed.outputs.changed == 'true'
         run: |
           node -e "
           const fs = require('fs');
@@ -85,11 +66,25 @@ jobs:
           });
           "
 
-      - name: Commit updated PDF and DOCX
-        if: github.event_name == 'pull_request' && steps.cv_changed.outputs.changed == 'true'
+      - name: Create artefact PR
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_PAT }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/resume/Isaac_Adjei_CV.pdf public/resume/Isaac_Adjei_CV.docx
-          git diff --staged --quiet || git commit -m "chore: regenerate CV PDF and DOCX from cv.html"
-          git push origin HEAD:${{ github.head_ref }}
+          if git diff --staged --quiet; then
+            echo "CV artefacts are already up to date."
+            exit 0
+          fi
+
+          branch="automation/regenerate-cv-${GITHUB_RUN_ID}"
+          git switch -c "$branch"
+          git commit -m "chore: regenerate CV PDF and DOCX from cv.html"
+          git push -u origin "$branch"
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "chore: regenerate CV download artefacts" \
+            --body "Automatically regenerates the committed CV PDF and DOCX after cv.html changed on main."
+          gh pr merge "$branch" --auto --squash --delete-branch

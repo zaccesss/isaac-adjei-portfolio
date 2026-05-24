@@ -8,9 +8,10 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 - Removed duplicated school names from education award lines in `public/resume/cv.html`
 - Restored bold keyword emphasis in Experience bullets and regenerated CV PDF/DOCX artefacts
-- Updated CV artefact workflow to regenerate PDF/DOCX on PR branches instead of pushing to protected `main`
+- Updated CV artefact workflow to regenerate PDF/DOCX after `cv.html` lands on `main`, then open an artefact-only PR for auto-merge
 - Routed the Experience page CV download button through `/api/cv-pdf` to match the other PDF CTAs
-- Prevented CV artefact workflow loops by only regenerating when the latest commit changes `cv.html` and using `GITHUB_PAT` for PR branch pushes when available
+- Avoided PR self-commit loops by moving generated CV artefacts into a separate automated PR flow
+- Set dashboard metadata to the absolute title `Isaac Adjei | Dashboard` so the browser tab does not duplicate the name
 
 ---
 
