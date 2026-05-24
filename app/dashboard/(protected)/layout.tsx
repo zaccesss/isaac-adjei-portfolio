@@ -6,7 +6,7 @@ import InactivityGuard from "@/components/dashboard/InactivityGuard"
 // I set the metadata here so all protected dashboard pages inherit this title without
 // affecting the root layout used by the public site
 export const metadata = {
-  title: { default: "Isaac Adjei | Dashboard", template: "%s | Isaac Adjei" },
+  title: { absolute: "Isaac Adjei | Dashboard" },
   robots: "noindex, nofollow",
 }
 
