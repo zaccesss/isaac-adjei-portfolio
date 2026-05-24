@@ -15,6 +15,21 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-24 - Applications tab and scraper fixes
+
+### Group E - Applications tab and scraper fixes (fix/applications-scraper-fixes)
+
+- Renamed "Summer Internships" tab to "Internships" and "Summer Internship" type to "Internship" throughout ApplicationsClient.tsx
+- Fixed job-scraper.py whole-word regex for "intern" to stop false positives from "internal"/"international"
+- Scraper type labels updated: "Summer Internship" -> "Internship"
+- Changed scraper insert to upsert (on_conflict=url) to prevent duplicate inserts
+- Added empty-set guard in load_existing_keys with clear warning log
+- Confirmed CYCLE_CUTOFF is datetime(2025, 9, 1)
+- Improved trigger-scraper route error messages with status-code-to-text mapping
+- Updated Settings UI to show specific scraper error text from API response
+
+---
+
 ## 2026-05-21 - Full dashboard overhaul, CV update, codebase comments
 
 ### What we did
