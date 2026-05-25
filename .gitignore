@@ -84,3 +84,4 @@ original_cv.html
 *.tmp
 *.temp
 fix_cv.py
+memory/CV_GENERATION_DISABLED.md
