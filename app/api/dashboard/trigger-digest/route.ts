@@ -8,7 +8,10 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
 
   const secret = process.env.CRON_SECRET
-  if (!secret) return NextResponse.json({ error: "CRON_SECRET not set" }, { status: 500 })
+  if (!secret) {
+    console.error("CRON_SECRET not set in environment")
+    return NextResponse.json({ error: "CRON_SECRET not set" }, { status: 500 })
+  }
 
   // I use req.nextUrl.origin instead of process.env.NEXTAUTH_URL so the request
   // always targets the same host that received it - this fixes the issue where
