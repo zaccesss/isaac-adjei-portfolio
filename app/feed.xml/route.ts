@@ -1,6 +1,6 @@
-// I generate an RSS 2.0 feed from all published blog posts so readers can subscribe
+﻿// I generate an RSS 2.0 feed from all published blog posts so readers can subscribe
 // in any RSS reader. When a browser visits (Accept: text/html), I serve a styled
-// HTML page instead of raw XML — Chrome 131+ dropped XSLT so the <?xml-stylesheet?>
+// HTML page instead of raw XML - Chrome 131+ dropped XSLT so the <?xml-stylesheet?>
 // PI no longer works in Chrome.
 
 import { getPublishedPosts } from "@/data/blog"
