@@ -10,8 +10,8 @@ import {
   TrendingUp, Calendar
 } from "lucide-react"
 import {
-  createHabit, updateHabit, deleteHabit,
-  checkInHabit, undoHabitCheckIn
+  createStreak, updateStreak, deleteStreak,
+  checkInStreak, undoStreakCheckIn
 } from "@/app/dashboard/actions"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 
@@ -91,17 +91,17 @@ export default function HabitsClient({
     setHabits((h) => [...h, optimistic])
     setNewHabitName("")
     setAdding(false)
-    startTransition(() => createHabit({ name: optimistic.name, frequency: "daily" }))
+    startTransition(() => createStreak({ name: optimistic.name, icon: "🎯", description: "", color: "#3b82f6", order_index: habits.length }))
   }
 
   function handleCheckIn(habitId: string) {
     const isCheckedIn = todayLogs.has(habitId)
     if (isCheckedIn) {
       // I undo the check-in
-      startTransition(() => undoHabitCheckIn(habitId, today))
+      startTransition(() => undoStreakCheckIn(habitId, today))
     } else {
       // I check in
-      startTransition(() => checkInHabit(habitId, today))
+      startTransition(() => checkInStreak(habitId, today))
     }
     // I force a reload to get fresh data
     window.location.reload()
@@ -109,7 +109,7 @@ export default function HabitsClient({
 
   function handleDelete(id: string) {
     setHabits((h) => h.filter((x) => x.id !== id))
-    startTransition(() => deleteHabit(id))
+    startTransition(() => deleteStreak(id))
   }
 
   return (
