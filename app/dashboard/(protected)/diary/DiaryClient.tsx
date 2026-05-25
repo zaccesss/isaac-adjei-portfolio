@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useTransition } from "react"
 import { createDiaryEntry, updateDiaryEntry, deleteDiaryEntry } from "../../actions"
@@ -176,7 +176,7 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">My diary</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{entries.length} entr{entries.length !== 1 ? "ies" : "y"} — just for me</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{entries.length} entr{entries.length !== 1 ? "ies" : "y"} - just for me</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -193,7 +193,7 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
         <div className="border border-dashed border-border rounded-xl p-10 text-center">
           <p className="text-2xl mb-2">📖</p>
           <p className="text-sm font-medium">Nothing written yet</p>
-          <p className="text-xs text-muted-foreground mt-1">My thoughts, feelings and memories — all in one place.</p>
+          <p className="text-xs text-muted-foreground mt-1">My thoughts, feelings and memories - all in one place.</p>
           <button type="button" onClick={() => setOpen(true)} className="text-sm text-primary hover:underline mt-3 block mx-auto">Write my first entry</button>
         </div>
       ) : (

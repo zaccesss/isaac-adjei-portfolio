@@ -1,4 +1,4 @@
-// University society memberships shown on the About page.
+﻿// University society memberships shown on the About page.
 
 export interface Society {
   name: string
@@ -28,7 +28,7 @@ export const societies: Society[] = [
     period: "2024 - Present",
     description: "Active participation in cultural, social and community events.",
   },
-  // Commented out for now — uncomment to re-add
+  // Commented out for now - uncomment to re-add
   // {
   //   name: "Aston Ghana Society (AGS)",
   //   role: "Member",

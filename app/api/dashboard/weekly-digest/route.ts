@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+﻿import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 
 type Goal = {
@@ -175,7 +175,7 @@ function buildEmailHtml(
                     ? `<tr>
                   <td style="padding:4px 0;">
                     <span style="color:#6b7280;font-size:13px;">Latest mood</span>
-                    <span style="float:right;font-weight:600;font-size:13px;color:#1e293b;">${diaryEntries[0]?.mood ?? "—"}</span>
+                    <span style="float:right;font-weight:600;font-size:13px;color:#1e293b;">${diaryEntries[0]?.mood ?? "-"}</span>
                   </td>
                 </tr>`
                     : ""

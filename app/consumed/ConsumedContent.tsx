@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 // I track each YouTube video's active state so only clicked videos load their iframe.
 // This keeps the page fast even with 49 embeds on screen at once.
@@ -28,7 +28,7 @@ const MONTHS: Month[] = ["January", "February", "March", "April", "May"]
 // Sorted oldest → newest by upload date. Oldest 10 = January, next 10 = February, etc.
 // uploaded = real YouTube upload date (extracted from uploadDate JSON-LD in page HTML).
 const videos: Array<{ id: string; title: string; channel: string; month: Month; uploaded: string; tags: string[] }> = [
-  // January — uploads 2015–2023 (oldest content)
+  // January - uploads 2015-2023 (oldest content)
   { id: "HRl0dvPRkSI",  title: "The Power of Nonverbal Communications",                            channel: "CMX",                   month: "January",  uploaded: "2015-11-04", tags: ["psychology", "communication"] },
   { id: "LNHBMFCzznE",  title: "After Watching This, Your Brain Will Not Be the Same",             channel: "TEDx Talks",            month: "January",  uploaded: "2015-12-15", tags: ["neuroscience", "education"] },
   { id: "BBz-Jyr23M4",  title: "Guitar Lesson 1 - Absolute Beginner? Start Here!",                 channel: "Andy Guitar",           month: "January",  uploaded: "2016-09-02", tags: ["guitar", "tutorial"] },
@@ -39,7 +39,7 @@ const videos: Array<{ id: string; title: string; channel: string; month: Month; 
   { id: "BpPEoZW5IiY",  title: "Learn Rust Programming - Complete Course",                         channel: "freeCodeCamp.org",      month: "January",  uploaded: "2023-06-08", tags: ["rust", "programming"] },
   { id: "B5wCziuqnwk",  title: "Story of the Entire Bible, I Guess",                               channel: "Redeemed Zoomer",       month: "January",  uploaded: "2023-08-18", tags: ["faith", "bible"] },
   { id: "P6FORpg0KVo",  title: "How to Make Learning as Addictive as Social Media",                channel: "TED",                   month: "January",  uploaded: "2023-10-26", tags: ["learning", "education"] },
-  // February — uploads 2023–2025
+  // February - uploads 2023-2025
   { id: "p00zsi71t6I",  title: "How To Start Learning The Piano - Self Taught",                    channel: "Matthew Cawood",        month: "February", uploaded: "2023-12-20", tags: ["piano", "tutorial"] },
   { id: "lvO88XxNAzs",  title: "70 LeetCode Problems in 5+ Hours (Every Data Structure)",         channel: "stoney codes",          month: "February", uploaded: "2024-08-31", tags: ["coding", "algorithms"] },
   { id: "3V5LaqHqh4c",  title: "How I'd Learn to Code If I Had to Start Over",                     channel: "Catherine Li",          month: "February", uploaded: "2025-01-12", tags: ["coding", "career"] },
@@ -50,7 +50,7 @@ const videos: Array<{ id: string; title: string; channel: string; month: Month; 
   { id: "w4rG5GY9IlA",  title: "Learning Software Engineering During the Era of AI",               channel: "TEDx Talks",            month: "February", uploaded: "2025-07-23", tags: ["ai", "engineering"] },
   { id: "Xr6v0lI517A",  title: "If You Cannot Build Logic, You Cannot Solve LeetCode Problems",   channel: "Techie Bytess",         month: "February", uploaded: "2025-08-08", tags: ["coding", "leetcode"] },
   { id: "ZUjebLQl3is",  title: "How to Solve Inverting Op-Amp Exercises",                          channel: "YS Electronics",        month: "February", uploaded: "2025-09-02", tags: ["electronics", "engineering"] },
-  // March — uploads Oct 2025–Feb 2026
+  // March - uploads Oct 2025-Feb 2026
   { id: "pdLEHfkwgV8",  title: "The Power of SIMPLE Editing",                                      channel: "Andrew",                month: "March",    uploaded: "2025-09-12", tags: ["creative", "video-editing"] },
   { id: "gaCY4QxfSzA",  title: "Coding is Hard Until You Learn This",                              channel: "Phillip Choi",          month: "March",    uploaded: "2025-11-05", tags: ["coding", "tutorial"] },
   { id: "-q66T2dNml0",  title: "Dave - Chapter 16 ft. Kano",                                       channel: "Santan Dave",           month: "March",    uploaded: "2025-11-26", tags: ["music", "dave"] },
@@ -61,7 +61,7 @@ const videos: Array<{ id: string; title: string; channel: string; month: Month; 
   { id: "QoQBzR1NIqI",  title: "Claude Code Full Course 4 Hours: Build & Sell (2026)",             channel: "Nick Saraev",           month: "March",    uploaded: "2026-02-12", tags: ["ai", "coding"] },
   { id: "-eyga0y6axY",  title: "Why Don't We Die More Often?",                                     channel: "Michael MacKelvie",     month: "March",    uploaded: "2026-02-24", tags: ["science", "biology"] },
   { id: "sFCmU9jG79k",  title: "When the Only Way to Win Is to Lose Everything",                   channel: "Soder Cinema",          month: "March",    uploaded: "2026-02-27", tags: ["faith", "motivation"] },
-  // April — uploads Mar–Apr 2026
+  // April - uploads Mar-Apr 2026
   { id: "L1QmHAJgxkE",  title: "Speak Smart: Master the Psychology of Powerful Communication",    channel: "The Focus Audiobook Room", month: "April", uploaded: "2026-03-08", tags: ["psychology", "communication"] },
   { id: "W9FfPpJGG5o",  title: "World's Biggest Polaroid Meets Ibrahim Mahama",                    channel: "The 20x24 Project",     month: "April",    uploaded: "2026-03-13", tags: ["art", "photography"] },
   { id: "ACcXaktKSr4",  title: "CULTUR FM Ghana Independence 2026 Live Afrobeats Mix",             channel: "CULTUR FM",             month: "April",    uploaded: "2026-03-14", tags: ["music", "afrobeats"] },
@@ -72,7 +72,7 @@ const videos: Array<{ id: string; title: string; channel: string; month: Month; 
   { id: "44SAutzANVE",  title: "Our First Hackathon Together (We Won!)",                           channel: "Johnathan Mo",          month: "April",    uploaded: "2026-04-17", tags: ["tech", "hackathon"] },
   { id: "ujyQd2ltUr8",  title: "Jamie Carragher V 20 Football Fans",                               channel: "Zac Djellab",           month: "April",    uploaded: "2026-04-20", tags: ["football"] },
   { id: "ZY0LelvctsE",  title: "Dami Hope Exclusive On Break Up with Indiyah",                     channel: "We Need To Talk",       month: "April",    uploaded: "2026-04-21", tags: ["entertainment"] },
-  // May — uploads late Apr–May 2026 (newest content)
+  // May - uploads late Apr-May 2026 (newest content)
   { id: "LzE6o8bWqdU",  title: "Justin Credible's Freestyle Series With Dave",                     channel: "Power 106 Los Angeles", month: "May",      uploaded: "2026-04-23", tags: ["music", "freestyle", "dave"] },
   { id: "sdhh7AYzsTY",  title: "1.5-Hour Study With Me: Hyper Efficient Deep Work",                channel: "iCanStudy",             month: "May",      uploaded: "2026-04-25", tags: ["study", "productivity"] },
   { id: "FXZnYcLEhDk",  title: "Dave ft. SZA - Affection (Music Video)",                           channel: "UkDrill Daily",         month: "May",      uploaded: "2026-05-04", tags: ["music", "dave", "uk-rap"] },
@@ -88,21 +88,21 @@ const videos: Array<{ id: string; title: string; channel: string; month: Month; 
 // Sorted oldest → newest by publish date; oldest 2 = January, newest 2 = May.
 // uploaded stored for data accuracy but not displayed.
 const podcasts: Array<{ spotifyId: string; embedType: "episode" | "show"; title: string; show: string; month: Month }> = [
-  // January — oldest episodes (2021–2022)
+  // January - oldest episodes (2021-2022)
   { spotifyId: "0F5rRvSDDbLP31FJj4Vi2i", embedType: "episode", title: "Perception and the Past",                                                      show: "Psychology Unplugged",          month: "January"  },
   { spotifyId: "73lIx1idgSoMixnTocVNF2", embedType: "episode", title: "Habits and Routines",                                                          show: "Growing With The Flow",         month: "January"  },
-  // February — 2022 episodes
+  // February - 2022 episodes
   { spotifyId: "1dowFN3k8EfF3wPjchgKzM", embedType: "episode", title: "Anxiety... Breakaway",                                                         show: "Psychology Unplugged",          month: "February" },
   { spotifyId: "3TxjF2mZy9S9I9GL5eZ8sq", embedType: "episode", title: "Sleep Toolkit: Tools for Optimising Sleep and Sleep-Wake Timing",             show: "Huberman Lab",                  month: "February" },
-  // March — late 2022–early 2023
+  // March - late 2022-early 2023
   { spotifyId: "5rIjNxwPxdCcgr9bSt0Pby", embedType: "episode", title: "A Harvard Psychologist Teaches Us How to Increase Our Emotional Intelligence", show: "Imposters",                     month: "March"    },
   { spotifyId: "070Y622pJOmkWOaNIwIU7H", embedType: "episode", title: "A Financial Goals Master List (n=310)",                                        show: "The Rational Reminder Podcast", month: "March"    },
   { spotifyId: "3t8iUSntRaSqsNzAQOX72I", embedType: "episode", title: "You Don't Actually Know What Your Future Self Wants",                          show: "TED Business",                  month: "March"    },
-  // April — 2023–2025
+  // April - 2023-2025
   { spotifyId: "5YoXzNLPgiaJ209C1dhfdy", embedType: "episode", title: "Learning to Take Action for a Meaningful Life with Gregg Krech",              show: "The One You Feed",              month: "April"    },
   { spotifyId: "2VzVgDcHpBBWCHKvMJuyeN", embedType: "episode", title: "The Hidden Art Of Reinventing Yourself - Matthew McConaughey",                show: "Modern Wisdom",                 month: "April"    },
   { spotifyId: "1mHvxLBGnoMasgADgLPyan", embedType: "episode", title: "Men's Mental Health: No One's Coming to Save You",                            show: "Mount Mindset",                 month: "April"    },
-  // May — ongoing shows (no single episode date)
+  // May - ongoing shows (no single episode date)
   { spotifyId: "6IbUKct9KkYSVkrDRvH25X", embedType: "show",    title: "Message of The Day (MoTD)",                                                   show: "Message of The Day (MoTD)",     month: "May"      },
   { spotifyId: "0XrOqvxlqQI6bmdYHuIVnr", embedType: "show",    title: "Modern Wisdom",                                                               show: "Modern Wisdom",                 month: "May"      },
 ]
@@ -302,7 +302,7 @@ export default function ConsumedContent() {
           </TabsTrigger>
         </TabsList>
 
-        {/* ALL — content grouped by month, January first */}
+        {/* ALL - content grouped by month, January first */}
         <TabsContent value="all">
           {totalFiltered === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">No content for this month yet.</p>

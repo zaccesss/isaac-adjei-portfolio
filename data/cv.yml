@@ -1,4 +1,4 @@
-# CV Data - Single source of truth for all CV generation
+﻿# CV Data - Single source of truth for all CV generation
 # This file drives the automatic generation of all role-specific CVs
 
 personal:
@@ -15,9 +15,9 @@ personal:
 education:
   - institution: "Aston University, Birmingham"
     degree: "BEng (Hons), Electronic Engineering and Computer Science"
-    duration: "Oct 2024 – Jul 2028"
+    duration: "Oct 2024 - Jul 2028"
     predicted: "First Class"
-    award: "Top 40 Finalist – Black Heritage Undergraduate of the Year Award 2026"
+    award: "Top 40 Finalist - Black Heritage Undergraduate of the Year Award 2026"
     modules:
       - "Internet Applications and Databases"
       - "Foundations of AI and Data Science"
@@ -129,7 +129,7 @@ projects:
 
 experience:
   - company: "TargetJobs / Sky"
-    role: "Top 40 Finalist – Black Heritage Undergraduate of the Year"
+    role: "Top 40 Finalist - Black Heritage Undergraduate of the Year"
     date: "2026"
     tags: ["software", "data", "embedded", "devops", "quant", "security"]
     bullets:
