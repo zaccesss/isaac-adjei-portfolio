@@ -210,20 +210,18 @@ export async function GET(req: NextRequest) {
   // I verify the Vercel cron secret so this route cannot be triggered by arbitrary HTTP requests
   const authHeader = req.headers.get("authorization")
   const cronSecret = process.env.CRON_SECRET
-
-  console.log("weekly-digest: authHeader:", authHeader ? "present" : "missing")
-  console.log("weekly-digest: cronSecret:", cronSecret ? "present" : "missing")
-  if (cronSecret) console.log("weekly-digest: cronSecret length:", cronSecret.length)
-
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-    console.log("weekly-digest: authentication failed")
+  if (!cronSecret) {
     return NextResponse.json(
-      { error: "Unauthorised" },
+      { error: "CRON_SECRET not set in environment" },
       { status: 401, headers: { "Cache-Control": "no-store" } }
     )
   }
-
-  console.log("weekly-digest: authentication successful")
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json(
+      { error: "Unauthorised: invalid CRON_SECRET" },
+      { status: 401, headers: { "Cache-Control": "no-store" } }
+    )
+  }
 
   const now = new Date()
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
