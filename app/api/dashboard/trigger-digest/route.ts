@@ -9,11 +9,8 @@ export async function POST(req: NextRequest) {
 
   const secret = process.env.CRON_SECRET
   if (!secret) {
-    console.error("CRON_SECRET not set in environment")
-    return NextResponse.json({ error: "CRON_SECRET not set" }, { status: 500 })
+    return NextResponse.json({ error: "CRON_SECRET not set in environment" }, { status: 500 })
   }
-
-  console.log("CRON_SECRET is set, length:", secret.length)
 
   // I use req.nextUrl.origin instead of process.env.NEXTAUTH_URL so the request
   // always targets the same host that received it - this fixes the issue where
@@ -23,8 +20,6 @@ export async function POST(req: NextRequest) {
     headers: { Authorization: `Bearer ${secret}` },
   })
 
-  console.log("weekly-digest response status:", res.status)
   const data = await res.json().catch(() => ({}))
-  console.log("weekly-digest response data:", data)
   return NextResponse.json(data, { status: res.status })
 }
