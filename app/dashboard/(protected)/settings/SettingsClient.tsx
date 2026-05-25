@@ -9,9 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   KeyRound, Shield, Cpu, Clock, CheckCircle2, XCircle,
-  RefreshCw, Lock, Sun, Moon, Palette, Mail, Download
+  RefreshCw, Lock, Sun, Moon, Palette, Mail
 } from "lucide-react"
-import { exportDashboardData } from "@/app/dashboard/actions"
 
 type ScraperStatus = {
   lastRun: string | null
@@ -49,9 +48,6 @@ export default function SettingsClient() {
 
   // Weekly digest section state
   const [digestLoading, setDigestLoading] = useState(false)
-
-  // Data export section state
-  const [exportLoading, setExportLoading] = useState(false)
   const [digestMessage, setDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
   // I fetch scraper status once on mount so the settings page shows live data
@@ -147,25 +143,6 @@ export default function SettingsClient() {
       setDigestMessage({ text: "Something went wrong.", ok: false })
     } finally {
       setDigestLoading(false)
-    }
-  }
-
-  async function handleExportData() {
-    setExportLoading(true)
-    try {
-      const data = await exportDashboardData()
-      // I create a blob and trigger a download so the user gets a file immediately
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `nexus-backup-${new Date().toISOString().split("T")[0]}.json`
-      a.click()
-      URL.revokeObjectURL(url)
-    } catch {
-      // Silently fail - the user can retry
-    } finally {
-      setExportLoading(false)
     }
   }
 
@@ -349,18 +326,14 @@ export default function SettingsClient() {
             <p className="text-xs text-muted-foreground pl-6">Toggle between light and dark mode</p>
           </div>
           {/* I use the same icon transition pattern as ThemeToggle.tsx in the public site */}
-          {/* I wrap Sun and Moon in a relative span so the absolute-positioned Moon */}
-          {/* does not escape the button and overlap the text label in dark mode. */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="flex items-center gap-2"
           >
-            <span className="relative h-4 w-4 shrink-0 inline-flex items-center justify-center">
-              <Sun className="h-3.5 w-3.5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute inset-0 m-auto h-3.5 w-3.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            </span>
+            <Sun className="h-3.5 w-3.5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-3.5 w-3.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             {theme === "dark" ? "Light mode" : "Dark mode"}
           </Button>
         </div>
@@ -394,30 +367,6 @@ export default function SettingsClient() {
               </span>
             )}
           </div>
-        </div>
-      </section>
-
-      {/* Data Export section */}
-      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
-        <div className="flex items-center gap-2">
-          <Download className="h-4 w-4 text-muted-foreground" />
-          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Data Export</h2>
-        </div>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium">Download backup</span>
-            <p className="text-xs text-muted-foreground">Export all dashboard data as a JSON file</p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void handleExportData()}
-            disabled={exportLoading}
-            className="flex items-center gap-1.5"
-          >
-            <Download className="h-3.5 w-3.5" />
-            {exportLoading ? "Exporting..." : "Export"}
-          </Button>
         </div>
       </section>
     </motion.div>

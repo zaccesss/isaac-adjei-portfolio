@@ -2,19 +2,16 @@
 
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
-import { createVaultEntry, updateVaultEntry, deleteVaultEntry, toggleVaultHidden, toggleVaultLocked } from "@/app/dashboard/actions"
+import { createVaultEntry, updateVaultEntry, deleteVaultEntry } from "@/app/dashboard/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Copy, Eye, EyeOff, Trash2, ExternalLink, Check, Search, Edit2, Key, CreditCard, User, StickyNote, Globe, PinOff, Lock, Unlock, LockKeyhole } from "lucide-react"
+import { Plus, Copy, Eye, EyeOff, Trash2, ExternalLink, Check, Search, Edit2, Key, CreditCard, User, StickyNote, Globe } from "lucide-react"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { dashboardPage } from "@/lib/animations"
-import { EntryMenu, EntryMenuItem } from "@/components/dashboard/EntryMenu"
-import PinGate from "@/components/dashboard/PinGate"
 
 // I keep the VaultEntry type faithful to the DB schema so TypeScript catches any field name drift
-// Group F columns - I added hidden and locked in the 2026-05-25 migration for the 3-dot menu.
 type VaultEntry = {
   id: string
   name: string
@@ -35,8 +32,6 @@ type VaultEntry = {
   content: string | null
   notes: string | null
   fields: Record<string, unknown>
-  hidden: boolean
-  locked: boolean
 }
 
 // I centralise type metadata so adding a new vault type only requires one change
@@ -104,13 +99,10 @@ function Field({ label, value, url }: { label: string; value: string; url?: bool
   )
 }
 
-function EntryCard({ entry, onEdit, onDelete, onToggleHidden, onToggleLocked, onRequestUnlock }: {
+function EntryCard({ entry, onEdit, onDelete }: {
   entry: VaultEntry
   onEdit: (e: VaultEntry) => void
   onDelete: (id: string) => void
-  onToggleHidden: (e: VaultEntry) => void
-  onToggleLocked: (e: VaultEntry) => void
-  onRequestUnlock: (e: VaultEntry) => void
 }) {
   // I keep expand/collapse state local so each card is independent -
   // opening one does not collapse the others
@@ -122,34 +114,11 @@ function EntryCard({ entry, onEdit, onDelete, onToggleHidden, onToggleLocked, on
   // - I only attempt this when there is a URL, and onError hides the img if it fails to load
   const favicon = entry.url ? `https://www.google.com/s2/favicons?domain=${new URL(entry.url.startsWith("http") ? entry.url : `https://${entry.url}`).hostname}&sz=32` : null
 
-  // I build the menu items dynamically so the label flips with the entry state.
-  const menuItems: EntryMenuItem[] = [
-    { label: "Edit", icon: <Edit2 className="h-3.5 w-3.5" />, onClick: () => onEdit(entry) },
-    {
-      label: entry.locked ? "Unlock" : "Lock",
-      icon: entry.locked ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />,
-      onClick: () => {
-        if (entry.locked) {
-          onRequestUnlock(entry)
-        } else {
-          onToggleLocked(entry)
-        }
-      },
-    },
-    {
-      label: entry.hidden ? "Show" : "Hide",
-      icon: entry.hidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />,
-      onClick: () => onToggleHidden(entry),
-    },
-    { label: "Delete", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => onDelete(entry.id), tone: "destructive" },
-  ]
-
   return (
-    <div className={`border border-border rounded-lg bg-card overflow-hidden hover:shadow-sm transition-shadow ${entry.hidden ? "opacity-70" : ""}`}>
+    <div className="border border-border rounded-lg bg-card overflow-hidden hover:shadow-sm transition-shadow">
       {/* I make the whole header row a button so the click target is large */}
       <button type="button" onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-muted/30 transition-colors">
         <div className="flex items-center gap-3 min-w-0">
-          {entry.locked && <LockKeyhole className="h-4 w-4 text-muted-foreground shrink-0" />}
           {favicon ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={favicon} alt="" width={16} height={16} className="rounded-sm shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }} />
@@ -162,8 +131,10 @@ function EntryCard({ entry, onEdit, onDelete, onToggleHidden, onToggleLocked, on
             <p className="text-xs text-muted-foreground truncate">{entry.username ?? entry.email ?? entry.key_name ?? ""}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-          <EntryMenu items={menuItems} ariaLabel={`${entry.name} actions`} />
+        <div className="flex items-center gap-2 shrink-0">
+          {/* I use e.stopPropagation() so clicking edit or delete does not also toggle the expand */}
+          <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(entry) }} aria-label="Edit" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></button>
+          <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(entry.id) }} aria-label="Delete" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
         </div>
       </button>
 
@@ -330,15 +301,8 @@ export default function VaultTypeClient({
   const [addOpen, setAddOpen] = useState(false)
   // I keep editEntry as a state var rather than a boolean so the form can receive the entry to pre-populate
   const [editEntry, setEditEntry] = useState<VaultEntry | null>(null)
-  const [unlockingEntry, setUnlockingEntry] = useState<VaultEntry | null>(null)
-  const [showHidden, setShowHidden] = useState(false)
-  const [, startTransition] = useTransition()
 
-  // I split entries into visible vs hidden so the list can offer a reveal button.
-  const visible = entries.filter((e) => !e.hidden)
-  const hidden = entries.filter((e) => e.hidden)
-
-  const filtered = (showHidden ? entries : visible)
+  const filtered = entries
     .filter((e) => {
       if (!search) return true
       const q = search.toLowerCase()
@@ -351,21 +315,6 @@ export default function VaultTypeClient({
     })
     // I sort alphabetically so I can scan the list quickly without remembering insertion order
     .sort((a, b) => a.name.localeCompare(b.name))
-
-  function handleToggleHidden(entry: VaultEntry) {
-    const updated = { ...entry, hidden: !entry.hidden }
-    setEntries((prev) => prev.map((e) => e.id === entry.id ? updated : e))
-    startTransition(() => toggleVaultHidden(entry.id, !entry.hidden))
-  }
-
-  function handleToggleLocked(entry: VaultEntry) {
-    // Locking is immediate, unlocking requires the PIN via PinGate.
-    if (!entry.locked) {
-      const updated = { ...entry, locked: true }
-      setEntries((prev) => prev.map((e) => e.id === entry.id ? updated : e))
-      startTransition(() => toggleVaultLocked(entry.id, true))
-    }
-  }
 
   function handleSaved(saved: VaultEntry | null) {
     // I treat null as "cancel" - close the dialog and do nothing to the list
@@ -385,21 +334,6 @@ export default function VaultTypeClient({
     // I remove locally first so the card disappears immediately - the server call runs after
     setEntries((prev) => prev.filter((e) => e.id !== id))
     deleteVaultEntry(id)
-  }
-
-  // I gate unlocking behind the dashboard PIN so locked vault entries are protected.
-  if (unlockingEntry) {
-    return (
-      <PinGate
-        pageName={`Unlock "${unlockingEntry.name}"`}
-        onUnlock={() => {
-          const updated = { ...unlockingEntry, locked: false }
-          setEntries((prev) => prev.map((e) => e.id === unlockingEntry.id ? updated : e))
-          setUnlockingEntry(null)
-          startTransition(() => toggleVaultLocked(unlockingEntry.id, false))
-        }}
-      />
-    )
   }
 
   return (
@@ -439,7 +373,7 @@ export default function VaultTypeClient({
         <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or username..." className="pl-8 h-9" />
       </div>
 
-      {filtered.length === 0 && hidden.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="border border-dashed border-border rounded-xl p-10 text-center">
           <p className="text-2xl mb-2">🔐</p>
           <p className="text-sm font-medium">No {typeLabel.toLowerCase()} yet</p>
@@ -450,26 +384,8 @@ export default function VaultTypeClient({
       ) : (
         <div className="flex flex-col gap-2">
           {filtered.map((e) => (
-            <EntryCard
-              key={e.id}
-              entry={e}
-              onEdit={(entry) => setEditEntry(entry)}
-              onDelete={handleDelete}
-              onToggleHidden={handleToggleHidden}
-              onToggleLocked={handleToggleLocked}
-              onRequestUnlock={(entry) => setUnlockingEntry(entry)}
-            />
+            <EntryCard key={e.id} entry={e} onEdit={(entry) => setEditEntry(entry)} onDelete={handleDelete} />
           ))}
-          {hidden.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowHidden((s) => !s)}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors self-start flex items-center gap-1.5 px-1 mt-2"
-            >
-              {showHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              {showHidden ? `Hide ${hidden.length} hidden` : `Show ${hidden.length} hidden`}
-            </button>
-          )}
         </div>
       )}
 

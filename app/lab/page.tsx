@@ -351,7 +351,7 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "blank", text: "" },
     ...posts.map((p) => ({
       type: "output" as LineType,
-      text: `  [${TYPE_LABEL[p.type] ?? p.type}]  ${p.title}${p.published ? "  â- live" : "  â€¢ draft"}`,
+      text: `  [${TYPE_LABEL[p.type] ?? p.type}]  ${p.title}${p.published ? "  â— live" : "  â€¢ draft"}`,
     })),
     { type: "blank", text: "" },
     { type: "output", text: "  tip: run 'live' to get direct slugs" },
@@ -574,16 +574,16 @@ function renderLine(line: Line, i: number) {
             ? "text-green-400"
             : "text-amber-300"
 
-  // Split on special tokens: â†’ and â- live get their own colours; quoted command names turn green
-  const parts = line.text.split(/(â†’|â- live|'[a-z-]+')/
+  // Split on special tokens: â†’ and â— live get their own colours; quoted command names turn green
+  const parts = line.text.split(/(â†’|â— live|'[a-z-]+')/
   )
   return (
     <div key={i} className={`font-mono text-xs leading-relaxed ${cls}`}>
       {parts.map((part, j) =>
         part === "â†’" ? (
           <span key={j} className="text-cyan-400">{"â†’"}</span>
-        ) : part === "â- live" ? (
-          <span key={j} className="text-green-400">{"â- live"}</span>
+        ) : part === "â— live" ? (
+          <span key={j} className="text-green-400">{"â— live"}</span>
         ) : part.startsWith("'") && part.endsWith("'") ? (
           <span key={j} className="text-green-400 font-bold tracking-wide">{part.slice(1, -1)}</span>
         ) : (

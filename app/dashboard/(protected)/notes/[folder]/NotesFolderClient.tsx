@@ -2,17 +2,16 @@
 
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
-import { createNote, updateNote, deleteNote, toggleNoteHidden, toggleNoteLocked } from "@/app/dashboard/actions"
+import { createNote, updateNote, deleteNote } from "@/app/dashboard/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { Plus, Pin, PinOff, Lock, Unlock, LockKeyhole, Search, Folder, Tag, Trash2, Eye, EyeOff, Edit2, Download, X, MoreVertical } from "lucide-react"
+import { Plus, Pin, Lock, Search, Folder, Tag, Trash2, Eye, Edit2, Download, X } from "lucide-react"
 import PinGate from "@/components/dashboard/PinGate"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { dashboardPage } from "@/lib/animations"
-import { EntryMenu, EntryMenuItem } from "@/components/dashboard/EntryMenu"
 
 type Note = {
   id: string
@@ -22,8 +21,6 @@ type Note = {
   tags: string[]
   pinned: boolean
   locked: boolean
-  // Group F column - I added hidden in the 2026-05-25 migration for the 3-dot menu.
-  hidden: boolean
   color: string | null
   created_at: string
   updated_at: string
@@ -49,7 +46,6 @@ export default function NotesFolderClient({
   const [newTag, setNewTag] = useState("")
   const [preview, setPreview] = useState(false)
   const [unlockingNote, setUnlockingNote] = useState<Note | null>(null)
-  const [showHidden, setShowHidden] = useState(false)
   const [, startTransition] = useTransition()
 
   // I derive all tags from the live notes array so they stay in sync after edits
@@ -64,11 +60,8 @@ export default function NotesFolderClient({
     return true
   })
 
-  // I split notes into visible vs hidden so the sidebar can offer a reveal button.
-  const visible = filtered.filter((n) => !n.hidden)
-  const hidden = filtered.filter((n) => n.hidden)
-  const pinned = visible.filter((n) => n.pinned)
-  const unpinned = visible.filter((n) => !n.pinned)
+  const pinned = filtered.filter((n) => n.pinned)
+  const unpinned = filtered.filter((n) => !n.pinned)
 
   function startNew() {
     setDraft({ title: "", content: "", folder: defaultFolder, tags: [], color: null, locked: false, pinned: false })
@@ -83,7 +76,6 @@ export default function NotesFolderClient({
       id: crypto.randomUUID(),
       ...draft,
       pinned: false,
-      hidden: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
@@ -108,30 +100,11 @@ export default function NotesFolderClient({
     startTransition(() => deleteNote(id))
   }
 
-  function handleTogglePin(note: Note) {
+  function togglePin(note: Note) {
     const updated = { ...note, pinned: !note.pinned }
     setNotes((n) => n.map((x) => x.id === note.id ? updated : x))
     if (selected?.id === note.id) setSelected(updated)
     startTransition(() => updateNote(note.id, { pinned: !note.pinned }))
-  }
-
-  function handleToggleHidden(note: Note) {
-    const updated = { ...note, hidden: !note.hidden }
-    setNotes((n) => n.map((x) => x.id === note.id ? updated : x))
-    if (selected?.id === note.id) setSelected(updated)
-    startTransition(() => toggleNoteHidden(note.id, !note.hidden))
-  }
-
-  function handleToggleLocked(note: Note) {
-    // I require the PIN to unlock but allow locking without it.
-    if (note.locked) {
-      setUnlockingNote(note)
-    } else {
-      const updated = { ...note, locked: true }
-      setNotes((n) => n.map((x) => x.id === note.id ? updated : x))
-      if (selected?.id === note.id) setSelected(updated)
-      startTransition(() => toggleNoteLocked(note.id, true))
-    }
   }
 
   function exportNote(note: Note) {
@@ -162,12 +135,8 @@ export default function NotesFolderClient({
       <PinGate
         pageName={`Unlock "${unlockingNote.title}"`}
         onUnlock={() => {
-          // I unlock the note in the database and local state before showing it.
-          const unlocked = { ...unlockingNote, locked: false }
-          setNotes((n) => n.map((x) => x.id === unlockingNote.id ? unlocked : x))
-          setSelected(unlocked)
+          setSelected(unlockingNote)
           setUnlockingNote(null)
-          startTransition(() => toggleNoteLocked(unlockingNote.id, false))
         }}
       />
     )
@@ -220,99 +189,30 @@ export default function NotesFolderClient({
 
         {/* Note list */}
         <div className="w-48 shrink-0 flex flex-col gap-1 overflow-y-auto border-r border-border pr-3">
-          {visible.length === 0 && hidden.length === 0 && (
+          {filtered.length === 0 && (
             <p className="text-xs text-muted-foreground px-2 py-4 text-center">No notes found</p>
           )}
-          {[...pinned, ...unpinned].map((note) => {
-            // I build the menu items for each note dynamically so labels flip with state.
-            const menuItems: EntryMenuItem[] = [
-              { label: "Edit", icon: <Edit2 className="h-3.5 w-3.5" />, onClick: () => openNote(note) },
-              {
-                label: note.pinned ? "Unpin" : "Pin",
-                icon: note.pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />,
-                onClick: () => handleTogglePin(note),
-              },
-              {
-                label: note.locked ? "Unlock" : "Lock",
-                icon: note.locked ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />,
-                onClick: () => handleToggleLocked(note),
-              },
-              {
-                label: note.hidden ? "Show" : "Hide",
-                icon: note.hidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />,
-                onClick: () => handleToggleHidden(note),
-              },
-              { label: "Delete", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => handleDelete(note.id), tone: "destructive" },
-            ]
-            return (
-              <div
-                key={note.id}
-                className={`w-full text-left p-2.5 rounded-lg border transition-all hover:shadow-sm ${selected?.id === note.id ? "border-primary/40 bg-primary/5" : "border-transparent hover:bg-muted/50"}`}
-                style={note.color ? { backgroundColor: note.color + "60" } : undefined}
-              >
-                <div className="flex items-start justify-between gap-1">
-                  <button
-                    type="button"
-                    onClick={() => openNote(note)}
-                    className="flex-1 text-left"
-                  >
-                    <div className="flex items-start gap-1">
-                      {note.pinned && <Pin className="h-2.5 w-2.5 text-primary shrink-0 mt-0.5" />}
-                      {note.locked && <Lock className="h-2.5 w-2.5 text-muted-foreground shrink-0 mt-0.5" />}
-                      <p className="font-medium text-xs leading-snug line-clamp-2">{note.title}</p>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{note.content.slice(0, 80)}</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">
-                      {new Date(note.updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                    </p>
-                  </button>
-                  <EntryMenu items={menuItems} ariaLabel={`${note.title} actions`} />
+          {[...pinned, ...unpinned].map((note) => (
+            <button
+              key={note.id}
+              type="button"
+              onClick={() => openNote(note)}
+              className={`w-full text-left p-2.5 rounded-lg border transition-all hover:shadow-sm ${selected?.id === note.id ? "border-primary/40 bg-primary/5" : "border-transparent hover:bg-muted/50"}`}
+              style={note.color ? { backgroundColor: note.color + "60" } : undefined}
+            >
+              <div className="flex items-start justify-between gap-1">
+                <p className="font-medium text-xs leading-snug line-clamp-2">{note.title}</p>
+                <div className="flex gap-0.5 shrink-0">
+                  {note.pinned && <Pin className="h-2.5 w-2.5 text-primary" />}
+                  {note.locked && <Lock className="h-2.5 w-2.5 text-muted-foreground" />}
                 </div>
               </div>
-            )
-          })}
-
-          {hidden.length > 0 && (
-            <>
-              <button
-                type="button"
-                onClick={() => setShowHidden((s) => !s)}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors self-start flex items-center gap-1.5 px-1 mt-2"
-              >
-                {showHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                {showHidden ? `Hide ${hidden.length} hidden` : `Show ${hidden.length} hidden`}
-              </button>
-              {showHidden && hidden.map((note) => {
-                const menuItems: EntryMenuItem[] = [
-                  { label: "Edit", icon: <Edit2 className="h-3.5 w-3.5" />, onClick: () => openNote(note) },
-                  { label: "Unpin", icon: <PinOff className="h-3.5 w-3.5" />, onClick: () => handleTogglePin(note) },
-                  { label: note.locked ? "Unlock" : "Lock", icon: note.locked ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />, onClick: () => handleToggleLocked(note) },
-                  { label: "Show", icon: <Eye className="h-3.5 w-3.5" />, onClick: () => handleToggleHidden(note) },
-                  { label: "Delete", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => handleDelete(note.id), tone: "destructive" },
-                ]
-                return (
-                  <div
-                    key={note.id}
-                    className={`w-full text-left p-2.5 rounded-lg border border-dashed border-muted-foreground/30 transition-all hover:shadow-sm ${selected?.id === note.id ? "border-primary/40 bg-primary/5" : "hover:bg-muted/30"}`}
-                    style={note.color ? { backgroundColor: note.color + "40" } : undefined}
-                  >
-                    <div className="flex items-start justify-between gap-1">
-                      <button type="button" onClick={() => openNote(note)} className="flex-1 text-left">
-                        <div className="flex items-start gap-1">
-                          {note.pinned && <Pin className="h-2.5 w-2.5 text-primary shrink-0 mt-0.5" />}
-                          {note.locked && <Lock className="h-2.5 w-2.5 text-muted-foreground shrink-0 mt-0.5" />}
-                          <p className="font-medium text-xs leading-snug line-clamp-2 opacity-70">{note.title}</p>
-                        </div>
-                        <p className="text-xs text-muted-foreground/70 mt-0.5 line-clamp-2">{note.content.slice(0, 80)}</p>
-                        <p className="text-xs text-muted-foreground/50 mt-1">{new Date(note.updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</p>
-                      </button>
-                      <EntryMenu items={menuItems} ariaLabel={`${note.title} actions`} />
-                    </div>
-                  </div>
-                )
-              })}
-            </>
-          )}
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{note.content.slice(0, 80)}</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">
+                {new Date(note.updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+              </p>
+            </button>
+          ))}
         </div>
 
         {/* Editor / viewer */}
@@ -387,13 +287,9 @@ export default function NotesFolderClient({
           ) : selected ? (
             <>
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-2">
-                  {selected.pinned && <Pin className="h-4 w-4 text-primary shrink-0 mt-1" />}
-                  {selected.locked && <LockKeyhole className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />}
-                  <h2 className="font-semibold text-lg leading-snug">{selected.title}</h2>
-                </div>
+                <h2 className="font-semibold text-lg leading-snug">{selected.title}</h2>
                 <div className="flex gap-1 shrink-0">
-                  <button type="button" onClick={() => handleTogglePin(selected)} aria-label={selected.pinned ? "Unpin" : "Pin"} className={`p-1.5 rounded hover:bg-muted transition-colors ${selected.pinned ? "text-primary" : "text-muted-foreground"}`}><Pin className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={() => togglePin(selected)} aria-label={selected.pinned ? "Unpin" : "Pin"} className={`p-1.5 rounded hover:bg-muted transition-colors ${selected.pinned ? "text-primary" : "text-muted-foreground"}`}><Pin className="h-3.5 w-3.5" /></button>
                   <button type="button" onClick={() => { setDraft({ title: selected.title, content: selected.content, folder: selected.folder, tags: selected.tags, color: selected.color, locked: selected.locked, pinned: selected.pinned }); setEditing(true) }} aria-label="Edit note" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Edit2 className="h-3.5 w-3.5" /></button>
                   <button type="button" onClick={() => exportNote(selected)} aria-label="Export as markdown" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Download className="h-3.5 w-3.5" /></button>
                   <button type="button" onClick={() => handleDelete(selected.id)} aria-label="Delete note" className="p-1.5 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>

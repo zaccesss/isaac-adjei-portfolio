@@ -1,31 +1,18 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import {
-  createDiaryEntry,
-  updateDiaryEntry,
-  deleteDiaryEntry,
-  toggleDiaryHidden,
-  toggleDiaryPinned,
-  toggleDiaryLocked,
-} from "../../actions"
+import { createDiaryEntry, updateDiaryEntry, deleteDiaryEntry } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, Eye, EyeOff, Pin, PinOff, Lock, Unlock, LockKeyhole } from "lucide-react"
-import { EntryMenu, EntryMenuItem } from "@/components/dashboard/EntryMenu"
-import PinGate from "@/components/dashboard/PinGate"
+import { Plus, Pencil, Trash2, ChevronDown, ChevronUp } from "lucide-react"
 
 type Entry = {
   id: string
   title: string
   content: string
   mood: string | null
-  // Group F columns - I added these in the 2026-05-25 migration to support the 3-dot menu actions.
-  hidden: boolean
-  pinned: boolean
-  locked: boolean
   created_at: string
   updated_at: string
 }
@@ -98,14 +85,10 @@ function EntryForm({ initial, onSave, onCancel }: {
   )
 }
 
-function EntryCard({ entry, onEdit, onDelete, onToggleHidden, onTogglePinned, onToggleLocked, onRequestUnlock }: {
+function EntryCard({ entry, onEdit, onDelete }: {
   entry: Entry
   onEdit: (e: Entry) => void
   onDelete: (id: string) => void
-  onToggleHidden: (id: string, hidden: boolean) => void
-  onTogglePinned: (id: string, pinned: boolean) => void
-  onToggleLocked: (id: string, locked: boolean) => void
-  onRequestUnlock: (e: Entry) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const mood = getMood(entry.mood)
@@ -115,34 +98,6 @@ function EntryCard({ entry, onEdit, onDelete, onToggleHidden, onTogglePinned, on
   const date = new Date(entry.created_at)
   const isToday = new Date().toDateString() === date.toDateString()
 
-  // I build the menu items dynamically so the label flips with the entry state.
-  const menuItems: EntryMenuItem[] = [
-    { label: "Edit", icon: <Pencil className="h-3.5 w-3.5" />, onClick: () => onEdit(entry) },
-    {
-      label: entry.pinned ? "Unpin" : "Pin",
-      icon: entry.pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />,
-      onClick: () => onTogglePinned(entry.id, !entry.pinned),
-    },
-    {
-      label: entry.locked ? "Unlock" : "Lock",
-      icon: entry.locked ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />,
-      onClick: () => {
-        if (entry.locked) {
-          // I require the dashboard PIN before unlocking so locks mean something.
-          onRequestUnlock(entry)
-        } else {
-          onToggleLocked(entry.id, true)
-        }
-      },
-    },
-    {
-      label: entry.hidden ? "Show" : "Hide",
-      icon: entry.hidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />,
-      onClick: () => onToggleHidden(entry.id, !entry.hidden),
-    },
-    { label: "Delete", icon: <Trash2 className="h-3.5 w-3.5" />, onClick: () => onDelete(entry.id), tone: "destructive" },
-  ]
-
   return (
     <div className={`border border-border rounded-xl bg-card overflow-hidden hover:shadow-sm transition-shadow ${entry.mood ? MOOD_BG[entry.mood] ?? "" : ""}`}>
       <div className="p-4 flex flex-col gap-2">
@@ -150,8 +105,6 @@ function EntryCard({ entry, onEdit, onDelete, onToggleHidden, onTogglePinned, on
           <div className="flex flex-col gap-0.5 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               {isToday && <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-medium">Today</span>}
-              {entry.pinned && <Pin className="h-3 w-3 text-primary" aria-label="Pinned" />}
-              {entry.locked && <LockKeyhole className="h-3 w-3 text-muted-foreground" aria-label="Locked" />}
               {mood && <span className="text-base">{mood.emoji}</span>}
               <h3 className="font-semibold text-sm">{entry.title}</h3>
             </div>
@@ -162,29 +115,23 @@ function EntryCard({ entry, onEdit, onDelete, onToggleHidden, onTogglePinned, on
             </p>
           </div>
           <div className="flex gap-1 shrink-0">
-            <EntryMenu items={menuItems} ariaLabel="Diary entry actions" />
+            <button type="button" onClick={() => onEdit(entry)} aria-label="Edit entry" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+            <button type="button" onClick={() => onDelete(entry.id)} aria-label="Delete entry" className="p-1.5 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
           </div>
         </div>
 
-        {entry.locked ? (
-          <p className="text-sm text-muted-foreground italic flex items-center gap-1.5">
-            <LockKeyhole className="h-3.5 w-3.5" /> Locked - click the menu to unlock with my PIN.
-          </p>
-        ) : (
-          <>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {expanded ? entry.content : preview}
-            </p>
-            {entry.content.length > 180 && (
-              <button
-                type="button"
-                onClick={() => setExpanded((o) => !o)}
-                className="flex items-center gap-1 text-xs text-primary hover:underline w-fit"
-              >
-                {expanded ? <><ChevronUp className="h-3 w-3" />Show less</> : <><ChevronDown className="h-3 w-3" />Read more</>}
-              </button>
-            )}
-          </>
+        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+          {expanded ? entry.content : preview}
+        </p>
+
+        {entry.content.length > 180 && (
+          <button
+            type="button"
+            onClick={() => setExpanded((o) => !o)}
+            className="flex items-center gap-1 text-xs text-primary hover:underline w-fit"
+          >
+            {expanded ? <><ChevronUp className="h-3 w-3" />Show less</> : <><ChevronDown className="h-3 w-3" />Read more</>}
+          </button>
         )}
       </div>
     </div>
@@ -195,8 +142,6 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
   const [entries, setEntries] = useState<Entry[]>(initial)
   const [open, setOpen] = useState(false)
   const [editEntry, setEditEntry] = useState<Entry | null>(null)
-  const [unlockEntry, setUnlockEntry] = useState<Entry | null>(null)
-  const [showHidden, setShowHidden] = useState(false)
   const [, startTransition] = useTransition()
 
   function handleAdd(data: typeof emptyForm) {
@@ -206,9 +151,6 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
       ...data,
       // I coerce an empty mood string to null to match the nullable DB column
       mood: data.mood || null,
-      hidden: false,
-      pinned: false,
-      locked: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
@@ -229,48 +171,12 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
     startTransition(() => deleteDiaryEntry(id))
   }
 
-  function handleToggleHidden(id: string, hidden: boolean) {
-    setEntries((prev) => prev.map((e) => e.id === id ? { ...e, hidden } : e))
-    startTransition(() => toggleDiaryHidden(id, hidden))
-  }
-
-  function handleTogglePinned(id: string, pinned: boolean) {
-    setEntries((prev) => prev.map((e) => e.id === id ? { ...e, pinned } : e))
-    startTransition(() => toggleDiaryPinned(id, pinned))
-  }
-
-  function handleToggleLocked(id: string, locked: boolean) {
-    setEntries((prev) => prev.map((e) => e.id === id ? { ...e, locked } : e))
-    startTransition(() => toggleDiaryLocked(id, locked))
-  }
-
-  // I split entries into visible vs hidden, then pinned vs unpinned, so the
-  // feed shows pinned first and offers a reveal button for hidden entries.
-  const visible = entries.filter((e) => !e.hidden)
-  const hidden = entries.filter((e) => e.hidden)
-  const pinned = visible.filter((e) => e.pinned)
-  const unpinned = visible.filter((e) => !e.pinned)
-
-  // I gate unlocking behind the dashboard PIN so locked diary entries are
-  // protected even from a casual passer-by at my desk.
-  if (unlockEntry) {
-    return (
-      <PinGate
-        pageName={`Unlock "${unlockEntry.title}"`}
-        onUnlock={() => {
-          handleToggleLocked(unlockEntry.id, false)
-          setUnlockEntry(null)
-        }}
-      />
-    )
-  }
-
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">My diary</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{entries.length} entr{entries.length !== 1 ? "ies" : "y"} - just for me</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{entries.length} entr{entries.length !== 1 ? "ies" : "y"} — just for me</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -285,50 +191,14 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
 
       {entries.length === 0 ? (
         <div className="border border-dashed border-border rounded-xl p-10 text-center">
-          <p className="text-2xl mb-2">�-</p>
+          <p className="text-2xl mb-2">📖</p>
           <p className="text-sm font-medium">Nothing written yet</p>
-          <p className="text-xs text-muted-foreground mt-1">My thoughts, feelings and memories - all in one place.</p>
+          <p className="text-xs text-muted-foreground mt-1">My thoughts, feelings and memories — all in one place.</p>
           <button type="button" onClick={() => setOpen(true)} className="text-sm text-primary hover:underline mt-3 block mx-auto">Write my first entry</button>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {[...pinned, ...unpinned].map((e) => (
-            <EntryCard
-              key={e.id}
-              entry={e}
-              onEdit={(entry) => setEditEntry(entry)}
-              onDelete={handleDelete}
-              onToggleHidden={handleToggleHidden}
-              onTogglePinned={handleTogglePinned}
-              onToggleLocked={handleToggleLocked}
-              onRequestUnlock={(entry) => setUnlockEntry(entry)}
-            />
-          ))}
-        </div>
-      )}
-
-      {hidden.length > 0 && (
-        <div className="flex flex-col gap-3">
-          <button
-            type="button"
-            onClick={() => setShowHidden((s) => !s)}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors self-start flex items-center gap-1.5"
-          >
-            {showHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-            {showHidden ? `Hide ${hidden.length} hidden entr${hidden.length !== 1 ? "ies" : "y"}` : `Show ${hidden.length} hidden entr${hidden.length !== 1 ? "ies" : "y"}`}
-          </button>
-          {showHidden && hidden.map((e) => (
-            <EntryCard
-              key={e.id}
-              entry={e}
-              onEdit={(entry) => setEditEntry(entry)}
-              onDelete={handleDelete}
-              onToggleHidden={handleToggleHidden}
-              onTogglePinned={handleTogglePinned}
-              onToggleLocked={handleToggleLocked}
-              onRequestUnlock={(entry) => setUnlockEntry(entry)}
-            />
-          ))}
+          {entries.map((e) => <EntryCard key={e.id} entry={e} onEdit={(entry) => setEditEntry(entry)} onDelete={handleDelete} />)}
         </div>
       )}
 
