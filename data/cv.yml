@@ -1,0 +1,168 @@
+﻿# CV Data - Single source of truth for all CV generation
+# This file drives the automatic generation of all role-specific CVs
+
+personal:
+  name: "Isaac Adjei"
+  email: "contact@isaacadjei.me"
+  phone: "07404959677"
+  website: "https://www.isaacadjei.me"
+  linkedin: "https://linkedin.com/in/isaacadjei"
+  github: "https://github.com/zaccesss"
+  location: "Birmingham, UK"
+  title: "Electronic Engineering & Computer Science Student"
+  summary: "Aston University student (Predicted First Class) and Top 40 Finalist in the Black Heritage Undergraduate of the Year Award 2026. Passionate about building production-grade systems across software, embedded, data, and cloud domains."
+
+education:
+  - institution: "Aston University, Birmingham"
+    degree: "BEng (Hons), Electronic Engineering and Computer Science"
+    duration: "Oct 2024 - Jul 2028"
+    predicted: "First Class"
+    award: "Top 40 Finalist - Black Heritage Undergraduate of the Year Award 2026"
+    modules:
+      - "Internet Applications and Databases"
+      - "Foundations of AI and Data Science"
+      - "Introductory Programming for Digital Science (Python)"
+      - "Digital Circuit Design"
+      - "Object-Oriented Programming (C++)"
+
+skills:
+  software:
+    languages: ["TypeScript", "JavaScript", "Python", "SQL", "C", "C++", "Java"]
+    frontend: ["React", "Next.js", "Tailwind CSS", "HTML5", "CSS3", "Framer Motion"]
+    backend: ["Node.js", "FastAPI", "PostgreSQL", "Redis", "REST APIs", "JWT Auth", "RBAC"]
+    cloud_devops: ["AWS", "Docker", "Vercel", "Cloudflare", "GitHub Actions", "CI/CD", "Terraform"]
+    tools: ["Git", "GitHub", "VS Code", "Postman", "Figma"]
+  
+  embedded:
+    languages: ["C", "C++", "Embedded C", "Assembly (ARM)"]
+    microcontrollers: ["Arduino", "STM32", "ESP32", "AVR", "Raspberry Pi Pico"]
+    protocols: ["I2C", "SPI", "UART", "CAN", "Modbus", "MQTT"]
+    hardware: ["PCB Design", "KiCad", "Proteus", "Circuit Design", "Oscilloscope", "Logic Analyser"]
+    sensors: ["Temperature", "Pressure", "Accelerometer", "Gyroscope", "Ultrasonic"]
+  
+  data_ai:
+    languages: ["Python", "SQL", "R"]
+    ml_frameworks: ["TensorFlow", "PyTorch", "Scikit-Learn", "XGBoost"]
+    data_tools: ["Pandas", "NumPy", "Apache Spark", "Airflow", "dbt"]
+    databases: ["PostgreSQL", "MongoDB", "Redis", "Snowflake", "BigQuery"]
+    visualisation: ["Tableau", "Power BI", "Matplotlib", "Seaborn", "Plotly"]
+    cloud: ["AWS S3", "AWS Redshift", "Azure ML", "Databricks"]
+  
+  devops:
+    languages: ["Python", "Bash", "YAML", "HCL"]
+    containers: ["Docker", "Kubernetes", "Helm", "Docker Compose"]
+    cloud: ["AWS (EC2, S3, RDS, Lambda, CloudWatch)", "Azure", "GCP"]
+    iac: ["Terraform", "Ansible", "Pulumi", "AWS CloudFormation"]
+    cicd: ["GitHub Actions", "GitLab CI", "Jenkins", "ArgoCD"]
+    monitoring: ["Prometheus", "Grafana", "Datadog", "ELK Stack"]
+  
+  quant:
+    languages: ["C++", "Python", "Rust", "CUDA"]
+    math: ["Linear Algebra", "Calculus", "Probability", "Statistics", "Stochastic Calculus"]
+    tools: ["NumPy", "Pandas", "QuantLib", "Backtrader", "Zipline"]
+    performance: ["Low-latency optimisation", "Memory management", "Cache optimisation", "SIMD"]
+    finance: ["Derivatives pricing", "Risk management", "Algorithmic trading concepts"]
+  
+  security:
+    languages: ["Python", "C", "Bash"]
+    appsec: ["Secure coding", "OWASP Top 10", "SAST/DAST", "Code review"]
+    crypto: ["JWT", "OAuth 2.0", "TLS/SSL", "AES", "RSA"]
+    network: ["TCP/IP", "Firewalls", "VPNs", "Network scanning"]
+    tools: ["Wireshark", "Nmap", "Burp Suite", "Metasploit", "Kali Linux"]
+    compliance: ["GDPR", "SOC 2", "ISO 27001"]
+
+projects:
+  - name: "PHAEMOS: Smart Maintenance Platform"
+    date: "2026, ongoing"
+    role_tags: ["software", "embedded", "data", "devops"]
+    tech: "Next.js 14, FastAPI, PostgreSQL, Redis, Docker, ESP32, Arduino, STM32, scikit-learn"
+    url: "https://phaemos.com"
+    github: "https://github.com/zaccesss/phaemos"
+    bullets:
+      - "End-to-end IoT predictive maintenance platform with ESP32, Arduino and STM32 nodes"
+      - "FastAPI backend processing 1000+ telemetry readings/day with sub-200ms response times"
+      - "Isolation Forest ML anomaly detection triggering automated maintenance tickets"
+      - "JWT auth with RBAC (Admin, Technician, Viewer) and immutable audit logging"
+      - "Docker containerised deployment with CI/CD via GitHub Actions"
+  
+  - name: "Personal Portfolio & Dashboard"
+    date: "2025-2026"
+    role_tags: ["software", "devops", "security"]
+    tech: "Next.js 14, React, TypeScript, Tailwind CSS, Supabase, PostgreSQL"
+    url: "https://www.isaacadjei.me"
+    bullets:
+      - "Server-side rendered portfolio with dynamic OG image generation"
+      - "Private dashboard with goals tracking, job applications, habits and encrypted vault"
+      - "Implemented JWT authentication, audit logging and role-based access control"
+      - "Dark mode, responsive design and WCAG accessibility compliance"
+      - "Automated job scraper collecting 1000+ roles/week from 15+ sources"
+  
+  - name: "Embedded Sensor Networks"
+    date: "2025"
+    role_tags: ["embedded", "software", "data"]
+    tech: "STM32, Arduino, C++, I2C, SPI, MQTT, InfluxDB"
+    bullets:
+      - "Multi-node sensor network collecting environmental data (temp, humidity, pressure)"
+      - "STM32 master coordinating 8+ slave nodes via I2C with error handling"
+      - "Real-time data streaming via MQTT to InfluxDB time-series database"
+      - "PCB design in KiCad with proper grounding and signal integrity considerations"
+  
+  - name: "Quantitative Trading Simulator"
+    date: "2025"
+    role_tags: ["quant", "software", "data"]
+    tech: "Python, Pandas, NumPy, Backtrader, Yahoo Finance API"
+    bullets:
+      - "Backtesting engine for momentum and mean-reversion strategies"
+      - "Implemented risk management with stop-losses and position sizing"
+      - "Portfolio analytics with Sharpe ratio, drawdown and volatility calculations"
+      - "Event-driven architecture processing tick data with microsecond precision"
+  
+  - name: "Cloud Infrastructure Automation"
+    date: "2025"
+    role_tags: ["devops", "security"]
+    tech: "Terraform, AWS, Docker, GitHub Actions, Python"
+    bullets:
+      - "Infrastructure as Code for 3-tier web application (VPC, EC2, RDS, ALB)"
+      - "Automated CI/CD pipeline with security scanning (Trivy, SonarQube)"
+      - "Cost optimisation reducing AWS bill by 40% through right-sizing and spot instances"
+      - "Centralised logging and monitoring with CloudWatch and SNS alerts"
+
+experience:
+  - company: "TargetJobs / Sky"
+    role: "Top 40 Finalist - Black Heritage Undergraduate of the Year"
+    date: "2026"
+    tags: ["software", "data", "embedded", "devops", "quant", "security"]
+    bullets:
+      - "Recognised among thousands of applicants for academic excellence and leadership potential"
+      - "Assessment centre experience including case studies and technical interviews"
+  
+  - company: "Cancer Research UK"
+    role: "Shop Volunteer"
+    date: "2022-2024"
+    tags: ["software"]
+    bullets:
+      - "Customer service and retail operations in charity shop environment"
+      - "Cash handling, stock management and visual merchandising"
+
+# Role-specific profile summaries
+role_profiles:
+  software: "Software Engineering student at Aston University (Predicted First Class) and Top 40 Finalist in the Black Heritage Undergraduate of the Year Award 2026. Builds production-grade full-stack web applications with modern frameworks, cloud infrastructure and secure authentication. Seeking software engineering internships and industrial placements."
+  
+  embedded: "Electronic Engineering student at Aston University (Predicted First Class) with hands-on experience in embedded systems design, microcontroller programming and hardware-software integration. Builds IoT devices, sensor networks and real-time control systems. Seeking embedded engineering internships and placements."
+  
+  data: "Engineering student at Aston University (Predicted First Class) with strong foundations in data engineering, machine learning and analytics. Builds data pipelines, implements ML models and creates insightful visualisations. Seeking data engineering and AI/ML internships."
+  
+  devops: "Engineering student at Aston University (Predicted First Class) with practical experience in cloud infrastructure, CI/CD automation and DevOps tooling. Builds reliable deployment pipelines and optimises cloud resources. Seeking DevOps and Platform Engineering internships."
+  
+  quant: "Electronic Engineering and Computer Science student at Aston University (Predicted First Class) with strong mathematical foundations and programming expertise in C++ and Python. Experience with high-performance computing, algorithm design and quantitative analysis. Seeking quantitative developer and trading internships."
+  
+  security: "Engineering student at Aston University (Predicted First Class) with practical experience in secure coding, application security and vulnerability assessment. Implements security controls, audit logging and compliance measures. Seeking cybersecurity and application security internships."
+
+# Order of sections for each role (customise priority)
+role_section_order:
+  software: ["profile", "education", "skills", "projects", "experience"]
+  embedded: ["profile", "skills", "projects", "education", "experience"]
+  data: ["profile", "skills", "projects", "education", "experience"]
+  devops: ["profile", "skills", "projects", "education", "experience"]
+  quant: ["profile", "education", "skills", "projects", "experience"]
+  security: ["profile", "skills", "projects", "education", "experience"]

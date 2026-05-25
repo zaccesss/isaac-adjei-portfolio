@@ -78,3 +78,9 @@ astoncv/
 
 # Claude Code auto-memory - committed intentionally, delete folder when Windows daemons are done
 # memory/
+
+# Temporary CV backup files
+original_cv.html
+*.tmp
+*.temp
+fix_cv.py

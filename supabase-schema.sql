@@ -1,42 +1,69 @@
 -- ============================================================
 -- NEXUS PRIVATE DASHBOARD - FULL SUPABASE SETUP
--- Run this entire file in the Supabase SQL Editor (New query).
--- This is destructive - it drops and recreates everything.
--- Run in a fresh project or when you want a full reset.
+-- ============================================================
+-- I keep this file as the single source of truth for the Supabase
+-- schema. It has two sections:
+--
+--   SECTION A: Full schema (DROP + CREATE) for fresh installs.
+--              This wipes everything - only run on a new project.
+--
+--   SECTION B: Migration scripts (ALTER TABLE) for existing
+--              databases. Safe to run multiple times.
+--
+-- Workflow:
+--   - Fresh project: run SECTION A only.
+--   - Existing database: run SECTION B only.
+--   - I use first-person comments throughout because that is how I
+--     write all my code in this repo.
+--   - UK English only. No Oxford commas. No em or en dashes.
 -- ============================================================
 
 
 -- ============================================================
--- 1. DROP EXISTING TABLES (clean slate)
+-- SECTION A: FULL SCHEMA (DROP + CREATE)
+-- WARNING: This is destructive. Only run on a fresh Supabase
+-- project or when I want to wipe everything and start over.
 -- ============================================================
-
-drop table if exists streak_logs cascade;
-drop table if exists streaks cascade;
-drop table if exists health_nutrition cascade;
-drop table if exists health_workouts cascade;
-drop table if exists health_sections cascade;
-drop table if exists notes cascade;
-drop table if exists course_modules cascade;
-drop table if exists config cascade;
-drop table if exists assessments cascade;
-drop table if exists modules cascade;
-drop table if exists applications cascade;
-drop table if exists vault cascade;
-drop table if exists wishlist cascade;
-drop table if exists diary cascade;
-drop table if exists goals cascade;
-drop table if exists inventory_items cascade;
-drop table if exists tech_devices cascade;
 
 
 -- ============================================================
--- 2. TABLES
+-- A.1 DROP EXISTING TABLES (clean slate)
+-- I drop in reverse dependency order so foreign keys do not block.
 -- ============================================================
 
--- Goals
+drop table if exists habit_logs        cascade;
+drop table if exists habits            cascade;
+drop table if exists activity_log      cascade;
+drop table if exists streak_logs       cascade;
+drop table if exists streaks           cascade;
+drop table if exists health_nutrition  cascade;
+drop table if exists health_workouts   cascade;
+drop table if exists health_sections   cascade;
+drop table if exists notes             cascade;
+drop table if exists course_modules    cascade;
+drop table if exists config            cascade;
+drop table if exists assessments       cascade;
+drop table if exists modules           cascade;
+drop table if exists applications      cascade;
+drop table if exists vault             cascade;
+drop table if exists wishlist          cascade;
+drop table if exists diary             cascade;
+drop table if exists goals             cascade;
+drop table if exists inventory_items   cascade;
+drop table if exists tech_devices      cascade;
+
+
+-- ============================================================
+-- A.2 TABLES
+-- ============================================================
+
+-- I use goals to track every life goal across Academic, Career,
+-- Health, Personal and Finance categories. updated_at is required
+-- by the weekly digest so I keep it on this table.
 create table goals (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz default now(),
+  updated_at  timestamptz default now(),
   title       text not null,
   description text,
   category    text default 'Personal',
@@ -45,7 +72,9 @@ create table goals (
   progress    int default 0
 );
 
--- Modules
+-- I store every module from my degree here. summary holds the
+-- module description I use on the Course page. rules is free text
+-- for module-specific assessment rules.
 create table modules (
   id         uuid primary key default gen_random_uuid(),
   created_at timestamptz default now(),
@@ -59,7 +88,9 @@ create table modules (
   rules      text
 );
 
--- Assessments
+-- I store every assessment for every module here. mark_achieved is
+-- null until I receive my result. is_pass_fail marks quizzes that
+-- do not count toward the module percentage.
 create table assessments (
   id             uuid primary key default gen_random_uuid(),
   module_id      uuid references modules(id) on delete cascade,
@@ -75,7 +106,9 @@ create table assessments (
   my_notes       text
 );
 
--- Applications (combined internships, placements, jobs and scraped listings)
+-- I combine internships, placements, jobs and scraped listings into
+-- a single applications table. The category column lets me filter
+-- by role type (Software, Hardware, Quant, etc.).
 create table applications (
   id                    uuid primary key default gen_random_uuid(),
   created_at            timestamptz default now(),
@@ -102,7 +135,9 @@ create table applications (
   category              text default 'Software Engineering'
 );
 
--- Vault (Bitwarden-like password manager)
+-- I keep all passwords, API keys, cards and identities in vault.
+-- type tells the client which fields to show in the form.
+-- NEW (Group F): hidden and locked support the 3-dot menu actions.
 create table vault (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz default now(),
@@ -123,10 +158,13 @@ create table vault (
   key_expiry  date,
   content     text,
   notes       text,
-  fields      jsonb default '{}'
+  fields      jsonb default '{}',
+  hidden      boolean default false,
+  locked      boolean default false
 );
 
--- Wishlist
+-- I keep a personal wishlist for clothes, perfumes, tech and travel.
+-- I tag each item with a priority so I know what to buy first.
 create table wishlist (
   id         uuid primary key default gen_random_uuid(),
   created_at timestamptz default now(),
@@ -137,17 +175,25 @@ create table wishlist (
   notes      text
 );
 
--- Diary
+-- I write diary entries here. mood is optional and is tagged with
+-- one of a fixed set of mood emojis on the client.
+-- NEW (Group F): hidden, pinned and locked support the 3-dot menu.
 create table diary (
   id         uuid primary key default gen_random_uuid(),
   created_at timestamptz default now(),
   updated_at timestamptz default now(),
   title      text not null,
   content    text not null,
-  mood       text
+  mood       text,
+  hidden     boolean default false,
+  pinned     boolean default false,
+  locked     boolean default false
 );
 
--- Notes (markdown, folders, tags, per-note lock)
+-- I keep notes here. tags is an array so I can filter by tag in the
+-- UI without a join. pinned floats notes to the top, locked requires
+-- a PIN to view.
+-- NEW (Group F): hidden supports the 3-dot menu hide/show action.
 create table notes (
   id         uuid primary key default gen_random_uuid(),
   created_at timestamptz default now(),
@@ -158,10 +204,12 @@ create table notes (
   tags       text[] default '{}',
   pinned     boolean default false,
   locked     boolean default false,
+  hidden     boolean default false,
   color      text
 );
 
--- Streaks
+-- I track daily habits (streaks) like LeetCode, GitHub and Bible
+-- reading here. order_index drives the drag-and-drop sort order.
 create table streaks (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz default now(),
@@ -173,7 +221,8 @@ create table streaks (
   order_index int default 0
 );
 
--- Streak logs (one row per streak per day)
+-- I record one row per streak per day in streak_logs. The composite
+-- unique constraint makes upserts idempotent.
 create table streak_logs (
   id        uuid primary key default gen_random_uuid(),
   streak_id uuid references streaks(id) on delete cascade,
@@ -182,7 +231,9 @@ create table streak_logs (
   unique(streak_id, date)
 );
 
--- Health sections (Gym, Nutrition, Running, Cardio, etc.)
+-- I organise gym, nutrition, running and cardio into sections.
+-- active is a soft-delete flag so I can hide sections without
+-- losing their workouts.
 create table health_sections (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz default now(),
@@ -194,7 +245,8 @@ create table health_sections (
   active      boolean default true
 );
 
--- Health workouts (day cards within a section)
+-- I store one workout day card per row. exercises is a jsonb array
+-- so I can change the shape of an exercise without a migration.
 create table health_workouts (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz default now(),
@@ -206,7 +258,8 @@ create table health_workouts (
   order_index int default 0
 );
 
--- Health nutrition (meal categories with items and rules)
+-- I keep meal categories with items and rules. rules is a text
+-- array so the UI can render bullet points without parsing.
 create table health_nutrition (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz default now(),
@@ -217,7 +270,8 @@ create table health_nutrition (
   order_index int default 0
 );
 
--- Config (flexible key-value store for editable page content)
+-- I use config as a flexible key-value store for editable page
+-- content like the Me profile, Course rules and the dashboard PIN.
 create table config (
   id         uuid primary key default gen_random_uuid(),
   key        text unique not null,
@@ -225,7 +279,8 @@ create table config (
   updated_at timestamptz default now()
 );
 
--- Course modules (from programme spec, fully editable)
+-- I keep a copy of the full programme spec here. This drives the
+-- Course page tabs (Year 1, Year 2, Placement, Final Year).
 create table course_modules (
   id             uuid primary key default gen_random_uuid(),
   created_at     timestamptz default now(),
@@ -241,24 +296,75 @@ create table course_modules (
   order_index    int default 0
 );
 
--- Inventory items (tech devices, equipment, gaming, instruments, etc.)
+-- I track every device and piece of equipment I own here. category
+-- buckets tech, gaming and instruments together for the Inventory
+-- page filter.
 create table inventory_items (
-  id             uuid primary key default gen_random_uuid(),
-  created_at     timestamptz default now(),
-  name           text not null,
-  category       text not null default 'Tech and Devices',
-  quantity       int default 1,
-  description    text,
-  purchase_date  date,
-  price_paid     text,
-  serial_number  text,
-  notes          text,
+  id              uuid primary key default gen_random_uuid(),
+  created_at      timestamptz default now(),
+  name            text not null,
+  category        text not null default 'Tech and Devices',
+  quantity        int default 1,
+  description     text,
+  purchase_date   date,
+  price_paid      text,
+  serial_number   text,
+  notes           text,
   warranty_expiry date
+);
+
+-- NEW: activity_log records every dashboard action for the Settings
+-- audit trail. I want to see logins, edits and deletes at a glance.
+create table activity_log (
+  id          uuid primary key default gen_random_uuid(),
+  created_at  timestamptz default now(),
+  action      text not null,
+  entity_type text,
+  entity_id   uuid,
+  details     jsonb default '{}'
+);
+
+-- NEW: habits is for recurring goals like "read for 30 min daily"
+-- or "go to gym weekly". Different from streaks because habits have
+-- a frequency and check-ins per occurrence.
+create table habits (
+  id          uuid primary key default gen_random_uuid(),
+  created_at  timestamptz default now(),
+  name        text not null,
+  frequency   text not null default 'daily',
+  description text,
+  active      boolean default true,
+  color       text default '#6366f1',
+  order_index int default 0
+);
+
+-- NEW: habit_logs records one check-in per habit per date. The
+-- composite unique constraint makes upserts idempotent.
+create table habit_logs (
+  id        uuid primary key default gen_random_uuid(),
+  habit_id  uuid references habits(id) on delete cascade,
+  date      date not null,
+  completed boolean default true,
+  notes     text,
+  unique(habit_id, date)
 );
 
 
 -- ============================================================
--- 3. ROW LEVEL SECURITY
+-- A.3 INDEXES
+-- ============================================================
+
+-- I create an unconditional unique index on applications.url so
+-- PostgREST can use ON CONFLICT (url) for upserts. NULL values are
+-- not considered equal so multiple rows with NULL url are allowed.
+create unique index if not exists applications_url_unique
+  on applications (url);
+
+
+-- ============================================================
+-- A.4 ROW LEVEL SECURITY
+-- I enable RLS on every table. Even though NextAuth protects the
+-- dashboard, RLS is defence in depth.
 -- ============================================================
 
 alter table goals            enable row level security;
@@ -277,10 +383,16 @@ alter table health_nutrition enable row level security;
 alter table config           enable row level security;
 alter table course_modules   enable row level security;
 alter table inventory_items  enable row level security;
+alter table activity_log     enable row level security;
+alter table habits           enable row level security;
+alter table habit_logs       enable row level security;
 
 
 -- ============================================================
--- 4. RLS POLICIES (allow all - single user, protected by NextAuth)
+-- A.5 RLS POLICIES
+-- I use "allow all" because this is a single-user dashboard
+-- protected by NextAuth at the application layer. RLS still
+-- prevents random anon-key requests from succeeding.
 -- ============================================================
 
 create policy "allow all" on goals            for all using (true);
@@ -299,10 +411,16 @@ create policy "allow all" on health_nutrition for all using (true);
 create policy "allow all" on config           for all using (true);
 create policy "allow all" on course_modules   for all using (true);
 create policy "allow all" on inventory_items  for all using (true);
+create policy "allow all" on activity_log     for all using (true);
+create policy "allow all" on habits           for all using (true);
+create policy "allow all" on habit_logs       for all using (true);
 
 
 -- ============================================================
--- 5. SEED - YEAR 1 MODULES AND ASSESSMENTS
+-- A.6 SEED - YEAR 1 MODULES AND ASSESSMENTS
+-- I seed Year 1 with the modules I have actually completed plus my
+-- marks. The CTE inserts modules first then maps assessments to
+-- those module ids by code.
 -- ============================================================
 
 with ins as (
@@ -330,49 +448,52 @@ select m.id, a.name, a.type, a.w, a.mark, 100, 80, a.wk
 from ins m
 join (values
   ('DG1AID', 'Quiz 1 - Foundational and Mathematical Concepts', 'quiz',         25,    95,     'Week 6'),
-  ('DG1AID', 'Quiz 2 - Data Science Fundamentals',             'quiz',         25,    95,     'Week 6'),
-  ('DG1AID', 'Quiz 3 - Algorithmic Problem Solving',           'quiz',         25,    95,     'Week 11'),
-  ('DG1AID', 'Quiz 4 - Machine Learning and ANNs',             'quiz',         25,   100,     'Week 11'),
-  ('DG1IAD', 'Portfolio 1 - HTML/CSS/JS Landing Page',         'project',      20,  80.22,   'Week 2-6'),
-  ('DG1IAD', 'Quiz 1 - HTML/CSS/JS',                          'quiz',         10,  84.25,   'Week 4'),
-  ('DG1IAD', 'Portfolio 2 - Database and SQL Queries',         'project',      20,    85,     'Week 5-9'),
-  ('DG1IAD', 'Quiz 2 - Databases',                            'quiz',         10,   100,     'Week 7'),
-  ('DG1IAD', 'Portfolio 3 - Database-driven Website',          'project',      30,   100,     'Week 8-12'),
-  ('DG1IAD', 'Quiz 3 - Server-side Development',              'quiz',         10,   100,     'Week 11'),
-  ('DG1IPD', 'Coursework 1',                                  'coursework',   50,    86,     'Week 6'),
-  ('DG1IPD', 'Coursework 2',                                  'coursework',   50,    96,     'Week 11'),
-  ('EI1EL1', 'Lab Session 1',                                 'lab',           5,  88.88,   'Week 2'),
-  ('EI1EL1', 'Lab Session 2',                                 'lab',           5,  95.83,   'Week 4'),
-  ('EI1EL1', 'Lab Session 3',                                 'lab',           5,   100,     'Week 5'),
-  ('EI1EL1', 'Class Test 1',                                  'exam',         35,  70.27,   'Week 6'),
-  ('EI1EL1', 'Lab Session 4',                                 'lab',           5,   100,     'Week 8'),
-  ('EI1EL1', 'Lab Session 5',                                 'lab',           5,   100,     'Week 10'),
-  ('EI1EL1', 'Lab Session 6',                                 'lab',           5,   87.5,   'Week 11'),
-  ('EI1EL1', 'Class Test 2',                                  'exam',         35,    85,     'Week 12'),
-  ('EI1EL2', 'Audio Amplifier Project Report',                'report',       70,   94.6,   'Week 7'),
-  ('EI1EL2', 'Blackboard Quiz',                               'quiz',         30,  51.72,   'Week 12'),
-  ('EI1IME', 'Quiz 1 - Diagnostics (50% Extra Time)',         'quiz',         20,  97.34,   'Week 2'),
-  ('EI1IME', 'Quiz 2 - Vectors and Complex Numbers (50% Extra Time)', 'quiz', 20,    96,     'Week 2'),
-  ('EI1IME', 'Quiz 3 - Matrices (50% Extra Time)',            'quiz',         20,    96,     'Week 2'),
-  ('EI1IME', 'Quiz 4 - Differentiation and Integration (50% Extra Time)', 'quiz', 20, 100,  'Week 7'),
-  ('EI1IME', 'Quiz 5 - Differential Equations (50% Extra Time)', 'quiz',      20,    86,     'Week 12'),
-  ('EP1POS', 'Group Report',                                  'report',       50,  null,    'Week 1-7'),
-  ('EP1POS', 'Group Presentation',                            'presentation', 50,  null,    'Week 1-7'),
-  ('EP1IDP', 'Workshop Outputs (x6)',                         'lab',          10,  null,    'Weeks 1-4'),
-  ('EP1IDP', 'Security Quiz',                                 'quiz',         10,  null,    'Weeks 3-4'),
-  ('EP1IDP', 'Portfolio / PDP',                               'portfolio',    20,  null,    'Week 7'),
-  ('EP1IDP', 'Group Project (Poster and Video)',               'project',      60,  null,    'Week 6')
+  ('DG1AID', 'Quiz 2 - Data Science Fundamentals',              'quiz',         25,    95,     'Week 6'),
+  ('DG1AID', 'Quiz 3 - Algorithmic Problem Solving',            'quiz',         25,    95,     'Week 11'),
+  ('DG1AID', 'Quiz 4 - Machine Learning and ANNs',              'quiz',         25,   100,     'Week 11'),
+  ('DG1IAD', 'Portfolio 1 - HTML/CSS/JS Landing Page',          'project',      20,  80.22,   'Week 2-6'),
+  ('DG1IAD', 'Quiz 1 - HTML/CSS/JS',                            'quiz',         10,  84.25,   'Week 4'),
+  ('DG1IAD', 'Portfolio 2 - Database and SQL Queries',          'project',      20,    85,     'Week 5-9'),
+  ('DG1IAD', 'Quiz 2 - Databases',                              'quiz',         10,   100,     'Week 7'),
+  ('DG1IAD', 'Portfolio 3 - Database-driven Website',           'project',      30,   100,     'Week 8-12'),
+  ('DG1IAD', 'Quiz 3 - Server-side Development',                'quiz',         10,   100,     'Week 11'),
+  ('DG1IPD', 'Coursework 1',                                    'coursework',   50,    86,     'Week 6'),
+  ('DG1IPD', 'Coursework 2',                                    'coursework',   50,    96,     'Week 11'),
+  ('EI1EL1', 'Lab Session 1',                                   'lab',           5,  88.88,   'Week 2'),
+  ('EI1EL1', 'Lab Session 2',                                   'lab',           5,  95.83,   'Week 4'),
+  ('EI1EL1', 'Lab Session 3',                                   'lab',           5,   100,     'Week 5'),
+  ('EI1EL1', 'Class Test 1',                                    'exam',         35,  70.27,   'Week 6'),
+  ('EI1EL1', 'Lab Session 4',                                   'lab',           5,   100,     'Week 8'),
+  ('EI1EL1', 'Lab Session 5',                                   'lab',           5,   100,     'Week 10'),
+  ('EI1EL1', 'Lab Session 6',                                   'lab',           5,   87.5,   'Week 11'),
+  ('EI1EL1', 'Class Test 2',                                    'exam',         35,    85,     'Week 12'),
+  ('EI1EL2', 'Audio Amplifier Project Report',                  'report',       70,   94.6,   'Week 7'),
+  ('EI1EL2', 'Blackboard Quiz',                                 'quiz',         30,  51.72,   'Week 12'),
+  ('EI1IME', 'Quiz 1 - Diagnostics (50% Extra Time)',           'quiz',         20,  97.34,   'Week 2'),
+  ('EI1IME', 'Quiz 2 - Vectors and Complex Numbers (50% Extra Time)', 'quiz',   20,    96,     'Week 2'),
+  ('EI1IME', 'Quiz 3 - Matrices (50% Extra Time)',              'quiz',         20,    96,     'Week 2'),
+  ('EI1IME', 'Quiz 4 - Differentiation and Integration (50% Extra Time)', 'quiz', 20, 100,    'Week 7'),
+  ('EI1IME', 'Quiz 5 - Differential Equations (50% Extra Time)', 'quiz',        20,    86,     'Week 12'),
+  ('EP1POS', 'Group Report',                                    'report',       50,  null,    'Week 1-7'),
+  ('EP1POS', 'Group Presentation',                              'presentation', 50,  null,    'Week 1-7'),
+  ('EP1IDP', 'Workshop Outputs (x6)',                           'lab',          10,  null,    'Weeks 1-4'),
+  ('EP1IDP', 'Security Quiz',                                   'quiz',         10,  null,    'Weeks 3-4'),
+  ('EP1IDP', 'Portfolio / PDP',                                 'portfolio',    20,  null,    'Week 7'),
+  ('EP1IDP', 'Group Project (Poster and Video)',                'project',      60,  null,    'Week 6')
 ) as a(code, name, type, w, mark, wk)
 on m.code = a.code;
 
--- Mark EP1POS quizzes as pass/fail (they do not count toward module percentage)
+-- I mark the EP1POS quizzes as pass/fail because they do not count
+-- toward the module percentage (only the group work does).
 update assessments set is_pass_fail = true
 where module_id = (select id from modules where code = 'EP1POS')
   and type = 'quiz';
 
 
 -- ============================================================
--- 6. SEED - YEAR 2 MODULE SHELLS (no assessments yet)
+-- A.7 SEED - YEAR 2 MODULE SHELLS
+-- I add the Year 2 module shells without assessments because I have
+-- not started Year 2 yet - I will add assessments as I go.
 -- ============================================================
 
 insert into modules (code, name, credits, year, semester, status) values
@@ -387,54 +508,58 @@ insert into modules (code, name, credits, year, semester, status) values
 
 
 -- ============================================================
--- 7. SEED - FINAL YEAR MODULE SHELLS
--- year 3 is reserved for the optional Placement Year
--- year 4 = Final Year (Stage F, Level 6)
+-- A.8 SEED - FINAL YEAR MODULE SHELLS
+-- I use year 3 for the optional Placement Year and year 4 for the
+-- Final Year (Stage F, Level 6).
 -- ============================================================
 
 insert into modules (code, name, credits, year, semester, status) values
-  ('EI3EFP', 'Final Year Project',              45, 4, 2, 'ongoing'),
+  ('EI3EFP', 'Final Year Project',                45, 4, 2, 'ongoing'),
   ('EI3PEP', 'Professional Engineering Practice', 15, 4, 2, 'ongoing'),
-  ('EI3IOT', 'Internet of Things',              15, 4, 1, 'ongoing'),
-  ('EI3DSD', 'Digital Systems Design',          15, 4, 1, 'ongoing');
+  ('EI3IOT', 'Internet of Things',                15, 4, 1, 'ongoing'),
+  ('EI3DSD', 'Digital Systems Design',            15, 4, 1, 'ongoing');
 
 
 -- ============================================================
--- 8. SEED - GOALS
+-- A.9 SEED - GOALS
+-- I list my life goals across Academic, Career, Health, Personal
+-- and Finance with current progress.
 -- ============================================================
 
 insert into goals (title, description, category, status, progress) values
-  ('Get into second year',                                        null,                                                                     'Academic', 'done',        100),
-  ('Finish 1st year with good grades in all modules',             null,                                                                     'Academic', 'done',        100),
-  ('Apply for placements and internships',                         null,                                                                     'Career',   'done',        100),
-  ('Try to get a job close to university',                         null,                                                                     'Career',   'done',        100),
-  ('Land placement opportunities',                                 null,                                                                     'Career',   'in_progress',  50),
-  ('Hit the gym at least 4 times a week',                          null,                                                                     'Health',   'in_progress',  75),
-  ('Lose 20-40kg of weight',                                       null,                                                                     'Health',   'in_progress',  20),
-  ('Play football at least once a week',                           null,                                                                     'Health',   'in_progress',  60),
-  ('Grow a beard',                                                 null,                                                                     'Health',   'done',        100),
-  ('Grow long hair',                                               null,                                                                     'Health',   'in_progress',  50),
-  ('Start long runs and walks',                                    null,                                                                     'Health',   'done',        100),
-  ('Build a better relationship with God',                         'Daily quiet time, pray and fast on Tuesdays and Saturdays',              'Personal', 'in_progress',  70),
-  ('Do quiet time every day',                                      null,                                                                     'Personal', 'in_progress',  70),
-  ('Make mummy proud in all areas',                                null,                                                                     'Personal', 'in_progress',  80),
-  ('Cut out bad energy, relationships and friendships',            null,                                                                     'Personal', 'done',        100),
+  ('Get into second year',                                          null,                                                                    'Academic', 'done',        100),
+  ('Finish 1st year with good grades in all modules',               null,                                                                    'Academic', 'done',        100),
+  ('Apply for placements and internships',                          null,                                                                    'Career',   'done',        100),
+  ('Try to get a job close to university',                          null,                                                                    'Career',   'done',        100),
+  ('Land placement opportunities',                                  null,                                                                    'Career',   'in_progress',  50),
+  ('Hit the gym at least 4 times a week',                           null,                                                                    'Health',   'in_progress',  75),
+  ('Lose 20-40kg of weight',                                        null,                                                                    'Health',   'in_progress',  20),
+  ('Play football at least once a week',                            null,                                                                    'Health',   'in_progress',  60),
+  ('Grow a beard',                                                  null,                                                                    'Health',   'done',        100),
+  ('Grow long hair',                                                null,                                                                    'Health',   'in_progress',  50),
+  ('Start long runs and walks',                                     null,                                                                    'Health',   'done',        100),
+  ('Build a better relationship with God',                          'Daily quiet time, pray and fast on Tuesdays and Saturdays',             'Personal', 'in_progress',  70),
+  ('Do quiet time every day',                                       null,                                                                    'Personal', 'in_progress',  70),
+  ('Make mummy proud in all areas',                                 null,                                                                    'Personal', 'in_progress',  80),
+  ('Cut out bad energy, relationships and friendships',             null,                                                                    'Personal', 'done',        100),
   ('Stop being shy, network and communicate with the right people', null,                                                                    'Personal', 'in_progress',  60),
-  ('Be myself in how I live, dress and present myself',            null,                                                                     'Personal', 'in_progress',  80),
-  ('Learn to play the keyboard (beginner to amateur)',             null,                                                                     'Personal', 'in_progress',  30),
-  ('Start streaming or create faceless content',                   'TikTok, YouTube, Instagram, Twitch, Kick',                               'Career',   'not_started',   0),
-  ('Start some form of business',                                  null,                                                                     'Finance',  'in_progress',  20),
-  ('Get into drop shipping or Stan Store',                         null,                                                                     'Finance',  'not_started',   0),
-  ('Dress well and feel confident',                                null,                                                                     'Personal', 'done',        100),
-  ('Smell good and improve self-presentation',                     null,                                                                     'Personal', 'done',        100),
-  ('Travel',                                                       null,                                                                     'Personal', 'in_progress',  50),
-  ('Eat better and maintain a healthy diet',                       null,                                                                     'Health',   'in_progress',  60),
-  ('Make more money',                                              null,                                                                     'Finance',  'in_progress',  30),
-  ('Save without touching it',                                     null,                                                                     'Finance',  'in_progress',  20);
+  ('Be myself in how I live, dress and present myself',             null,                                                                    'Personal', 'in_progress',  80),
+  ('Learn to play the keyboard (beginner to amateur)',              null,                                                                    'Personal', 'in_progress',  30),
+  ('Start streaming or create faceless content',                    'TikTok, YouTube, Instagram, Twitch, Kick',                              'Career',   'not_started',   0),
+  ('Start some form of business',                                   null,                                                                    'Finance',  'in_progress',  20),
+  ('Get into drop shipping or Stan Store',                          null,                                                                    'Finance',  'not_started',   0),
+  ('Dress well and feel confident',                                 null,                                                                    'Personal', 'done',        100),
+  ('Smell good and improve self-presentation',                      null,                                                                    'Personal', 'done',        100),
+  ('Travel',                                                        null,                                                                    'Personal', 'in_progress',  50),
+  ('Eat better and maintain a healthy diet',                        null,                                                                    'Health',   'in_progress',  60),
+  ('Make more money',                                               null,                                                                    'Finance',  'in_progress',  30),
+  ('Save without touching it',                                      null,                                                                    'Finance',  'in_progress',  20);
 
 
 -- ============================================================
--- 9. SEED - WISHLIST
+-- A.10 SEED - WISHLIST
+-- I list everything I want to buy, organised by category and
+-- priority. The dashboard uses priority to render badges.
 -- ============================================================
 
 insert into wishlist (name, category, status, priority, notes) values
@@ -538,7 +663,9 @@ insert into wishlist (name, category, status, priority, notes) values
 
 
 -- ============================================================
--- 10. SEED - DIARY (Ghana addresses entry)
+-- A.11 SEED - DIARY (Ghana addresses entry)
+-- I keep the seed diary entry that documents my Ghana addresses and
+-- phone numbers - this is family history I want to preserve.
 -- ============================================================
 
 insert into diary (title, content, mood) values (
@@ -568,7 +695,8 @@ Ending 45',
 
 
 -- ============================================================
--- 11. SEED - STREAKS
+-- A.12 SEED - STREAKS
+-- I track these 9 daily habits for coding, learning and faith.
 -- ============================================================
 
 insert into streaks (name, icon, description, color, order_index) values
@@ -584,7 +712,9 @@ insert into streaks (name, icon, description, color, order_index) values
 
 
 -- ============================================================
--- 12. SEED - HEALTH SECTIONS, WORKOUTS AND NUTRITION
+-- A.13 SEED - HEALTH SECTIONS, WORKOUTS AND NUTRITION
+-- I split health into Gym, Nutrition, Running and Cardio. Each
+-- has its own day cards or meal categories.
 -- ============================================================
 
 insert into health_sections (name, type, icon, color, order_index) values
@@ -593,7 +723,8 @@ insert into health_sections (name, type, icon, color, order_index) values
   ('Running',   'running',   '🏃', '#f97316', 2),
   ('Cardio',    'cardio',    '❤️',  '#ef4444', 3);
 
--- Gym workout split (7 days)
+-- I seed a 7-day gym split. The exercises array uses jsonb so the
+-- shape can evolve without a schema change.
 with gym as (select id from health_sections where name = 'Gym' limit 1)
 insert into health_workouts (section_id, day_label, exercises, order_index)
 select gym.id, d.day, d.exercises::jsonb, d.idx
@@ -614,7 +745,8 @@ from gym, (values
    '[{"name":"Light walk (20-30 min)","sets":"optional"},{"name":"Full body stretch","sets":"15-20 min"},{"name":"Foam rolling","sets":"10 min"},{"name":"Meal prep for the week","sets":""}]')
 ) as d(idx, day, exercises);
 
--- Nutrition
+-- I seed nutrition by meal category with item lists and bullet
+-- rules for each.
 insert into health_nutrition (category, items, rules, order_index) values
   ('Breakfast',
    '["Oats with banana and peanut butter","Greek yoghurt with berries","Scrambled eggs on wholegrain toast","Protein shake (post-gym morning)","Overnight oats with chia seeds"]'::jsonb,
@@ -635,7 +767,7 @@ insert into health_nutrition (category, items, rules, order_index) values
 
 
 -- ============================================================
--- 13. SEED - INVENTORY (devices and equipment I own)
+-- A.14 SEED - INVENTORY (devices and equipment I own)
 -- ============================================================
 
 insert into inventory_items (name, category, description, serial_number, warranty_expiry, notes) values
@@ -695,7 +827,9 @@ insert into inventory_items (name, category, description, serial_number, warrant
 
 
 -- ============================================================
--- 14. SEED - COURSE MODULES (from programme spec)
+-- A.15 SEED - COURSE MODULES (full programme spec)
+-- I keep the entire programme structure here so the Course page can
+-- render the official module options for each year.
 -- ============================================================
 
 insert into course_modules (stage, section, code, title, credits, level, core_or_option, condonable, prerequisites, order_index) values
@@ -704,9 +838,9 @@ insert into course_modules (stage, section, code, title, credits, level, core_or
   ('1', 'core', 'EI1IME', 'Introductory Mathematics for Engineering, Digital and Physical Sciences',    15, 4, 'Core',   true,  null,           1),
   ('1', 'core', 'DG1IPE', 'Introductory Programming for Engineering and Physical Sciences',             15, 4, 'Core',   false, null,           2),
   ('1', 'core', 'EP1IDP', 'Interdisciplinary Design Project',                                           15, 4, 'Core',   false, null,           3),
-  ('1', 'core', 'DG1AID', 'Foundations of AI and Data Science',                                        15, 4, 'Core',   true,  null,           4),
-  ('1', 'core', 'EI1EL2', 'Electronics 2',                                                              15, 4, 'Core',   true,  '(C) EI1EL1',  5),
-  ('1', 'core', 'DG1IAD', 'Internet Applications and Databases',                                       15, 4, 'Core',   true,  null,           6),
+  ('1', 'core', 'DG1AID', 'Foundations of AI and Data Science',                                         15, 4, 'Core',   true,  null,           4),
+  ('1', 'core', 'EI1EL2', 'Electronics 2',                                                              15, 4, 'Core',   true,  '(C) EI1EL1',   5),
+  ('1', 'core', 'DG1IAD', 'Internet Applications and Databases',                                        15, 4, 'Core',   true,  null,           6),
   ('1', 'core', 'EP1POS', 'Power Skills',                                                               15, 4, 'Core',   false, null,           7),
   -- Stage 2 (Year 2, Level 5)
   ('2', 'core', 'EI2APE', 'Analogue and Power Electronics',                                            15, 5, 'Core',   false, null,           0),
@@ -733,7 +867,10 @@ insert into course_modules (stage, section, code, title, credits, level, core_or
 
 
 -- ============================================================
--- 15. SEED - CONFIG (Me page, course data and PIN placeholder)
+-- A.16 SEED - CONFIG (Me page, course data, PIN, now_status)
+-- I use config as a flexible key-value store for editable page
+-- content. PIN starts as "unset" so first login falls back to the
+-- AUTH_SECONDARY_PIN env var.
 -- ============================================================
 
 insert into config (key, value) values
@@ -752,7 +889,7 @@ insert into config (key, value) values
     "interests": ["Software development", "Electronics and embedded systems", "AI and machine learning", "Gaming and streaming", "Football", "Music and keyboard", "Fashion and style"],
     "personality": "Ambitious, creative and deeply driven. I work best when I have clear goals and creative freedom. I value authenticity and real relationships over surface-level connections.",
     "github": "zaccesss",
-    "linkedin": "isaac-adjei",
+    "linkedin": "isaacadjei",
     "website": "isaacadjei.me"
   }'),
   ('dashboard_pin_hash', '"unset"'),
@@ -774,50 +911,148 @@ insert into config (key, value) values
       "Term 2": "5 January - 28 March 2026",
       "Term 3": "23 April - 6 June 2026"
     }
-  }');
+  }'),
+  ('theme_preference', '"system"');
 
 
 -- ============================================================
--- 16. POST-SETUP NOTES
+-- SECTION B: MIGRATION (ALTER TABLE for existing databases)
+-- I keep this section separate because it is safe to run on a live
+-- database without losing data. I use IF NOT EXISTS everywhere so
+-- it is idempotent.
 -- ============================================================
--- After running this file:
---
--- 1. The dashboard_pin_hash is set to "unset" which means the PIN
---    gate falls back to the AUTH_SECONDARY_PIN Vercel env var on
---    first login, then auto-hashes and stores it here.
---
--- 2. The applications table includes the new columns added in
---    2026-05-21: opening_date, last_year_opening, housing_location,
---    cv_required, cover_letter_required, written_answers,
---    sponsors_visa, category. These are already in the table
---    definition above so no ALTER TABLE is needed.
---
--- 3. Module years: year 1 = Stage 1, year 2 = Stage 2,
---    year 3 = Placement Year (optional), year 4 = Final Year.
---
+
+
 -- ============================================================
--- SESSION 2026-05-21: APPLIED MIGRATIONS
+-- B.1 ADD updated_at TO GOALS
+-- I need updated_at on goals because the weekly digest queries it
+-- to count "goals touched this week".
 -- ============================================================
---
--- All columns listed below were added via ALTER TABLE and are now
--- included in the CREATE TABLE definition above. No need to run these
--- again on a fresh setup - they are here as a migration history only.
---
--- Migration applied 2026-05-21 (applications new columns):
---   ALTER TABLE applications
---     ADD COLUMN IF NOT EXISTS opening_date date,
---     ADD COLUMN IF NOT EXISTS last_year_opening date,
---     ADD COLUMN IF NOT EXISTS housing_location text,
---     ADD COLUMN IF NOT EXISTS cv_required text,
---     ADD COLUMN IF NOT EXISTS cover_letter_required text,
---     ADD COLUMN IF NOT EXISTS written_answers text,
---     ADD COLUMN IF NOT EXISTS sponsors_visa text,
---     ADD COLUMN IF NOT EXISTS category text DEFAULT 'Software Engineering';
---
--- One-time cleanup applied 2026-05-21 (clear bad scraped data before scraper fix):
---   DELETE FROM applications WHERE status = 'scraped';
---
--- After cleanup, trigger a fresh scraper run:
---   gh workflow run job-scraper.yml --ref main
---
+
+alter table goals add column if not exists updated_at timestamptz default now();
+
+
 -- ============================================================
+-- B.2 GROUP F COLUMNS - DIARY
+-- I add hidden, pinned and locked to support the 3-dot menu UI.
+-- ============================================================
+
+alter table diary add column if not exists hidden boolean default false;
+alter table diary add column if not exists pinned boolean default false;
+alter table diary add column if not exists locked boolean default false;
+
+
+-- ============================================================
+-- B.3 GROUP F COLUMN - NOTES (hidden)
+-- I only add hidden because pinned and locked already exist.
+-- ============================================================
+
+alter table notes add column if not exists hidden boolean default false;
+
+
+-- ============================================================
+-- B.4 GROUP F COLUMNS - VAULT
+-- ============================================================
+
+alter table vault add column if not exists hidden boolean default false;
+alter table vault add column if not exists locked boolean default false;
+
+
+-- ============================================================
+-- B.5 FIX APPLICATIONS URL UNIQUE INDEX
+-- I clean up duplicates and create a robust unconditional unique
+-- index on url so PostgREST can do ON CONFLICT (url) upserts.
+-- ============================================================
+
+-- I delete all scraped entries so they do not block the index.
+delete from applications where status = 'scraped';
+
+-- I delete duplicate urls in manual entries, keeping the newest.
+delete from applications
+where id in (
+  select id from (
+    select id, row_number() over (partition by url order by created_at desc) as rn
+    from applications
+    where url is not null and url <> ''
+  ) t
+  where rn > 1
+);
+
+drop index if exists applications_url_unique;
+create unique index if not exists applications_url_unique
+  on applications (url);
+
+
+-- ============================================================
+-- B.6 NEW TABLES - activity_log, habits, habit_logs
+-- I use CREATE TABLE IF NOT EXISTS so this is safe on existing DBs.
+-- ============================================================
+
+create table if not exists activity_log (
+  id          uuid primary key default gen_random_uuid(),
+  created_at  timestamptz default now(),
+  action      text not null,
+  entity_type text,
+  entity_id   uuid,
+  details     jsonb default '{}'
+);
+
+create table if not exists habits (
+  id          uuid primary key default gen_random_uuid(),
+  created_at  timestamptz default now(),
+  name        text not null,
+  frequency   text not null default 'daily',
+  description text,
+  active      boolean default true,
+  color       text default '#6366f1',
+  order_index int default 0
+);
+
+create table if not exists habit_logs (
+  id        uuid primary key default gen_random_uuid(),
+  habit_id  uuid references habits(id) on delete cascade,
+  date      date not null,
+  completed boolean default true,
+  notes     text,
+  unique(habit_id, date)
+);
+
+-- I enable RLS on the new tables. The DO blocks make this idempotent
+-- because alter table ... enable row level security errors on second run.
+alter table activity_log enable row level security;
+alter table habits       enable row level security;
+alter table habit_logs   enable row level security;
+
+-- I create the RLS policies if they do not exist. The DO block
+-- catches the "policy already exists" error.
+do $$
+begin
+  if not exists (select 1 from pg_policies where tablename = 'activity_log' and policyname = 'allow all') then
+    create policy "allow all" on activity_log for all using (true);
+  end if;
+  if not exists (select 1 from pg_policies where tablename = 'habits' and policyname = 'allow all') then
+    create policy "allow all" on habits for all using (true);
+  end if;
+  if not exists (select 1 from pg_policies where tablename = 'habit_logs' and policyname = 'allow all') then
+    create policy "allow all" on habit_logs for all using (true);
+  end if;
+end $$;
+
+
+-- ============================================================
+-- B.7 SEED - theme_preference CONFIG KEY
+-- I add the theme_preference key for dark mode persistence across
+-- devices. on conflict do nothing makes this idempotent.
+-- ============================================================
+
+insert into config (key, value) values ('theme_preference', '"system"')
+on conflict (key) do nothing;
+
+
+-- ============================================================
+-- END OF FILE
+-- I run SECTION A once on a fresh database, then SECTION B every
+-- time I deploy new schema changes. SECTION B is idempotent so
+-- running it multiple times is harmless.
+-- ============================================================
+
