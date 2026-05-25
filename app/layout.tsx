@@ -75,14 +75,19 @@ export const metadata: Metadata = {
     description:
       "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",
     siteName: "Isaac Adjei Portfolio",
-    images: ["/opengraph-image"],
+    images: [{
+      url: "/api/og?title=Isaac%20Adjei&description=Electronic%20Engineering%20and%20Computer%20Science%20Student",
+      width: 1200,
+      height: 630,
+      alt: "Isaac Adjei - Electronic Engineering and Computer Science Student",
+    }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Isaac Adjei | EECS",
     description:
       "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",
-    images: ["/twitter-image"],
+    images: ["/api/og?title=Isaac%20Adjei&description=Electronic%20Engineering%20and%20Computer%20Science%20Student"],
   },
 }
 

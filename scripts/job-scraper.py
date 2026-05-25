@@ -544,7 +544,7 @@ def insert_job(job: dict, existing_keys: set) -> bool:
         # I use "scraped" so I can filter auto-discovered roles from ones I
         # manually added in the dashboard.
         "status":       "scraped",
-        "url":          job.get("url", ""),
+        "url":          job.get("url") or None,
         "location":     normalize_location(job.get("location", "")),
         "notes":        job.get("notes", ""),
         # I leave applied_date as None because scraped roles have not been
@@ -1972,6 +1972,59 @@ def scrape_amazon(existing_keys: set) -> int:
     return count
 
 
+# ─── MILKROUND (UK student jobs) ──────────────────────────────────────────────
+
+def scrape_milkround(existing_keys: set) -> int:
+    # I scrape Milkround's tech/engineering jobs section for UK student roles.
+    # Milkround is a major UK student job board with placement and internship listings.
+    print("\nScraping Milkround (UK student jobs)...")
+    count = 0
+    keywords = ["software", "engineering", "technology", "data", "intern", "placement"]
+    for keyword in keywords:
+        url = f"https://www.milkround.com/jobs/{keyword}"
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=15)
+            if resp.status_code != 200:
+                print(f"  Milkround ({keyword}): HTTP {resp.status_code}")
+                continue
+            soup = BeautifulSoup(resp.text, "html.parser")
+            # I look for job cards - Milkround uses article elements with job listings
+            job_cards = soup.find_all("article", class_=re.compile("job|listing|card"))
+            if not job_cards:
+                # Fallback: try finding by data attributes or generic containers
+                job_cards = soup.find_all("div", attrs={"data-testid": re.compile("job|listing")})
+            for card in job_cards[:20]:  # Limit per keyword to avoid spam
+                try:
+                    title_elem = card.find("h2") or card.find("h3") or card.find("a")
+                    title = title_elem.get_text(strip=True) if title_elem else ""
+                    company_elem = card.find(class_=re.compile("company|employer"))
+                    company = company_elem.get_text(strip=True) if company_elem else "Unknown"
+                    location_elem = card.find(class_=re.compile("location|city"))
+                    location = location_elem.get_text(strip=True) if location_elem else "United Kingdom"
+                    link_elem = card.find("a", href=True)
+                    job_url = link_elem["href"] if link_elem else ""
+                    if job_url and not job_url.startswith("http"):
+                        job_url = f"https://www.milkround.com{job_url}"
+                    if not is_relevant_job(title, company, location):
+                        continue
+                    if insert_job({
+                        "company": company,
+                        "role": title,
+                        "type": infer_type(title),
+                        "url": job_url,
+                        "location": normalize_location(location),
+                        "source": "Milkround",
+                    }, existing_keys):
+                        count += 1
+                except Exception as e:
+                    continue
+            time.sleep(1)  # Be polite to Milkround servers
+        except Exception as e:
+            print(f"  Error Milkround ({keyword}): {e}")
+    print(f"  Added {count} from Milkround")
+    return count
+
+
 # ─── REMOTIVE (remote full-time tech jobs, worldwide) ────────────────────────
 
 def scrape_remotive(existing_keys: set) -> int:
@@ -2097,6 +2150,7 @@ def main():
     total += scrape_brightnetwork(existing_keys)
     total += scrape_totaljobs(existing_keys)
     total += scrape_prospects(existing_keys)
+    total += scrape_milkround(existing_keys)
 
     # I run Remotive last because it is a dedicated full-time job source
     # (not an internship source) and only feeds the Jobs tab.

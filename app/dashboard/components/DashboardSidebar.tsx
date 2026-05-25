@@ -6,7 +6,8 @@ import { signOut } from "next-auth/react"
 import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
-  Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings
+  Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings,
+  CheckCircle2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -26,6 +27,7 @@ const nav = [
   { href: "/dashboard/applications", label: "Applications", icon: Briefcase },
   { href: "/dashboard/vault", label: "Vault", icon: Lock },
   { href: "/dashboard/streaks", label: "Streaks", icon: Flame },
+  { href: "/dashboard/habits", label: "Habits", icon: CheckCircle2 },
 ]
 
 export default function DashboardSidebar({

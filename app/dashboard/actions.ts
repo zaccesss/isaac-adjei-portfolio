@@ -657,3 +657,206 @@ export async function getDashboardSummary() {
     updatedAt: weekAgo,
   }
 }
+
+// ─── Activity Log (audit trail) ──────────────────────────────
+
+// I log every dashboard action so the Settings page can show a feed of recent activity.
+// I keep the table simple - action verb, entity type, entity id and optional details JSON.
+async function logActivity(action: string, entityType?: string, entityId?: string, details?: Record<string, unknown>) {
+  // I fire-and-forget so logging failures never break the calling action.
+  try {
+    await supabase.from("activity_log").insert({
+      action,
+      entity_type: entityType,
+      entity_id: entityId,
+      details: details ?? {},
+    })
+  } catch {
+    // Silently ignore - audit logging is best-effort.
+  }
+}
+
+export async function getRecentActivity(limit = 20) {
+  const { data } = await supabase
+    .from("activity_log")
+    .select("id,action,entity_type,entity_id,details,created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+  return data ?? []
+}
+
+// ─── Group F: Diary toggles ──────────────────────────────────
+
+// I expose tiny single-field updates because the DiaryClient calls these
+// directly from the 3-dot menu without needing the whole entry payload.
+export async function toggleDiaryHidden(id: string, hidden: boolean) {
+  await supabase.from("diary").update({ hidden, updated_at: new Date().toISOString() }).eq("id", id)
+  void logActivity(hidden ? "hide" : "show", "diary", id)
+  revalidatePath("/dashboard/diary")
+}
+
+export async function toggleDiaryPinned(id: string, pinned: boolean) {
+  await supabase.from("diary").update({ pinned, updated_at: new Date().toISOString() }).eq("id", id)
+  void logActivity(pinned ? "pin" : "unpin", "diary", id)
+  revalidatePath("/dashboard/diary")
+}
+
+export async function toggleDiaryLocked(id: string, locked: boolean) {
+  await supabase.from("diary").update({ locked, updated_at: new Date().toISOString() }).eq("id", id)
+  void logActivity(locked ? "lock" : "unlock", "diary", id)
+  revalidatePath("/dashboard/diary")
+}
+
+// ─── Group F: Notes toggles ──────────────────────────────────
+
+// I do not need toggleNotePinned or toggleNoteLocked because updateNote already
+// supports those columns. I only expose toggleNoteHidden as a thin convenience.
+export async function toggleNoteHidden(id: string, hidden: boolean) {
+  await supabase.from("notes").update({ hidden, updated_at: new Date().toISOString() }).eq("id", id)
+  void logActivity(hidden ? "hide" : "show", "notes", id)
+  revalidatePath("/dashboard/notes")
+}
+
+export async function toggleNoteLocked(id: string, locked: boolean) {
+  await supabase.from("notes").update({ locked, updated_at: new Date().toISOString() }).eq("id", id)
+  void logActivity(locked ? "lock" : "unlock", "notes", id)
+  revalidatePath("/dashboard/notes")
+}
+
+// ─── Group F: Vault toggles ──────────────────────────────────
+
+export async function toggleVaultHidden(id: string, hidden: boolean) {
+  await supabase.from("vault").update({ hidden }).eq("id", id)
+  void logActivity(hidden ? "hide" : "show", "vault", id)
+  revalidatePath("/dashboard/vault")
+}
+
+export async function toggleVaultLocked(id: string, locked: boolean) {
+  await supabase.from("vault").update({ locked }).eq("id", id)
+  void logActivity(locked ? "lock" : "unlock", "vault", id)
+  revalidatePath("/dashboard/vault")
+}
+
+// ─── Habits (recurring goals) ────────────────────────────────
+
+export async function createHabit(data: {
+  name: string
+  frequency: string
+  description?: string
+  color?: string
+  order_index?: number
+}) {
+  const { data: inserted } = await supabase.from("habits").insert(data).select().single()
+  void logActivity("create", "habit", inserted?.id)
+  revalidatePath("/dashboard/habits")
+  return inserted
+}
+
+export async function updateHabit(id: string, data: Partial<{
+  name: string
+  frequency: string
+  description: string
+  color: string
+  active: boolean
+  order_index: number
+}>) {
+  await supabase.from("habits").update(data).eq("id", id)
+  void logActivity("update", "habit", id)
+  revalidatePath("/dashboard/habits")
+}
+
+export async function deleteHabit(id: string) {
+  await supabase.from("habits").delete().eq("id", id)
+  void logActivity("delete", "habit", id)
+  revalidatePath("/dashboard/habits")
+}
+
+export async function checkInHabit(habitId: string, date: string, notes?: string) {
+  // I upsert on the composite key so re-checking the same day is idempotent.
+  await supabase.from("habit_logs").upsert(
+    { habit_id: habitId, date, completed: true, notes },
+    { onConflict: "habit_id,date" },
+  )
+  void logActivity("check_in", "habit", habitId, { date })
+  revalidatePath("/dashboard/habits")
+}
+
+export async function undoHabitCheckIn(habitId: string, date: string) {
+  await supabase.from("habit_logs").delete().eq("habit_id", habitId).eq("date", date)
+  void logActivity("undo_check_in", "habit", habitId, { date })
+  revalidatePath("/dashboard/habits")
+}
+
+// ─── Data Export (full dashboard backup) ─────────────────────
+
+// I dump every table to a single JSON object so the user can download a backup
+// from the Settings page. I exclude the vault password column for safety.
+export async function exportDashboardData() {
+  const [
+    goals,
+    modules,
+    assessments,
+    applications,
+    vault,
+    wishlist,
+    diary,
+    notes,
+    streaks,
+    streakLogs,
+    healthSections,
+    healthWorkouts,
+    healthNutrition,
+    config,
+    courseModules,
+    inventory,
+    activityLog,
+    habits,
+    habitLogs,
+  ] = await Promise.all([
+    supabase.from("goals").select("*"),
+    supabase.from("modules").select("*"),
+    supabase.from("assessments").select("*"),
+    supabase.from("applications").select("*"),
+    supabase.from("vault").select("*"),
+    supabase.from("wishlist").select("*"),
+    supabase.from("diary").select("*"),
+    supabase.from("notes").select("*"),
+    supabase.from("streaks").select("*"),
+    supabase.from("streak_logs").select("*"),
+    supabase.from("health_sections").select("*"),
+    supabase.from("health_workouts").select("*"),
+    supabase.from("health_nutrition").select("*"),
+    supabase.from("config").select("*"),
+    supabase.from("course_modules").select("*"),
+    supabase.from("inventory_items").select("*"),
+    supabase.from("activity_log").select("*"),
+    supabase.from("habits").select("*"),
+    supabase.from("habit_logs").select("*"),
+  ])
+
+  return {
+    exported_at: new Date().toISOString(),
+    version: 1,
+    data: {
+      goals: goals.data ?? [],
+      modules: modules.data ?? [],
+      assessments: assessments.data ?? [],
+      applications: applications.data ?? [],
+      vault: vault.data ?? [],
+      wishlist: wishlist.data ?? [],
+      diary: diary.data ?? [],
+      notes: notes.data ?? [],
+      streaks: streaks.data ?? [],
+      streak_logs: streakLogs.data ?? [],
+      health_sections: healthSections.data ?? [],
+      health_workouts: healthWorkouts.data ?? [],
+      health_nutrition: healthNutrition.data ?? [],
+      config: config.data ?? [],
+      course_modules: courseModules.data ?? [],
+      inventory_items: inventory.data ?? [],
+      activity_log: activityLog.data ?? [],
+      habits: habits.data ?? [],
+      habit_logs: habitLogs.data ?? [],
+    },
+  }
+}

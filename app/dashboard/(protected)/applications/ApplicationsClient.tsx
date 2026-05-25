@@ -707,6 +707,80 @@ function CategoryGroup({
   )
 }
 
+// ─── Kanban Board Component ───────────────────────────────────────────────────
+
+function KanbanBoard({
+  applications,
+  onEdit,
+  onDelete,
+  onStatusChange,
+}: {
+  applications: Application[]
+  onEdit: (app: Application) => void
+  onDelete: (id: string) => void
+  onStatusChange: (id: string, status: string) => void
+}) {
+  // I group applications by their normalised status for the Kanban columns
+  const columns = [
+    { id: "Not Applied", title: "Not Applied", color: "bg-red-100 dark:bg-red-900/30" },
+    { id: "Interested", title: "Interested", color: "bg-blue-100 dark:bg-blue-900/30" },
+    { id: "Application Submitted", title: "Applied", color: "bg-blue-100 dark:bg-blue-900/30" },
+    { id: "Online Assessment", title: "OA", color: "bg-purple-100 dark:bg-purple-900/30" },
+    { id: "Telephone Interview", title: "Phone", color: "bg-amber-100 dark:bg-amber-900/30" },
+    { id: "Video Interview", title: "Video", color: "bg-amber-100 dark:bg-amber-900/30" },
+    { id: "Face-to-face Interview", title: "Interview", color: "bg-amber-100 dark:bg-amber-900/30" },
+    { id: "Assessment Centre", title: "AC", color: "bg-orange-100 dark:bg-orange-900/30" },
+    { id: "Offer Received", title: "Offer", color: "bg-green-100 dark:bg-green-900/30" },
+    { id: "Rejected", title: "Rejected", color: "bg-gray-100 dark:bg-gray-900/30" },
+  ]
+
+  const grouped = columns.map((col) => ({
+    ...col,
+    apps: applications.filter((a) => normaliseStatus(a.status) === col.id),
+  }))
+
+  return (
+    <div className="flex gap-3 overflow-x-auto pb-2">
+      {grouped.map((col) => (
+        <div key={col.id} className="flex-shrink-0 w-64 flex flex-col gap-2">
+          <div className={`flex items-center justify-between px-3 py-2 rounded-md ${col.color}`}>
+            <span className="font-semibold text-xs">{col.title}</span>
+            <span className="text-xs text-muted-foreground">{col.apps.length}</span>
+          </div>
+          <div className="flex flex-col gap-2 min-h-[100px]">
+            {col.apps.map((app) => (
+              <div
+                key={app.id}
+                className="p-3 rounded-lg border border-border bg-card hover:shadow-sm transition-shadow cursor-pointer"
+                onClick={() => onEdit(app)}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="font-medium text-sm">{app.company}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDelete(app.id)
+                    }}
+                    className="text-muted-foreground hover:text-destructive"
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-2">{app.role}</p>
+                {app.location && (
+                  <p className="text-xs text-muted-foreground mt-1">{app.location}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ─── Main client ──────────────────────────────────────────────────────────────
 
 export default function ApplicationsClient({ applications: initial }: { applications: Application[] }) {
@@ -720,6 +794,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const [filterKeyword, setFilterKeyword] = useState("All")
   const [addOpen, setAddOpen] = useState(false)
   const [editApp, setEditApp] = useState<Application | null>(null)
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list")
   const [, startTransition] = useTransition()
 
   const isEvent = activeTab === "Events"
@@ -959,13 +1034,35 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
         <h1 className="text-lg font-semibold">Applications</h1>
-        <Dialog open={addOpen} onOpenChange={setAddOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-1 h-8 text-xs">
-              <Plus className="h-3.5 w-3.5" />
-              Add
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          {/* I add a view toggle so users can switch between list and kanban views */}
+          <div className="flex items-center border border-border rounded-md overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                viewMode === "list" ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted"
+              }`}
+            >
+              List
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("kanban")}
+              className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                viewMode === "kanban" ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted"
+              }`}
+            >
+              Kanban
+            </button>
+          </div>
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-1 h-8 text-xs">
+                <Plus className="h-3.5 w-3.5" />
+                Add
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>New Application</DialogTitle>
@@ -1094,7 +1191,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         </Select>
       </div>
 
-      {/* Table */}
+      {/* Content */}
       <div className="flex-1 overflow-auto min-h-0 px-4 pb-4">
         {!hasAnyFiltered ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
@@ -1105,6 +1202,13 @@ export default function ApplicationsClient({ applications: initial }: { applicat
                 : "Add your first application using the button above."}
             </p>
           </div>
+        ) : viewMode === "kanban" ? (
+          <KanbanBoard
+            applications={filtered}
+            onEdit={setEditApp}
+            onDelete={handleDelete}
+            onStatusChange={handleStatusChange}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-xs">

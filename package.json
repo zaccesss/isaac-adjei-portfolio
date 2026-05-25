@@ -4,10 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run generate-cvs && next build",
     "start": "next start",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "generate-cvs": "node scripts/generate-cvs.js",
+    "watch-cvs": "node scripts/watch-cvs.js"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.5.2",
@@ -25,17 +27,17 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "bcryptjs": "^3.0.3",
+    "chokidar": "^3.5.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^1.0.0",
     "framer-motion": "^11.0.0",
     "geist": "^1.7.1",
-    "html-to-docx": "^1.8.0",
+    "js-yaml": "^4.1.0",
     "lucide-react": "^0.577.0",
     "next": "^16.2.6",
     "next-auth": "^5.0.0-beta.31",
     "next-themes": "^0.3.0",
-    "puppeteer": "^24.43.1",
     "puppeteer-core": "^24.42.0",
     "react": "^18.3.0",
     "react-day-picker": "^10.0.1",
@@ -60,8 +62,10 @@
     "autoprefixer": "^10.5.0",
     "eslint": "^9.14.0",
     "eslint-config-next": "^16.2.6",
+    "html-to-docx": "^1.8.0",
     "postcss": "^8.5.15",
     "prettier": "^3.8.3",
+    "puppeteer": "^25.0.4",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.4.0"
   }

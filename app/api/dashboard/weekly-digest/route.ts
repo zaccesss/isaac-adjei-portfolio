@@ -284,7 +284,7 @@ export async function GET(req: NextRequest) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: "Nexus Dashboard <dashboard@isaacadjei.me>",
+        from: "Nexus Dashboard <contact@isaacadjei.me>",
         to: [toEmail],
         subject,
         html,

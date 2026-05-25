@@ -30,7 +30,7 @@ export async function GET() {
 
   try {
     const res = await fetch(
-      "https://api.github.com/repos/zaccessss/isaac-adjei-portfolio/actions/workflows/job-scraper.yml/runs?per_page=1",
+      "https://api.github.com/repos/zaccesss/isaac-adjei-portfolio/actions/workflows/job-scraper.yml/runs?per_page=1",
       { headers, next: { revalidate: 0 } }
     )
 

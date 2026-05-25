@@ -4,9 +4,19 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import {
   Target, Briefcase, Flame, BookOpen, BookMarked,
-  Gift, Lock, StickyNote, ArrowRight
+  Gift, Lock, StickyNote, ArrowRight, Activity
 } from "lucide-react"
 import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
+
+// I define the Activity type to match the server action return structure.
+type ActivityItem = {
+  id: string
+  action: string
+  entity_type: string
+  entity_id: string | null
+  details: string | null
+  created_at: string
+}
 
 type Summary = {
   goals: { total: number; done: number; inProgress: number }
@@ -30,13 +40,23 @@ function getGreeting(): string {
 function relativeTime(isoString: string | null): string {
   if (!isoString) return "Never"
   const diff = Date.now() - new Date(isoString).getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  if (days === 0) return "Today"
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 1) return "Just now"
+  if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`
+  const days = Math.floor(hours / 24)
   if (days === 1) return "Yesterday"
   return `${days} days ago`
 }
 
-export default function DashboardHome({ summary }: { summary: Summary }) {
+export default function DashboardHome({
+  summary,
+  activity = [],
+}: {
+  summary: Summary
+  activity?: ActivityItem[]
+}) {
   const greeting = getGreeting()
 
   const cards = [
@@ -189,6 +209,32 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
           )
         })}
       </motion.div>
+
+      {/* Activity Log section */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <Activity className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Recent Activity</h2>
+        </div>
+        {activity.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No recent activity.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {activity.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between gap-4 p-3 rounded-lg border border-border bg-card text-sm"
+              >
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-medium">{item.action}</span>
+                  <span className="text-xs text-muted-foreground">{item.entity_type}{item.details ? ` - ${item.details}` : ""}</span>
+                </div>
+                <span className="text-xs text-muted-foreground shrink-0">{relativeTime(item.created_at)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </motion.div>
   )
 }
