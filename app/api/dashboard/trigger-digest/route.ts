@@ -13,6 +13,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "CRON_SECRET not set" }, { status: 500 })
   }
 
+  console.log("CRON_SECRET is set, length:", secret.length)
+
   // I use req.nextUrl.origin instead of process.env.NEXTAUTH_URL so the request
   // always targets the same host that received it - this fixes the issue where
   // the env var was unset on preview deployments.
@@ -20,6 +22,9 @@ export async function POST(req: NextRequest) {
     method: "GET",
     headers: { Authorization: `Bearer ${secret}` },
   })
+
+  console.log("weekly-digest response status:", res.status)
   const data = await res.json().catch(() => ({}))
+  console.log("weekly-digest response data:", data)
   return NextResponse.json(data, { status: res.status })
 }
