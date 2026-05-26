@@ -25,7 +25,7 @@
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@sparticuz/chromium": "^147.0.2",
-    "@supabase/supabase-js": "^2.106.1",
+    "@supabase/supabase-js": "^2.106.2",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "bcryptjs": "^3.0.3",
@@ -68,7 +68,7 @@
     "eslint-config-next": "^16.2.6",
     "postcss": "^8.5.15",
     "prettier": "^3.8.3",
-    "puppeteer": "^25.0.4",
+    "puppeteer": "^25.1.0",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.4.0"
   }
