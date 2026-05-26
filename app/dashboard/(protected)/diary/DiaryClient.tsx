@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Pencil, Trash2, ChevronDown, ChevronUp } from "lucide-react"
+import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, BarChart2 } from "lucide-react"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
 
 type Entry = {
   id: string
@@ -28,6 +29,17 @@ const MOODS = [
   { value: "peaceful", emoji: "☮️", label: "Peaceful", colour: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" },
 ]
 
+const MOOD_COLOURS: Record<string, string> = {
+  grateful: "#f59e0b",
+  happy: "#eab308",
+  reflective: "#3b82f6",
+  anxious: "#f97316",
+  sad: "#6366f1",
+  motivated: "#ef4444",
+  tired: "#94a3b8",
+  peaceful: "#22c55e",
+}
+
 const MOOD_BG: Record<string, string> = {
   grateful: "border-l-4 border-l-amber-400",
   happy: "border-l-4 border-l-yellow-400",
@@ -41,6 +53,60 @@ const MOOD_BG: Record<string, string> = {
 
 function getMood(value: string | null) {
   return MOODS.find((m) => m.value === value) ?? null
+}
+
+function MoodChart({ entries }: { entries: { mood: string | null; created_at: string }[] }) {
+  const [open, setOpen] = useState(false)
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - 30)
+
+  const data = MOODS.map((m) => ({
+    label: m.emoji + " " + m.label,
+    count: entries.filter((e) => e.mood === m.value && new Date(e.created_at) >= cutoff).length,
+    colour: MOOD_COLOURS[m.value],
+  })).filter((d) => d.count > 0)
+
+  if (data.length === 0) return null
+
+  return (
+    <div className="border border-border rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors text-left"
+      >
+        <span className="flex items-center gap-2 text-sm font-medium">
+          <BarChart2 className="h-4 w-4 text-muted-foreground" />
+          Mood over the last 30 days
+        </span>
+        {open ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+      </button>
+      {open && (
+        <div className="px-4 pb-4">
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: -24 }}>
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+              <Tooltip
+                cursor={{ fill: "hsl(var(--muted))" }}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null
+                  return (
+                    <div className="bg-card border border-border rounded px-2.5 py-1.5 text-xs shadow-sm">
+                      {payload[0].payload.label}: <strong>{payload[0].value} entr{Number(payload[0].value) === 1 ? "y" : "ies"}</strong>
+                    </div>
+                  )
+                }}
+              />
+              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                {data.map((d, i) => <Cell key={i} fill={d.colour} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  )
 }
 
 const emptyForm = { title: "", content: "", mood: "" }
@@ -188,6 +254,8 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
           </DialogContent>
         </Dialog>
       </div>
+
+      <MoodChart entries={entries} />
 
       {entries.length === 0 ? (
         <div className="border border-dashed border-border rounded-xl p-10 text-center">
