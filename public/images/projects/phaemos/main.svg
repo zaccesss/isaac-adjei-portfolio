@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600">
+  <rect width="1200" height="600" fill="#0d0d0d"/>
+
+  <!-- Window chrome -->
+  <rect x="40" y="28" width="1120" height="544" rx="9" fill="#141414" stroke="#222222" stroke-width="1"/>
+  <rect x="40" y="28" width="1120" height="36" rx="9" fill="#1c1c1c"/>
+  <rect x="40" y="48" width="1120" height="16" fill="#1c1c1c"/>
+  <circle cx="68" cy="46" r="5.5" fill="#ef4444" opacity="0.85"/>
+  <circle cx="86" cy="46" r="5.5" fill="#f59e0b" opacity="0.85"/>
+  <circle cx="104" cy="46" r="5.5" fill="#22c55e" opacity="0.85"/>
+  <text x="600" y="51" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#555555">phaemos-monitor — zsh</text>
+
+  <!-- Prompt and command -->
+  <text x="68" y="90" font-family="ui-monospace,monospace" font-size="12" fill="#6b8ee8">❯</text>
+  <text x="84" y="90" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">phaemos monitor --nodes 3 --model isolation_forest --threshold -0.20</text>
+
+  <!-- Startup lines -->
+  <text x="68" y="114" font-family="ui-monospace,monospace" font-size="11.5" fill="#555555">Phaemos v1.2.0  -  Predictive Maintenance Monitor</text>
+  <text x="68" y="132" font-family="ui-monospace,monospace" font-size="11.5" fill="#555555">────────────────────────────────────────────────────────────────────────────</text>
+  <text x="68" y="152" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:42:30]</text>
+  <text x="158" y="152" font-family="ui-monospace,monospace" font-size="11.5" fill="#6b8ee8">INFO</text>
+  <text x="198" y="152" font-family="ui-monospace,monospace" font-size="11.5" fill="#cccccc">Connected: ESP32-01, ESP32-02, STM32-01</text>
+  <text x="68" y="170" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:42:30]</text>
+  <text x="158" y="170" font-family="ui-monospace,monospace" font-size="11.5" fill="#6b8ee8">INFO</text>
+  <text x="198" y="170" font-family="ui-monospace,monospace" font-size="11.5" fill="#cccccc">Model loaded: IsolationForest  n_estimators=100  contamination=0.05</text>
+
+  <!-- Divider -->
+  <line x1="68" y1="182" x2="1132" y2="182" stroke="#222222" stroke-width="1"/>
+
+  <!-- Table header -->
+  <text x="68"  y="198" font-family="ui-monospace,monospace" font-size="10.5" fill="#555555">TIMESTAMP    NODE       READING                        SCORE    STATUS</text>
+
+  <!-- Normal rows -->
+  <text x="68"  y="216" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:42:32]</text>
+  <text x="168" y="216" font-family="ui-monospace,monospace" font-size="11.5" fill="#aaaaaa">ESP32-01</text>
+  <text x="280" y="216" font-family="ui-monospace,monospace" font-size="11.5" fill="#cccccc">temp=71.8°C   pressure=1.01 bar</text>
+  <text x="720" y="216" font-family="ui-monospace,monospace" font-size="11.5" fill="#aaaaaa">+0.12</text>
+  <text x="840" y="216" font-family="ui-monospace,monospace" font-size="11.5" fill="#22c55e">NORMAL</text>
+
+  <text x="68"  y="234" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:42:33]</text>
+  <text x="168" y="234" font-family="ui-monospace,monospace" font-size="11.5" fill="#aaaaaa">STM32-01</text>
+  <text x="280" y="234" font-family="ui-monospace,monospace" font-size="11.5" fill="#cccccc">vib=1.21 mm/s  freq=44 Hz</text>
+  <text x="720" y="234" font-family="ui-monospace,monospace" font-size="11.5" fill="#aaaaaa">+0.08</text>
+  <text x="840" y="234" font-family="ui-monospace,monospace" font-size="11.5" fill="#22c55e">NORMAL</text>
+
+  <text x="68"  y="252" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:42:35]</text>
+  <text x="168" y="252" font-family="ui-monospace,monospace" font-size="11.5" fill="#aaaaaa">ESP32-02</text>
+  <text x="280" y="252" font-family="ui-monospace,monospace" font-size="11.5" fill="#cccccc">temp=69.3°C   pressure=1.02 bar</text>
+  <text x="720" y="252" font-family="ui-monospace,monospace" font-size="11.5" fill="#aaaaaa">+0.15</text>
+  <text x="840" y="252" font-family="ui-monospace,monospace" font-size="11.5" fill="#22c55e">NORMAL</text>
+
+  <text x="68"  y="270" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:42:38]</text>
+  <text x="168" y="270" font-family="ui-monospace,monospace" font-size="11.5" fill="#aaaaaa">STM32-01</text>
+  <text x="280" y="270" font-family="ui-monospace,monospace" font-size="11.5" fill="#cccccc">vib=1.54 mm/s  freq=48 Hz</text>
+  <text x="720" y="270" font-family="ui-monospace,monospace" font-size="11.5" fill="#aaaaaa">+0.06</text>
+  <text x="840" y="270" font-family="ui-monospace,monospace" font-size="11.5" fill="#22c55e">NORMAL</text>
+
+  <text x="68"  y="288" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:42:51]</text>
+  <text x="168" y="288" font-family="ui-monospace,monospace" font-size="11.5" fill="#aaaaaa">ESP32-01</text>
+  <text x="280" y="288" font-family="ui-monospace,monospace" font-size="11.5" fill="#cccccc">temp=72.4°C   pressure=1.02 bar</text>
+  <text x="720" y="288" font-family="ui-monospace,monospace" font-size="11.5" fill="#aaaaaa">+0.09</text>
+  <text x="840" y="288" font-family="ui-monospace,monospace" font-size="11.5" fill="#22c55e">NORMAL</text>
+
+  <text x="68"  y="306" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:43:04]</text>
+  <text x="168" y="306" font-family="ui-monospace,monospace" font-size="11.5" fill="#aaaaaa">STM32-01</text>
+  <text x="280" y="306" font-family="ui-monospace,monospace" font-size="11.5" fill="#cccccc">vib=2.18 mm/s  freq=67 Hz</text>
+  <text x="720" y="306" font-family="ui-monospace,monospace" font-size="11.5" fill="#f59e0b">-0.11</text>
+  <text x="840" y="306" font-family="ui-monospace,monospace" font-size="11.5" fill="#f59e0b">WARN</text>
+
+  <!-- Anomaly divider -->
+  <line x1="68" y1="318" x2="1132" y2="318" stroke="#ef444433" stroke-width="1"/>
+
+  <!-- Anomaly row - highlighted background -->
+  <rect x="56" y="322" width="1088" height="20" rx="2" fill="#ef444410"/>
+  <text x="68"  y="337" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:43:12]</text>
+  <text x="168" y="337" font-family="ui-monospace,monospace" font-size="11.5" fill="#f5f5f5">STM32-01</text>
+  <text x="280" y="337" font-family="ui-monospace,monospace" font-size="11.5" fill="#f5f5f5">vib=3.81 mm/s  freq=112 Hz</text>
+  <text x="720" y="337" font-family="ui-monospace,monospace" font-size="11.5" font-weight="700" fill="#ef4444">-0.42</text>
+  <rect x="834" y="325" width="80" height="18" rx="3" fill="#ef4444"/>
+  <text x="874" y="338" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" font-weight="700" fill="white">ANOMALY</text>
+
+  <line x1="68" y1="352" x2="1132" y2="352" stroke="#ef444433" stroke-width="1"/>
+
+  <!-- Alert block -->
+  <text x="68"  y="372" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:43:12]</text>
+  <text x="158" y="372" font-family="ui-monospace,monospace" font-size="11.5" fill="#ef4444">ALERT</text>
+  <text x="216" y="372" font-family="ui-monospace,monospace" font-size="11.5" fill="#f5f5f5">Vibration anomaly on node STM32-01  -  score -0.42 below threshold -0.20</text>
+
+  <text x="68"  y="390" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:43:12]</text>
+  <text x="158" y="390" font-family="ui-monospace,monospace" font-size="11.5" fill="#6b8ee8">TICKET</text>
+  <text x="222" y="390" font-family="ui-monospace,monospace" font-size="11.5" fill="#f5f5f5">#1847 raised  -  maintenance team notified via webhook</text>
+
+  <text x="68"  y="408" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:43:12]</text>
+  <text x="158" y="408" font-family="ui-monospace,monospace" font-size="11.5" fill="#6b8ee8">MODEL</text>
+  <text x="218" y="408" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">FFT peak 112 Hz  -  outside baseline 40-55 Hz band  -  Isolation Forest flagged</text>
+
+  <!-- Blinking cursor line -->
+  <text x="68"  y="432" font-family="ui-monospace,monospace" font-size="11.5" fill="#888888">[10:43:13]</text>
+  <text x="158" y="432" font-family="ui-monospace,monospace" font-size="11.5" fill="#6b8ee8">INFO</text>
+  <text x="198" y="432" font-family="ui-monospace,monospace" font-size="11.5" fill="#cccccc">Monitoring resumed  -  watching 3 nodes</text>
+
+  <!-- Prompt -->
+  <text x="68" y="460" font-family="ui-monospace,monospace" font-size="12" fill="#6b8ee8">❯</text>
+  <rect x="84" y="449" width="8" height="14" rx="1" fill="#6b8ee8" opacity="0.8"/>
+
+  <!-- Footer stack bar -->
+  <rect x="40" y="536" width="1120" height="36" rx="0" fill="#111111"/>
+  <rect x="40" y="536" width="1120" height="1" fill="#222222"/>
+  <text x="68" y="558" font-family="ui-monospace,monospace" font-size="10" fill="#444444">FastAPI</text>
+  <line x1="116" y1="543" x2="116" y2="563" stroke="#333333" stroke-width="1"/>
+  <text x="124" y="558" font-family="ui-monospace,monospace" font-size="10" fill="#444444">scikit-learn</text>
+  <line x1="196" y1="543" x2="196" y2="563" stroke="#333333" stroke-width="1"/>
+  <text x="204" y="558" font-family="ui-monospace,monospace" font-size="10" fill="#444444">ESP32 · STM32</text>
+  <line x1="298" y1="543" x2="298" y2="563" stroke="#333333" stroke-width="1"/>
+  <text x="306" y="558" font-family="ui-monospace,monospace" font-size="10" fill="#444444">PostgreSQL</text>
+  <line x1="376" y1="543" x2="376" y2="563" stroke="#333333" stroke-width="1"/>
+  <text x="384" y="558" font-family="ui-monospace,monospace" font-size="10" fill="#444444">Next.js dashboard</text>
+  <text x="1100" y="558" text-anchor="end" font-family="ui-monospace,monospace" font-size="10" fill="#444444">phaemos.com</text>
+</svg>
