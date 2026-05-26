@@ -253,6 +253,8 @@ export const skillCategories: SkillCategory[] = [
       },
       { name: "Fusion 360", icon: "https://cdn.simpleicons.org/autodesk" },
       { name: "AutoCAD", icon: "https://cdn.simpleicons.org/autocad" },
+      { name: "FPGA", icon: `${WIKI}/7/7c/AMD_Logo.svg` },
+      { name: "VHDL", icon: `${DEV}/embeddedc/embeddedc-original.svg` },
     ],
   },
   {
