@@ -1,21 +1,20 @@
 "use client"
 
-// Main CV page - displays my primary CV with download options
-// The iframe embeds the static HTML CV from /public/resume/cv.html
-// Download buttons use the API routes that serve PDF and Word versions
+// I display my primary CV in an iframe and offer PDF, Word and print download options.
+// The iframe embeds /resume/cv.html directly - security headers allow same-origin framing.
+// Print opens the HTML in a new tab so the browser's native print dialog works.
 
 import Link from "next/link"
 import { Download, FileText, Printer, ExternalLink, ChevronRight, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useRef } from "react"
 
 export default function CVPage() {
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-
   const handlePrint = () => {
-    if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.print()
-    }
+    // I open the HTML file in a new tab and trigger print from there because
+    // calling iframe.contentWindow.print() is blocked by same-origin scripting
+    // restrictions in some browsers even when the frame is same-origin.
+    const win = window.open("/resume/cv.html", "_blank")
+    win?.addEventListener("load", () => win.print())
   }
 
   return (
@@ -66,7 +65,6 @@ export default function CVPage() {
       <div className="container max-w-5xl py-8 px-4">
         <div className="rounded-lg border bg-white shadow-sm overflow-hidden">
           <iframe
-            ref={iframeRef}
             src="/resume/cv.html"
             className="w-full h-[800px] md:h-[1000px]"
             title="Isaac Adjei CV"

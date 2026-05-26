@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {
-    const docxPath = join(process.cwd(), "public", "resume", "cv.docx")
+    const docxPath = join(process.cwd(), "public", "resume", "Isaac_Adjei_CV.docx")
     const buffer = readFileSync(docxPath)
 
     return new NextResponse(buffer, {
