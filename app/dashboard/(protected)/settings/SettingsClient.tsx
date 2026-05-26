@@ -11,6 +11,7 @@ import {
   KeyRound, Shield, Cpu, Clock, CheckCircle2, XCircle,
   RefreshCw, Lock, Sun, Moon, Palette, Mail
 } from "lucide-react"
+import { setConfig } from "@/app/dashboard/actions"
 
 type ScraperStatus = {
   lastRun: string | null
@@ -329,7 +330,12 @@ export default function SettingsClient() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => {
+              const next = theme === "dark" ? "light" : "dark"
+              setTheme(next)
+              // I also persist to Supabase so the preference is restored on other browsers and devices
+              void setConfig("theme_preference", next)
+            }}
             className="flex items-center gap-2"
           >
             <div className="relative h-4 w-4 shrink-0">

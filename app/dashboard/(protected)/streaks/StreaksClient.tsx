@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Trash2, Flame, Trophy, Check } from "lucide-react"
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts"
 
 type Streak = {
   id: string
@@ -69,23 +70,97 @@ function calcLongestStreak(logs: Log[], streakId: string): number {
   return longest
 }
 
-// I show the last 30 days as a GitHub-style heatmap so it is immediately obvious
+// I show 90 days as a GitHub-style heatmap so it is immediately obvious
 // whether habits are consistent or patchy without needing to look at a number
 function HeatmapGrid({ logs, streakId, today }: { logs: Log[]; streakId: string; today: string }) {
   const done = new Set(logs.filter((l) => l.streak_id === streakId && l.completed).map((l) => l.date))
   const days: string[] = []
-  // I build the day array from 29 days ago to today so index 0 is the oldest and the last item is today
-  for (let i = 29; i >= 0; i--) {
+  // I build the day array from 89 days ago to today so index 0 is the oldest and the last item is today
+  for (let i = 89; i >= 0; i--) {
     const d = new Date(today)
     d.setDate(d.getDate() - i)
     days.push(d.toISOString().split("T")[0])
   }
   return (
-    <div className="flex gap-1 flex-wrap">
+    <div className="flex gap-0.5 flex-wrap">
       {days.map((d) => (
         // I put the date in the title attribute so hovering reveals the exact day
-        <div key={d} title={d} className={`w-4 h-4 rounded-sm transition-colors ${done.has(d) ? "bg-green-500" : "bg-muted"}`} />
+        <div key={d} title={d} className={`w-3 h-3 rounded-sm transition-colors ${done.has(d) ? "bg-green-500" : "bg-muted"}`} />
       ))}
+    </div>
+  )
+}
+
+const STREAK_COLOURS = ["#6366f1", "#f59e0b", "#22c55e", "#ef4444", "#3b82f6", "#ec4899", "#14b8a6", "#f97316"]
+
+function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs: Log[]; today: string }) {
+  if (streaks.length === 0) return null
+
+  // I build a day-by-day dataset for the last 90 days - each day gets a 0/1 per streak
+  const days: string[] = []
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    days.push(d.toISOString().split("T")[0])
+  }
+
+  const doneSets = new Map(streaks.map((s) => [
+    s.id,
+    new Set(logs.filter((l) => l.streak_id === s.id && l.completed).map((l) => l.date)),
+  ]))
+
+  // I sample every 7 days for the chart to keep it readable while still showing 90 days of trend
+  const sampled = days.filter((_, i) => i % 7 === 0 || i === days.length - 1)
+  const data = sampled.map((d) => {
+    const point: Record<string, string | number> = {
+      date: new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+    }
+    streaks.forEach((s) => { point[s.id] = doneSets.get(s.id)?.has(d) ? 1 : 0 })
+    return point
+  })
+
+  return (
+    <div className="border border-border rounded-xl p-4 mt-2">
+      <p className="text-sm font-medium mb-3">Activity over 90 days</p>
+      <ResponsiveContainer width="100%" height={160}>
+        <LineChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} interval={1} />
+          <YAxis domain={[0, 1]} ticks={[0, 1]} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+          <Tooltip
+            content={({ active, payload, label }) => {
+              if (!active || !payload?.length) return null
+              const checked = payload.filter((p) => p.value === 1)
+              return (
+                <div className="bg-card border border-border rounded px-2.5 py-1.5 text-xs shadow-sm">
+                  <p className="font-medium mb-1">{label}</p>
+                  {checked.length === 0
+                    ? <p className="text-muted-foreground">None checked in</p>
+                    : checked.map((p) => {
+                        const s = streaks.find((x) => x.id === String(p.dataKey))
+                        return <p key={String(p.dataKey)}>{s?.icon} {s?.name}</p>
+                      })}
+                </div>
+              )
+            }}
+          />
+          <Legend
+            formatter={(value) => {
+              const s = streaks.find((x) => x.id === value)
+              return s ? `${s.icon} ${s.name}` : value
+            }}
+            wrapperStyle={{ fontSize: 11 }}
+          />
+          {streaks.map((s, i) => (
+            <Line
+              key={s.id}
+              dataKey={s.id}
+              stroke={STREAK_COLOURS[i % STREAK_COLOURS.length]}
+              dot={false}
+              strokeWidth={2}
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   )
 }
@@ -243,19 +318,22 @@ export default function StreaksClient({ streaks: initial, logs: initialLogs, tod
           <p className="text-xs text-muted-foreground mt-1">Track daily habits and build consistency.</p>
         </div>
       ) : (
-        // I use a responsive grid so cards are single-column on mobile and 3-column on desktop
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {streaks.map((s) => (
-            <StreakCard
-              key={s.id}
-              streak={s}
-              logs={logs}      // I pass the full logs array down and let each card filter to its own streakId
-              today={today}
-              onDelete={handleDelete}
-              onCheckIn={handleCheckIn}
-            />
-          ))}
-        </div>
+        <>
+          {/* I use a responsive grid so cards are single-column on mobile and 3-column on desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {streaks.map((s) => (
+              <StreakCard
+                key={s.id}
+                streak={s}
+                logs={logs}      // I pass the full logs array down and let each card filter to its own streakId
+                today={today}
+                onDelete={handleDelete}
+                onCheckIn={handleCheckIn}
+              />
+            ))}
+          </div>
+          <StreakActivityChart streaks={streaks} logs={logs} today={today} />
+        </>
       )}
     </div>
   )
