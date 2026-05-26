@@ -269,11 +269,6 @@ const roles = ['software', 'embedded', 'data', 'devops', 'quant', 'security'];
 
 console.log('Generating CVs from data/cv.yml...\n');
 
-// Generate main CV
-const mainCV = generateMainCV();
-fs.writeFileSync(path.join(OUTPUT_DIR, 'cv.html'), mainCV);
-console.log('✓ Generated cv.html (main CV)');
-
 // Generate role-specific CVs
 for (const role of roles) {
   const cv = generateCV(role);

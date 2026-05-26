@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// I generate role-specific PDFs from the HTML CVs using headless Chromium via Puppeteer.
-// I do NOT regenerate Isaac_Adjei_CV.pdf - that is the main CV and is managed separately.
+// I generate all CVs as PDFs from their HTML sources using headless Chromium via Puppeteer.
+// Includes the main Isaac_Adjei_CV.pdf and all 6 role-specific PDFs.
 // Run: node scripts/generate-pdfs.js
 
 const puppeteer = require("puppeteer")
@@ -9,7 +9,13 @@ const fs = require("fs")
 
 const RESUME_DIR = path.join(__dirname, "..", "public", "resume")
 
-const ROLES = ["software", "embedded", "data", "devops", "quant", "security"]
+const FILES = [
+  { html: "cv.html", pdf: "Isaac_Adjei_CV.pdf" },
+  ...["software", "embedded", "data", "devops", "quant", "security"].map((r) => ({
+    html: `cv-${r}.html`,
+    pdf: `cv-${r}.pdf`,
+  })),
+]
 
 async function generatePdfs() {
   console.log("Launching headless Chromium...")
@@ -19,12 +25,12 @@ async function generatePdfs() {
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   })
 
-  for (const role of ROLES) {
-    const htmlFile = path.join(RESUME_DIR, `cv-${role}.html`)
-    const pdfFile = path.join(RESUME_DIR, `cv-${role}.pdf`)
+  for (const { html, pdf } of FILES) {
+    const htmlFile = path.join(RESUME_DIR, html)
+    const pdfFile = path.join(RESUME_DIR, pdf)
 
     if (!fs.existsSync(htmlFile)) {
-      console.warn(`  Skipping ${role}: ${htmlFile} not found`)
+      console.warn(`  Skipping ${html}: file not found`)
       continue
     }
 
@@ -37,7 +43,7 @@ async function generatePdfs() {
       margin: { top: "0", right: "0", bottom: "0", left: "0" },
     })
     await page.close()
-    console.log(`  Generated cv-${role}.pdf`)
+    console.log(`  Generated ${pdf}`)
   }
 
   await browser.close()

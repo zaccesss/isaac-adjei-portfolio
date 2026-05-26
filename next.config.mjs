@@ -50,14 +50,16 @@ const nextConfig = {
               "font-src 'self' data:",
               "img-src 'self' data: blob: https:",
               `connect-src ${connectSrc.join(" ")}`,
-              "frame-src https://challenges.cloudflare.com https://www.youtube.com https://open.spotify.com",
-              "frame-ancestors 'none'",
+              // I include 'self' so the /cv page can embed /resume/cv.html in an iframe
+              "frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://open.spotify.com",
+              // I use SAMEORIGIN instead of 'none' so the CV iframe can load same-origin content
+              "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self'",
             ].join("; "),
           },
-          // Prevent clickjacking - disallows the page being embedded in an iframe
-          { key: "X-Frame-Options", value: "DENY" },
+          // I use SAMEORIGIN so the CV preview iframe can load /resume/cv.html from the same origin
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
           // Prevent MIME type sniffing - browser must respect declared Content-Type
           { key: "X-Content-Type-Options", value: "nosniff" },
           // Force HTTPS for 2 years; include subdomains; submit for HSTS preload list
