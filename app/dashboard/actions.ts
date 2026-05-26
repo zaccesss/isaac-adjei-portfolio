@@ -657,3 +657,21 @@ export async function getDashboardSummary() {
     updatedAt: weekAgo,
   }
 }
+
+// ─── Global Search ────────────────────────────────────────────────────────────
+
+export async function getDashboardSearchData() {
+  "use server"
+  const [goals, notes, diary, applications] = await Promise.all([
+    supabase.from("goals").select("id, title, category, status").order("created_at", { ascending: false }).limit(50),
+    supabase.from("notes").select("id, title, folder").order("updated_at", { ascending: false }).limit(50),
+    supabase.from("diary").select("id, title, mood, created_at").order("created_at", { ascending: false }).limit(50),
+    supabase.from("applications").select("id, company, role, status").order("applied_date", { ascending: false }).limit(50),
+  ])
+  return {
+    goals: goals.data ?? [],
+    notes: notes.data ?? [],
+    diary: diary.data ?? [],
+    applications: applications.data ?? [],
+  }
+}

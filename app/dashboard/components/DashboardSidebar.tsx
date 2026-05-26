@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useState } from "react"
+import DashboardSearch from "@/components/dashboard/DashboardSearch"
 
 const nav = [
   { href: "/dashboard/me", label: "Me", icon: User },
@@ -89,6 +90,9 @@ export default function DashboardSidebar({
           {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
         </button>
       </div>
+
+      {/* Search */}
+      {!collapsed && <div className="py-1"><DashboardSearch /></div>}
 
       {/* Nav */}
       <nav className="flex flex-col gap-0.5 flex-1 overflow-y-auto">
