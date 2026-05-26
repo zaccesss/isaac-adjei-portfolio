@@ -19,6 +19,7 @@ const currentProjects = [
     description:
       "Full-stack predictive maintenance platform. FastAPI backend, Isolation Forest anomaly detection, Next.js live dashboard, ESP32 and STM32 firmware. Actively adding features, improving the ML pipeline and working towards a production deployment.",
     projectHref: "/projects/phaemos",
+    websiteHref: "https://phaemos.com",
     githubHref: "https://github.com/zaccesss/phaemos",
   },
   {
@@ -37,11 +38,12 @@ const currentProjects = [
     githubHref: "https://github.com/zaccesss/ba-from-data-to-decisions",
   },
   {
-    name: "zaccess.com",
+    name: "Business Website",
     badge: "Ongoing",
     description:
-      "Still deciding on exactly what to do on that site, but keeping it terminal style for now. Suggestions welcome, use the contact form or type 'suggest' in the lab terminal.",
-    projectHref: "https://zaccess.com",
+      "A terminal-style personal site that will evolve into a business presence. The direction is not fully set yet - it will likely serve whatever venture comes next. Keeping the terminal aesthetic for now and using it as a playground for ideas. Suggestions welcome via the contact form or by typing 'suggest' in the lab terminal.",
+    projectHref: "/projects/zacess-pages",
+    websiteHref: "https://zacess.com",
     githubHref: "https://github.com/zaccesss/zacess-pages",
   },
 ]
@@ -83,6 +85,17 @@ export default function NotesPage() {
                     Project page
                   </Link>
                 )}
+                {p.websiteHref && (
+                  <a
+                    href={p.websiteHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Website
+                  </a>
+                )}
                 {p.githubHref && (
                   <a
                     href={p.githubHref}
@@ -98,45 +111,6 @@ export default function NotesPage() {
               <p className="text-sm">{p.description}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      <Separator />
-
-      {/* Summer 2026 plans */}
-      <section className="space-y-5">
-        <div className="flex items-center gap-3">
-          <CalendarDays className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-bold">Summer 2026 Plans</h2>
-        </div>
-        <div className="space-y-3 text-muted-foreground text-sm">
-          <p>
-            Summer 2026 is about building things that matter and documenting them properly. The
-            plan:
-          </p>
-          <ul className="space-y-2 list-none">
-            <li className="flex gap-2">
-              <span className="text-primary shrink-0 mt-0.5">→</span>
-              <span>
-                Publish the remaining blog posts and keep the newsletter active with regular issues
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-primary shrink-0 mt-0.5">→</span>
-              <span>Complete the avr-zac state machine project and document it fully</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-primary shrink-0 mt-0.5">→</span>
-              <span>Start the World Cup AI predictor project (see below)</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-primary shrink-0 mt-0.5">→</span>
-              <span>
-                Begin deep research into retinoblastoma, ocular prosthetics and bio-integrated
-                health technology
-              </span>
-            </li>
-          </ul>
         </div>
       </section>
 
@@ -213,6 +187,61 @@ export default function NotesPage() {
 
       <Separator />
 
+      {/* Summer 2026 plans */}
+      <section className="space-y-5">
+        <div className="flex items-center gap-3">
+          <CalendarDays className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold">Summer 2026 Plans</h2>
+        </div>
+        <div className="space-y-3 text-muted-foreground text-sm">
+          <p>
+            Summer 2026 is about building things that matter and documenting them properly. The
+            plan:
+          </p>
+          <ul className="space-y-2 list-none">
+            <li className="flex gap-2">
+              <span className="text-primary shrink-0 mt-0.5">→</span>
+              <span>Prepare for next academic year - reviewing modules, getting ahead on coursework and sharpening fundamentals</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary shrink-0 mt-0.5">→</span>
+              <span>Learn FPGA development and VHDL - starting from scratch and working up to real hardware designs</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary shrink-0 mt-0.5">→</span>
+              <span>Get serious about competitive programming - consistent Codeforces practice and improving my rating</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary shrink-0 mt-0.5">→</span>
+              <span>
+                Publish the remaining blog posts and keep the newsletter active with regular issues
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary shrink-0 mt-0.5">→</span>
+              <span>Complete the avr-zac state machine project and document it fully</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary shrink-0 mt-0.5">→</span>
+              <span>Start the World Cup AI predictor project (see above)</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary shrink-0 mt-0.5">→</span>
+              <span>
+                Begin deep research into retinoblastoma, ocular prosthetics and bio-integrated
+                health technology
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-primary shrink-0 mt-0.5">→</span>
+              <span>Study fields outside engineering and tech - business, psychology, economics and anything else worth understanding</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <Separator />
+
       {/* Lab link */}
       <Link
         href="/lab"
@@ -234,6 +263,10 @@ export default function NotesPage() {
           <Terminal className="h-4 w-4 text-primary/40 group-hover:text-primary transition-colors ml-auto shrink-0" />
         </div>
       </Link>
+
+      <p className="text-xs text-muted-foreground font-mono text-center">
+        Last updated May 2026
+      </p>
 
     </div>
   )

@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750">
+  <rect width="1200" height="750" fill="#111111"/>
+  <rect x="48" y="32" width="1104" height="686" rx="10" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1"/>
+  <rect x="48" y="32" width="1104" height="42" rx="10" fill="#1f1f1f"/>
+  <rect x="48" y="52" width="1104" height="22" fill="#1f1f1f"/>
+  <circle cx="80" cy="53" r="6" fill="#ef4444" opacity="0.9"/>
+  <circle cx="100" cy="53" r="6" fill="#f59e0b" opacity="0.9"/>
+  <circle cx="120" cy="53" r="6" fill="#22c55e" opacity="0.9"/>
+  <text x="600" y="58" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="12" fill="#666666">Phaemos - Predictive Maintenance Dashboard</text>
+
+  <!-- Stat cards -->
+  <rect x="76" y="100" width="330" height="118" rx="8" fill="#202020" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="96" y="126" font-family="system-ui,-apple-system,sans-serif" font-size="10" letter-spacing="1" fill="#888888">TEMPERATURE</text>
+  <text x="96" y="172" font-family="system-ui,-apple-system,sans-serif" font-size="40" font-weight="700" fill="#f5f5f5">72.4°C</text>
+  <rect x="96" y="188" width="8" height="8" rx="4" fill="#22c55e"/>
+  <text x="110" y="197" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#22c55e">Normal · ESP32 sensor 1</text>
+
+  <rect x="435" y="100" width="330" height="118" rx="8" fill="#202020" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="455" y="126" font-family="system-ui,-apple-system,sans-serif" font-size="10" letter-spacing="1" fill="#888888">VIBRATION</text>
+  <text x="455" y="172" font-family="system-ui,-apple-system,sans-serif" font-size="40" font-weight="700" fill="#f5f5f5">3.81 mm/s</text>
+  <rect x="455" y="188" width="8" height="8" rx="4" fill="#ef4444"/>
+  <text x="469" y="197" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#ef4444">Anomaly · STM32 sensor 3</text>
+
+  <rect x="794" y="100" width="330" height="118" rx="8" fill="#202020" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="814" y="126" font-family="system-ui,-apple-system,sans-serif" font-size="10" letter-spacing="1" fill="#888888">PRESSURE</text>
+  <text x="814" y="172" font-family="system-ui,-apple-system,sans-serif" font-size="40" font-weight="700" fill="#f5f5f5">1.02 bar</text>
+  <rect x="814" y="188" width="8" height="8" rx="4" fill="#22c55e"/>
+  <text x="828" y="197" font-family="system-ui,-apple-system,sans-serif" font-size="11" fill="#22c55e">Normal · ESP32 sensor 2</text>
+
+  <!-- Chart -->
+  <rect x="76" y="244" width="1048" height="310" rx="8" fill="#181818" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="96" y="270" font-family="system-ui,-apple-system,sans-serif" font-size="12" fill="#888888">Vibration - 24 h rolling window</text>
+  <line x1="120" y1="510" x2="1104" y2="510" stroke="#252525" stroke-width="1"/>
+  <line x1="120" y1="460" x2="1104" y2="460" stroke="#252525" stroke-width="1"/>
+  <line x1="120" y1="410" x2="1104" y2="410" stroke="#252525" stroke-width="1"/>
+  <line x1="120" y1="360" x2="1104" y2="360" stroke="#252525" stroke-width="1"/>
+  <line x1="120" y1="310" x2="1104" y2="310" stroke="#252525" stroke-width="1"/>
+  <line x1="120" y1="284" x2="1104" y2="284" stroke="#252525" stroke-width="1"/>
+  <text x="112" y="514" text-anchor="end" font-family="ui-monospace,monospace" font-size="9" fill="#555555">0.0</text>
+  <text x="112" y="464" text-anchor="end" font-family="ui-monospace,monospace" font-size="9" fill="#555555">1.0</text>
+  <text x="112" y="414" text-anchor="end" font-family="ui-monospace,monospace" font-size="9" fill="#555555">2.0</text>
+  <text x="112" y="364" text-anchor="end" font-family="ui-monospace,monospace" font-size="9" fill="#555555">3.0</text>
+  <text x="112" y="314" text-anchor="end" font-family="ui-monospace,monospace" font-size="9" fill="#555555">4.0</text>
+  <text x="112" y="288" text-anchor="end" font-family="ui-monospace,monospace" font-size="9" fill="#555555">4.5</text>
+  <text x="120" y="528" font-family="ui-monospace,monospace" font-size="9" fill="#555555">00:00</text>
+  <text x="317" y="528" font-family="ui-monospace,monospace" font-size="9" fill="#555555">06:00</text>
+  <text x="514" y="528" font-family="ui-monospace,monospace" font-size="9" fill="#555555">12:00</text>
+  <text x="711" y="528" font-family="ui-monospace,monospace" font-size="9" fill="#555555">18:00</text>
+  <text x="1060" y="528" font-family="ui-monospace,monospace" font-size="9" fill="#555555">now</text>
+  <polyline points="120,496 170,492 220,497 270,490 320,494 370,488 420,493 470,489 520,495 570,491 620,487 670,493 720,489 770,486 820,490 870,484 900,488" fill="none" stroke="#6b8ee8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+  <rect x="900" y="284" width="160" height="226" fill="#ef444408" rx="2"/>
+  <line x1="900" y1="284" x2="900" y2="510" stroke="#ef4444" stroke-width="1" stroke-dasharray="5,4" opacity="0.5"/>
+  <line x1="1060" y1="284" x2="1060" y2="510" stroke="#ef4444" stroke-width="1" stroke-dasharray="5,4" opacity="0.5"/>
+  <polyline points="900,488 920,470 940,420 960,300 975,290 990,310 1005,350 1020,400 1040,450 1060,475 1085,488 1104,490" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="908" y="287" width="130" height="22" rx="4" fill="#ef4444"/>
+  <text x="973" y="302" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="11" font-weight="600" fill="white">Anomaly Detected</text>
+
+  <!-- Footer -->
+  <rect x="76" y="578" width="1048" height="114" rx="8" fill="#181818" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="96" y="604" font-family="system-ui,-apple-system,sans-serif" font-size="10" letter-spacing="1" fill="#666666">MODEL</text>
+  <text x="96" y="626" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">Isolation Forest</text>
+  <text x="96" y="644" font-family="ui-monospace,monospace" font-size="11" fill="#888888">contamination=0.05  n_estimators=100</text>
+  <text x="96" y="662" font-family="ui-monospace,monospace" font-size="11" fill="#888888">FastAPI backend · Next.js live dashboard</text>
+  <line x1="400" y1="594" x2="400" y2="676" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="420" y="604" font-family="system-ui,-apple-system,sans-serif" font-size="10" letter-spacing="1" fill="#666666">FIRMWARE</text>
+  <text x="420" y="626" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">ESP32 · STM32</text>
+  <text x="420" y="644" font-family="ui-monospace,monospace" font-size="11" fill="#888888">RTOS task scheduling · I2C sensor polling</text>
+  <text x="420" y="662" font-family="ui-monospace,monospace" font-size="11" fill="#888888">MQTT telemetry to FastAPI ingest endpoint</text>
+  <line x1="760" y1="594" x2="760" y2="676" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="780" y="604" font-family="system-ui,-apple-system,sans-serif" font-size="10" letter-spacing="1" fill="#666666">STATUS</text>
+  <rect x="780" y="614" width="8" height="8" rx="4" fill="#22c55e"/>
+  <text x="794" y="623" font-family="ui-monospace,monospace" font-size="12" fill="#22c55e">Live · 3 sensors active</text>
+  <text x="780" y="644" font-family="ui-monospace,monospace" font-size="11" fill="#888888">Last anomaly: vibration sensor 3</text>
+  <text x="780" y="662" font-family="ui-monospace,monospace" font-size="11" fill="#888888">Score: -0.42 · threshold -0.20</text>
+</svg>

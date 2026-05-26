@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600">
+  <rect width="1200" height="600" fill="#1e1e1e"/>
+
+  <!-- Window chrome -->
+  <rect x="0" y="0" width="1200" height="36" fill="#2d2d2d"/>
+  <circle cx="24" cy="18" r="5.5" fill="#ef4444" opacity="0.85"/>
+  <circle cx="42" cy="18" r="5.5" fill="#f59e0b" opacity="0.85"/>
+  <circle cx="60" cy="18" r="5.5" fill="#22c55e" opacity="0.85"/>
+
+  <!-- Tab -->
+  <rect x="88" y="6" width="180" height="24" rx="4" fill="#1e1e1e"/>
+  <text x="108" y="23" font-family="ui-monospace,monospace" font-size="11" fill="#cccccc">06_state_machine.c</text>
+  <rect x="290" y="6" width="160" height="24" rx="4" fill="#2d2d2d"/>
+  <text x="306" y="23" font-family="ui-monospace,monospace" font-size="11" fill="#888888">04_interrupt_buzzer.c</text>
+
+  <!-- Line numbers gutter -->
+  <rect x="0" y="36" width="52" height="564" fill="#1e1e1e"/>
+  <line x1="52" y1="36" x2="52" y2="600" stroke="#333333" stroke-width="1"/>
+
+  <!-- Line numbers -->
+  <text x="40" y="60"  text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">1</text>
+  <text x="40" y="79"  text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">2</text>
+  <text x="40" y="98"  text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">3</text>
+  <text x="40" y="117" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">4</text>
+  <text x="40" y="136" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">5</text>
+  <text x="40" y="155" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">6</text>
+  <text x="40" y="174" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">7</text>
+  <text x="40" y="193" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">8</text>
+  <text x="40" y="212" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">9</text>
+  <text x="40" y="231" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">10</text>
+  <text x="40" y="250" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">11</text>
+  <text x="40" y="269" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">12</text>
+  <text x="40" y="288" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">13</text>
+  <text x="40" y="307" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">14</text>
+  <text x="40" y="326" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">15</text>
+  <text x="40" y="345" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">16</text>
+  <text x="40" y="364" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">17</text>
+  <text x="40" y="383" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">18</text>
+  <text x="40" y="402" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">19</text>
+  <text x="40" y="421" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">20</text>
+  <text x="40" y="440" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">21</text>
+  <text x="40" y="459" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">22</text>
+  <text x="40" y="478" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">23</text>
+  <text x="40" y="497" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">24</text>
+  <text x="40" y="516" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">25</text>
+  <text x="40" y="535" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">26</text>
+  <text x="40" y="554" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">27</text>
+  <text x="40" y="573" text-anchor="end" font-family="ui-monospace,monospace" font-size="12" fill="#555555">28</text>
+
+  <!-- Code content -->
+  <!-- Line 1: include -->
+  <text x="68" y="60" font-family="ui-monospace,monospace" font-size="12" fill="#c586c0">#include</text>
+  <text x="138" y="60" font-family="ui-monospace,monospace" font-size="12" fill="#ce9178"> &lt;avr/io.h&gt;</text>
+
+  <!-- Line 2: include -->
+  <text x="68" y="79" font-family="ui-monospace,monospace" font-size="12" fill="#c586c0">#include</text>
+  <text x="138" y="79" font-family="ui-monospace,monospace" font-size="12" fill="#ce9178"> &lt;avr/interrupt.h&gt;</text>
+
+  <!-- Line 3: blank -->
+
+  <!-- Line 4: define -->
+  <text x="68" y="117" font-family="ui-monospace,monospace" font-size="12" fill="#c586c0">#define</text>
+  <text x="130" y="117" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe"> NUM_MODES</text>
+  <text x="254" y="117" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8"> 9</text>
+
+  <!-- Line 5: blank -->
+
+  <!-- Line 6: comment -->
+  <text x="68" y="155" font-family="ui-monospace,monospace" font-size="12" fill="#6a9955">// volatile so the ISR and main loop share the same updated value</text>
+
+  <!-- Line 7: volatile -->
+  <text x="68" y="174" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">volatile </text>
+  <text x="142" y="174" font-family="ui-monospace,monospace" font-size="12" fill="#4ec9b0">uint8_t </text>
+  <text x="206" y="174" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">mode </text>
+  <text x="248" y="174" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">= </text>
+  <text x="262" y="174" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">0</text>
+  <text x="270" y="174" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">;</text>
+
+  <!-- Line 8: blank -->
+
+  <!-- Line 9: ISR comment -->
+  <text x="68" y="212" font-family="ui-monospace,monospace" font-size="12" fill="#6a9955">// INT0 fires on falling edge - EICRA = (1&lt;&lt;ISC01), EIMSK = (1&lt;&lt;INT0)</text>
+
+  <!-- Line 10: ISR -->
+  <text x="68" y="231" font-family="ui-monospace,monospace" font-size="12" fill="#dcdcaa">ISR</text>
+  <text x="92" y="231" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">(</text>
+  <text x="100" y="231" font-family="ui-monospace,monospace" font-size="12" fill="#4ec9b0">INT0_vect</text>
+  <text x="190" y="231" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">) {</text>
+
+  <!-- Line 11: body -->
+  <text x="68" y="250" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">    mode </text>
+  <text x="140" y="250" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">= (</text>
+  <text x="164" y="250" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">mode </text>
+  <text x="206" y="250" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">+ </text>
+  <text x="220" y="250" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">1</text>
+  <text x="228" y="250" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">) % </text>
+  <text x="264" y="250" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">NUM_MODES</text>
+  <text x="364" y="250" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">;</text>
+
+  <!-- Line 12: closing brace -->
+  <text x="68" y="269" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">}</text>
+
+  <!-- Line 13: blank -->
+
+  <!-- Line 14: current line highlight -->
+  <rect x="52" y="277" width="1148" height="19" fill="#264f78" opacity="0.4"/>
+  <text x="68" y="288" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">switch </text>
+  <text x="124" y="288" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">(</text>
+  <text x="132" y="288" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">mode</text>
+  <text x="172" y="288" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">) {</text>
+
+  <!-- Line 15-22: cases -->
+  <text x="68" y="307" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">    case </text>
+  <text x="126" y="307" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">0</text>
+  <text x="134" y="307" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">: </text>
+  <text x="150" y="307" font-family="ui-monospace,monospace" font-size="12" fill="#dcdcaa">run_chase</text>
+  <text x="240" y="307" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">();</text>
+  <text x="296" y="307" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">break</text>
+  <text x="346" y="307" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">;</text>
+  <text x="520" y="307" font-family="ui-monospace,monospace" font-size="12" fill="#6a9955">// LEDs chase sequence on PORTB</text>
+
+  <text x="68" y="326" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">    case </text>
+  <text x="126" y="326" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">1</text>
+  <text x="134" y="326" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">: </text>
+  <text x="150" y="326" font-family="ui-monospace,monospace" font-size="12" fill="#dcdcaa">run_blink_all</text>
+  <text x="284" y="326" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">();</text>
+  <text x="340" y="326" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">break</text>
+  <text x="390" y="326" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">;</text>
+
+  <text x="68" y="345" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">    case </text>
+  <text x="126" y="345" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">3</text>
+  <text x="134" y="345" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">: </text>
+  <text x="150" y="345" font-family="ui-monospace,monospace" font-size="12" fill="#dcdcaa">run_pwm_fade</text>
+  <text x="280" y="345" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">();</text>
+  <text x="336" y="345" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">break</text>
+  <text x="386" y="345" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">;</text>
+  <text x="520" y="345" font-family="ui-monospace,monospace" font-size="12" fill="#6a9955">// Timer0 PWM  OCR0A drives duty cycle</text>
+
+  <text x="68" y="364" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">    case </text>
+  <text x="126" y="364" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">4</text>
+  <text x="134" y="364" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">: </text>
+  <text x="150" y="364" font-family="ui-monospace,monospace" font-size="12" fill="#dcdcaa">run_knight_rider</text>
+  <text x="318" y="364" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">();</text>
+  <text x="374" y="364" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">break</text>
+  <text x="424" y="364" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">;</text>
+
+  <text x="68" y="383" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">    case </text>
+  <text x="126" y="383" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">5</text>
+  <text x="134" y="383" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">: </text>
+  <text x="150" y="383" font-family="ui-monospace,monospace" font-size="12" fill="#dcdcaa">run_binary_counter</text>
+  <text x="346" y="383" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">();</text>
+  <text x="402" y="383" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">break</text>
+  <text x="452" y="383" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">;</text>
+  <text x="520" y="383" font-family="ui-monospace,monospace" font-size="12" fill="#6a9955">// PORTB as 8-bit binary output</text>
+
+  <text x="68" y="402" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">    case </text>
+  <text x="126" y="402" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">6</text>
+  <text x="134" y="402" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">: </text>
+  <text x="150" y="402" font-family="ui-monospace,monospace" font-size="12" fill="#dcdcaa">run_random</text>
+  <text x="248" y="402" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">();</text>
+  <text x="304" y="402" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">break</text>
+  <text x="354" y="402" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">;</text>
+  <text x="520" y="402" font-family="ui-monospace,monospace" font-size="12" fill="#6a9955">// seed from ADC noise on floating PA0</text>
+
+  <text x="68" y="421" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">    case </text>
+  <text x="126" y="421" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">7</text>
+  <text x="134" y="421" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">: </text>
+  <text x="150" y="421" font-family="ui-monospace,monospace" font-size="12" fill="#dcdcaa">run_reaction_game</text>
+  <text x="336" y="421" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">();</text>
+  <text x="392" y="421" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">break</text>
+  <text x="442" y="421" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">;</text>
+
+  <text x="68" y="440" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">    case </text>
+  <text x="126" y="440" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">8</text>
+  <text x="134" y="440" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">: </text>
+  <text x="150" y="440" font-family="ui-monospace,monospace" font-size="12" fill="#dcdcaa">run_tetris_melody</text>
+  <text x="334" y="440" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">();</text>
+  <text x="390" y="440" font-family="ui-monospace,monospace" font-size="12" fill="#569cd6">break</text>
+  <text x="440" y="440" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">;</text>
+  <text x="520" y="440" font-family="ui-monospace,monospace" font-size="12" fill="#6a9955">// Timer1 tone generation on OC1A</text>
+
+  <text x="68" y="459" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">}</text>
+
+  <!-- blank line -->
+
+  <!-- PWM register setup -->
+  <text x="68" y="497" font-family="ui-monospace,monospace" font-size="12" fill="#6a9955">// fast PWM mode, non-inverting, prescaler /8</text>
+  <text x="68" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">TCCR0A </text>
+  <text x="146" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">= (</text>
+  <text x="170" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">1</text>
+  <text x="178" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">&lt;&lt;</text>
+  <text x="196" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">COM0A1</text>
+  <text x="256" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">) | (</text>
+  <text x="292" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">1</text>
+  <text x="300" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">&lt;&lt;</text>
+  <text x="318" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">WGM01</text>
+  <text x="366" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">) | (</text>
+  <text x="402" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">1</text>
+  <text x="410" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">&lt;&lt;</text>
+  <text x="428" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">WGM00</text>
+  <text x="476" y="516" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">);</text>
+
+  <text x="68" y="535" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">TCCR0B </text>
+  <text x="146" y="535" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">= (</text>
+  <text x="170" y="535" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">1</text>
+  <text x="178" y="535" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">&lt;&lt;</text>
+  <text x="196" y="535" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">CS01</text>
+  <text x="232" y="535" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">);</text>
+
+  <text x="68" y="554" font-family="ui-monospace,monospace" font-size="12" fill="#9cdcfe">OCR0A  </text>
+  <text x="146" y="554" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">= </text>
+  <text x="162" y="554" font-family="ui-monospace,monospace" font-size="12" fill="#b5cea8">127</text>
+  <text x="186" y="554" font-family="ui-monospace,monospace" font-size="12" fill="#f5f5f5">;</text>
+  <text x="520" y="554" font-family="ui-monospace,monospace" font-size="12" fill="#6a9955">// 50% duty cycle on PB3 / OC0A</text>
+
+  <!-- status bar -->
+  <rect x="0" y="574" width="1200" height="26" fill="#007acc"/>
+  <text x="12" y="591" font-family="ui-monospace,monospace" font-size="10" fill="white">ATmega644P  -  avr-zac/src/06_state_machine.c</text>
+  <text x="600" y="591" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" fill="white">Ln 14, Col 1</text>
+  <text x="1188" y="591" text-anchor="end" font-family="ui-monospace,monospace" font-size="10" fill="white">C  UTF-8  avr-gcc</text>
+</svg>
