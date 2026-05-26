@@ -9,6 +9,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Notes page: Business Website renamed, link corrected to zacess.com, project page now points to internal project, live site link added alongside phaemos.com link for Phaemos
+- Notes page: Upcoming Projects moved above Summer Plans, Summer Plans expanded with FPGA/VHDL, competitive programming, academic prep and broader interests, "Last updated May 2026" added at bottom
+- Notes page: Business Website description rewritten to reflect future business direction
+- Projects: avr-zac and Phaemos marked as featured with SVG gallery images - terminal monitor, pipeline diagram and dashboard for Phaemos, chip diagram, code editor and state machine for avr-zac
+- Projects: git-unlocked SVG banner added to gallery, viewBox corrected to remove transparent dead space
+- Projects: NeoPixel preview image updated to neopixel-main.jpg, full image set in gallery
+- Projects: Business Website renamed from "zacess.com - Interactive Terminal", description updated
 - CV updated to target one page: profile rewritten, skills headings renamed (Skills (Professional and Technical), Web and Frameworks, AI/ML and Data), Jupyter Notebooks added, git-unlocked corrected to 217+ files, volunteer roles merged to one bullet each, bold key terms added, AstonCV website link updated
 
 ### Fixed

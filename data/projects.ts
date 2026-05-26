@@ -67,7 +67,7 @@ export const projects: Project[] = [
     category: "embedded",
     featured: true,
     images: [
-      "/images/projects/led-cube/main.jpeg",
+      "/images/projects/led-cube/neopixel-main.jpg",
       "/images/projects/led-cube/cube-lit-2.jpeg",
       "/images/projects/led-cube/final-setup.jpeg",
       "/images/projects/led-cube/build-layer.jpeg",
@@ -76,6 +76,7 @@ export const projects: Project[] = [
       "/images/projects/led-cube/internals-2.jpeg",
       "/images/projects/led-cube/power-circuit.jpeg",
       "/images/projects/led-cube/build-lit.jpeg",
+      "/images/projects/led-cube/main.jpeg",
     ],
     github: "https://github.com/zaccesss/neopixel-led-cube-project",
     video: "/Media/neopixel-description.mp4",
@@ -131,9 +132,9 @@ export const projects: Project[] = [
   },
   {
     id: "zacess-pages",
-    title: "zacess.com - Interactive Terminal",
+    title: "Business Website",
     description:
-      "Terminal-style landing page for zacess.com - behaves like a real CLI session in the browser, built with Next.js 14 and TypeScript",
+      "Personal website at zacess.com with a terminal-style interface, built with Next.js 14 and TypeScript. Currently evolving into a full business presence - direction not fully set yet but the foundation is live.",
     longDescription:
       "zacess-pages is a terminal-style landing page for zacess.com, built as a proper Next.js 14 App Router application with TypeScript and Tailwind CSS. It behaves like a genuine CLI session rather than a styled webpage pretending to be one. A ZacessOS boot sequence plays on load with staggered delays, then the prompt activates with a blinking block cursor. The terminal supports command history via up/down arrow keys, tab autocomplete (single match completes immediately, multiple matches lists all options), line-by-line output with a 20ms per-line delay and a suggest mode that collects typed input and fires a pre-filled mailto link.\n\nThe core challenge was making the terminal feel real rather than decorative. Real terminals have history, autocomplete with multi-match disambiguation, deliberate output pacing and a clear distinction between navigation and local commands. Each of these had to be implemented from scratch in React state because a div with a monospaced font is not a terminal. The boot sequence uses staggered timeouts rather than CSS animation so each line appears after the previous one completes, which reads as sequential system output rather than a scripted effect.\n\nNavigation commands (whoiszac, about, projects, experience, skills, blog, contact, links) open the corresponding pages on isaacadjei.me in new tabs. Local commands include cv (downloads PDF), collaborate (opens mail client with pre-filled subject), status (shows build state) and clear (preserves the boot lines). Three hidden easter egg commands reward curious visitors. A ZenQuotes daily motivation quote is fetched via a Next.js server-side API route that proxies the public API to avoid CORS, refreshing every 30 minutes.\n\nMac-style window controls (close, minimise, maximise, new tab) are fully functional. The terminal uses a three-layer colour scheme: cyan prompt, green commands, amber output. A subtle yellow border glow gives depth, the scrollbar is styled to match the palette and terminal colours never change regardless of system light or dark mode. The site is deployed on Vercel with automatic deploys on push to main and Cloudflare DNS routing zacess.com and www.zacess.com.",
     technologies: ["Next.js 14", "TypeScript", "Tailwind CSS", "Vercel", "Cloudflare"],
@@ -251,7 +252,9 @@ export const projects: Project[] = [
     ],
     category: "other",
     featured: true,
-    images: [],
+    images: [
+      "/images/projects/git-unlocked/git_unlocked_banner.svg",
+    ],
     github: "https://github.com/zaccesss/git-unlocked",
     date: "2026",
     highlights: [
@@ -291,7 +294,11 @@ export const projects: Project[] = [
     ],
     category: "software",
     featured: true,
-    images: [],
+    images: [
+      "/images/projects/phaemos/dashboard.svg",
+      "/images/projects/phaemos/main.svg",
+      "/images/projects/phaemos/pipeline.svg",
+    ],
     github: "https://github.com/zaccesss/phaemos",
     demo: "https://phaemos.com",
     date: "2025 - Present",
@@ -314,9 +321,13 @@ export const projects: Project[] = [
       "A personal project to learn bare metal AVR C development, writing directly to hardware registers without any framework or abstraction layer. The ATmega644P runs at 20 MHz on a custom PCB designed by Richard Reeves (lab technician at Aston University) with an external crystal, LM317T voltage regulator and 10-way ISP headers breaking out all 32 I/O pins. Programming is handled by a Pololu USB AVR Programmer v2.1 via STK500v2, with the -B 10 ISP clock flag required to avoid timeout errors. Richard Reeves also provided components and guidance throughout.\n\nThe purpose of the project is to understand what microcontroller code is actually doing at the register level before using higher-level tools that abstract it away. Working without Arduino or any HAL means reading the datasheet for every peripheral before writing a single line of code. Understanding why EICRA sets the interrupt sense control, why EIMSK enables the specific interrupt and why sei() must come last builds intuition that transfers to any MCU architecture. Every project in the repo represents a new concept understood at that level, not just code that works.\n\nSeven projects progress from a basic LED blink through GPIO manipulation, button polling, interrupt-driven input, software PWM and ADC to a full nine-mode state machine. 00_fuse_test establishes the correct fuse configuration for the external crystal. 01_blink proves the toolchain with a double blink on PB0. 02_led_cycle sequences five LEDs using bit shifting on PORTB. 03_button_polling drives a buzzer by reading PIND. 04_interrupt_buzzer replaces polling with a hardware INT0 ISR, EICRA, EIMSK and sei(). 05_state_machine_basic builds a four-mode machine using enum, ISR and software debounce. The final project, 06_state_machine, implements nine modes cycling on each button press via a volatile mode variable updated inside an INT0 ISR: Chase, Blink All, Alternate, PWM Fade, Knight Rider, Binary Counter, Random (seeded from ADC noise on a floating pin), Reaction Game and Tetris Melody - the last two combining ADC noise seeding and buzzer tone sequencing with LED synchronisation.\n\nAll code can be built with PlatformIO in VS Code or Microchip Studio 7. The repo ships with WORKFLOW.md (full IDE setup, environment switching, build tasks and troubleshooting), docs/wiring.md (current breadboard connections and header pin tables), docs/hardware_notes.md (fuse settings, ISP clock speed, register map and ADC configuration), hardware/pcb_notes.md (component list, connector pinout, power supply circuit and soldering order), the original AVR Project PCB 2019 schematic PDF and the full ATmega644P datasheet. Eight session notes each have a reference document and hands-on lab exercises covering AVR C fundamentals, bit shifting and data types, inputs and interrupts, timers, hardware PWM, UART transmission, ADC and UART reception. MIT licensed and actively being extended.",
     technologies: ["C", "Embedded C", "ATmega644P", "PlatformIO", "Microchip Studio", "AVR", "State Machines", "Interrupts", "PWM", "ADC"],
     category: "embedded",
-    featured: false,
+    featured: true,
     ongoing: true,
-    images: [],
+    images: [
+      "/images/projects/avr-zac/chip.svg",
+      "/images/projects/avr-zac/main.svg",
+      "/images/projects/avr-zac/statemachine.svg",
+    ],
     github: "https://github.com/zaccesss/avr-zac",
     date: "2026 - Present",
     highlights: [

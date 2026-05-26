@@ -11,34 +11,35 @@ export default function Footer() {
 
   return (
     <footer className="border-t py-12">
-      <div className="container flex flex-col items-center gap-10 text-center">
+      <div className="container flex flex-col items-center gap-6 text-center">
         <SocialLinks showLabel className="justify-center" />
 
         <FooterNewsletter />
 
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>&copy; {year} Isaac Adjei</span>
-          <span aria-hidden="true">·</span>
-          <Link
-            href="/all-pages"
-            className="hover:text-foreground transition-colors"
-          >
-            All Pages
-          </Link>
-          <span aria-hidden="true">·</span>
-          <Link
-            href="/privacy"
-            className="hover:text-foreground transition-colors"
-          >
-            Privacy Policy
-          </Link>
-          <span aria-hidden="true">·</span>
-          <Link
-            href="/security-policy"
-            className="hover:text-foreground transition-colors"
-          >
-            Security Policy
-          </Link>
+        <div className="flex flex-col items-center gap-6">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <Link
+              href="/all-pages"
+              className="hover:text-foreground transition-colors"
+            >
+              All Pages
+            </Link>
+            <span aria-hidden="true">·</span>
+            <Link
+              href="/privacy"
+              className="hover:text-foreground transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <span aria-hidden="true">·</span>
+            <Link
+              href="/security-policy"
+              className="hover:text-foreground transition-colors"
+            >
+              Security Policy
+            </Link>
+          </div>
+          <span className="text-xs text-muted-foreground">&copy; {year} Isaac Adjei</span>
         </div>
       </div>
     </footer>
