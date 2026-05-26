@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import DashboardSidebar from "../components/DashboardSidebar"
 import InactivityGuard from "@/components/dashboard/InactivityGuard"
 import QuickCapture from "@/components/dashboard/QuickCapture"
+import ShortcutHelp from "@/components/dashboard/ShortcutHelp"
 import { Toaster } from "sonner"
 
 // I set the metadata here so all protected dashboard pages inherit this title without
@@ -29,6 +30,7 @@ export default async function ProtectedDashboardLayout({
         {children}
       </main>
       <QuickCapture />
+      <ShortcutHelp />
       <Toaster richColors position="bottom-right" />
     </div>
   )
