@@ -2,6 +2,8 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import DashboardSidebar from "../components/DashboardSidebar"
 import InactivityGuard from "@/components/dashboard/InactivityGuard"
+import QuickCapture from "@/components/dashboard/QuickCapture"
+import { Toaster } from "sonner"
 
 // I set the metadata here so all protected dashboard pages inherit this title without
 // affecting the root layout used by the public site
@@ -26,6 +28,8 @@ export default async function ProtectedDashboardLayout({
       <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-auto min-w-0">
         {children}
       </main>
+      <QuickCapture />
+      <Toaster richColors position="bottom-right" />
     </div>
   )
 }
