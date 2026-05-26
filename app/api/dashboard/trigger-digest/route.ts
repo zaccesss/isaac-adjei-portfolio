@@ -1,25 +1,17 @@
 import { auth } from "@/auth"
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
+import { sendWeeklyDigest } from "@/lib/send-weekly-digest"
 
-// I act as a thin authenticated wrapper around the weekly-digest route so the browser
-// never needs to know the CRON_SECRET value
-export async function POST(req: NextRequest) {
+// I act as a thin authenticated wrapper so the browser never needs to know the CRON_SECRET.
+// I call the shared helper directly rather than making an internal HTTP fetch, which was
+// silently failing on Vercel due to header stripping on custom domain redirects.
+export async function POST() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
 
-  const secret = process.env.CRON_SECRET
-  if (!secret) {
-    return NextResponse.json({ error: "CRON_SECRET not set in environment" }, { status: 500 })
-  }
-
-  // I use req.nextUrl.origin instead of process.env.NEXTAUTH_URL so the request
-  // always targets the same host that received it - this fixes the issue where
-  // the env var was unset on preview deployments.
-  const res = await fetch(`${req.nextUrl.origin}/api/dashboard/weekly-digest`, {
-    method: "GET",
-    headers: { Authorization: `Bearer ${secret}` },
+  const result = await sendWeeklyDigest()
+  return NextResponse.json(result, {
+    status: result.ok ? 200 : 500,
+    headers: { "Cache-Control": "no-store" },
   })
-
-  const data = await res.json().catch(() => ({}))
-  return NextResponse.json(data, { status: res.status })
 }
