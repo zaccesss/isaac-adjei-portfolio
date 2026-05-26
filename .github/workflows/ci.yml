@@ -30,11 +30,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-      # Set up Node 20 LTS and restore npm cache for faster installs
+      # Set up Node 22 LTS and restore npm cache for faster installs
+      # I use Node 22 because puppeteer v25 requires Node >= 22.12.0
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       # Clean install from package-lock.json (deterministic, no resolution surprises)
