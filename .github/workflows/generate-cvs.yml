@@ -1,13 +1,6 @@
 name: Auto-Generate CVs
 
 on:
-  push:
-    branches: [ main, master ]
-    paths:
-      - 'data/cv.yml'
-      - 'scripts/generate-cvs.js'
-      - 'scripts/generate-pdfs.js'
-      - 'scripts/generate-docx.js'
   workflow_dispatch:
 
 jobs:
