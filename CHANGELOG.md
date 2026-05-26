@@ -15,6 +15,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - robots.txt now explicitly disallows /dashboard for crawlers
 
+- **Weather widget night icon** - the macbook API route now checks the local hour in the device timezone and replaces day emojis (sun, partly cloudy) with a moon emoji between 9pm and 6am
+
 - **Applications Add dialog crash** - Radix UI Select v2 does not accept empty-string `value` on `SelectItem`; all five optional Select fields in AppForm (category, CV, cover letter, written answers, visa) now use sentinel values (`"auto"` / `"none"`) with onValueChange converting back to empty string
 - **Job scraper - full-time jobs ingested** - removed the priority-company exception that bypassed the student-role check; all companies now require a student/intern/placement term in the title or department
 - **Job scraper - US/international jobs ingested** - added `US_LOCATIONS` reject list; US cities and states are now explicitly excluded for all companies; priority companies still get a location pass for unknown foreign locations but never for explicit US ones

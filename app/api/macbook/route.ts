@@ -46,6 +46,17 @@ export async function GET() {
       )
     }
 
+    // I correct the weather emoji for night hours because the daemon maps "Clear" to ☀️
+    // regardless of the time of day - at night this should show 🌙 instead
+    const tz = source.timezone ?? "Europe/London"
+    const localHour = new Date(new Date().toLocaleString("en-US", { timeZone: tz })).getHours()
+    const isNight = localHour >= 21 || localHour < 6
+    const dayEmojis = new Set(["☀️", "🌤️", "⛅"])
+    let weatherEmoji = source.weather_emoji ?? null
+    if (isNight && weatherEmoji && dayEmojis.has(weatherEmoji)) {
+      weatherEmoji = "🌙"
+    }
+
     return NextResponse.json(
       {
         battery:          source.battery,
@@ -55,7 +66,7 @@ export async function GET() {
         countryCode:      source.country_code       ?? null,
         timezone:         source.timezone           ?? "Europe/London",
         weatherCondition: source.weather_condition  ?? null,
-        weatherEmoji:     source.weather_emoji      ?? null,
+        weatherEmoji,
         tempC:            source.temp_c             ?? null,
       },
       { headers: { "Cache-Control": "no-store" } }
