@@ -38,9 +38,11 @@ jobs:
           node-version: "22"
           cache: "npm"
 
-      # Clean install from package-lock.json (deterministic, no resolution surprises)
+      # I use npm install instead of npm ci here so CI can recover from lock file
+      # inconsistencies that can arise when devDependencies with complex transitive
+      # graphs (e.g. puppeteer) are installed on different Node versions locally
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       # Run ESLint - will fail if any error-level rule fires
       - name: Lint
