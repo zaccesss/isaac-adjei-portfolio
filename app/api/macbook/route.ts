@@ -50,7 +50,7 @@ export async function GET() {
     // regardless of the time of day - at night this should show 🌙 instead
     const tz = source.timezone ?? "Europe/London"
     const localHour = new Date(new Date().toLocaleString("en-US", { timeZone: tz })).getHours()
-    const isNight = localHour >= 21 || localHour < 6
+    const isNight = localHour >= 19 || localHour < 6
     const dayEmojis = new Set(["☀️", "🌤️", "⛅"])
     let weatherEmoji = source.weather_emoji ?? null
     if (isNight && weatherEmoji && dayEmojis.has(weatherEmoji)) {
