@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react"
 
-// Returns the current vertical scroll offset in pixels
+// I return the current vertical scroll offset in pixels
 export function useScrollPosition() {
   const [scrollY, setScrollY] = useState(0)
 
@@ -18,7 +18,7 @@ export function useScrollPosition() {
   return scrollY
 }
 
-// Returns how far the user has scrolled as a percentage (0-100) of the full page height
+// I return how far the user has scrolled as a percentage (0-100) of the full page height
 export function useScrollProgress() {
   const [progress, setProgress] = useState(0)
 

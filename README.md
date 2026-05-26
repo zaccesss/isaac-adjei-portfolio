@@ -48,6 +48,10 @@
 
 ---
 
+> For full technical reference - CV system, dashboard sections, keyboard shortcuts, API routes and deployment notes - see [DOCUMENTATION.md](DOCUMENTATION.md).
+
+---
+
 <a id="overview"></a>
 
 ## Overview

@@ -1,7 +1,5 @@
-// Generates /sitemap.xml automatically at build time.
-// Next.js App Router reads this file and serves the output at /sitemap.xml.
-// Googlebot and other crawlers use the sitemap to discover all pages efficiently.
-// If you add a new route, add a matching entry here.
+// I generate /sitemap.xml at build time - only public routes, never /dashboard or any private path.
+// If you add a new public route, add an entry here.
 
 import { MetadataRoute } from "next"
 import { posts } from "@/data/blog"
