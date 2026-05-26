@@ -1,110 +1,80 @@
-# Pre-Public Verification Checklist
+# Pre-Deploy Verification Checklist
 
-## Public Pages to Check (Pre-Deploy)
+Run through this before pushing a release or after a big batch of changes.
 
-### Core Pages
-- [ ] `/` - Homepage loads, hero section visible, navigation works
-- [ ] `/about` - About page loads, content readable
-- [ ] `/projects` - Projects grid displays, links work
-- [ ] `/resume` - Resume page loads, PDF download works
-- [ ] `/cv` - CV picker page (NEW - Phase 18)
-- [ ] `/cv-software.html` - Software Engineer CV (NEW - Phase 18)
-- [ ] `/cv-embedded.html` - Embedded Engineer CV (NEW - Phase 18)
-- [ ] `/cv-data.html` - Data/AI Engineer CV (NEW - Phase 18)
-- [ ] `/cv-devops.html` - DevOps/Cloud CV (NEW - Phase 18)
-- [ ] `/cv-quant.html` - Quant/Developer CV (NEW - Phase 18)
-- [ ] `/cv-security.html` - Cybersecurity CV (NEW - Phase 18)
+---
 
-### Dynamic OG Images (Phase 19)
-- [ ] `/api/og?title=Test` - OG image endpoint returns PNG
-- [ ] Share any public page on social, image preview shows correctly
-- [ ] OG images have correct branding/colors
+## Public pages
 
-### Contact & Legal
-- [ ] `/contact` - Contact form loads (if exists)
-- [ ] `/privacy` - Privacy policy (if exists)
+- [ ] `/` - Homepage loads, hero visible, navigation works
+- [ ] `/about` - Loads, content readable
+- [ ] `/projects` - Grid displays, links work
+- [ ] `/experience` - Loads correctly
+- [ ] `/skills` - Skills grid renders, icons load
+- [ ] `/cv` - CV page loads, PDF preview works, download buttons work
+- [ ] `/blog` - Loads, published posts visible
+- [ ] `/notes` - Loads, note articles accessible
+- [ ] `/lab` - Loads
+- [ ] `/now` - Loads
+- [ ] `/changelog` - Loads, entries visible
+- [ ] `/uses` - Loads
+- [ ] `/colophon` - Loads
+- [ ] `/links` - Loads
+- [ ] `/all-pages` - Lists public pages only, no dashboard entries
+- [ ] `/privacy` - Loads
+- [ ] `/security-policy` - Loads
+- [ ] `/sitemap.xml` - Lists public routes only, no /dashboard paths
+- [ ] `/robots.txt` - Disallows /dashboard/ and /api/dashboard/
+- [ ] `404` - Custom 404 page shows on unknown route
+- [ ] Contact form - Submits successfully, email arrives
 
-### 404 & Errors
-- [ ] `/nonexistent` - 404 page shows correctly
+## CV downloads
 
-## Post-Deploy Private Dashboard Checks (After Go Live)
+- [ ] PDF download - Downloads correct Isaac_Adjei_CV.pdf (not stale)
+- [ ] Word download - Downloads Isaac_Adjei_CV.docx (not JSON error)
+- [ ] Role-specific PDFs - cv-software.pdf, cv-embedded.pdf etc. open correctly
+- [ ] Print button - Opens new tab and triggers print dialog
 
-### Authentication
-- [ ] `/dashboard/login` - Sign in works
-- [ ] `/dashboard` - Redirects to login when not authenticated
-- [ ] PIN gate works on protected pages
+## Dashboard - authentication
 
-### Core Dashboard Features
-- [ ] `/dashboard/me` - Me page loads
-- [ ] `/dashboard/us` - Us page loads
-- [ ] `/dashboard/goals` - Goals CRUD works
-- [ ] `/dashboard/health` - Health & Fitness loads
-- [ ] `/dashboard/diary` - Diary with 3-dot menu (hide/pin/lock)
-- [ ] `/dashboard/notes` - Notes with 3-dot menu
-- [ ] `/dashboard/notes/[folder]` - Folder view works
-- [ ] `/dashboard/wishlist` - Wishlist works
-- [ ] `/dashboard/inventory` - Inventory works
-- [ ] `/dashboard/course` - Course overview
-- [ ] `/dashboard/modules` - Modules list
-- [ ] `/dashboard/modules/[year]` - Year view works
-- [ ] `/dashboard/applications` - Applications List view
-- [ ] `/dashboard/applications` - Applications Kanban view (toggle)
-- [ ] `/dashboard/vault` - Vault overview
-- [ ] `/dashboard/vault/[type]` - Vault type pages with 3-dot menu
-- [ ] `/dashboard/streaks` - Streaks page works
-- [ ] `/dashboard/habits` - Habits page works (NEW - Phase 10)
-- [ ] `/dashboard/settings` - Settings loads, Data Export button works
+- [ ] `/dashboard/login` - Sign in with GitHub works
+- [ ] `/dashboard` when logged out - Redirects to login
+- [ ] PIN gate - Prompts for PIN on Diary, Notes, Vault
+- [ ] Inactivity logout - Auto-logs out after 1 hour of inactivity
 
-### 3-Dot Menu Features (Phases 5-7)
-- [ ] Diary: Hide/Show, Pin/Unpin, Lock/Unlock, Delete all work
-- [ ] Notes: Hide/Show, Lock/Unlock, Pin/Unpin, Delete all work
-- [ ] Vault: Hide/Show, Lock/Unlock, Edit, Delete all work
-- [ ] Locked items require PIN to view
+## Dashboard - features
 
-### Activity Log (Phase 9)
-- [ ] Dashboard home shows Recent Activity section
-- [ ] Last 5 actions display with timestamps
+- [ ] `/dashboard` - Home stat cards load
+- [ ] `/dashboard/goals` - CRUD works
+- [ ] `/dashboard/diary` - Entries show, mood chart renders, write/edit/delete work
+- [ ] `/dashboard/notes` - Notes CRUD, folder view works
+- [ ] `/dashboard/applications` - List and kanban views work
+- [ ] `/dashboard/streaks` - Cards show, heatmap (90 days), activity chart renders, check-in works
+- [ ] `/dashboard/habits` - Loads and functions
+- [ ] `/dashboard/vault` - Loads
+- [ ] `/dashboard/settings` - PIN change, theme toggle persists, scraper trigger, digest test
+- [ ] Quick Capture FAB - Opens dialog, all 4 tabs save correctly, toast appears
+- [ ] Keyboard shortcuts - g+d/n/g/a/h/s/v/x navigate, ? opens help dialog
+- [ ] Ctrl+K search - Opens command palette, filters results, Enter navigates
+- [ ] Dark mode - Toggle in settings persists on reload and other browsers
 
-### Data Export (Phase 8)
-- [ ] Settings > Data Export > Export button downloads JSON
-- [ ] JSON file contains all dashboard data
+## Security
 
-### API Routes
-- [ ] `/api/dashboard/trigger-scraper` - Returns 200 (if PAT configured)
-- [ ] `/api/dashboard/scraper-status` - Returns status JSON
-- [ ] `/api/dashboard/trigger-digest` - Returns 200 (test email sent)
+- [ ] `/dashboard` routes return 401/redirect when not authenticated
+- [ ] `/api/dashboard/*` routes return 401 when not authenticated
+- [ ] No secrets in client-side bundle (check Network tab, no .env values)
+- [ ] CSP headers present on public pages
+- [ ] X-Frame-Options: SAMEORIGIN on CV page (iframe preview works)
 
-## Job Scraper Improvements (Phase 20)
-- [ ] GitHub Actions workflow triggers correctly
-- [ ] Scraper fetches from multiple UK sources
-- [ ] Duplicate detection works (URL NULL for jobs without URLs)
-- [ ] Applications table unique index works correctly
+## Performance
 
-## Known Issues to Verify Fixed
-- [ ] Theme toggle icons don't overlap text
-- [ ] No "zaccessss" typos in API routes
-- [ ] Weekly digest sends from contact@isaacadjei.me
-
-## Performance Checks
-- [ ] Public pages load under 3 seconds
-- [ ] Dashboard loads under 2 seconds
-- [ ] No console errors on any page
-
-## Accessibility
-- [ ] All buttons have aria-labels
-- [ ] Color contrast meets WCAG standards
-- [ ] Keyboard navigation works
+- [ ] Public pages load under 3 seconds on slow 3G
+- [ ] No console errors on any public page
+- [ ] No console errors on any dashboard page
 
 ---
 
 ## Sign-off
 
-**Pre-Public Check**: 
-- Date: ___________
-- Checked by: ___________
-- Issues found: ___________
-
-**Post-Deploy Check**:
-- Date: ___________
-- Checked by: ___________
-- Issues found: ___________
+**Date:** ___________
+**Issues found:** ___________
