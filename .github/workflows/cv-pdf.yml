@@ -1,10 +1,6 @@
 name: Regenerate CV PDF
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "public/resume/cv.html"
   workflow_dispatch:
 
 jobs:
