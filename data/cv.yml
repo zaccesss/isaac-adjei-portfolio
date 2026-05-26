@@ -37,7 +37,7 @@ skills:
     languages: ["C", "C++", "Embedded C", "Assembly (ARM)"]
     microcontrollers: ["Arduino", "STM32", "ESP32", "AVR", "Raspberry Pi Pico"]
     protocols: ["I2C", "SPI", "UART", "CAN", "Modbus", "MQTT"]
-    hardware: ["PCB Design", "KiCad", "Proteus", "Circuit Design", "Oscilloscope", "Logic Analyser"]
+    hardware: ["PCB Design", "KiCad", "Proteus", "Circuit Design", "Oscilloscope", "Logic Analyser", "FPGA", "VHDL"]
     sensors: ["Temperature", "Pressure", "Accelerometer", "Gyroscope", "Ultrasonic"]
   
   data_ai:
@@ -139,7 +139,7 @@ experience:
   - company: "Cancer Research UK"
     role: "Shop Volunteer"
     date: "2022-2024"
-    tags: ["software"]
+    tags: ["software", "embedded", "data", "devops", "quant", "security"]
     bullets:
       - "Customer service and retail operations in charity shop environment"
       - "Cash handling, stock management and visual merchandising"
@@ -160,7 +160,7 @@ role_profiles:
 
 # Order of sections for each role (customise priority)
 role_section_order:
-  software: ["profile", "education", "skills", "projects", "experience"]
+  software: ["profile", "skills", "projects", "education", "experience"]
   embedded: ["profile", "skills", "projects", "education", "experience"]
   data: ["profile", "skills", "projects", "education", "experience"]
   devops: ["profile", "skills", "projects", "education", "experience"]
