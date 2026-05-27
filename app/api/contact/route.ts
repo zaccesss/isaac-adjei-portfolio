@@ -14,7 +14,7 @@ import { Redis } from "@upstash/redis"
 // I add Cache-Control: no-store to every response so Vercel's edge cache and the browser
 // never cache API responses that carry user-facing error messages or success state.
 function json(body: unknown, init?: ResponseInit): NextResponse {
-  return json(body, {
+  return NextResponse.json(body, {
     ...init,
     headers: { "Cache-Control": "no-store", ...(init?.headers ?? {}) },
   })
