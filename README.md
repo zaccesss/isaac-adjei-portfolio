@@ -1,6 +1,6 @@
-# Isaac Adjei — Portfolio
+# Isaac Adjei - Portfolio
 
-> Personal portfolio at [isaacadjei.me](https://isaacadjei.me) — projects, blog, CV and a private dashboard.
+> Personal portfolio at [isaacadjei.me](https://isaacadjei.me) - projects, blog, CV and a private dashboard.
 
 [![CI](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/ci.yml)
 [![Live](https://img.shields.io/badge/live-isaacadjei.me-000000?style=flat&logo=googlechrome&logoColor=white)](https://isaacadjei.me)

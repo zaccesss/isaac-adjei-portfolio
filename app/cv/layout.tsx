@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     canonical: "https://www.isaacadjei.me/cv",
   },
   openGraph: {
-    images: ["/api/og?title=CV&description=My%20curriculum%20vitae%20%E2%80%94%20Electronic%20Engineering%20and%20Computer%20Science%20student%20at%20Aston%20University."],
+    images: ["/api/og?title=CV&description=My%20curriculum%20vitae%20-%20Electronic%20Engineering%20and%20Computer%20Science%20student%20at%20Aston%20University."],
   },
 }
 

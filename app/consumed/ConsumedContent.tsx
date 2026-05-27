@@ -8,7 +8,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Play, BookOpen, Music2, Headphones, Tv2, ExternalLink, LayoutList } from "lucide-react"
-import ShareButton from "@/components/shared/ShareButton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
@@ -124,7 +123,7 @@ const books: Array<{ title: string; author: string; genre: string; genreColor: s
 
 // --- MUSIC DATA ---
 const artists: Array<{ name: string; genre: string; note: string; youtubeId?: string }> = [
-  { name: "Dave (Santan Dave)", genre: "UK Rap / Spoken Word", note: "My most-played artist this year. Chapter 16, Affection, and the Power 106 freestyle are on repeat.", youtubeId: "-q66T2dNml0" },
+  { name: "Dave (Santan Dave)", genre: "UK Rap / Spoken Word", note: "My most-played artist this year. Chapter 16, Affection and the Power 106 freestyle are on repeat.", youtubeId: "-q66T2dNml0" },
   { name: "Central Cee",        genre: "UK Rap",               note: "Limitless is an incredible video. The production is clean.",                                            youtubeId: "Ag2fJaNbw3Q" },
   { name: "Jim Legxacy",        genre: "UK Rap",               note: "The 3x collab with Dave is different. Real artistry.",                                                  youtubeId: "wkZC8oE8R7M" },
 ]
@@ -233,7 +232,6 @@ export default function ConsumedContent() {
       <div className="space-y-4 max-w-2xl">
         <div className="flex items-center gap-3">
           <h1 className="text-4xl font-bold tracking-tight">Consumed</h1>
-          <ShareButton title="Consumed 2026 — Isaac Adjei" />
           <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-mono text-primary font-medium">2026</span>
         </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
