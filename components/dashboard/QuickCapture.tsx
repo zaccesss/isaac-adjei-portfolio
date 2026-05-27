@@ -31,7 +31,7 @@ function DiaryTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.title.trim() || !form.content.trim()) return
-    startTransition(() => createDiaryEntry({ title: form.title, content: form.content, mood: form.mood }))
+    startTransition(() => void createDiaryEntry({ title: form.title, content: form.content, mood: form.mood }))
     onDone()
   }
 
@@ -64,7 +64,7 @@ function NoteTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.title.trim()) return
-    startTransition(() => createNote({
+    startTransition(() => void createNote({
       title: form.title,
       content: form.content,
       folder: "General",
@@ -91,7 +91,7 @@ function GoalTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.title.trim() || !form.category || !form.target_date) return
-    startTransition(() => createGoal({
+    startTransition(() => void createGoal({
       title: form.title,
       description: form.description,
       category: form.category,
@@ -127,7 +127,7 @@ function ApplicationTab({ onDone }: { onDone: () => void }) {
   function submit() {
     if (!form.company.trim() || !form.role.trim()) return
     const today = new Date().toISOString().split("T")[0]
-    startTransition(() => createApplication({
+    startTransition(() => void createApplication({
       company: form.company,
       role: form.role,
       type: form.type || "graduate",
