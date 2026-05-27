@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://www.isaacadjei.me/all-pages",
   },
+  openGraph: {
+    images: ["/api/og?title=All%20Pages&description=Every%20public%20page%20on%20isaacadjei%2Eme%20in%20one%20place%2E"],
+  },
 }
 
 const PAGE_GROUPS = [

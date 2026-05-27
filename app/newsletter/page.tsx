@@ -3,6 +3,7 @@ import { Separator } from "@/components/ui/separator"
 import { Book, Mail, Zap, BookOpen, Cpu, Globe, Lightbulb } from "lucide-react"
 import NewsletterForm from "@/components/shared/NewsletterForm"
 import PastIssues from "@/components/shared/PastIssues"
+import ShareButton from "@/components/shared/ShareButton"
 import Link from "next/link"
 
 export const metadata: Metadata = {
@@ -11,6 +12,9 @@ export const metadata: Metadata = {
     "Subscribe to my newsletter: engineering write-ups, project breakdowns, tech reflections and things I am building and learning. Written by Isaac Adjei.",
   alternates: {
     canonical: "https://www.isaacadjei.me/newsletter",
+  },
+  openGraph: {
+    images: ["/api/og?title=Newsletter&description=Engineering%20write-ups%2C%20project%20breakdowns%20and%20things%20I%20am%20building%2E"],
   },
 }
 
@@ -59,9 +63,12 @@ export default function NewsletterPage() {
           </div>
           <p className="text-xs font-mono text-primary uppercase tracking-widest">newsletter</p>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight leading-tight">
-          Engineering, hardware and software. Straight to your inbox.
-        </h1>
+        <div className="flex items-start gap-2">
+          <h1 className="text-4xl font-bold tracking-tight leading-tight">
+            Engineering, hardware and software. Straight to your inbox.
+          </h1>
+          <ShareButton title="Newsletter — Isaac Adjei" />
+        </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
           I write about the things I am building and learning: embedded systems, full-stack software,
           university projects and the ideas behind them. No filler, no clickbait. Just honest

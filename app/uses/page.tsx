@@ -4,12 +4,16 @@
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
 import { Monitor, Code2, Terminal, Wrench, Globe, Gamepad2, BookOpen } from "lucide-react"
+import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Uses",
   description: "The hardware, software and tools Isaac Adjei uses day to day.",
   alternates: {
     canonical: "https://www.isaacadjei.me/uses",
+  },
+  openGraph: {
+    images: ["/api/og?title=Uses&description=The%20hardware%2C%20software%20and%20tools%20Isaac%20Adjei%20uses%20day%20to%20day%2E"],
   },
 }
 
@@ -315,7 +319,10 @@ export default function UsesPage() {
     <div className="container max-w-2xl py-24 space-y-14">
       {/* Header */}
       <section className="space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">Uses</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-4xl font-bold tracking-tight">Uses</h1>
+          <ShareButton title="Uses — Isaac Adjei" />
+        </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
           The hardware, software and tools I use day to day. Updated when my setup changes.
           Inspired by{" "}

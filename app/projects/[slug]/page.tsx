@@ -25,6 +25,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: {
       canonical: `https://www.isaacadjei.me/projects/${slug}`,
     },
+    openGraph: {
+      images: [`/api/og?title=${encodeURIComponent(project.title)}&description=${encodeURIComponent(project.description)}`],
+    },
   }
 }
 

@@ -40,6 +40,9 @@ Run through this before pushing a release or after a big batch of changes.
 - [ ] `/robots.txt` - Disallows /dashboard/ and /api/dashboard/
 - [ ] `404` - Custom 404 page shows on unknown route
 - [ ] Contact form - Submits successfully, email arrives
+- [ ] Share button - Present on project detail, blog post, experience, skills, about, notes, newsletter, now, consumed, colophon, uses, hall-of-fame, notes sub-pages; click on desktop shows "Copied!" for ~2s; mobile share sheet opens
+- [ ] OG thumbnails - View source of any public page and confirm `<meta property="og:image">` present with `/api/og?title=...` URL
+- [ ] OG image renders - Visit `/api/og?title=Test&description=Hello` directly and confirm image renders correctly
 
 ## CV downloads
 
@@ -97,6 +100,10 @@ Run through this before pushing a release or after a big batch of changes.
 - [ ] CSP headers present on public pages (check Response headers for Content-Security-Policy)
 - [ ] X-Frame-Options: SAMEORIGIN on CV page (iframe preview works, but page cannot be embedded externally)
 - [ ] robots.txt disallows /dashboard and /api/dashboard
+- [ ] Contact and newsletter API responses include `Cache-Control: no-store` header (check Network tab)
+- [ ] Newsletter rate limit - submit 4 times from the same IP; 4th returns HTTP 429
+- [ ] OG route strips non-ASCII - visit `/api/og?title=test%C3%A9` and confirm `é` not rendered in the image
+- [ ] Dashboard server actions reject invalid input - call a write action with a 501-char string and confirm `{ error: "Invalid input" }` returned
 
 ## Performance
 

@@ -16,6 +16,7 @@ import CodeBlock from "@/components/shared/CodeBlock"
 import TableOfContents, { type TocHeading } from "@/components/shared/TableOfContents"
 import BlogReactions from "@/components/shared/BlogReactions"
 import SeriesBanner from "@/components/shared/SeriesBanner"
+import ShareButton from "@/components/shared/ShareButton"
 
 function slugify(text: string): string {
   return text
@@ -204,6 +205,9 @@ export async function generateMetadata({
     alternates: {
       canonical: `https://www.isaacadjei.me/blog/${slug}`,
     },
+    openGraph: {
+      images: [`/api/og?title=${encodeURIComponent(post.title)}&description=${encodeURIComponent(post.description)}`],
+    },
   }
 }
 
@@ -303,6 +307,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             <Clock className="h-3 w-3" />
             {post.readingTime} min read
           </span>
+          <div className="ml-auto">
+            <ShareButton title={post.title} />
+          </div>
         </div>
 
         {post.tags.length > 0 && (

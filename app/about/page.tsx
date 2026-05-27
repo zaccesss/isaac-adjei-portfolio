@@ -7,6 +7,7 @@ import { societies } from "@/data/societies"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import ApproachAnimation from "@/components/shared/ApproachAnimation"
+import ShareButton from "@/components/shared/ShareButton"
 import {
   GraduationCap,
   Users,
@@ -24,6 +25,9 @@ export const metadata: Metadata = {
   description: "Learn more about Isaac Adjei - his story, education and involvement.",
   alternates: {
     canonical: "https://www.isaacadjei.me/about",
+  },
+  openGraph: {
+    images: ["/api/og?title=About%20Isaac%20Adjei&description=Learn%20more%20about%20Isaac%20Adjei%20%E2%80%94%20his%20story%2C%20education%20and%20involvement%2E"],
   },
 }
 
@@ -66,7 +70,10 @@ export default function AboutPage() {
     <div className="container max-w-4xl py-24 space-y-12">
       {/* Intro */}
       <section className="space-y-6">
-        <h1 className="text-4xl font-bold tracking-tight">About Me</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-4xl font-bold tracking-tight">About Me</h1>
+          <ShareButton title="About — Isaac Adjei" />
+        </div>
         <div className="space-y-4 text-lg text-muted-foreground leading-relaxed">
           <p>
             I am Isaac Adjei. Most people know me as Zac. I am an Electronic Engineering and

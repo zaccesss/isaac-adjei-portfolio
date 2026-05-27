@@ -7,6 +7,7 @@ import { skillCategories, professionalSkillGroups, type Skill } from "@/data/ski
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
+import ShareButton from "@/components/shared/ShareButton"
 
 // SkillCard renders a single icon + label tile.
 // I show the icon image if a URL is available, otherwise I fall back to the first two letters of the name.
@@ -87,7 +88,10 @@ export default function SkillsPage() {
   return (
     <div className="container py-24 space-y-14">
       <div className="space-y-3 animate-fade-up text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Skills</h1>
+        <div className="flex items-center justify-center gap-2">
+          <h1 className="text-4xl font-bold tracking-tight">Skills</h1>
+          <ShareButton title="Skills — Isaac Adjei" />
+        </div>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           A full picture of what I bring - professional skills, hardware experience and the tech
           stack I work with.
