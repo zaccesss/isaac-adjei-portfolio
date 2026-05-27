@@ -25,6 +25,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { profileLinks, type LinkItem } from "@/data/links"
 import { cn } from "@/lib/utils"
+import ShareButton from "@/components/shared/ShareButton"
 
 const iconMap: Record<string, React.ElementType> = {
   globe: Globe,
@@ -95,7 +96,10 @@ export default function LinksPage() {
           />
         </div>
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Isaac Adjei</h1>
+          <div className="flex items-center justify-center gap-2">
+            <h1 className="text-2xl font-bold">Isaac Adjei</h1>
+            <ShareButton title="Isaac Adjei - Links" />
+          </div>
           <p className="text-sm text-primary font-mono">@zaccess</p>
         </div>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">

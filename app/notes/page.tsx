@@ -3,7 +3,6 @@ import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { Terminal, Lightbulb, Wrench, CalendarDays, Github, ExternalLink, ArrowRight } from "lucide-react"
 import LiveStatusCards from "@/components/shared/LiveStatusCards"
-import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Notes",
@@ -58,7 +57,6 @@ export default function NotesPage() {
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <h1 className="text-4xl font-bold tracking-tight">Notes</h1>
-          <ShareButton title="Notes — Isaac Adjei" />
         </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
           A public notebook. Not polished posts, just honest notes on what I am building, thinking

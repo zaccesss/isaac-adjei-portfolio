@@ -1,5 +1,5 @@
 // Diary entries never reach the browser unless the PIN cookie is present.
-// The PIN is separate from the GitHub OAuth session — it protects especially private content
+// The PIN is separate from the GitHub OAuth session - it protects especially private content
 // within the already-authenticated dashboard.
 import { supabase } from "@/lib/supabase"
 import { cookies } from "next/headers"

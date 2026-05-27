@@ -1334,7 +1334,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "Next.js with the App Router gave me everything I needed in one place: file-based routing where adding a new page is just adding a new folder, server components that run on the server and send HTML to the browser without shipping any JavaScript for purely static content, API routes for the contact form and newsletter subscription endpoints, and automatic static generation for pages that do not change at runtime.",
+        text: "Next.js with the App Router gave me everything I needed in one place: file-based routing where adding a new page is just adding a new folder, server components that run on the server and send HTML to the browser without shipping any JavaScript for purely static content, API routes for the contact form and newsletter subscription endpoints and automatic static generation for pages that do not change at runtime.",
       },
       {
         type: "p",

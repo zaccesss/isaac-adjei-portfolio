@@ -5,7 +5,6 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { Code2, Server, Palette, Cpu, ArrowUpRight } from "lucide-react"
-import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Colophon",
@@ -14,7 +13,7 @@ export const metadata: Metadata = {
     canonical: "https://www.isaacadjei.me/colophon",
   },
   openGraph: {
-    images: ["/api/og?title=Colophon&description=How%20isaacadjei%2Eme%20is%20built%20%E2%80%94%20the%20stack%2C%20the%20decisions%20and%20the%20details%2E"],
+    images: ["/api/og?title=Colophon&description=How%20isaacadjei%2Eme%20is%20built%20-%20the%20stack%2C%20the%20decisions%20and%20the%20details%2E"],
   },
 }
 
@@ -142,7 +141,6 @@ export default function ColophonPage() {
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <h1 className="text-4xl font-bold tracking-tight">Colophon</h1>
-          <ShareButton title="Colophon — isaacadjei.me" />
         </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
           How this site is built. I like sites that are open about their stack and decisions,

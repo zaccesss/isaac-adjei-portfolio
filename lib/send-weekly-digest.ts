@@ -40,7 +40,7 @@ function formatDate(isoString: string): string {
 }
 
 // I use inline styles throughout because Gmail, Outlook and Apple Mail strip external
-// stylesheets and style blocks — inline is the only reliably rendered approach.
+// stylesheets and style blocks - inline is the only reliably rendered approach.
 function buildEmailHtml(
   startDate: string,
   endDate: string,

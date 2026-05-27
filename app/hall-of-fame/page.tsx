@@ -5,7 +5,6 @@
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
 import { Trophy, Heart, Shield, Users } from "lucide-react"
-import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Hall of Fame",
@@ -29,7 +28,6 @@ export default function HallOfFamePage() {
         <div className="flex items-center gap-3">
           <Trophy className="h-8 w-8 text-primary" />
           <h1 className="text-4xl font-bold tracking-tight">Hall of Fame</h1>
-          <ShareButton title="Hall of Fame — isaacadjei.me" />
         </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
           The people without whom none of this would exist, and those who have helped keep
