@@ -15,12 +15,16 @@ import {
   Dumbbell,
   ArrowUpRight,
 } from "lucide-react"
+import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Now",
   description: "What Isaac Adjei is doing right now - studying, building and thinking about.",
   alternates: {
     canonical: "https://www.isaacadjei.me/now",
+  },
+  openGraph: {
+    images: ["/api/og?title=Now&description=What%20Isaac%20Adjei%20is%20doing%20right%20now%20%E2%80%94%20studying%2C%20building%20and%20thinking%20about%2E"],
   },
 }
 
@@ -36,7 +40,10 @@ export default function NowPage() {
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
           Last updated {LAST_UPDATED}
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">Now</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-4xl font-bold tracking-tight">Now</h1>
+          <ShareButton title="Now — Isaac Adjei" />
+        </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
           A snapshot of what I am doing in my life at this moment. Inspired by{" "}
           <a

@@ -5,6 +5,7 @@
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
 import { Trophy, Heart, Shield, Users } from "lucide-react"
+import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Hall of Fame",
@@ -12,6 +13,9 @@ export const metadata: Metadata = {
     "The people I am most grateful for, and security researchers who have responsibly disclosed vulnerabilities on isaacadjei.me.",
   alternates: {
     canonical: "https://www.isaacadjei.me/hall-of-fame",
+  },
+  openGraph: {
+    images: ["/api/og?title=Hall%20of%20Fame&description=The%20people%20I%20am%20most%20grateful%20for%2C%20and%20security%20researchers%20who%20have%20helped%20improve%20this%20site%2E"],
   },
 }
 
@@ -25,6 +29,7 @@ export default function HallOfFamePage() {
         <div className="flex items-center gap-3">
           <Trophy className="h-8 w-8 text-primary" />
           <h1 className="text-4xl font-bold tracking-tight">Hall of Fame</h1>
+          <ShareButton title="Hall of Fame — isaacadjei.me" />
         </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
           The people without whom none of this would exist, and those who have helped keep

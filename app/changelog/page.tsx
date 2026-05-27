@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://www.isaacadjei.me/changelog",
   },
+  openGraph: {
+    images: ["/api/og?title=Changelog&description=What%20has%20changed%20on%20isaacadjei%2Eme%2C%20from%20the%20first%20commit%20to%20the%20latest%20update%2E"],
+  },
 }
 
 type ChangeEntry = {

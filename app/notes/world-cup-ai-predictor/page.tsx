@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ExternalLink } from "lucide-react"
+import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "World Cup 2026 AI Predictor",
@@ -9,6 +10,9 @@ export const metadata: Metadata = {
     "A planned AI project to predict FIFA World Cup 2026 match outcomes using historical data and machine learning.",
   alternates: {
     canonical: "https://www.isaacadjei.me/notes/world-cup-ai-predictor",
+  },
+  openGraph: {
+    images: ["/api/og?title=World%20Cup%202026%20AI%20Predictor&description=A%20planned%20AI%20project%20to%20predict%20FIFA%20World%20Cup%202026%20match%20outcomes%20using%20machine%20learning%2E"],
   },
 }
 
@@ -60,7 +64,10 @@ export default function WorldCupAIPredictorPage() {
             </span>
           ))}
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">World Cup 2026 AI Predictor</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-4xl font-bold tracking-tight">World Cup 2026 AI Predictor</h1>
+          <ShareButton title="World Cup 2026 AI Predictor — Isaac Adjei" />
+        </div>
         <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
           A planned machine learning project for Summer 2026: predict every match of the FIFA World
           Cup using historical data, team statistics and tournament context.

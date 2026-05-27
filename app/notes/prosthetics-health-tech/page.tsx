@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ExternalLink } from "lucide-react"
+import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Prosthetics and Health Technology Research",
@@ -9,6 +10,9 @@ export const metadata: Metadata = {
     "A personal research interest in ocular prosthetics, bionic vision and bio-integrated electronics, motivated by losing sight in one eye to retinoblastoma.",
   alternates: {
     canonical: "https://www.isaacadjei.me/notes/prosthetics-health-tech",
+  },
+  openGraph: {
+    images: ["/api/og?title=Prosthetics%20%26%20Health%20Tech%20Research&description=A%20personal%20research%20interest%20in%20ocular%20prosthetics%2C%20bionic%20vision%20and%20bio-integrated%20electronics%2E"],
   },
 }
 
@@ -76,9 +80,12 @@ export default function ProstheticsHealthTechPage() {
             </span>
           ))}
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">
-          Prosthetics and Health Technology Research
-        </h1>
+        <div className="flex items-start gap-2">
+          <h1 className="text-4xl font-bold tracking-tight">
+            Prosthetics and Health Technology Research
+          </h1>
+          <ShareButton title="Prosthetics & Health Tech Research — Isaac Adjei" />
+        </div>
         <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
           This is not just a research interest. At age two I lost the sight in my right eye to
           retinoblastoma. I have lived with monocular vision my entire life. I want to understand
