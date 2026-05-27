@@ -29,7 +29,7 @@ All rules that apply to every session. No exceptions.
 
 1. Always branch from latest main: `git checkout main && git pull`
 2. Update CHANGELOG.md under `[Unreleased]` BEFORE committing (public changes only)
-3. Private dashboard changes go in `memory/LOG.md` only, never CHANGELOG.md
+3. Private dashboard changes go in `docs/LOG.md` only, never CHANGELOG.md
 4. Branch naming: `feat/description`, `fix/description`, `chore/description`, `content/description`
 5. Push branch, create PR and enable auto-merge:
    ```
