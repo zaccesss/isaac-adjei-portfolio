@@ -4,7 +4,6 @@
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
 import { Monitor, Code2, Terminal, Wrench, Globe, Gamepad2, BookOpen } from "lucide-react"
-import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Uses",
@@ -321,7 +320,6 @@ export default function UsesPage() {
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <h1 className="text-4xl font-bold tracking-tight">Uses</h1>
-          <ShareButton title="Uses — Isaac Adjei" />
         </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
           The hardware, software and tools I use day to day. Updated when my setup changes.

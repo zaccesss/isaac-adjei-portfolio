@@ -11,57 +11,57 @@
   </defs>
 
   <!-- Title -->
-  <text x="600" y="48" text-anchor="middle" font-family="ui-monospace,monospace" font-size="18" font-weight="700" fill="#a3e635">avr-zac — Nine-Mode State Machine</text>
+  <text x="600" y="48" text-anchor="middle" font-family="ui-monospace,monospace" font-size="18" font-weight="700" fill="#a3e635">avr-zac - Nine-Mode State Machine</text>
   <text x="600" y="70" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#4d7c0f">Button press cycles through modes · ISR-driven transitions · ATmega644P</text>
 
-  <!-- Mode nodes — arranged in a ring with IDLE in centre -->
+  <!-- Mode nodes - arranged in a ring with IDLE in centre -->
 
   <!-- Centre: IDLE -->
   <circle cx="600" cy="390" r="48" fill="#141a0e" stroke="#a3e635" stroke-width="2"/>
   <text x="600" y="386" text-anchor="middle" font-family="ui-monospace,monospace" font-size="13" font-weight="700" fill="#a3e635">IDLE</text>
   <text x="600" y="402" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#4d7c0f">Mode 0</text>
 
-  <!-- Mode 1: GPIO — top -->
+  <!-- Mode 1: GPIO - top -->
   <circle cx="600" cy="155" r="42" fill="#141a0e" stroke="#4d7c0f" stroke-width="1.5"/>
   <text x="600" y="151" text-anchor="middle" font-family="ui-monospace,monospace" font-size="12" font-weight="600" fill="#a3e635">GPIO</text>
   <text x="600" y="167" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#4d7c0f">Mode 1</text>
 
-  <!-- Mode 2: INT — top right -->
+  <!-- Mode 2: INT - top right -->
   <circle cx="830" cy="220" r="42" fill="#141a0e" stroke="#4d7c0f" stroke-width="1.5"/>
   <text x="830" y="216" text-anchor="middle" font-family="ui-monospace,monospace" font-size="12" font-weight="600" fill="#a3e635">INT</text>
   <text x="830" y="232" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#4d7c0f">Mode 2</text>
 
-  <!-- Mode 3: PWM — right -->
+  <!-- Mode 3: PWM - right -->
   <circle cx="960" cy="390" r="42" fill="#141a0e" stroke="#4d7c0f" stroke-width="1.5"/>
   <text x="960" y="386" text-anchor="middle" font-family="ui-monospace,monospace" font-size="12" font-weight="600" fill="#a3e635">PWM</text>
   <text x="960" y="402" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#4d7c0f">Mode 3</text>
 
-  <!-- Mode 4: ADC — bottom right -->
+  <!-- Mode 4: ADC - bottom right -->
   <circle cx="830" cy="560" r="42" fill="#141a0e" stroke="#4d7c0f" stroke-width="1.5"/>
   <text x="830" y="556" text-anchor="middle" font-family="ui-monospace,monospace" font-size="12" font-weight="600" fill="#a3e635">ADC</text>
   <text x="830" y="572" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#4d7c0f">Mode 4</text>
 
-  <!-- Mode 5: UART — bottom -->
+  <!-- Mode 5: UART - bottom -->
   <circle cx="600" cy="625" r="42" fill="#141a0e" stroke="#4d7c0f" stroke-width="1.5"/>
   <text x="600" y="621" text-anchor="middle" font-family="ui-monospace,monospace" font-size="12" font-weight="600" fill="#a3e635">UART</text>
   <text x="600" y="637" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#4d7c0f">Mode 5</text>
 
-  <!-- Mode 6: SPI — bottom left -->
+  <!-- Mode 6: SPI - bottom left -->
   <circle cx="370" cy="560" r="42" fill="#141a0e" stroke="#4d7c0f" stroke-width="1.5"/>
   <text x="370" y="556" text-anchor="middle" font-family="ui-monospace,monospace" font-size="12" font-weight="600" fill="#a3e635">SPI</text>
   <text x="370" y="572" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#4d7c0f">Mode 6</text>
 
-  <!-- Mode 7: TIMER — left -->
+  <!-- Mode 7: TIMER - left -->
   <circle cx="240" cy="390" r="42" fill="#141a0e" stroke="#4d7c0f" stroke-width="1.5"/>
   <text x="240" y="386" text-anchor="middle" font-family="ui-monospace,monospace" font-size="12" font-weight="600" fill="#a3e635">TIMER</text>
   <text x="240" y="402" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#4d7c0f">Mode 7</text>
 
-  <!-- Mode 8: I2C — top left -->
+  <!-- Mode 8: I2C - top left -->
   <circle cx="370" cy="220" r="42" fill="#141a0e" stroke="#4d7c0f" stroke-width="1.5"/>
   <text x="370" y="216" text-anchor="middle" font-family="ui-monospace,monospace" font-size="12" font-weight="600" fill="#a3e635">I2C</text>
   <text x="370" y="232" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#4d7c0f">Mode 8</text>
 
-  <!-- Mode 9: TETRIS — far right, standalone -->
+  <!-- Mode 9: TETRIS - far right, standalone -->
   <circle cx="1090" cy="390" r="42" fill="#141a0e" stroke="#166534" stroke-width="1.5"/>
   <text x="1090" y="386" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" font-weight="600" fill="#22c55e">TETRIS</text>
   <text x="1090" y="402" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#166534">Mode 9</text>

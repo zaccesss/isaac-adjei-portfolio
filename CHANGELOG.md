@@ -9,8 +9,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Share button on project detail and blog pages (Web Share API with clipboard fallback and 2-second "Copied!" confirmation)
-- Open Graph thumbnails on every public page via `/api/og` — dynamic per-page title and description on all static and dynamic routes
+- Share button on project detail pages, blog posts, CV page and links page (Web Share API with clipboard fallback and 2-second "Copied!" confirmation)
+- Open Graph thumbnails on every public page via `/api/og` - dynamic per-page title and description on all static and dynamic routes
+
+### Changed
+
+- Remove em and en dashes throughout the codebase; replaced with hyphens per UK English style
+- Remove Oxford commas throughout
 
 ---
 
@@ -39,7 +44,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - robots.txt now explicitly disallows /dashboard for crawlers
-- /all-pages keyboard shortcut now adapts to OS — shows `⌘+I` on Mac and `Ctrl+I` on Windows/Linux; symbol size increased for visibility
+- /all-pages keyboard shortcut now adapts to OS - shows `⌘+I` on Mac and `Ctrl+I` on Windows/Linux; symbol size increased for visibility
 - `pages` command on /all-pages highlighted in primary colour and links directly to /lab
 
 ---
@@ -184,7 +189,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Spotify API updated to return `progress_ms`, `duration_ms` and `paused` state separately from `playing`
 - MacBook API and daemon updated to include device name from `socket.gethostname()`
 - Newsletter link updated sitewide from `newsletter.isaacadjei.me` to `isaacadjei.me/newsletter` (in `data/links.ts`, `data/social.ts` and footer)
-- Newsletter page fully rewritten with topic cards, cross-links to blog and notes, and "Read past issues on Beehiiv" link
+- Newsletter page fully rewritten with topic cards, cross-links to blog and notes and "Read past issues on Beehiiv" link
 - Ctrl/Cmd+T shortcut for Lab terminal changed to Ctrl/Cmd+J to avoid browser new-tab conflict
 - Blog post page widened to `xl:max-w-5xl` on extra-large screens to accommodate TOC sidebar
 - Sitemap updated with `/notes/world-cup-ai-predictor` and `/notes/prosthetics-health-tech`

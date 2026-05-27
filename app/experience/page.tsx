@@ -7,7 +7,6 @@ import { Download } from "lucide-react"
 import { experiences } from "@/data/experience"
 import ExperienceTimeline from "@/components/sections/ExperienceTimeline"
 import { Button } from "@/components/ui/button"
-import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Experience",
@@ -42,7 +41,6 @@ export default function ExperiencePage() {
               Download CV
             </a>
           </Button>
-          <ShareButton title="Experience — Isaac Adjei" />
         </div>
       </div>
       <div className="space-y-4">

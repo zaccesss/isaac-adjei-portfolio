@@ -3,7 +3,6 @@ import { Separator } from "@/components/ui/separator"
 import { Book, Mail, Zap, BookOpen, Cpu, Globe, Lightbulb } from "lucide-react"
 import NewsletterForm from "@/components/shared/NewsletterForm"
 import PastIssues from "@/components/shared/PastIssues"
-import ShareButton from "@/components/shared/ShareButton"
 import Link from "next/link"
 
 export const metadata: Metadata = {
@@ -67,7 +66,6 @@ export default function NewsletterPage() {
           <h1 className="text-4xl font-bold tracking-tight leading-tight">
             Engineering, hardware and software. Straight to your inbox.
           </h1>
-          <ShareButton title="Newsletter — Isaac Adjei" />
         </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
           I write about the things I am building and learning: embedded systems, full-stack software,

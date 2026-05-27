@@ -7,6 +7,7 @@
 import Link from "next/link"
 import { Download, FileText, Printer, ExternalLink, ChevronRight, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import ShareButton from "@/components/shared/ShareButton"
 
 export default function CVPage() {
   const handlePrint = () => {
@@ -56,6 +57,7 @@ export default function CVPage() {
                   HTML
                 </a>
               </Button>
+              <ShareButton title="Isaac Adjei - CV" />
             </div>
           </div>
         </div>
