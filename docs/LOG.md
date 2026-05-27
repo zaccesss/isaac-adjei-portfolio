@@ -7,6 +7,9 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 ## 2026-05-27
 
 - LinkedIn social profile overhaul: all 9 project entries added, Proteus version fix PR #202.
+- PR #203 (chore/docs-reorg): renamed memory/ to docs/, consolidated session logs, rewrote README to essentials only, moved file structure and key dependencies to DOCUMENTATION.md, removed LinkedIn badge from footer.
+- PR #204 (fix/security-and-comments): patched recursive json() helper in contact route, added OG param sanitisation, Cache-Control: no-store on contact and newsletter responses, Upstash rate limiting on newsletter (3/hour), runtime input validation on all dashboard server actions, PIN gate and inline-styles comments, private entries removed from CHANGELOG, Unreleased versioned as v2.4.0.
+- PR #205 (feat/share-links): new ShareButton component (Web Share API + clipboard fallback), OG thumbnails on every public page via /api/og, ShareButton wired to all relevant public pages.
 
 ---
 
