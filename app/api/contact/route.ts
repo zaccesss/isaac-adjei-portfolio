@@ -11,6 +11,15 @@ import { NextResponse } from "next/server"
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
 
+// I add Cache-Control: no-store to every response so Vercel's edge cache and the browser
+// never cache API responses that carry user-facing error messages or success state.
+function json(body: unknown, init?: ResponseInit): NextResponse {
+  return NextResponse.json(body, {
+    ...init,
+    headers: { "Cache-Control": "no-store", ...(init?.headers ?? {}) },
+  })
+}
+
 // Rate limiter - only initialised when Upstash env vars are present.
 // If Redis is unavailable at request time the check is skipped so the form
 // still works; Turnstile CAPTCHA remains as the bot-protection layer.
@@ -43,7 +52,7 @@ export async function POST(request: Request) {
       try {
         const { success } = await ratelimit.limit(ip)
         if (!success) {
-          return NextResponse.json(
+          return json(
             { error: "Too many requests. Please try again later." },
             { status: 429 }
           )
@@ -58,7 +67,7 @@ export async function POST(request: Request) {
 
     // Honeypot: bots often fill every input; real users never see this field. Return 200 so bots do not learn the field name.
     if (_hp) {
-      return NextResponse.json({ success: true })
+      return json({ success: true })
     }
 
     // Turnstile: optional server-side check when TURNSTILE_SECRET_KEY is set.
@@ -67,7 +76,7 @@ export async function POST(request: Request) {
     const turnstileSecret = process.env.TURNSTILE_SECRET_KEY
     if (turnstileSecret) {
       if (!turnstileToken) {
-        return NextResponse.json({ error: "Please complete the verification." }, { status: 400 })
+        return json({ error: "Please complete the verification." }, { status: 400 })
       }
       try {
         const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
@@ -100,23 +109,26 @@ export async function POST(request: Request) {
           ) {
             message = "Server captcha configuration error."
           }
-          return NextResponse.json({ error: message }, { status: 400 })
+          return json({ error: message }, { status: 400 })
         }
       } catch (tsErr) {
+        // I allow the request through when Turnstile's siteverify endpoint is unreachable.
+        // A Cloudflare outage should not block legitimate contact form submissions, and
+        // the rate limiter plus honeypot still provide a baseline defence layer.
         console.error("Turnstile verification failed, allowing request:", tsErr)
       }
     }
 
     // Input validation - mirror client `required` so direct API calls cannot bypass the form.
     if (!name || !email || !subject || !message) {
-      return NextResponse.json({ error: "All fields are required." }, { status: 400 })
+      return json({ error: "All fields are required." }, { status: 400 })
     }
     if (name.length > 100 || subject.length > 200 || message.length > 5000) {
-      return NextResponse.json({ error: "Input too long." }, { status: 400 })
+      return json({ error: "Input too long." }, { status: 400 })
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: "Invalid email address." }, { status: 400 })
+      return json({ error: "Invalid email address." }, { status: 400 })
     }
 
     // Sanitise after length checks so we do not strip then accidentally shorten past limits.
@@ -134,7 +146,7 @@ export async function POST(request: Request) {
         safeSubject,
         safeMessage,
       })
-      return NextResponse.json({ success: true })
+      return json({ success: true })
     }
 
     // 8s cap so a stuck Resend connection does not leave the serverless function hanging until platform timeout.
@@ -163,13 +175,13 @@ export async function POST(request: Request) {
       // Resend returns a JSON error body; log the raw text for Vercel diagnostics.
       const error = await res.text()
       console.error("Resend error:", res.status, error)
-      return NextResponse.json({ error: "Failed to send message." }, { status: 500 })
+      return json({ error: "Failed to send message." }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    return json({ success: true })
   } catch (err) {
     // Malformed JSON, AbortSignal timeout on fetch, or unexpected runtime errors.
     console.error("Contact route error:", err)
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 })
+    return json({ error: "Something went wrong." }, { status: 500 })
   }
 }

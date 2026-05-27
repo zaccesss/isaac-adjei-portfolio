@@ -206,7 +206,7 @@ export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
     const optimistic: Goal = { ...data, id: crypto.randomUUID(), description: data.description || null, target_date: data.target_date || null, category: addCategory }
     setGoals((prev) => [optimistic, ...prev])
     setAddOpen(false)
-    startTransition(() => createGoal({ ...data, category: addCategory }))
+    startTransition(() => void createGoal({ ...data, category: addCategory }))
   }
 
   return (

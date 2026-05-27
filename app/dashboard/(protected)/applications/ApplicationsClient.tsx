@@ -841,7 +841,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
     setApps((prev) => [optimistic, ...prev])
     setAddOpen(false)
     startTransition(() =>
-      createApplication({
+      void createApplication({
         company: data.company,
         role: data.role,
         type: data.type,
@@ -894,7 +894,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
     )
     setEditApp(null)
     startTransition(() =>
-      updateApplication(editApp.id, {
+      void updateApplication(editApp.id, {
         company: data.company,
         role: data.role,
         type: data.type,
@@ -920,12 +920,12 @@ export default function ApplicationsClient({ applications: initial }: { applicat
 
   function handleDelete(id: string) {
     setApps((prev) => prev.filter((a) => a.id !== id))
-    startTransition(() => deleteApplication(id))
+    startTransition(() => void deleteApplication(id))
   }
 
   function handleStatusChange(id: string, newDisplayStatus: string) {
     setApps((prev) => prev.map((a) => (a.id === id ? { ...a, status: newDisplayStatus } : a)))
-    startTransition(() => updateApplication(id, { status: newDisplayStatus }))
+    startTransition(() => void updateApplication(id, { status: newDisplayStatus }))
   }
 
   function editFormInitial(app: Application): FormData {

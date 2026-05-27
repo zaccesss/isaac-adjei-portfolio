@@ -128,7 +128,7 @@ export default function MeClient({ profile: initial }: { profile: Profile }) {
     // I update local state first so the UI responds immediately without waiting for the server
     setProfile(updated)
     // I persist the whole profile object as one config blob rather than having a separate row per field
-    startTransition(() => setConfig("me_profile", updated))
+    startTransition(() => void setConfig("me_profile", updated))
   }
 
   // I use 365.25 days per year to account for leap years in the age calculation

@@ -139,19 +139,19 @@ export default function CourseClient({ modules: initial, config: initialConfig }
     const optimistic: CourseModule = { id: crypto.randomUUID(), ...data, section: data.section || null, prerequisites: data.prerequisites || null }
     setModules((m) => [...m, optimistic])
     setAddOpen(false)
-    startTransition(() => createCourseModule({ ...data, section: data.section || null, prerequisites: data.prerequisites || null }))
+    startTransition(() => void createCourseModule({ ...data, section: data.section || null, prerequisites: data.prerequisites || null }))
   }
 
   function handleEdit(data: typeof emptyModForm) {
     if (!editMod) return
     setModules((m) => m.map((x) => x.id === editMod.id ? { ...x, ...data } : x))
     setEditMod(null)
-    startTransition(() => updateCourseModule(editMod.id, data))
+    startTransition(() => void updateCourseModule(editMod.id, data))
   }
 
   function handleDelete(id: string) {
     setModules((m) => m.filter((x) => x.id !== id))
-    startTransition(() => deleteCourseModule(id))
+    startTransition(() => void deleteCourseModule(id))
   }
 
   function updateConfigField<K extends keyof CourseConfig>(key: K, value: CourseConfig[K]) {
@@ -159,7 +159,7 @@ export default function CourseClient({ modules: initial, config: initialConfig }
     // I update local state first so the page reflects the change while the server round-trip is in flight
     setConfigState(updated)
     // I persist the entire config object as a single blob to avoid managing multiple config keys
-    startTransition(() => setConfig("course_data", updated))
+    startTransition(() => void setConfig("course_data", updated))
   }
 
   const totalCredits = modules.reduce((s, m) => s + (m.credits ?? 0), 0)

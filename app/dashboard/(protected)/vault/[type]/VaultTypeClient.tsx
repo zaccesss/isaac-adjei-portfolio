@@ -208,7 +208,7 @@ function VaultForm({ initial, fixedType, onClose }: {
     const data = { ...form, type }
     if (initial?.id) {
       // I optimistically close with the updated entry so the list reflects the change immediately
-      startTransition(() => updateVaultEntry(initial.id!, data))
+      startTransition(() => void updateVaultEntry(initial.id!, data))
       onClose({ id: initial.id!, ...data, fields: {} } as VaultEntry)
     } else {
       // I await createVaultEntry so I get the DB-generated id back before calling onClose
