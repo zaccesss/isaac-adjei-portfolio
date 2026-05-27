@@ -157,19 +157,19 @@ export default function InventoryCategoryClient({
     }
     setItems((prev) => [...prev, optimistic])
     setAddOpen(false)
-    startTransition(() => createInventoryItem({ ...data, category: data.category || category }))
+    startTransition(() => void createInventoryItem({ ...data, category: data.category || category }))
   }
 
   function handleEdit(data: typeof emptyForm) {
     if (!editItem) return
     setItems((prev) => prev.map((i) => i.id === editItem.id ? { ...i, ...data } : i))
     setEditItem(null)
-    startTransition(() => updateInventoryItem(editItem.id, data))
+    startTransition(() => void updateInventoryItem(editItem.id, data))
   }
 
   function handleDelete(id: string) {
     setItems((prev) => prev.filter((i) => i.id !== id))
-    startTransition(() => deleteInventoryItem(id))
+    startTransition(() => void deleteInventoryItem(id))
   }
 
   return (

@@ -82,7 +82,7 @@ export default function NotesFolderClient({
     setNotes((n) => [optimistic, ...n])
     setSelected(optimistic)
     setEditing(false)
-    startTransition(() => createNote(draft))
+    startTransition(() => void createNote(draft))
   }
 
   function saveEdit() {
@@ -91,20 +91,20 @@ export default function NotesFolderClient({
     setNotes((n) => n.map((x) => x.id === selected.id ? updated : x))
     setSelected(updated)
     setEditing(false)
-    startTransition(() => updateNote(selected.id, draft))
+    startTransition(() => void updateNote(selected.id, draft))
   }
 
   function handleDelete(id: string) {
     setNotes((n) => n.filter((x) => x.id !== id))
     if (selected?.id === id) setSelected(null)
-    startTransition(() => deleteNote(id))
+    startTransition(() => void deleteNote(id))
   }
 
   function togglePin(note: Note) {
     const updated = { ...note, pinned: !note.pinned }
     setNotes((n) => n.map((x) => x.id === note.id ? updated : x))
     if (selected?.id === note.id) setSelected(updated)
-    startTransition(() => updateNote(note.id, { pinned: !note.pinned }))
+    startTransition(() => void updateNote(note.id, { pinned: !note.pinned }))
   }
 
   function exportNote(note: Note) {

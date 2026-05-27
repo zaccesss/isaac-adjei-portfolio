@@ -1,3 +1,5 @@
+// Vault entries never reach the browser unless the PIN cookie is present.
+// PinGate on the client handles prompting when it is absent.
 import { supabase } from "@/lib/supabase"
 import { cookies } from "next/headers"
 import VaultWrapper from "./VaultWrapper"

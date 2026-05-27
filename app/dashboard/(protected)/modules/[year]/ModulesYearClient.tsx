@@ -55,7 +55,7 @@ function AssessmentRow({ a, onEdit, onDelete }: {
   function saveMark() {
     // I coerce "" to null so clearing a mark properly removes it rather than storing NaN
     const num = val === "" ? null : parseFloat(val)
-    startTransition(() => updateAssessmentMark(a.id, num))
+    startTransition(() => void updateAssessmentMark(a.id, num))
     setEditingMark(false)
   }
 
@@ -157,7 +157,7 @@ function AssessmentForm({ initial, moduleId, onClose }: {
     }
     if (initial?.id) {
       // I optimistically close and pass back the updated assessment so the table updates immediately
-      startTransition(() => updateAssessment(initial.id!, data))
+      startTransition(() => void updateAssessment(initial.id!, data))
       onClose({ id: initial.id!, ...data, mark_max: form.mark_max } as Assessment)
     } else {
       // I need to await the insert to get the DB-generated id so the row is deletable without a reload
@@ -275,14 +275,14 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
   function handleDeleteAssessment(id: string) {
     // I update local state first so the row disappears instantly
     setMod((m) => ({ ...m, assessments: m.assessments.filter((a) => a.id !== id) }))
-    startTransition(() => deleteAssessment(id))
+    startTransition(() => void deleteAssessment(id))
   }
 
   function saveModuleEdit() {
     // I update local state optimistically so the header name changes before the server responds
     setMod((m) => ({ ...m, ...modDraft }))
     setEditingModule(false)
-    startTransition(() => updateModule(mod.id, modDraft))
+    startTransition(() => void updateModule(mod.id, modDraft))
   }
 
   return (
@@ -416,7 +416,7 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
       <div className="flex items-center gap-3">
         <span className="text-sm text-muted-foreground">Module status</span>
         {/* I fire the server action directly in onValueChange rather than requiring a save button */}
-        <Select value={mod.status} onValueChange={(v) => { setMod((m) => ({ ...m, status: v })); startTransition(() => updateModuleStatus(mod.id, v)) }}>
+        <Select value={mod.status} onValueChange={(v) => { setMod((m) => ({ ...m, status: v })); startTransition(() => void updateModuleStatus(mod.id, v)) }}>
           <SelectTrigger className="w-36 h-8 text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="ongoing">In Progress</SelectItem>
@@ -547,7 +547,7 @@ export default function ModulesYearClient({
 
   function handleDeleteModule(id: string) {
     setMods((prev) => prev.filter((m) => m.id !== id))
-    startTransition(() => deleteModule(id))
+    startTransition(() => void deleteModule(id))
   }
 
   return (

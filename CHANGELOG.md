@@ -7,6 +7,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [v2.4.0] - 2026-05-27
+
+### Security
+
+- Sanitise title and description query parameters in the OG image route (truncate and strip non-ASCII)
+- Add rate limiting to the newsletter subscription endpoint (3 requests per IP per hour via Upstash)
+- Add Cache-Control: no-store to contact and newsletter API responses
+- Add runtime input validation to all dashboard server actions
+- Force `brace-expansion` to 5.0.6 via npm overrides to resolve CVE-2026-45149 (GHSA-jxxr-4gwj-5jf2)
+
 ### Changed
 
 - README rewritten: shortened to essentials only, file structure and key dependencies moved to DOCUMENTATION.md, LinkedIn badge removed from footer
@@ -22,50 +34,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - robots.txt now explicitly disallows /dashboard for crawlers
-
-- **Weather widget night icon** - the macbook API route now checks the local hour in the device timezone and replaces day emojis (sun, partly cloudy) with a moon emoji between 7pm and 6am
-
-- **Applications Add dialog crash** - Radix UI Select v2 does not accept empty-string `value` on `SelectItem`; all five optional Select fields in AppForm (category, CV, cover letter, written answers, visa) now use sentinel values (`"auto"` / `"none"`) with onValueChange converting back to empty string
-- **Job scraper - full-time jobs ingested** - removed the priority-company exception that bypassed the student-role check; all companies now require a student/intern/placement term in the title or department
-- **Job scraper - US/international jobs ingested** - added `US_LOCATIONS` reject list; US cities and states are now explicitly excluded for all companies; priority companies still get a location pass for unknown foreign locations but never for explicit US ones
-- **Job scraper - stale 2024 entries** - added `CYCLE_CUTOFF = 2025-09-01` date filter; roles with a known closing date before Sep 2025 or already expired are silently skipped
-- **Job scraper - opening date stored in notes** - `opening_date` is now inserted into the proper DB column instead of appended to the notes field
-- **Job scraper - bad data accumulates across runs** - scraper now deletes all `status = scraped` entries at the start of each run before repopulating; manually-added entries (any other status) are preserved
-
-### Added (Applications tracker)
-
-- **Jobs tab** - full-time tech roles in their own tab (`type = Full-time Job`); never mixed with internships, placements, spring weeks or events
-- **Remotive scraper** - pulls remote full-time tech jobs from Remotive public API (software-dev, devops, data, product categories); publication date stored as opening_date
-- **Dual-pass scraping** - Greenhouse, Lever and Ashby scrapers now check both student roles (internship tab) and full-time roles (jobs tab) per posting; mutually exclusive so no role appears in both
-- **Location column** - location shown in every row; London coloured green, Birmingham blue, Manchester violet for quick scanning
-- **Location filter** - filter by London / Birmingham / Manchester / Remote-Hybrid / Other across all tabs
-- **Keyword filter** - filter by Software / Data / Cloud / DevOps / Security / Finance-Quant / Embedded / Consulting (derived from auto-detected category); works across all tabs
-- **Location priority sort** - within each category group, London entries appear first, then Birmingham, Manchester, Remote, then other locations
-- **Location in search** - search bar now matches location field in addition to company and role name
-- **No location restriction on internships** - internships are now scraped worldwide; location shown in table so Isaac can decide; priority companies remain the focus
-
-### Added
-
-- **Private `/dashboard`** - protected section accessible only via GitHub OAuth; only Isaac's GitHub account can log in; not linked from public nav, sitemap or command menu
-- **Wishlist** - categorised wishlist with wanted/saving/got-it status, tick-to-mark-obtained, priority flags and add/delete
-- **Diary** - private journal with mood tagging, expandable entries, edit and delete; only visible to Isaac
-- **Goals tracker** - add, edit and delete personal goals with category, status, target date and progress bar; grouped by category; filter by status and category
-- **Module tracker** - all Year 1, Year 2 and Final Year modules pre-seeded from official programme spec; click to expand and view assessments; click any mark to edit it inline; weighted average auto-calculated; First/2:1/2:2/Fail badge per module; Year 1 stats bar shows average, classification, credits and modules completed
-- **Internship tracker** - table of applications with company, role, dates, status and notes; status changes inline; star to prioritise; click row for detail panel; stats bar shows totals, in-progress, offers and rejections
-- **Course page** - programme structure replication of the official BEng EECS spec; all Stage 1-F modules listed with codes, credits and condonable flag; IET rules and grade thresholds; term dates; link to programme spec PDF
-- **Gym page** - 6-day split (push, pull, legs, cardio, shoulders, HIIT, rest) with exercises and sets; weekly schedule (Mon-Fri, Sat, Sun); nutrition plan with key rules and meal breakdown
-- NextAuth.js v5 GitHub OAuth provider with numeric user ID allow-list
-- Supabase PostgreSQL for all dashboard data; server actions only, no public DB routes
-
-### Fixed
-
-- Dashboard login redirect loop - moved protected routes into `(protected)/` route group so the auth layout no longer wraps the login page; switched middleware from `getToken` (NextAuth v4) to `auth()` (NextAuth v5) so session tokens are read correctly in production
-- /all-pages keyboard shortcut now adapts to OS - shows `⌘+I` on Mac and `Ctrl+I` on Windows/Linux via `useModKey` hook; symbol size increased for visibility
+- /all-pages keyboard shortcut now adapts to OS — shows `⌘+I` on Mac and `Ctrl+I` on Windows/Linux; symbol size increased for visibility
 - `pages` command on /all-pages highlighted in primary colour and links directly to /lab
-
-### Security
-
-- Force `brace-expansion` to 5.0.6 via npm overrides to resolve CVE-2026-45149 (GHSA-jxxr-4gwj-5jf2)
 
 ---
 

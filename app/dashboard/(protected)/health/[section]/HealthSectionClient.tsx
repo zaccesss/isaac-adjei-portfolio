@@ -236,13 +236,13 @@ export default function HealthSectionClient({
     setSections((s) => [...s, optimistic])
     setAddSectionOpen(false)
     setNewSection({ name: "", type: activeSection, icon: SECTION_TYPE_ICONS[activeSection] ?? "💪", color: "#6366f1" })
-    startTransition(() => createHealthSection({ ...newSection, order_index: sections.length }))
+    startTransition(() => void createHealthSection({ ...newSection, order_index: sections.length }))
   }
 
   function handleDeleteSection(id: string) {
     setSections((s) => s.filter((x) => x.id !== id))
     if (selectedSection?.id === id) setSelectedSection(null)
-    startTransition(() => deleteHealthSection(id))
+    startTransition(() => void deleteHealthSection(id))
   }
 
   function handleAddWorkout() {
@@ -259,7 +259,7 @@ export default function HealthSectionClient({
     setWorkouts((w) => [...w, optimistic])
     setAddWorkoutOpen(false)
     setWorkoutForm({ day_label: "", exercises: [{ name: "", sets: "" }], notes: "" })
-    startTransition(() => createHealthWorkout({
+    startTransition(() => void createHealthWorkout({
       section_id: selectedSection.id,
       day_label: workoutForm.day_label,
       exercises,
@@ -270,17 +270,17 @@ export default function HealthSectionClient({
 
   function handleDeleteWorkout(id: string) {
     setWorkouts((w) => w.filter((x) => x.id !== id))
-    startTransition(() => deleteHealthWorkout(id))
+    startTransition(() => void deleteHealthWorkout(id))
   }
 
   function handleUpdateNutrition(id: string, data: Partial<Nutrition>) {
     setNutrition((n) => n.map((x) => x.id === id ? { ...x, ...data } : x))
-    startTransition(() => updateHealthNutrition(id, data))
+    startTransition(() => void updateHealthNutrition(id, data))
   }
 
   function handleDeleteNutrition(id: string) {
     setNutrition((n) => n.filter((x) => x.id !== id))
-    startTransition(() => deleteHealthNutrition(id))
+    startTransition(() => void deleteHealthNutrition(id))
   }
 
   function handleAddNutritionCat() {
@@ -288,7 +288,7 @@ export default function HealthSectionClient({
     const optimistic: Nutrition = { id: crypto.randomUUID(), category: addNutritionCat, items: [], rules: [], order_index: nutrition.length }
     setNutrition((n) => [...n, optimistic])
     setAddNutritionCat("")
-    startTransition(() => createHealthNutrition({ category: addNutritionCat, items: [], rules: [], order_index: optimistic.order_index }))
+    startTransition(() => void createHealthNutrition({ category: addNutritionCat, items: [], rules: [], order_index: optimistic.order_index }))
   }
 
   const SectionIcon = SECTION_ICONS[activeSection] ?? Dumbbell
@@ -374,7 +374,7 @@ export default function HealthSectionClient({
                   const exercises = workoutForm.exercises.filter((e) => e.name.trim())
                   if (editWorkout) {
                     setWorkouts((w) => w.map((x) => x.id === editWorkout.id ? { ...x, day_label: workoutForm.day_label, exercises, notes: workoutForm.notes || null } : x))
-                    startTransition(() => updateHealthWorkout(editWorkout.id, { day_label: workoutForm.day_label, exercises, notes: workoutForm.notes }))
+                    startTransition(() => void updateHealthWorkout(editWorkout.id, { day_label: workoutForm.day_label, exercises, notes: workoutForm.notes }))
                     setEditWorkout(null)
                   } else {
                     handleAddWorkout()

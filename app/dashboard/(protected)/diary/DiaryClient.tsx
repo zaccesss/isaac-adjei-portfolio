@@ -222,19 +222,19 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
     }
     setEntries((prev) => [optimistic, ...prev])
     setOpen(false)
-    startTransition(() => createDiaryEntry({ title: data.title, content: data.content, mood: data.mood }))
+    startTransition(() => void createDiaryEntry({ title: data.title, content: data.content, mood: data.mood }))
   }
 
   function handleEdit(data: typeof emptyForm) {
     if (!editEntry) return
     setEntries((prev) => prev.map((e) => e.id === editEntry.id ? { ...e, ...data, mood: data.mood || null } : e))
     setEditEntry(null)
-    startTransition(() => updateDiaryEntry(editEntry.id, { title: data.title, content: data.content, mood: data.mood }))
+    startTransition(() => void updateDiaryEntry(editEntry.id, { title: data.title, content: data.content, mood: data.mood }))
   }
 
   function handleDelete(id: string) {
     setEntries((prev) => prev.filter((e) => e.id !== id))
-    startTransition(() => deleteDiaryEntry(id))
+    startTransition(() => void deleteDiaryEntry(id))
   }
 
   return (

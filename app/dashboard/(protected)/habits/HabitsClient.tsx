@@ -91,17 +91,17 @@ export default function HabitsClient({
     setHabits((h) => [...h, optimistic])
     setNewHabitName("")
     setAdding(false)
-    startTransition(() => createStreak({ name: optimistic.name, icon: "🎯", description: "", color: "#3b82f6", order_index: habits.length }))
+    startTransition(() => void createStreak({ name: optimistic.name, icon: "🎯", description: "", color: "#3b82f6", order_index: habits.length }))
   }
 
   function handleCheckIn(habitId: string) {
     const isCheckedIn = todayLogs.has(habitId)
     if (isCheckedIn) {
       // I undo the check-in
-      startTransition(() => undoStreakCheckIn(habitId, today))
+      startTransition(() => void undoStreakCheckIn(habitId, today))
     } else {
       // I check in
-      startTransition(() => checkInStreak(habitId, today))
+      startTransition(() => void checkInStreak(habitId, today))
     }
     // I force a reload to get fresh data
     window.location.reload()
@@ -109,7 +109,7 @@ export default function HabitsClient({
 
   function handleDelete(id: string) {
     setHabits((h) => h.filter((x) => x.id !== id))
-    startTransition(() => deleteStreak(id))
+    startTransition(() => void deleteStreak(id))
   }
 
   return (
