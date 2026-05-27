@@ -160,26 +160,26 @@ export default function WishlistCategoryClient({
     }
     setItems((prev) => [...prev, optimistic])
     setAddOpen(false)
-    startTransition(() => createWishlistItem({ ...data, category: finalCategory }))
+    startTransition(() => void createWishlistItem({ ...data, category: finalCategory }))
   }
 
   function handleEdit(data: typeof emptyForm) {
     if (!editItem) return
     setItems((prev) => prev.map((i) => i.id === editItem.id ? { ...i, ...data, notes: data.notes || null } : i))
     setEditItem(null)
-    startTransition(() => updateWishlistItem(editItem.id, data))
+    startTransition(() => void updateWishlistItem(editItem.id, data))
   }
 
   function handleDelete(id: string) {
     setItems((prev) => prev.filter((i) => i.id !== id))
-    startTransition(() => deleteWishlistItem(id))
+    startTransition(() => void deleteWishlistItem(id))
   }
 
   function handleToggleGotIt(id: string, current: string) {
     // I toggle between "got_it" and "wanted" so tapping the checkbox a second time undoes the check
     const newStatus = current === "got_it" ? "wanted" : "got_it"
     setItems((prev) => prev.map((i) => i.id === id ? { ...i, status: newStatus } : i))
-    startTransition(() => updateWishlistItem(id, { status: newStatus }))
+    startTransition(() => void updateWishlistItem(id, { status: newStatus }))
   }
 
   return (

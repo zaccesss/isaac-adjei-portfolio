@@ -257,25 +257,25 @@ export default function StreaksClient({ streaks: initial, logs: initialLogs, tod
     setStreaks((s) => [...s, optimistic])  // I append to the end because order_index is based on current length
     setOpen(false)
     setForm(emptyForm)  // I reset the form before the transition fires so the dialog feels snappy
-    startTransition(() => createStreak({ ...form, order_index: optimistic.order_index }))
+    startTransition(() => void createStreak({ ...form, order_index: optimistic.order_index }))
   }
 
   function handleDelete(id: string) {
     // I remove locally first so the card disappears instantly - no loading state needed
     setStreaks((s) => s.filter((x) => x.id !== id))
-    startTransition(() => deleteStreak(id))
+    startTransition(() => void deleteStreak(id))
   }
 
   function handleCheckIn(streakId: string, date: string, undo: boolean) {
     if (undo) {
       // I filter out the specific log entry so the heatmap cell and streak count update in the same render
       setLogs((l) => l.filter((x) => !(x.streak_id === streakId && x.date === date)))
-      startTransition(() => undoStreakCheckIn(streakId, date))
+      startTransition(() => void undoStreakCheckIn(streakId, date))
     } else {
       // I append a synthetic log entry so calcCurrentStreak sees it immediately
       const newLog: Log = { id: crypto.randomUUID(), streak_id: streakId, date, completed: true }
       setLogs((l) => [...l, newLog])
-      startTransition(() => checkInStreak(streakId, date))
+      startTransition(() => void checkInStreak(streakId, date))
     }
   }
 

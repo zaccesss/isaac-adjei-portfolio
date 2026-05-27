@@ -58,7 +58,7 @@ export default function GoalsCategoryClient({ goals: initial, category }: { goal
     }
     setGoals((prev) => [optimistic, ...prev])
     setAddOpen(false)
-    startTransition(() => createGoal({ ...data, category }))
+    startTransition(() => void createGoal({ ...data, category }))
   }
 
   function handleEdit(data: typeof emptyForm) {
@@ -66,13 +66,13 @@ export default function GoalsCategoryClient({ goals: initial, category }: { goal
     // I update locally first so the card reflects the change while the server action runs in the background
     setGoals((prev) => prev.map((g) => g.id === editGoal.id ? { ...g, ...data } : g))
     setEditGoal(null)
-    startTransition(() => updateGoal(editGoal.id, data))
+    startTransition(() => void updateGoal(editGoal.id, data))
   }
 
   function handleDelete(id: string) {
     // I remove optimistically so the card disappears immediately rather than waiting for the server
     setGoals((prev) => prev.filter((g) => g.id !== id))
-    startTransition(() => deleteGoal(id))
+    startTransition(() => void deleteGoal(id))
   }
 
   return (
