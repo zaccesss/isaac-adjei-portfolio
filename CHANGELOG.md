@@ -7,6 +7,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Share button on project detail and blog pages (Web Share API with clipboard fallback and 2-second "Copied!" confirmation)
+- Open Graph thumbnails on every public page via `/api/og` — dynamic per-page title and description on all static and dynamic routes
+
 ---
 
 ## [v2.4.0] - 2026-05-27

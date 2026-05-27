@@ -8,6 +8,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Play, BookOpen, Music2, Headphones, Tv2, ExternalLink, LayoutList } from "lucide-react"
+import ShareButton from "@/components/shared/ShareButton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
@@ -232,6 +233,7 @@ export default function ConsumedContent() {
       <div className="space-y-4 max-w-2xl">
         <div className="flex items-center gap-3">
           <h1 className="text-4xl font-bold tracking-tight">Consumed</h1>
+          <ShareButton title="Consumed 2026 — Isaac Adjei" />
           <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-mono text-primary font-medium">2026</span>
         </div>
         <p className="text-lg text-muted-foreground leading-relaxed">

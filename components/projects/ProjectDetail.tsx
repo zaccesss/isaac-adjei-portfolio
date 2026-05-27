@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { type Project } from "@/data/projects"
 import { staggerContainer, fadeUp } from "@/lib/animations"
+import ShareButton from "@/components/shared/ShareButton"
 
 interface Props {
   project: Project
@@ -49,7 +50,7 @@ export default function ProjectDetail({ project }: Props) {
           <h1 className="text-4xl font-bold tracking-tight">{project.title}</h1>
           <p className="text-lg text-muted-foreground">{project.description}</p>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex items-center gap-3 pt-2">
             {project.github && (
               <Button asChild variant="outline" size="sm">
                 <a href={project.github} target="_blank" rel="noopener noreferrer">
@@ -66,6 +67,7 @@ export default function ProjectDetail({ project }: Props) {
                 </a>
               </Button>
             )}
+            <ShareButton title={project.title} />
           </div>
         </div>
       </motion.div>

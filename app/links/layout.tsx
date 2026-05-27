@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://www.isaacadjei.me/links",
   },
+  openGraph: {
+    images: ["/api/og?title=Links&description=All%20my%20profiles%2C%20social%20links%20and%20platforms%20in%20one%20place."],
+  },
 }
 
 export default function LinksLayout({ children }: { children: React.ReactNode }) {

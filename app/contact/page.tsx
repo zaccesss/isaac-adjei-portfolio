@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://www.isaacadjei.me/contact",
   },
+  openGraph: {
+    images: ["/api/og?title=Contact&description=Get%20in%20touch%20with%20Isaac%20Adjei%2E"],
+  },
 }
 
 export default function ContactPage() {
