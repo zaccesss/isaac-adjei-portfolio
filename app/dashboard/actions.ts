@@ -5,6 +5,35 @@
 import { supabase } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
 
+// Input validation helpers. I use runtime checks rather than a schema library to avoid
+// adding a dependency. Any field that fails type or length checks causes the action to
+// return early with a generic error so callers never see a Supabase error message.
+
+const MAX_TEXT = 500
+const MAX_LONG_TEXT = 2000
+
+const INVALID = { error: "Invalid input" } as const
+
+function validStr(v: unknown, maxLen = MAX_TEXT): boolean {
+  return typeof v === "string" && v.trim().length > 0 && v.trim().length <= maxLen
+}
+
+function optStr(v: unknown, maxLen = MAX_TEXT): boolean {
+  return v === undefined || v === null || (typeof v === "string" && v.length <= maxLen)
+}
+
+function validNum(v: unknown, min = 0, max = 1_000_000): boolean {
+  return typeof v === "number" && Number.isFinite(v) && v >= min && v <= max
+}
+
+function optNum(v: unknown, min = 0, max = 1_000_000): boolean {
+  return v === undefined || v === null || validNum(v, min, max)
+}
+
+function validId(id: unknown): boolean {
+  return typeof id === "string" && id.trim().length > 0 && id.length <= 100
+}
+
 // ─── Goals ──────────────────────────────────────────────────
 
 // I always revalidatePath after writes so the Next.js cache for that route is busted immediately
@@ -18,6 +47,14 @@ export async function createGoal(data: {
   target_date: string
   progress: number
 }) {
+  if (
+    !validStr(data.title) ||
+    !optStr(data.description, MAX_LONG_TEXT) ||
+    !validStr(data.category) ||
+    !validStr(data.status) ||
+    !optStr(data.target_date) ||
+    !validNum(data.progress, 0, 100)
+  ) return INVALID
   await supabase.from("goals").insert(data)
   revalidatePath("/dashboard/goals")
 }
@@ -31,11 +68,21 @@ export async function updateGoal(id: string, data: Partial<{
   progress: number
 }>) {
   // I use Partial<> so callers can patch a single field without supplying the full row
+  if (
+    !validId(id) ||
+    !optStr(data.title) ||
+    !optStr(data.description, MAX_LONG_TEXT) ||
+    !optStr(data.category) ||
+    !optStr(data.status) ||
+    !optStr(data.target_date) ||
+    !optNum(data.progress, 0, 100)
+  ) return INVALID
   await supabase.from("goals").update(data).eq("id", id)
   revalidatePath("/dashboard/goals")
 }
 
 export async function deleteGoal(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("goals").delete().eq("id", id)
   revalidatePath("/dashboard/goals")
 }
@@ -52,6 +99,16 @@ export async function createModule(data: {
   summary?: string
   rules?: string
 }) {
+  if (
+    !validStr(data.code) ||
+    !validStr(data.name) ||
+    !validNum(data.credits, 0, 240) ||
+    !validNum(data.year, 1, 5) ||
+    !validNum(data.semester, 1, 3) ||
+    !validStr(data.status) ||
+    !optStr(data.summary, MAX_LONG_TEXT) ||
+    !optStr(data.rules, MAX_LONG_TEXT)
+  ) return INVALID
   // I .select().single() here because the client needs the auto-generated id to add to local state
   // without it I would have to refetch the full modules list just to get the new row's id
   const { data: inserted } = await supabase.from("modules").insert(data).select().single()
@@ -69,11 +126,23 @@ export async function updateModule(id: string, data: Partial<{
   summary: string
   rules: string
 }>) {
+  if (
+    !validId(id) ||
+    !optStr(data.code) ||
+    !optStr(data.name) ||
+    !optNum(data.credits, 0, 240) ||
+    !optNum(data.year, 1, 5) ||
+    !optNum(data.semester, 1, 3) ||
+    !optStr(data.status) ||
+    !optStr(data.summary, MAX_LONG_TEXT) ||
+    !optStr(data.rules, MAX_LONG_TEXT)
+  ) return INVALID
   await supabase.from("modules").update(data).eq("id", id)
   revalidatePath("/dashboard/modules")
 }
 
 export async function deleteModule(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("modules").delete().eq("id", id)
   revalidatePath("/dashboard/modules")
 }
@@ -81,6 +150,7 @@ export async function deleteModule(id: string) {
 export async function updateModuleStatus(id: string, status: string) {
   // I split status into its own action because it fires on every Select change
   // and I do not want the caller to build a full update payload just to flip one field
+  if (!validId(id) || !validStr(status)) return INVALID
   await supabase.from("modules").update({ status }).eq("id", id)
   revalidatePath("/dashboard/modules")
 }
@@ -100,6 +170,18 @@ export async function createAssessment(data: {
   is_pass_fail?: boolean
   my_notes?: string | null
 }) {
+  if (
+    !validStr(data.module_id) ||
+    !validStr(data.name) ||
+    !validStr(data.type) ||
+    !validNum(data.weight_percent, 0, 100) ||
+    !optNum(data.mark_achieved, 0, 200) ||
+    !validNum(data.mark_max, 0, 200) ||
+    !optNum(data.target_mark, 0, 200) ||
+    !optStr(data.date) ||
+    !optStr(data.week) ||
+    !optStr(data.my_notes, MAX_LONG_TEXT)
+  ) return INVALID
   // I return the inserted row so the client can append it to local state
   // without needing to know the DB-generated id ahead of time
   const { data: inserted } = await supabase.from("assessments").insert(data).select().single()
@@ -110,6 +192,8 @@ export async function createAssessment(data: {
 export async function updateAssessmentMark(id: string, mark: number | null) {
   // I expose this as a dedicated action because mark entry is the most frequent operation
   // in the modules view - students click a row, type a number, and hit Enter
+  if (!validId(id)) return INVALID
+  if (mark !== null && !validNum(mark, 0, 200)) return INVALID
   await supabase.from("assessments").update({ mark_achieved: mark }).eq("id", id)
   revalidatePath("/dashboard/modules")
 }
@@ -126,11 +210,22 @@ export async function updateAssessment(id: string, data: Partial<{
   is_pass_fail: boolean
   my_notes: string | null
 }>) {
+  if (
+    !validId(id) ||
+    !optStr(data.name) ||
+    !optStr(data.type) ||
+    !optNum(data.weight_percent, 0, 100) ||
+    !optNum(data.mark_max, 0, 200) ||
+    !optStr(data.date) ||
+    !optStr(data.week) ||
+    !optStr(data.my_notes, MAX_LONG_TEXT)
+  ) return INVALID
   await supabase.from("assessments").update(data).eq("id", id)
   revalidatePath("/dashboard/modules")
 }
 
 export async function deleteAssessment(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("assessments").delete().eq("id", id)
   revalidatePath("/dashboard/modules")
 }
@@ -160,6 +255,29 @@ export async function createApplication(data: {
   sponsors_visa?: string
   category?: string
 }) {
+  if (
+    !validStr(data.company) ||
+    !validStr(data.role) ||
+    !validStr(data.type) ||
+    !optStr(data.applied_date) ||
+    !optStr(data.deadline) ||
+    !validStr(data.status) ||
+    !optStr(data.notes, MAX_LONG_TEXT) ||
+    !optStr(data.url) ||
+    typeof data.starred !== "boolean" ||
+    !optStr(data.salary_range) ||
+    !optStr(data.location) ||
+    !optStr(data.work_mode) ||
+    !optStr(data.source) ||
+    !optStr(data.opening_date) ||
+    !optStr(data.last_year_opening) ||
+    !optStr(data.housing_location) ||
+    !optStr(data.cv_required) ||
+    !optStr(data.cover_letter_required) ||
+    !optStr(data.written_answers) ||
+    !optStr(data.sponsors_visa) ||
+    !optStr(data.category)
+  ) return INVALID
   // I return the inserted row so the client can optimistically show the new card without a refetch
   const { data: inserted } = await supabase.from("applications").insert(data).select().single()
   revalidatePath("/dashboard/applications")
@@ -189,11 +307,13 @@ export async function updateApplication(id: string, data: Partial<{
   sponsors_visa: string
   category: string
 }>) {
+  if (!validId(id)) return INVALID
   await supabase.from("applications").update(data).eq("id", id)
   revalidatePath("/dashboard/applications")
 }
 
 export async function deleteApplication(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("applications").delete().eq("id", id)
   revalidatePath("/dashboard/applications")
 }
@@ -221,6 +341,25 @@ export async function createVaultEntry(data: {
   notes?: string
   fields?: Record<string, unknown>  // I reserve this for arbitrary extra key-value pairs in future
 }) {
+  if (
+    !validStr(data.name) ||
+    !validStr(data.type) ||
+    !optStr(data.username) ||
+    !optStr(data.email) ||
+    !optStr(data.password) ||
+    !optStr(data.url) ||
+    !optStr(data.totp_secret) ||
+    !optStr(data.card_number) ||
+    !optStr(data.card_holder) ||
+    !optStr(data.card_expiry) ||
+    !optStr(data.phone) ||
+    !optStr(data.address) ||
+    !optStr(data.key_name) ||
+    !optStr(data.key_value) ||
+    !optStr(data.key_expiry) ||
+    !optStr(data.content, MAX_LONG_TEXT) ||
+    !optStr(data.notes, MAX_LONG_TEXT)
+  ) return INVALID
   // I return the full inserted row so the client can splice it into the local entries list
   // in sorted order without waiting for a page refetch
   const { data: inserted } = await supabase.from("vault").insert(data).select().single()
@@ -248,11 +387,13 @@ export async function updateVaultEntry(id: string, data: Partial<{
   notes: string
   fields: Record<string, unknown>
 }>) {
+  if (!validId(id)) return INVALID
   await supabase.from("vault").update(data).eq("id", id)
   revalidatePath("/dashboard/vault")
 }
 
 export async function deleteVaultEntry(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("vault").delete().eq("id", id)
   revalidatePath("/dashboard/vault")
 }
@@ -264,6 +405,11 @@ export async function createDiaryEntry(data: {
   content: string
   mood: string
 }) {
+  if (
+    !validStr(data.title) ||
+    !validStr(data.content, MAX_LONG_TEXT) ||
+    !validStr(data.mood)
+  ) return INVALID
   // I return the inserted row so the DiaryClient can prepend it to the top of the list immediately
   // the created_at timestamp comes back from Supabase so the order is correct without client-side guessing
   const { data: inserted } = await supabase.from("diary").insert(data).select().single()
@@ -277,6 +423,12 @@ export async function updateDiaryEntry(id: string, data: Partial<{
   mood: string
   updated_at: string
 }>) {
+  if (
+    !validId(id) ||
+    !optStr(data.title) ||
+    !optStr(data.content, MAX_LONG_TEXT) ||
+    !optStr(data.mood)
+  ) return INVALID
   // I always stamp updated_at server-side so the value is the true server time
   // not whatever the client clock happens to say
   await supabase.from("diary").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
@@ -284,6 +436,7 @@ export async function updateDiaryEntry(id: string, data: Partial<{
 }
 
 export async function deleteDiaryEntry(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("diary").delete().eq("id", id)
   revalidatePath("/dashboard/diary")
 }
@@ -299,6 +452,15 @@ export async function createNote(data: {
   locked: boolean
   color: string | null  // null means no accent colour, the card renders in the default theme colour
 }) {
+  if (
+    !validStr(data.title) ||
+    !validStr(data.content, MAX_LONG_TEXT) ||
+    !validStr(data.folder) ||
+    !Array.isArray(data.tags) ||
+    typeof data.pinned !== "boolean" ||
+    typeof data.locked !== "boolean" ||
+    !optStr(data.color)
+  ) return INVALID
   const { data: inserted } = await supabase.from("notes").insert(data).select().single()
   revalidatePath("/dashboard/notes")
   return inserted
@@ -314,6 +476,7 @@ export async function updateNote(id: string, data: Partial<{
   color: string | null
   updated_at: string
 }>) {
+  if (!validId(id)) return INVALID
   // I spread updated_at on the server side for the same reason as updateDiaryEntry
   // - the client's clock drifts and I do not want stale sort orders
   await supabase.from("notes").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
@@ -321,6 +484,7 @@ export async function updateNote(id: string, data: Partial<{
 }
 
 export async function deleteNote(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("notes").delete().eq("id", id)
   revalidatePath("/dashboard/notes")
 }
@@ -334,6 +498,13 @@ export async function createStreak(data: {
   color: string
   order_index: number  // I persist order so the drag-to-reorder state survives a page reload
 }) {
+  if (
+    !validStr(data.name) ||
+    !validStr(data.icon) ||
+    !optStr(data.description, MAX_LONG_TEXT) ||
+    !validStr(data.color) ||
+    !validNum(data.order_index, 0, 9999)
+  ) return INVALID
   const { data: inserted } = await supabase.from("streaks").insert(data).select().single()
   revalidatePath("/dashboard/streaks")
   return inserted
@@ -347,11 +518,13 @@ export async function updateStreak(id: string, data: Partial<{
   active: boolean
   order_index: number
 }>) {
+  if (!validId(id)) return INVALID
   await supabase.from("streaks").update(data).eq("id", id)
   revalidatePath("/dashboard/streaks")
 }
 
 export async function deleteStreak(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("streaks").delete().eq("id", id)
   revalidatePath("/dashboard/streaks")
 }
@@ -359,6 +532,7 @@ export async function deleteStreak(id: string) {
 export async function checkInStreak(streakId: string, date: string) {
   // I upsert on the composite key (streak_id, date) so re-checking the same day is idempotent
   // - double-clicking the button or a race condition will not create duplicate rows
+  if (!validId(streakId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
   await supabase.from("streak_logs").upsert({ streak_id: streakId, date, completed: true }, { onConflict: "streak_id,date" })
   revalidatePath("/dashboard/streaks")
 }
@@ -366,6 +540,7 @@ export async function checkInStreak(streakId: string, date: string) {
 export async function undoStreakCheckIn(streakId: string, date: string) {
   // I delete rather than setting completed: false so there is no ambiguity
   // between "never checked in" and "checked in then undone" - both look the same in the streak calc
+  if (!validId(streakId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
   await supabase.from("streak_logs").delete().eq("streak_id", streakId).eq("date", date)
   revalidatePath("/dashboard/streaks")
 }
@@ -379,6 +554,13 @@ export async function createHealthSection(data: {
   color: string
   order_index: number
 }) {
+  if (
+    !validStr(data.name) ||
+    !validStr(data.type) ||
+    !validStr(data.icon) ||
+    !validStr(data.color) ||
+    !validNum(data.order_index, 0, 9999)
+  ) return INVALID
   const { data: inserted } = await supabase.from("health_sections").insert(data).select().single()
   revalidatePath("/dashboard/health")
   return inserted
@@ -392,11 +574,13 @@ export async function updateHealthSection(id: string, data: Partial<{
   order_index: number
   active: boolean  // I soft-delete sections by setting active: false rather than destroying the data
 }>) {
+  if (!validId(id)) return INVALID
   await supabase.from("health_sections").update(data).eq("id", id)
   revalidatePath("/dashboard/health")
 }
 
 export async function deleteHealthSection(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("health_sections").delete().eq("id", id)
   revalidatePath("/dashboard/health")
 }
@@ -408,6 +592,13 @@ export async function createHealthWorkout(data: {
   notes?: string
   order_index: number
 }) {
+  if (
+    !validStr(data.section_id) ||
+    !validStr(data.day_label) ||
+    !Array.isArray(data.exercises) ||
+    !optStr(data.notes, MAX_LONG_TEXT) ||
+    !validNum(data.order_index, 0, 9999)
+  ) return INVALID
   const { data: inserted } = await supabase.from("health_workouts").insert(data).select().single()
   revalidatePath("/dashboard/health")
   return inserted
@@ -419,12 +610,14 @@ export async function updateHealthWorkout(id: string, data: Partial<{
   notes: string
   order_index: number
 }>) {
+  if (!validId(id)) return INVALID
   // I always refresh updated_at server-side so I know the true last-modified time
   await supabase.from("health_workouts").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
   revalidatePath("/dashboard/health")
 }
 
 export async function deleteHealthWorkout(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("health_workouts").delete().eq("id", id)
   revalidatePath("/dashboard/health")
 }
@@ -435,6 +628,13 @@ export async function updateHealthNutrition(id: string, data: Partial<{
   rules: string[]
   order_index: number
 }>) {
+  if (
+    !validId(id) ||
+    !optStr(data.category) ||
+    (data.items !== undefined && !Array.isArray(data.items)) ||
+    (data.rules !== undefined && !Array.isArray(data.rules)) ||
+    !optNum(data.order_index, 0, 9999)
+  ) return INVALID
   await supabase.from("health_nutrition").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
   revalidatePath("/dashboard/health")
 }
@@ -445,12 +645,19 @@ export async function createHealthNutrition(data: {
   rules: string[]
   order_index: number
 }) {
+  if (
+    !validStr(data.category) ||
+    !Array.isArray(data.items) ||
+    !Array.isArray(data.rules) ||
+    !validNum(data.order_index, 0, 9999)
+  ) return INVALID
   const { data: inserted } = await supabase.from("health_nutrition").insert(data).select().single()
   revalidatePath("/dashboard/health")
   return inserted
 }
 
 export async function deleteHealthNutrition(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("health_nutrition").delete().eq("id", id)
   revalidatePath("/dashboard/health")
 }
@@ -466,6 +673,7 @@ export async function getConfig(key: string) {
 }
 
 export async function setConfig(key: string, value: unknown) {
+  if (!validStr(key)) return INVALID
   // I upsert on the key column so the first write creates the row and subsequent ones update it
   // - no separate "does this key exist?" check needed, which would waste a round trip
   await supabase.from("config").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" })
@@ -485,6 +693,18 @@ export async function createCourseModule(data: {
   prerequisites: string | null
   order_index: number
 }) {
+  if (
+    !validStr(data.stage) ||
+    !optStr(data.section) ||
+    !validStr(data.code) ||
+    !validStr(data.title) ||
+    !validNum(data.credits, 0, 240) ||
+    !validNum(data.level, 0, 9) ||
+    !validStr(data.core_or_option) ||
+    typeof data.condonable !== "boolean" ||
+    !optStr(data.prerequisites) ||
+    !validNum(data.order_index, 0, 9999)
+  ) return INVALID
   const { data: inserted } = await supabase.from("course_modules").insert(data).select().single()
   revalidatePath("/dashboard/course")
   return inserted
@@ -502,11 +722,13 @@ export async function updateCourseModule(id: string, data: Partial<{
   prerequisites: string | null
   order_index: number
 }>) {
+  if (!validId(id)) return INVALID
   await supabase.from("course_modules").update(data).eq("id", id)
   revalidatePath("/dashboard/course")
 }
 
 export async function deleteCourseModule(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("course_modules").delete().eq("id", id)
   revalidatePath("/dashboard/course")
 }
@@ -520,6 +742,13 @@ export async function createWishlistItem(data: {
   priority: string
   notes: string
 }) {
+  if (
+    !validStr(data.name) ||
+    !validStr(data.category) ||
+    !validStr(data.status) ||
+    !validStr(data.priority) ||
+    !optStr(data.notes, MAX_LONG_TEXT)
+  ) return INVALID
   const { data: inserted } = await supabase.from("wishlist").insert(data).select().single()
   revalidatePath("/dashboard/wishlist")
   return inserted
@@ -532,11 +761,13 @@ export async function updateWishlistItem(id: string, data: Partial<{
   priority: string
   notes: string
 }>) {
+  if (!validId(id)) return INVALID
   await supabase.from("wishlist").update(data).eq("id", id)
   revalidatePath("/dashboard/wishlist")
 }
 
 export async function deleteWishlistItem(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("wishlist").delete().eq("id", id)
   revalidatePath("/dashboard/wishlist")
 }
@@ -554,6 +785,17 @@ export async function createInventoryItem(data: {
   notes?: string
   warranty_expiry?: string | null
 }) {
+  if (
+    !validStr(data.name) ||
+    !validStr(data.category) ||
+    !validNum(data.quantity, 0, 99999) ||
+    !optStr(data.description, MAX_LONG_TEXT) ||
+    !optStr(data.purchase_date) ||
+    !optStr(data.price_paid) ||
+    !optStr(data.serial_number) ||
+    !optStr(data.notes, MAX_LONG_TEXT) ||
+    !optStr(data.warranty_expiry)
+  ) return INVALID
   const { data: inserted } = await supabase.from("inventory_items").insert(data).select().single()
   revalidatePath("/dashboard/inventory")
   return inserted
@@ -570,11 +812,13 @@ export async function updateInventoryItem(id: string, data: Partial<{
   notes: string
   warranty_expiry: string | null
 }>) {
+  if (!validId(id)) return INVALID
   await supabase.from("inventory_items").update(data).eq("id", id)
   revalidatePath("/dashboard/inventory")
 }
 
 export async function deleteInventoryItem(id: string) {
+  if (!validId(id)) return INVALID
   await supabase.from("inventory_items").delete().eq("id", id)
   revalidatePath("/dashboard/inventory")
 }

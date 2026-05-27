@@ -7,6 +7,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+
+- Sanitise title and description query parameters in the OG image route (truncate and strip non-ASCII)
+- Add rate limiting to the newsletter subscription endpoint (3 requests per IP per hour via Upstash)
+- Add Cache-Control: no-store to contact and newsletter API responses
+- Add runtime input validation to all dashboard server actions
+
 ### Changed
 
 - README rewritten: shortened to essentials only, file structure and key dependencies moved to DOCUMENTATION.md, LinkedIn badge removed from footer

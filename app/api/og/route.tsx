@@ -3,10 +3,18 @@ import { NextRequest } from "next/server"
 
 export const runtime = "edge"
 
+// I strip non-printable ASCII and cap lengths so injected content cannot break the Satori
+// layout or smuggle control characters into the JSX tree.
+function sanitiseOgParam(str: string, maxLen: number): string {
+  return str.replace(/[^\x20-\x7E]/g, "").slice(0, maxLen)
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const title = searchParams.get("title") ?? "Isaac Adjei"
-  const description = searchParams.get("description") ?? "Electronic Engineering & Computer Science Student"
+  const rawTitle = searchParams.get("title") ?? "Isaac Adjei"
+  const rawDescription = searchParams.get("description") ?? "Electronic Engineering & Computer Science Student"
+  const title = sanitiseOgParam(rawTitle, 100)
+  const description = sanitiseOgParam(rawDescription, 200)
 
   return new ImageResponse(
     (
