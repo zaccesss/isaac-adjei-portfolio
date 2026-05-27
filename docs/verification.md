@@ -40,7 +40,7 @@ Run through this before pushing a release or after a big batch of changes.
 - [ ] `/robots.txt` - Disallows /dashboard/ and /api/dashboard/
 - [ ] `404` - Custom 404 page shows on unknown route
 - [ ] Contact form - Submits successfully, email arrives
-- [ ] Share button - Present on project detail, blog post, experience, skills, about, notes, newsletter, now, consumed, colophon, uses, hall-of-fame, notes sub-pages; click on desktop shows "Copied!" for ~2s; mobile share sheet opens
+- [ ] Share button - Present on `/projects/[slug]` detail, `/blog/[slug]` post, `/cv` and `/links` only; click on desktop shows "Copied!" for ~2s; mobile share sheet opens; confirm it is NOT present on experience, skills, about, now, notes, newsletter, consumed, colophon or uses
 - [ ] OG thumbnails - View source of any public page and confirm `<meta property="og:image">` present with `/api/og?title=...` URL
 - [ ] OG image renders - Visit `/api/og?title=Test&description=Hello` directly and confirm image renders correctly
 
