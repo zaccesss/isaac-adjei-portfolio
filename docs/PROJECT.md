@@ -118,4 +118,4 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 - Always update before committing
 - Entries under `[Unreleased]`: Added / Changed / Fixed / Removed
 - No em dashes, no Oxford comma
-- Public changes only. Dashboard changes go in `memory/LOG.md`.
+- Public changes only. Dashboard changes go in `docs/LOG.md`.

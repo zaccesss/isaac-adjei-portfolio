@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- README rewritten: shortened to essentials only, file structure and key dependencies moved to DOCUMENTATION.md, LinkedIn badge removed from footer
 - Notes page: Business Website renamed, link corrected to zacess.com, project page now points to internal project, live site link added alongside phaemos.com link for Phaemos
 - Notes page: Upcoming Projects moved above Summer Plans, Summer Plans expanded with FPGA/VHDL, competitive programming, academic prep and broader interests, "Last updated May 2026" added at bottom
 - Notes page: Business Website description rewritten to reflect future business direction

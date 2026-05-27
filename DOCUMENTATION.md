@@ -16,6 +16,8 @@ Full reference for the Isaac Adjei portfolio and private dashboard. For a high-l
 - [API routes](#api-routes)
 - [Rules to remember](#rules-to-remember)
 - [Deployment](#deployment)
+- [File structure](#file-structure)
+- [Key dependencies](#key-dependencies)
 
 ---
 
@@ -266,7 +268,7 @@ Shortcuts are ignored when focus is inside an `<input>`, `<textarea>` or `[conte
 - **Weather card shows country only** - never the city name.
 - **Sitemap lists only public routes** - never `/dashboard` or any private path.
 - **Do not replace the GitHub Lucide icon** with any other icon.
-- **Private dashboard changes** go in `memory/LOG.md` and `memory/LOG-2026-05-26.md` only - never in `CHANGELOG.md`.
+- **Private dashboard changes** go in `docs/LOG.md` only - never in `CHANGELOG.md`.
 - **Public changes** go in `CHANGELOG.md` and the session log.
 - **Never commit directly to main** - always branch, then PR, then squash merge.
 - **Every PR must pass CI (Lint and Build)** before merge.
@@ -294,3 +296,85 @@ Vercel cron runs every Sunday at 18:00 UTC and calls `/api/dashboard/weekly-dige
 ### Mac daemon
 
 `scripts/mac-daemon.py` runs continuously on the MacBook via launchd. It writes battery percentage, charging state, device name and a heartbeat timestamp to Upstash Redis every 30 seconds. The `/api/macbook` route reads this data. See `scripts/README.md` for launchd setup.
+
+---
+
+## File structure
+
+```text
+├── app/
+│   ├── dashboard/          # Private dashboard (auth required, not in sitemap)
+│   ├── about/
+│   ├── api/                # All API routes (contact, newsletter, spotify, cv-pdf, og, etc.)
+│   ├── blog/[slug]/
+│   ├── cv/
+│   ├── experience/
+│   ├── projects/[slug]/
+│   ├── skills/
+│   ├── globals.css
+│   ├── layout.tsx          # Root layout: font, theme, header, footer
+│   └── page.tsx            # Homepage / Hero
+│
+├── components/
+│   ├── dashboard/          # Dashboard-only components
+│   ├── layout/             # Header, Footer, Navigation, MobileNav
+│   ├── projects/           # ProjectCard, ProjectDetail, ImageGallery
+│   ├── sections/           # Hero, FeaturedProjects, ExperienceTimeline, etc.
+│   ├── shared/             # SocialLinks, CommandMenu, ThemeToggle, BackToTop
+│   └── ui/                 # shadcn/ui primitives
+│
+├── data/
+│   ├── blog.ts             # Posts, types and helpers
+│   ├── cv.yml              # CV source (generates role-specific HTML/PDF/DOCX)
+│   ├── experience.ts
+│   ├── projects.ts         # All project entries with images and highlights
+│   ├── skills.ts
+│   └── societies.ts
+│
+├── docs/                   # Internal session docs (not served)
+│   ├── LOG.md              # Private session log - newest first
+│   ├── RULES.md            # Per-session rules
+│   ├── WORKFLOW.md         # Dev workflow reference
+│   └── verification.md     # Pre-deploy checklist
+│
+├── hooks/                  # Custom React hooks
+├── lib/                    # animations.ts, constants.ts, utils.ts, send-weekly-digest.ts
+├── public/
+│   ├── images/projects/    # Project photos by slug
+│   ├── resume/             # CV PDFs and DOCX files
+│   └── Media/              # Video assets
+└── scripts/
+    ├── mac-daemon.py       # Writes MacBook battery status to Upstash Redis
+    ├── gpc-daemon.py       # Writes Gaming PC GPU/CPU stats to Upstash Redis
+    ├── lenovo-daemon.py    # Writes Lenovo battery status to Upstash Redis
+    ├── generate-pdfs.js    # Puppeteer: regenerate all role-specific PDFs
+    ├── generate-docx.js    # Regenerate role-specific Word files from cv.yml
+    └── spotify-auth.mjs    # One-time OAuth helper for Spotify refresh token
+```
+
+---
+
+## Key dependencies
+
+| Package | Purpose |
+| --- | --- |
+| `next` | App Router, SSR, image optimisation, API routes |
+| `react` / `react-dom` | UI rendering |
+| `typescript` | Type safety |
+| `tailwindcss` | Utility-first styling |
+| `framer-motion` | Page and section entrance animations |
+| `next-themes` | Dark / light mode with system preference detection |
+| `lucide-react` | Icon set |
+| `react-icons` | Brand icons (GitHub, etc.) |
+| `@radix-ui/*` | Accessible UI primitives via shadcn/ui |
+| `@marsidev/react-turnstile` | Cloudflare Turnstile CAPTCHA widget |
+| `cmdk` | Command menu behaviour |
+| `clsx` + `tailwind-merge` | Class name composition |
+| `puppeteer` + `@sparticuz/chromium` | Server-side CV PDF rendering |
+| `@upstash/redis` + `@upstash/ratelimit` | Rate limiting and status card data |
+| `geist` | Vercel Geist font (sans + mono) |
+| `resend` | Contact form and digest email delivery |
+| `@supabase/supabase-js` | Dashboard database client |
+| `next-auth` | GitHub OAuth for dashboard login |
+| `recharts` | Dashboard charts (streak heatmap, mood bar chart) |
+| `sonner` | Toast notifications in the dashboard |
