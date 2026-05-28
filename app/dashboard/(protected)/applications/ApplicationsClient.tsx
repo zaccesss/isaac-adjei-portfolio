@@ -475,6 +475,31 @@ function YesNoBadge({ value }: { value: string | null }) {
   return <span className="text-xs">{value}</span>
 }
 
+const NOTES_TRUNCATE_LENGTH = 80
+
+function NotesCell({ notes }: { notes: string | null }) {
+  const [expanded, setExpanded] = useState(false)
+  if (!notes) return <span className="text-muted-foreground/40">-</span>
+  const isLong = notes.length > NOTES_TRUNCATE_LENGTH
+  return (
+    <span className="text-muted-foreground text-xs">
+      {isLong && !expanded ? notes.slice(0, NOTES_TRUNCATE_LENGTH) + "…" : notes}
+      {isLong && (
+        <>
+          {" "}
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="text-xs text-muted-foreground underline cursor-pointer"
+          >
+            {expanded ? "Show less" : "Show more"}
+          </button>
+        </>
+      )}
+    </span>
+  )
+}
+
 // ─── Table row ────────────────────────────────────────────────────────────────
 
 function AppRow({
@@ -622,9 +647,7 @@ function AppRow({
 
       {/* Notes */}
       <td className="px-2 py-1.5 max-w-[180px]">
-        <span className="truncate block text-muted-foreground" title={app.notes ?? ""}>
-          {app.notes ? (app.notes.length > 40 ? app.notes.slice(0, 40) + "…" : app.notes) : <span className="opacity-40">-</span>}
-        </span>
+        <NotesCell notes={app.notes} />
       </td>
 
       {/* Actions */}
