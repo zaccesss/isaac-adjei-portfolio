@@ -1051,7 +1051,31 @@ on conflict (key) do nothing;
 
 
 -- ============================================================
--- B.8 ADD last_scraped_at AND sponsors_visa TO applications
+-- B.8 ADD APPLICATIONS TRACKER COLUMNS (2026-05-21)
+-- I add the columns introduced with the applications tracker
+-- rebuild. All use IF NOT EXISTS so this is safe on existing DBs.
+-- ============================================================
+
+-- I store the opening and last-year opening dates so I can colour-code
+-- how early or late I am applying relative to historical patterns.
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS opening_date          date;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS last_year_opening     date;
+-- I store housing info, CV and cover letter requirements as text because the
+-- values come from scraper notes and can be free-form strings.
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS housing_location      text;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS cv_required           text;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS cover_letter_required text;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS written_answers       text;
+-- I use category to group applications by role type in the dashboard.
+-- The default of 'Software Engineering' is intentional - it matches the
+-- Section A default so existing rows are not treated as uncategorised.
+-- Client-side detectCategory() skips this default and re-derives the
+-- category from company and role title to ensure correct grouping.
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS category text DEFAULT 'Software Engineering';
+
+
+-- ============================================================
+-- B.9 ADD last_scraped_at AND sponsors_visa TO applications
 -- ============================================================
 
 -- 2026-05-28: I add last_scraped_at to track when each scraped row was last

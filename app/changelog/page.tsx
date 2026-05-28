@@ -38,6 +38,10 @@ const releases: ChangeEntry[] = [
       "Live status cards widget added to /now page",
       "Pulsing blue 'Updated live' indicator on the /now page header",
       "Clickable GitHub profile link in the live status GitHub strip after the last-pushed timestamp",
+      "Discord presence card in the live status widget on /now and /notes, powered by the Lanyard API; shows status dot, current rich activity (game, VS Code, Spotify via Discord) and custom status text",
+      "Discord card on /now is always visible - shows last-seen time at reduced opacity when offline; on /notes it only appears when online, idle or dnd",
+      "Discord card shows all concurrent activities simultaneously (Playing, Listening, Watching) in a stacked list with type labels and elapsed time per activity",
+      "External link icon on the Discord card opens the Discord profile in a new tab",
     ],
     fixed: [
       "PS5 card device name no longer shown in blue - device names are now always default foreground colour",
@@ -45,6 +49,7 @@ const releases: ChangeEntry[] = [
       "PS5 card removed redundant 'Online'/'Offline' status line - status text only appears for informative states such as 'Busy'",
       "/all-pages keyboard shortcut shows ⌘+I on Mac and Ctrl+I on Windows/Linux; symbol size bumped to text-sm for visibility",
       "pages command on /all-pages highlighted in primary colour and links directly to /lab",
+      "Discord card CSP: added api.lanyard.rest to connect-src so Lanyard requests are not blocked by the browser",
     ],
     security: [
       "Force brace-expansion to 5.0.6 via npm overrides to resolve CVE-2026-45149 (GHSA-jxxr-4gwj-5jf2) - transitive dep via eslint-config-next",
