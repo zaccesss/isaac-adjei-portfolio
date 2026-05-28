@@ -20,7 +20,7 @@ import os
 import sys
 import json
 import time
-import socket
+import subprocess
 
 import requests
 
@@ -45,8 +45,17 @@ if not UPSTASH_URL or not UPSTASH_TOKEN:
     )
     sys.exit(1)
 
-# I strip the .local suffix and hyphens so the device name reads cleanly in the dashboard
-DEVICE = socket.gethostname().replace(".local", "").replace("-", " ")
+# I use scutil --get LocalHostName (e.g. Isaacs-MacBook-Air) rather than socket.gethostname()
+# because the hostname can be set to a generic value like Mac.Home via System Settings
+def _get_device_name() -> str:
+    try:
+        raw = subprocess.check_output(["scutil", "--get", "LocalHostName"], text=True).strip()
+        return raw.replace("-", " ")
+    except Exception:
+        import socket as _socket
+        return _socket.gethostname().replace(".local", "").replace("-", " ")
+
+DEVICE = _get_device_name()
 
 print(
     f"Mac daemon started. Writing status every {INTERVAL}s. Press Ctrl+C to stop.",
