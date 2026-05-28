@@ -2164,20 +2164,32 @@ def scrape_remotive(existing_keys: set) -> int:
 
 def scrape_reed(existing_keys: set) -> int:
     # I use Reed's public API - REED_API_KEY must be set as a GitHub Actions
-    # secret. Register for free at reed.co.uk/developers/jobseeker to get one.
+    # secret. Register free at reed.co.uk/developers/jobseeker to get one.
     api_key = os.environ.get("REED_API_KEY", "")
     if not api_key:
         print("  REED_API_KEY not set - skipping Reed.co.uk")
         return 0
 
+    # I run separate searches for each role type so I can use the graduate flag
+    # and get broader keyword coverage than a single broad query.
     SEARCHES = [
-        {"keywords": "software intern", "locationName": "United Kingdom"},
-        {"keywords": "technology internship", "locationName": "United Kingdom"},
-        {"keywords": "year in industry", "locationName": "United Kingdom"},
-        {"keywords": "industrial placement technology",
+        {"keywords": "software intern",
          "locationName": "United Kingdom"},
-        {"keywords": "graduate scheme software",
+        {"keywords": "technology internship",
          "locationName": "United Kingdom"},
+        {"keywords": "engineering internship",
+         "locationName": "United Kingdom"},
+        {"keywords": "data science internship",
+         "locationName": "United Kingdom"},
+        {"keywords": "year in industry",
+         "locationName": "United Kingdom"},
+        {"keywords": "industrial placement",
+         "locationName": "United Kingdom"},
+        # I use graduate=true for these so Reed pre-filters to graduate roles.
+        {"keywords": "software engineer",
+         "locationName": "United Kingdom", "graduate": "true"},
+        {"keywords": "technology",
+         "locationName": "United Kingdom", "graduate": "true"},
     ]
 
     count = 0
@@ -2223,6 +2235,244 @@ def scrape_reed(existing_keys: set) -> int:
             print(f"  Error Reed {params.get('keywords')}: {e}")
 
     print(f"  Added {count} from Reed.co.uk")
+    return count
+
+
+# ─── ADZUNA ──────────────────────────────────────────────────────────────────
+
+def scrape_adzuna(existing_keys: set) -> int:
+    # I use Adzuna's aggregated UK jobs API which covers hundreds of job boards.
+    # ADZUNA_APP_ID and ADZUNA_APP_KEY must be set as GitHub Actions secrets.
+    # Register free at developer.adzuna.com - 1000 requests/month on trial.
+    app_id = os.environ.get("ADZUNA_APP_ID", "")
+    app_key = os.environ.get("ADZUNA_APP_KEY", "")
+    if not app_id or not app_key:
+        print("  ADZUNA_APP_ID/ADZUNA_APP_KEY not set - skipping Adzuna")
+        return 0
+
+    BASE = "https://api.adzuna.com/v1/api/jobs/gb/search/1"
+    SEARCHES = [
+        "software intern",
+        "technology internship",
+        "engineering internship",
+        "year in industry",
+        "industrial placement",
+        "graduate scheme software",
+        "data science internship",
+        "embedded software intern",
+        "cyber security intern",
+    ]
+
+    count = 0
+    for what in SEARCHES:
+        try:
+            resp = requests.get(
+                BASE,
+                params={
+                    "app_id":           app_id,
+                    "app_key":          app_key,
+                    "what":             what,
+                    "where":            "UK",
+                    "results_per_page": 50,
+                    "content-type":     "application/json",
+                },
+                headers={"Accept": "application/json"},
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                print(f"  Adzuna HTTP {resp.status_code} for '{what}'")
+                continue
+
+            for job in resp.json().get("results", []):
+                title = job.get("title", "")
+                company = (job.get("company") or {}).get("display_name", "")
+                location = (
+                    (job.get("location") or {})
+                    .get("display_name", "")
+                )
+                job_url = job.get("redirect_url", "")
+                expiry = job.get("expiration_date", "")
+
+                if not is_relevant(title, company, location):
+                    continue
+                if insert_job({
+                    "company":  company,
+                    "role":     title,
+                    "type":     infer_type(title),
+                    "url":      job_url,
+                    "location": normalize_location(location),
+                    "source":   "Adzuna",
+                    "deadline": expiry[:10] if expiry else None,
+                }, existing_keys):
+                    count += 1
+
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"  Error Adzuna '{what}': {e}")
+
+    print(f"  Added {count} from Adzuna")
+    return count
+
+
+# ─── JOOBLE ──────────────────────────────────────────────────────────────────
+
+def scrape_jooble(existing_keys: set) -> int:
+    # I use Jooble's POST API which aggregates from hundreds of job boards.
+    # JOOBLE_API_KEY must be set as a GitHub Actions secret.
+    # Request a free key at jooble.org/api/about.
+    api_key = os.environ.get("JOOBLE_API_KEY", "")
+    if not api_key:
+        print("  JOOBLE_API_KEY not set - skipping Jooble")
+        return 0
+
+    SEARCHES = [
+        {"keywords": "software internship", "location": "United Kingdom"},
+        {"keywords": "technology intern", "location": "United Kingdom"},
+        {"keywords": "year in industry", "location": "United Kingdom"},
+        {"keywords": "industrial placement", "location": "United Kingdom"},
+        {"keywords": "graduate scheme software", "location": "United Kingdom"},
+        {"keywords": "engineering internship", "location": "United Kingdom"},
+    ]
+
+    count = 0
+    for params in SEARCHES:
+        try:
+            resp = requests.post(
+                f"https://jooble.org/api/{api_key}",
+                json=params,
+                headers={"Content-type": "application/json"},
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                print(
+                    f"  Jooble HTTP {resp.status_code} for "
+                    f"'{params.get('keywords')}'"
+                )
+                continue
+
+            for job in resp.json().get("jobs", []):
+                title = job.get("title", "")
+                company = job.get("company", "")
+                location = job.get("location", "")
+                job_url = job.get("link", "")
+                updated = job.get("updated", "")
+
+                if not is_relevant(title, company, location):
+                    continue
+                if insert_job({
+                    "company":  company,
+                    "role":     title,
+                    "type":     infer_type(title),
+                    "url":      job_url,
+                    "location": normalize_location(location),
+                    "source":   "Jooble",
+                    "deadline": updated[:10] if updated else None,
+                }, existing_keys):
+                    count += 1
+
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"  Error Jooble '{params.get('keywords')}': {e}")
+
+    print(f"  Added {count} from Jooble")
+    return count
+
+
+# ─── ARBEITNOW ───────────────────────────────────────────────────────────────
+
+def scrape_arbeitnow(existing_keys: set) -> int:
+    # I use Arbeitnow's free public API - no auth required.
+    # It aggregates European tech jobs and is particularly strong for remote
+    # and EU-based engineering roles.
+    count = 0
+    try:
+        resp = requests.get(
+            "https://arbeitnow.com/api/job-board-api",
+            headers={"Accept": "application/json"},
+            timeout=15,
+        )
+        if resp.status_code != 200:
+            print(f"  Arbeitnow HTTP {resp.status_code}")
+            return 0
+
+        for job in resp.json().get("data", []):
+            title = job.get("title", "")
+            company = job.get("company_name", "")
+            location = job.get("location", "")
+            job_url = job.get("url", "")
+            remote = job.get("remote", False)
+            if remote and not location:
+                location = "Remote"
+
+            if not is_relevant(title, company, location):
+                continue
+            if insert_job({
+                "company":  company,
+                "role":     title,
+                "type":     infer_type(title),
+                "url":      job_url,
+                "location": normalize_location(location),
+                "source":   "Arbeitnow",
+            }, existing_keys):
+                count += 1
+
+    except Exception as e:
+        print(f"  Error Arbeitnow: {e}")
+
+    print(f"  Added {count} from Arbeitnow")
+    return count
+
+
+# ─── JOBICY ──────────────────────────────────────────────────────────────────
+
+def scrape_jobicy(existing_keys: set) -> int:
+    # I use Jobicy's free open API - no auth required.
+    # It covers remote-only tech roles so I skip the location check and accept
+    # any matching student role since "Remote" is UK-acceptable.
+    QUERIES = [
+        {"industry": "engineering", "tag": "intern"},
+        {"industry": "software-development", "tag": "intern"},
+        {"industry": "data-science", "tag": "intern"},
+    ]
+
+    count = 0
+    for params in QUERIES:
+        try:
+            resp = requests.get(
+                "https://jobicy.com/api/v2/remote-jobs",
+                params={**params, "count": 50},
+                headers={"Accept": "application/json"},
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                continue
+
+            for job in resp.json().get("jobs", []):
+                title = job.get("jobTitle", "")
+                company = job.get("companyName", "")
+                job_url = job.get("url", "")
+
+                # I skip the location check here because Jobicy is remote-only;
+                # I still require a student term and tech keyword.
+                if not is_student_role(title):
+                    continue
+                if not any(k in title.lower() for k in TECH_KEYWORDS):
+                    continue
+                if insert_job({
+                    "company":  company,
+                    "role":     title,
+                    "type":     infer_type(title),
+                    "url":      job_url,
+                    "location": "Remote",
+                    "source":   "Jobicy",
+                }, existing_keys):
+                    count += 1
+
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"  Error Jobicy: {e}")
+
+    print(f"  Added {count} from Jobicy")
     return count
 
 
@@ -2375,6 +2625,18 @@ def main():
 
     print("\n--- Reed ---")
     total += scrape_reed(existing_keys)
+
+    print("\n--- Adzuna ---")
+    total += scrape_adzuna(existing_keys)
+
+    print("\n--- Jooble ---")
+    total += scrape_jooble(existing_keys)
+
+    print("\n--- Arbeitnow ---")
+    total += scrape_arbeitnow(existing_keys)
+
+    print("\n--- Jobicy ---")
+    total += scrape_jobicy(existing_keys)
 
     # I run Remotive last because it is a dedicated full-time job source
     # (not an internship source) and only feeds the Jobs tab.
