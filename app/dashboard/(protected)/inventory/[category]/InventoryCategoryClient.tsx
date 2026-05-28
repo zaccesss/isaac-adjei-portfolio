@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useMemo } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { createInventoryItem, updateInventoryItem, deleteInventoryItem } from "@/app/dashboard/actions"
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Edit2, Package } from "lucide-react"
+import { Plus, Trash2, Edit2, Package, ChevronLeft, ChevronRight } from "lucide-react"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { dashboardPage } from "@/lib/animations"
 
@@ -139,10 +139,18 @@ export default function InventoryCategoryClient({
   category: string
   categorySlug: string
 }) {
+  const PAGE_SIZE = 50
   const [items, setItems] = useState<Item[]>(initial)
   const [addOpen, setAddOpen] = useState(false)
   const [editItem, setEditItem] = useState<Item | null>(null)
+  const [page, setPage] = useState(0)
   const [, startTransition] = useTransition()
+
+  const totalPages = Math.ceil(items.length / PAGE_SIZE)
+  const pageItems = useMemo(
+    () => items.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE),
+    [items, page]
+  )
 
   // I include the current category in allCategories in case it is new and not yet in the list
   const categories = Array.from(new Set([category, ...allCategories])).sort()
@@ -161,6 +169,7 @@ export default function InventoryCategoryClient({
     }
     setItems((prev) => [...prev, optimistic])
     setAddOpen(false)
+    setPage(0)
     startTransition(() => void createInventoryItem({ ...data, category: data.category || category }))
   }
 
@@ -194,7 +203,9 @@ export default function InventoryCategoryClient({
         <div>
           <h1 className="text-xl font-semibold">{category}</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {items.length} item{items.length !== 1 ? "s" : ""}
+            {items.length > PAGE_SIZE
+              ? `${page * PAGE_SIZE + 1}-${Math.min((page + 1) * PAGE_SIZE, items.length)} of ${items.length} items`
+              : `${items.length} item${items.length !== 1 ? "s" : ""}`}
           </p>
         </div>
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
@@ -221,11 +232,40 @@ export default function InventoryCategoryClient({
           <p className="text-xs text-muted-foreground mt-1">Add your first item above.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {items.map((item) => (
-            <ItemCard key={item.id} item={item} categorySlug={categorySlug} onEdit={(i) => setEditItem(i)} onDelete={handleDelete} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {pageItems.map((item) => (
+              <ItemCard key={item.id} item={item} categorySlug={categorySlug} onEdit={(i) => setEditItem(i)} onDelete={handleDelete} />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page === 0}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                Previous
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Page {page + 1} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= totalPages - 1}
+                className="flex items-center gap-1"
+              >
+                Next
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       <Dialog open={!!editItem} onOpenChange={(o) => { if (!o) setEditItem(null) }}>
