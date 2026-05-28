@@ -1,5 +1,5 @@
 """
-Job Scraper - runs via GitHub Actions every 30 minutes.
+Job Scraper - runs via GitHub Actions once per day at midnight UTC.
 
 Sources:
   - The Trackr (Playwright - JS rendered, best UK internship aggregator)
@@ -23,7 +23,7 @@ import hashlib
 import requests
 from bs4 import BeautifulSoup
 from supabase import create_client, Client
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # I use whole-word matching for "intern" so words like "internal" and
 # "international" do not trigger a false positive intern classification.
@@ -155,6 +155,9 @@ UK_EU_TERMS = [
     # Generic region terms
     "europe", "emea", "european", "worldwide", "global",
     "nationwide",
+    # Asia-Pacific tech hubs - UK students commonly target these
+    "singapore", "sydney", "melbourne", "australia",
+    "hong kong",
 ]
 
 # Explicitly US/non-EU locations - always rejected even for priority companies.
@@ -169,10 +172,16 @@ US_LOCATIONS = [
     # Canada (separate from UK/EU)
     "toronto", "vancouver", "montreal", "canada",
     # Asia-Pacific
-    "singapore", "hong kong", "sydney", "melbourne", "tokyo",
-    "bangalore", "hyderabad", "india", "china",
+    "tokyo", "bangalore", "hyderabad", "india", "china",
     # Exclude honolulu, hawaii specifically
     "honolulu", "hawaii",
+    # I add these normalised remote-US strings because the scraper lowercases
+    # location before matching and these variants were slipping through.
+    "remote - us", "remote, us", "us remote", "remote us",
+    # I add specific US cities missing from the original list.
+    "palo alto", "menlo park", "mountain view", "sunnyvale", "cupertino",
+    "redmond", "bellevue", "kirkland", "san diego", "irvine",
+    "gurugram", "gurgaon",
 ]
 
 # Known standalone UK city names used for location normalisation.
@@ -241,6 +250,10 @@ def is_location_ok(location: str, is_priority: bool) -> bool:
     if not location:
         return True  # unknown = include
     loc = location.lower()
+    # I also reject locations that end with ", us" because some postings
+    # use that pattern instead of spelling out "United States".
+    if loc.rstrip().endswith(", us"):
+        return False
     # Explicit US/non-EU = always reject
     if any(us in loc for us in US_LOCATIONS):
         return False
@@ -363,6 +376,12 @@ def is_student_role(
     words appear without a stronger signal (placement, spring week, etc.) the
     role is treated as full-time.
     """
+    # I reject titles that begin with "Internal" because those describe
+    # internal team-facing roles (e.g. "Internal Engineering"), not student
+    # positions. This is separate from the intern-word exclusion below.
+    if re.match(r'^internal\b', title.strip(), re.IGNORECASE):
+        return False
+
     # I check the title first because it is always present.
     t = title.lower()
 
@@ -452,6 +471,15 @@ def infer_type(title: str, default: str = "Internship") -> str:
     # General Internship
     if any(term in t for term in INTERNSHIP_TERMS):
         return "Internship"
+    # I check seniority terms before falling through to the default so that
+    # senior roles without any student-term do not get classified as Internship.
+    SENIORITY_TERMS = [
+        "staff", "principal", "senior", "lead", "director",
+        "head of", "manager", "associate director", "vp ", "vice president",
+        "president",
+    ]
+    if any(term in t for term in SENIORITY_TERMS):
+        return "Full-time Job"
     return default
 
 
@@ -557,6 +585,8 @@ def insert_job(job: dict, existing_keys: set) -> bool:
         "source":       job.get("source", ""),
         # I default starred to False; I manually star interesting roles later.
         "starred":      False,
+        "last_scraped_at": datetime.utcnow().isoformat(),
+        "sponsors_visa": job.get("sponsors_visa", None),
     }
 
     try:
@@ -716,8 +746,18 @@ def scrape_trackr_all(existing_keys: set) -> int:
                     # not be parsed.
                     if not company or not programme:
                         continue
-                    if not is_relevant(programme, company):
-                        continue
+                    # I bypass the student-term check for placement and
+                    # spring-week categories because the category URL already
+                    # tells me the role type - requiring "placement" in every
+                    # title would drop most real results.
+                    if job_type == "Internship":
+                        if not is_relevant(programme, company):
+                            continue
+                    else:
+                        # I still require a tech keyword for non-internship
+                        # categories so non-tech roles are skipped.
+                        if not any(k in programme.lower() for k in TECH_KEYWORDS):
+                            continue
 
                     # I store the opening date in notes because there is no
                     # dedicated column for it.
@@ -2076,25 +2116,29 @@ def scrape_remotive(existing_keys: set) -> int:
 
 # ─── MAIN ───────────────────────────────────────────────────────────────────
 
-def reset_scraped_entries() -> None:
-    # I delete all previously scraped entries before each run so the DB
-    # reflects only the latest scraper output. Manually added entries are safe
-    # because they have a status other than "scraped".
+def delete_stale_entries() -> None:
+    # I delete scraped entries that have not been seen in 30 days instead of
+    # wiping the whole board. This means a job that disappears for a day does
+    # not get lost - it only expires after a full month of absence.
+    cutoff = (datetime.utcnow() - timedelta(days=30)).isoformat()
     try:
-        supabase.table("applications").delete().eq("status", "scraped").execute()
-        print("Cleared previous scraped entries")
+        supabase.table("applications").delete() \
+            .eq("status", "scraped") \
+            .lt("last_scraped_at", cutoff) \
+            .execute()
+        print(f"Deleted scraped entries not seen since {cutoff[:10]}")
     except Exception as e:
-        print(f"Warning: could not clear scraped entries: {e}")
+        print(f"Warning: could not delete stale entries: {e}")
 
 
 def main():
     print(f"Job scraper starting at {datetime.now().isoformat()}")
-    # I wipe all previous scraped rows first so stale/bad entries never
-    # accumulate. Only manually-added rows (status != "scraped") are preserved.
-    reset_scraped_entries()
-    # I load existing keys after the reset so the set only contains manual entries.
+    # I delete rows not seen in 30 days at the start of each run.
+    # Only manually-added rows (status != "scraped") are preserved.
+    delete_stale_entries()
+    # I load existing keys after the stale delete so the set reflects current DB state.
     existing_keys = load_existing_keys()
-    print(f"Found {len(existing_keys)} manual applications in DB")
+    print(f"Found {len(existing_keys)} existing applications in DB")
 
     total = 0
 
