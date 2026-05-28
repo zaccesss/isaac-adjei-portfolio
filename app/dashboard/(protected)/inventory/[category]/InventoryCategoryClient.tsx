@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
+import Link from "next/link"
 import { createInventoryItem, updateInventoryItem, deleteInventoryItem } from "@/app/dashboard/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -96,31 +97,34 @@ function ItemForm({ initial, category, allCategories, onSave, onCancel }: {
   )
 }
 
-function ItemCard({ item, onEdit, onDelete }: {
+function ItemCard({ item, categorySlug, onEdit, onDelete }: {
   item: Item
+  categorySlug: string
   onEdit: (i: Item) => void
   onDelete: (id: string) => void
 }) {
   return (
-    <div className="border border-border rounded-lg p-4 bg-card flex flex-col gap-2 hover:shadow-sm transition-shadow">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="font-medium text-sm truncate">{item.name}</p>
-          {item.description && <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>}
+    <Link href={`/dashboard/inventory/${categorySlug}/${item.id}`} className="block">
+      <div className="border border-border rounded-lg p-4 bg-card flex flex-col gap-2 hover:shadow-sm transition-shadow">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="font-medium text-sm truncate">{item.name}</p>
+            {item.description && <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>}
+          </div>
+          <div className="flex gap-1 shrink-0">
+            <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(item) }} aria-label="Edit" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></button>
+            <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(item.id) }} aria-label="Delete" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+          </div>
         </div>
-        <div className="flex gap-1 shrink-0">
-          <button type="button" onClick={() => onEdit(item)} aria-label="Edit" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></button>
-          <button type="button" onClick={() => onDelete(item.id)} aria-label="Delete" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+          {item.quantity > 1 && <span className="bg-muted px-2 py-0.5 rounded-full">x{item.quantity}</span>}
+          {item.price_paid && <span>{item.price_paid}</span>}
+          {item.warranty_expiry && <span>Warranty: {new Date(item.warranty_expiry).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</span>}
+          {item.serial_number && <span className="font-mono">{item.serial_number}</span>}
         </div>
+        {item.notes && <p className="text-xs text-muted-foreground border-t border-border/50 pt-1">{item.notes}</p>}
       </div>
-      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-        {item.quantity > 1 && <span className="bg-muted px-2 py-0.5 rounded-full">x{item.quantity}</span>}
-        {item.price_paid && <span>{item.price_paid}</span>}
-        {item.warranty_expiry && <span>Warranty: {new Date(item.warranty_expiry).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</span>}
-        {item.serial_number && <span className="font-mono">{item.serial_number}</span>}
-      </div>
-      {item.notes && <p className="text-xs text-muted-foreground border-t border-border/50 pt-1">{item.notes}</p>}
-    </div>
+    </Link>
   )
 }
 
@@ -219,7 +223,7 @@ export default function InventoryCategoryClient({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {items.map((item) => (
-            <ItemCard key={item.id} item={item} onEdit={(i) => setEditItem(i)} onDelete={handleDelete} />
+            <ItemCard key={item.id} item={item} categorySlug={categorySlug} onEdit={(i) => setEditItem(i)} onDelete={handleDelete} />
           ))}
         </div>
       )}
