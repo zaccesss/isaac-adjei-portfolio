@@ -14,6 +14,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Live status cards (device and activity widget) now also shown on the /now page
 - Pulsing green "Updated live" indicator added to the notes page tagline
 
+### Fixed
+
+- PS5 device name no longer shown in blue when online - names are now always default foreground colour across all device cards
+- Device icons (Laptop, Monitor, PlayStation) now turn blue when the device is online for visual consistency
+- PS5 card no longer shows "Online" as a redundant status line below the wifi indicator - status text is only shown for informative states such as "Busy"
+
 ### Changed
 
 - Remove em and en dashes throughout the codebase; replaced with hyphens per UK English style
