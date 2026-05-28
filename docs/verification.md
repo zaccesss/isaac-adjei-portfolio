@@ -83,6 +83,13 @@ Run through this before pushing a release or after a big batch of changes.
 - [ ] `/dashboard/wishlist/[category]` - Category pages load
 - [ ] `/dashboard/inventory` - List loads, CRUD works
 - [ ] `/dashboard/inventory/[category]` - Category pages load
+- [ ] `/dashboard/inventory/[category]/[id]` - Detail page loads with all fields; back navigation works; edit and delete buttons work
+
+## Live status widget
+
+- [ ] /notes - LiveStatusCards renders; PS5 card shows correct status; GitHub strip shows last push with clickable profile link
+- [ ] /now - LiveStatusCards renders identically to /notes; pulsing blue dot visible in header
+- [ ] PS5 card - when PS5 is online: device name in default foreground (not blue), icon in foreground, no redundant "Online" line below wifi status
 
 ## Dashboard - widgets
 

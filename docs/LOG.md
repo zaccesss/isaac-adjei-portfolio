@@ -6,6 +6,10 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ## 2026-05-28
 
+- chore/docs-stale-pages-and-changelog: updated colophon (PS5 daemon, GitHub activity entries), uses (PS5 hardware, Cloudflare Workers service), DOCUMENTATION.md (PSN_NPSSO env var, workers/ file structure), CHANGELOG.md (consolidated unreleased sections), website changelog page (Unreleased + v2.4.0 entries), README.md (PSN_NPSSO env var), verification.md (inventory detail page + live widget checks). NEXT-SESSION-PLAN.md deleted - all items complete.
+- feat/3dot-menus-kanban (PR #219): 3-dot MoreVertical dropdowns on Diary, Notes and Vault entry cards (Hide/Pin/Lock/Edit); drag-and-drop Kanban board for Applications with List/Grid toggle; job scraper `_INTERNAL_FUNCTION_RE` and `_SENIOR_ROLE_RE` guards to block internal engineering, recruiter and senior roles from student listings.
+- PR #217 (merged): PS5 NPSSO renewal cron, PWA manifest, activity log page, Notes Now card, Vercel Analytics.
+- PR #216 (merged): WeatherAPI.com weather source with is_day moon detection, friendly Mac device name via scutil.
 - PR #211 (fix/livestatuscards-icons-and-github): PS5 card added to LiveStatusCards 2x2 grid with classic SiPlaystation icon, GitHub moved to full-width strip, Cloudflare Worker (workers/ps5-presence/) polling PSN every minute replacing Mac daemon, ps5-daemon.py fixed (npsso_cookie, busy status, User.get_presence), workers/ excluded from root tsconfig.json.
 - feat/notes-live-indicator-and-now-cards (open PR #214): pulsing "Updated live" indicator added to /now page header (blue dot, matching device card online colour), LiveStatusCards added to /now page. Fixed PS5 card issues from PR #211 - device name colour (was blue, now default foreground), device icons (Laptop/Monitor/PS) now turn blue when online, redundant "Online" status line removed (status only shown for informative states like "Busy").
 - feat/ps5-daemon: new scripts/ps5-daemon.py and com.zacess.ps5-daemon.plist, new app/api/ps5/route.ts, PS5 card added to LiveStatusCards.tsx 2x2 grid, GitHub moved to full-width strip between Spotify and device grid, PSN_NPSSO added to .env.example.
