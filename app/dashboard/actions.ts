@@ -5,6 +5,22 @@
 import { supabase } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
 
+// I fire-and-forget activity logs so a logging failure never blocks the actual action.
+// The activity_log table must exist in Supabase:
+//   CREATE TABLE activity_log (
+//     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+//     action text NOT NULL,
+//     detail text,
+//     created_at timestamptz NOT NULL DEFAULT now()
+//   );
+async function logActivity(action: string, detail?: string) {
+  try {
+    await supabase.from("activity_log").insert({ action, detail: detail ?? null })
+  } catch {
+    // non-fatal - logging failure should never break the parent action
+  }
+}
+
 // Input validation helpers. I use runtime checks rather than a schema library to avoid
 // adding a dependency. Any field that fails type or length checks causes the action to
 // return early with a generic error so callers never see a Supabase error message.
@@ -56,6 +72,7 @@ export async function createGoal(data: {
     !validNum(data.progress, 0, 100)
   ) return INVALID
   await supabase.from("goals").insert(data)
+  void logActivity("goal.create", data.title)
   revalidatePath("/dashboard/goals")
 }
 
@@ -84,6 +101,7 @@ export async function updateGoal(id: string, data: Partial<{
 export async function deleteGoal(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("goals").delete().eq("id", id)
+  void logActivity("goal.delete", id)
   revalidatePath("/dashboard/goals")
 }
 
@@ -280,6 +298,7 @@ export async function createApplication(data: {
   ) return INVALID
   // I return the inserted row so the client can optimistically show the new card without a refetch
   const { data: inserted } = await supabase.from("applications").insert(data).select().single()
+  void logActivity("application.create", `${data.company} - ${data.role}`)
   revalidatePath("/dashboard/applications")
   return inserted
 }
@@ -315,6 +334,7 @@ export async function updateApplication(id: string, data: Partial<{
 export async function deleteApplication(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("applications").delete().eq("id", id)
+  void logActivity("application.delete", id)
   revalidatePath("/dashboard/applications")
 }
 
@@ -413,6 +433,7 @@ export async function createDiaryEntry(data: {
   // I return the inserted row so the DiaryClient can prepend it to the top of the list immediately
   // the created_at timestamp comes back from Supabase so the order is correct without client-side guessing
   const { data: inserted } = await supabase.from("diary").insert(data).select().single()
+  void logActivity("diary.create", data.title)
   revalidatePath("/dashboard/diary")
   return inserted
 }
@@ -438,6 +459,7 @@ export async function updateDiaryEntry(id: string, data: Partial<{
 export async function deleteDiaryEntry(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("diary").delete().eq("id", id)
+  void logActivity("diary.delete", id)
   revalidatePath("/dashboard/diary")
 }
 
@@ -462,6 +484,7 @@ export async function createNote(data: {
     !optStr(data.color)
   ) return INVALID
   const { data: inserted } = await supabase.from("notes").insert(data).select().single()
+  void logActivity("note.create", data.title)
   revalidatePath("/dashboard/notes")
   return inserted
 }
@@ -486,6 +509,7 @@ export async function updateNote(id: string, data: Partial<{
 export async function deleteNote(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("notes").delete().eq("id", id)
+  void logActivity("note.delete", id)
   revalidatePath("/dashboard/notes")
 }
 
@@ -677,6 +701,25 @@ export async function setConfig(key: string, value: unknown) {
   // I upsert on the key column so the first write creates the row and subsequent ones update it
   // - no separate "does this key exist?" check needed, which would waste a round trip
   await supabase.from("config").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" })
+}
+
+export async function updateNowStatus(data: {
+  building?: string
+  studying?: string
+  focused_on?: string
+  listening_to?: string
+}) {
+  if (
+    !optStr(data.building) ||
+    !optStr(data.studying) ||
+    !optStr(data.focused_on) ||
+    !optStr(data.listening_to)
+  ) return INVALID
+  await supabase.from("config").upsert(
+    { key: "now_status", value: data, updated_at: new Date().toISOString() },
+    { onConflict: "key" }
+  )
+  revalidatePath("/dashboard/notes")
 }
 
 // ─── Course modules ──────────────────────────────────────────
@@ -918,4 +961,15 @@ export async function getDashboardSearchData() {
     diary: diary.data ?? [],
     applications: applications.data ?? [],
   }
+}
+
+// ─── Activity Log ─────────────────────────────────────────────────────────────
+
+export async function getActivityLog(limit = 50) {
+  const { data } = await supabase
+    .from("activity_log")
+    .select("id, action, detail, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+  return data ?? []
 }
