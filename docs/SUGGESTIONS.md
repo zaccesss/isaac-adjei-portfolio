@@ -97,3 +97,43 @@ Each project card on `/projects` should have a live demo link front and centre.
 ### Blog / writing
 
 A `/blog` or `/writing` page. The Beehiiv newsletter infrastructure is already wired up.
+
+---
+
+## Live status widget
+
+### Apple WeatherKit - match the system Weather app exactly
+
+The daemon currently uses Open-Meteo which can be 2-3 degrees off the macOS Weather app because they use different data sources. **Apple WeatherKit is the most accurate option** - it is the same API that powers the built-in Weather app on iPhone, iPad and Mac, so the widget and your phone would always show identical temperature and conditions. Free tier: 500k calls/month. Requires an Apple Developer account ($99/yr) and JWT-based authentication (more complex than a standard REST key).
+
+If the Apple Developer account is not worth it, **Tomorrow.io** is the best free alternative - typically within 0.5 degrees and uses a simple API key.
+
+Additional benefit of WeatherKit: it provides hourly sunrise and sunset times per location. This would let the daemon calculate night dynamically instead of using a fixed 5am cutoff, so the moon emoji switches at the exact local sunrise time regardless of season or latitude - a much cleaner solution.
+
+Implementation plan (WeatherKit):
+
+1. Create a WeatherKit service identifier in the Apple Developer portal
+2. Generate a private key and sign JWT tokens in the daemon using `python-jose` or `authlib`
+3. Call `https://weatherkit.apple.com/api/v1/weather/{lang}/{lat}/{lon}` with the JWT header
+4. Map `conditionCode` to emoji (Apple uses its own condition code set, not WMO)
+5. Use `solarEvents.sunrise` and `solarEvents.sunset` from the `forecastDaily` endpoint to replace the fixed `localHour < 5` cutoff
+
+### PS5 NPSSO renewal reminder
+
+The NPSSO session token expires after 60 days of inactivity. If the Cloudflare Worker stops writing to Redis, the PS5 card silently shows stale data. Add a Vercel cron (weekly) that checks the age of the `ps5:status` key and sends a Resend email if the key is missing or older than 50 days, prompting a manual NPSSO renewal before it expires.
+
+---
+
+## Dashboard
+
+### Inventory pagination
+
+Category pages load all items with no pagination. Add `LIMIT 50 OFFSET n` on the Supabase query and simple prev/next controls before the list grows past 50 items.
+
+---
+
+## Newsletter
+
+### Beehiiv newsletter page - match site branding
+
+The Beehiiv-hosted newsletter page (the one Beehiiv generates for subscribers) uses Beehiiv's default branding, not the site's design. Update the Beehiiv publication settings to match isaacadjei.me: dark background, Geist font, the same colour palette and header style used on the /newsletter page. Beehiiv supports custom CSS and logo upload in the publication settings. The goal is that someone clicking through from the site to the Beehiiv archive page does not feel like they have landed on a generic platform page.

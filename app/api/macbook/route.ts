@@ -19,6 +19,7 @@ type StatusPayload = {
   weather_condition?: string
   weather_emoji?: string
   temp_c?: number
+  is_day?: number
 }
 
 export async function GET() {
@@ -46,11 +47,14 @@ export async function GET() {
       )
     }
 
-    // I correct the weather emoji for night hours because the daemon maps "Clear" to ☀️
-    // regardless of the time of day - at night this should show 🌙 instead
+    // I use is_day from the WeatherAPI payload for accurate sunrise/sunset-based
+    // night detection. Older daemon payloads without is_day fall back to a
+    // hour-based estimate so the moon still shows correctly during a daemon restart
     const tz = source.timezone ?? "Europe/London"
-    const localHour = new Date(new Date().toLocaleString("en-US", { timeZone: tz })).getHours()
-    const isNight = localHour >= 19 || localHour < 6
+    const isNight = source.is_day !== undefined
+      ? source.is_day === 0
+      : new Date(new Date().toLocaleString("en-US", { timeZone: tz })).getHours() >= 19
+        || new Date(new Date().toLocaleString("en-US", { timeZone: tz })).getHours() < 5
     const dayEmojis = new Set(["☀️", "🌤️", "⛅"])
     let weatherEmoji = source.weather_emoji ?? null
     if (isNight && weatherEmoji && dayEmojis.has(weatherEmoji)) {
