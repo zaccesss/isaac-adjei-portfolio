@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, GitBranch, Monitor, Github } from "lucide-react"
+import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, GitBranch, Monitor, Github, ExternalLink } from "lucide-react"
 import { SiPlaystation } from "react-icons/si"
 import { cn } from "@/lib/utils"
 
@@ -400,29 +400,13 @@ export default function LiveStatusCards() {
         )}
       </div>
 
-      {/* GitHub strip */}
-      <div className="rounded-2xl border border-border/60 bg-card shadow-sm py-3 px-4 flex items-center gap-2 text-sm">
-        <Github className="h-4 w-4 text-foreground/60 dark:text-foreground/50 shrink-0" />
-        <span className="text-foreground/30 dark:text-foreground/25 select-none">|</span>
-        <GitBranch className="h-3.5 w-3.5 text-foreground/50 dark:text-foreground/40 shrink-0" />
-        {github.repo ? (
-          <>
-            <span className="text-xs text-muted-foreground">pushed</span>
-            <span className="text-xs font-medium text-foreground/80 truncate">{github.repo}</span>
-            <span className="text-xs text-muted-foreground/50 shrink-0 ml-auto">{github.relativeTime}</span>
-          </>
-        ) : (
-          <span className="text-xs text-muted-foreground/40">no recent activity</span>
-        )}
-      </div>
-
       {/* 2x2 device grid */}
       <div className="grid grid-cols-2 gap-3">
 
         {/* MacBook */}
         <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <Laptop className={cn("h-4 w-4 shrink-0", online ? "text-blue-500" : "text-muted-foreground/40")} />
+            <Laptop className={cn("h-4 w-4 shrink-0", online ? "text-foreground" : "text-muted-foreground/40")} />
             <p className={cn("text-xs font-semibold truncate", online ? "" : "text-foreground/50")}>{mac.device ?? "MacBook Air"}</p>
           </div>
           <div className="space-y-1.5">
@@ -461,7 +445,7 @@ export default function LiveStatusCards() {
           return (
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Laptop className={cn("h-4 w-4 shrink-0", lOnline ? "text-blue-500" : "text-muted-foreground/40")} />
+                <Laptop className={cn("h-4 w-4 shrink-0", lOnline ? "text-foreground" : "text-muted-foreground/40")} />
                 <p className={cn("text-xs font-semibold truncate", lOnline ? "" : "text-foreground/50")}>{lenovo.device ?? "Lenovo"}</p>
               </div>
               <div className="space-y-1.5">
@@ -501,7 +485,7 @@ export default function LiveStatusCards() {
           return (
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Monitor className={cn("h-4 w-4 shrink-0", gOnline ? "text-blue-500" : "text-muted-foreground/40")} />
+                <Monitor className={cn("h-4 w-4 shrink-0", gOnline ? "text-foreground" : "text-muted-foreground/40")} />
                 <p className={cn("text-xs font-semibold truncate", gOnline ? "" : "text-foreground/50")}>{gamingPC.device ?? "Gaming PC"}</p>
               </div>
               <div className="space-y-1.5">
@@ -539,7 +523,7 @@ export default function LiveStatusCards() {
           return (
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <SiPlaystation className={cn("h-4 w-4 shrink-0", pOnline ? "text-blue-500" : "text-muted-foreground/40")} />
+                <SiPlaystation className={cn("h-4 w-4 shrink-0", pOnline ? "text-foreground" : "text-muted-foreground/40")} />
                 <p className={cn("text-xs font-semibold truncate", pOnline ? "" : "text-foreground/50")}>ZACCESS-PS5</p>
               </div>
               <div className="space-y-1.5">
@@ -564,6 +548,45 @@ export default function LiveStatusCards() {
           )
         })()}
 
+      </div>
+
+      {/* GitHub strip */}
+      <div className="rounded-2xl border border-border/60 bg-card shadow-sm py-3 px-4 flex items-center gap-2 text-sm">
+        <Github className="h-4 w-4 text-foreground/60 dark:text-foreground/50 shrink-0" />
+        <span className="text-foreground/30 dark:text-foreground/25 select-none">|</span>
+        <GitBranch className="h-3.5 w-3.5 text-foreground/50 dark:text-foreground/40 shrink-0" />
+        {github.repo ? (
+          <>
+            <span className="text-xs text-muted-foreground">pushed</span>
+            <span className="text-xs font-medium text-foreground/80 truncate">{github.repo}</span>
+            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+              <span className="text-xs text-muted-foreground/50">{github.relativeTime}</span>
+              <span className="text-foreground/20 dark:text-foreground/15 select-none">|</span>
+              <a
+                href="https://github.com/zaccesss"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub profile"
+                className="text-foreground/60 hover:text-foreground transition-colors"
+              >
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          </>
+        ) : (
+          <>
+            <span className="text-xs text-muted-foreground/40">no recent activity</span>
+            <a
+              href="https://github.com/zaccesss"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub profile"
+              className="ml-auto text-foreground/60 hover:text-foreground transition-colors shrink-0"
+            >
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </>
+        )}
       </div>
     </div>
   )
