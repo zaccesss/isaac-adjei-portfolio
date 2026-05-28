@@ -2,12 +2,13 @@
 
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
-import { createVaultEntry, updateVaultEntry, deleteVaultEntry } from "@/app/dashboard/actions"
+import { createVaultEntry, updateVaultEntry, deleteVaultEntry, toggleVaultHidden, toggleVaultLocked } from "@/app/dashboard/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Copy, Eye, EyeOff, Trash2, ExternalLink, Check, Search, Edit2, Key, CreditCard, User, StickyNote, Globe } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Plus, Copy, Eye, EyeOff, Trash2, ExternalLink, Check, Search, Edit2, Key, CreditCard, User, StickyNote, Globe, MoreVertical, Lock, Unlock } from "lucide-react"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { dashboardPage } from "@/lib/animations"
 
@@ -99,10 +100,11 @@ function Field({ label, value, url }: { label: string; value: string; url?: bool
   )
 }
 
-function EntryCard({ entry, onEdit, onDelete }: {
+function EntryCard({ entry, onEdit, onDelete, onToggle }: {
   entry: VaultEntry
   onEdit: (e: VaultEntry) => void
   onDelete: (id: string) => void
+  onToggle: (id: string, field: "hidden" | "locked", value: boolean) => void
 }) {
   // I keep expand/collapse state local so each card is independent -
   // opening one does not collapse the others
@@ -131,10 +133,31 @@ function EntryCard({ entry, onEdit, onDelete }: {
             <p className="text-xs text-muted-foreground truncate">{entry.username ?? entry.email ?? entry.key_name ?? ""}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {/* I use e.stopPropagation() so clicking edit or delete does not also toggle the expand */}
-          <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(entry) }} aria-label="Edit" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></button>
-          <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(entry.id) }} aria-label="Delete" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+        <div className="flex items-center gap-1 shrink-0">
+          {/* I use e.stopPropagation() so clicking the dropdown does not also toggle the expand */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button type="button" aria-label="Entry options" onClick={(e) => e.stopPropagation()} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                <MoreVertical className="h-3.5 w-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(entry) }}>
+                <Edit2 className="h-3.5 w-3.5 mr-2" />Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggle(entry.id, "hidden", !(entry as VaultEntry & { hidden?: boolean }).hidden) }}>
+                {(entry as VaultEntry & { hidden?: boolean }).hidden ? <><Eye className="h-3.5 w-3.5 mr-2" />Show</> : <><EyeOff className="h-3.5 w-3.5 mr-2" />Hide</>}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggle(entry.id, "locked", !(entry as VaultEntry & { locked?: boolean }).locked) }}>
+                {(entry as VaultEntry & { locked?: boolean }).locked ? <><Unlock className="h-3.5 w-3.5 mr-2" />Unlock</> : <><Lock className="h-3.5 w-3.5 mr-2" />Lock</>}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(entry.id) }} className="text-destructive focus:text-destructive">
+                <Trash2 className="h-3.5 w-3.5 mr-2" />Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </button>
 
@@ -336,6 +359,12 @@ export default function VaultTypeClient({
     deleteVaultEntry(id)
   }
 
+  function handleToggle(id: string, field: "hidden" | "locked", value: boolean) {
+    setEntries((prev) => prev.map((e) => e.id === id ? { ...e, [field]: value } as VaultEntry : e))
+    if (field === "hidden") toggleVaultHidden(id, value)
+    else toggleVaultLocked(id, value)
+  }
+
   return (
     <motion.div
       className="flex flex-col gap-5 max-w-2xl"
@@ -384,7 +413,7 @@ export default function VaultTypeClient({
       ) : (
         <div className="flex flex-col gap-2">
           {filtered.map((e) => (
-            <EntryCard key={e.id} entry={e} onEdit={(entry) => setEditEntry(entry)} onDelete={handleDelete} />
+            <EntryCard key={e.id} entry={e} onEdit={(entry) => setEditEntry(entry)} onDelete={handleDelete} onToggle={handleToggle} />
           ))}
         </div>
       )}

@@ -11,6 +11,9 @@ type Entry = {
   title: string
   content: string
   mood: string | null
+  hidden: boolean
+  pinned: boolean
+  locked: boolean
   created_at: string
   updated_at: string
 }

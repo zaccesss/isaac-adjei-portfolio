@@ -102,6 +102,16 @@ A `/blog` or `/writing` page. The Beehiiv newsletter infrastructure is already w
 
 ## Live status widget
 
+### Lanyard - Discord status card
+
+Lanyard is a free service that reads your Discord Rich Presence and exposes it via a public API at `api.lanyard.rest/v1/users/{discord_id}`. It shows your online/idle/DND/offline status and any Rich Presence activity (e.g. "Coding in VS Code - editing mac-daemon.py - 2h 15m"). No daemon or bot needed - just join the Lanyard Discord server and your status becomes queryable.
+
+Implementation: join discord.gg/lanyard, get your Discord user ID, add a `LanyardCard` to `components/shared/LiveStatusCards.tsx` that polls the REST or WebSocket endpoint. Only show when online or when activity is set - hide the card when offline to avoid clutter.
+
+Decision: skipped for now as the site already has GitHub, Spotify, MacBook, PS5 and GPC cards. Worth adding if a future design refresh makes the widget feel less cluttered.
+
+---
+
 ### Apple WeatherKit - match the system Weather app exactly
 
 The daemon currently uses Open-Meteo which can be 2-3 degrees off the macOS Weather app because they use different data sources. **Apple WeatherKit is the most accurate option** - it is the same API that powers the built-in Weather app on iPhone, iPad and Mac, so the widget and your phone would always show identical temperature and conditions. Free tier: 500k calls/month. Requires an Apple Developer account ($99/yr) and JWT-based authentication (more complex than a standard REST key).
