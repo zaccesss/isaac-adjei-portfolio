@@ -98,6 +98,7 @@ const CATEGORIES = [
   "Data Science",
   "AI and Machine Learning",
   "DevOps and Infrastructure",
+  "Embedded",
   "Quant Developer",
   "Tech Consulting",
   "Cyber Security",
@@ -108,6 +109,9 @@ const CATEGORIES = [
 
 type Category = (typeof CATEGORIES)[number]
 
+const _AI_WORD = /\bai\b/i
+const _QUANT_COMPANIES = ["citadel", "optiver", "jane street", "imc", "jump", "two sigma", "susquehanna", "virtu", "drw", "sig ", "flow traders", "akuna", "hudson river", "de shaw"]
+
 // I auto-detect category from company and role so scraped entries get a sensible default
 // without requiring manual tagging of every row - the user can always override in the edit form
 function detectCategory(company: string, role: string): Category {
@@ -116,39 +120,65 @@ function detectCategory(company: string, role: string): Category {
   const faang = ["google", "meta", "amazon", "apple", "microsoft", "netflix", "deepmind", "openai", "anthropic"]
   if (faang.some((f) => c.includes(f))) return "FAANG+"
   if (
+    _QUANT_COMPANIES.some((q) => c.includes(q)) ||
     r.includes("quant") ||
     r.includes("trading") ||
-    c.includes("citadel") ||
-    c.includes("optiver") ||
-    c.includes("jane street") ||
-    c.includes("imc") ||
-    c.includes("jump") ||
-    c.includes("two sigma") ||
-    c.includes("susquehanna")
+    r.includes("algorithmic") ||
+    r.includes("derivatives")
   )
     return "Quant Developer"
   if (
+    _AI_WORD.test(r) ||
     r.includes("machine learning") ||
-    r.includes(" ai ") ||
     r.includes("artificial intelligence") ||
     r.includes("deep learning") ||
-    r.includes("llm")
+    r.includes("llm") ||
+    r.includes("computer vision") ||
+    r.includes("nlp") ||
+    r.includes("generative ai") ||
+    r.includes("neural network")
   )
     return "AI and Machine Learning"
-  if (r.includes("data") || r.includes("analytics") || r.includes("data science")) return "Data Science"
+  if (
+    r.includes("data science") ||
+    r.includes("data scientist") ||
+    r.includes("data analyst") ||
+    r.includes("data engineer") ||
+    r.includes("analytics engineer") ||
+    r.includes("business intelligence") ||
+    r.includes("bi analyst")
+  )
+    return "Data Science"
+  if (
+    r.includes("embedded") ||
+    r.includes("firmware") ||
+    r.includes("fpga") ||
+    r.includes("vhdl") ||
+    r.includes("rtos") ||
+    r.includes("bare metal") ||
+    r.includes("hardware engineer") ||
+    r.includes("electronics engineer") ||
+    r.includes("microcontroller") ||
+    r.includes("iot engineer")
+  )
+    return "Embedded"
   if (
     r.includes("devops") ||
-    r.includes("cloud") ||
-    r.includes("infrastructure") ||
-    r.includes("platform") ||
-    r.includes("sre") ||
-    r.includes("reliability") ||
-    r.includes("devsecops")
+    r.includes("devsecops") ||
+    r.includes("cloud engineer") ||
+    r.includes("site reliability") ||
+    r.includes("platform engineer") ||
+    r.includes("infrastructure engineer") ||
+    r.includes("kubernetes") ||
+    r.includes("terraform") ||
+    r.includes("sre")
   )
     return "DevOps and Infrastructure"
-  if (r.includes("security") || r.includes("cyber") || r.includes("penetration")) return "Cyber Security"
-  if (r.includes("consult") || r.includes("advisory")) return "Tech Consulting"
-  if (r.includes("it ") || r.includes("information technology") || r.includes("it support") || r.includes("service desk"))
+  if (r.includes("security") || r.includes("cyber") || r.includes("penetration") || r.includes("pen test") || r.includes("appsec"))
+    return "Cyber Security"
+  if (r.includes("consult") || r.includes("advisory") || r.includes("business analyst"))
+    return "Tech Consulting"
+  if (r.includes("it support") || r.includes("service desk") || r.includes("information technology") || r.includes("helpdesk"))
     return "IT"
   return "Software Engineering"
 }
