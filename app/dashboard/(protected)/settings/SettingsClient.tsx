@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   KeyRound, Shield, Cpu, Clock, CheckCircle2, XCircle,
-  RefreshCw, Lock, Sun, Moon, Palette, Mail
+  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare
 } from "lucide-react"
 import { setConfig } from "@/app/dashboard/actions"
 
@@ -50,6 +50,10 @@ export default function SettingsClient() {
   // Weekly digest section state
   const [digestLoading, setDigestLoading] = useState(false)
   const [digestMessage, setDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
+  // Discord digest section state
+  const [discordDigestLoading, setDiscordDigestLoading] = useState(false)
+  const [discordDigestMessage, setDiscordDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
   // I fetch scraper status once on mount so the settings page shows live data
   useEffect(() => {
@@ -144,6 +148,27 @@ export default function SettingsClient() {
       setDigestMessage({ text: "Something went wrong.", ok: false })
     } finally {
       setDigestLoading(false)
+    }
+  }
+
+  async function handleTriggerDiscordDigest() {
+    setDiscordDigestLoading(true)
+    setDiscordDigestMessage(null)
+    try {
+      const res = await fetch("/api/dashboard/trigger-discord-digest", { method: "POST" })
+      const data = await res.json().catch(() => ({})) as { error?: string; skipped?: boolean }
+      if (res.ok) {
+        setDiscordDigestMessage({
+          text: data.skipped ? "No Discord webhook configured." : "Digest sent to Discord.",
+          ok: !data.skipped,
+        })
+      } else {
+        setDiscordDigestMessage({ text: data.error ?? "Failed to send digest.", ok: false })
+      }
+    } catch {
+      setDiscordDigestMessage({ text: "Something went wrong.", ok: false })
+    } finally {
+      setDiscordDigestLoading(false)
     }
   }
 
@@ -372,6 +397,37 @@ export default function SettingsClient() {
             {digestMessage && (
               <span className={`text-xs ${digestMessage.ok ? "text-green-600" : "text-destructive"}`}>
                 {digestMessage.text}
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Discord digest section */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Discord Digest</h2>
+        </div>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium">Send now</span>
+            <p className="text-xs text-muted-foreground">Send today&apos;s dashboard summary to Discord immediately</p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleTriggerDiscordDigest()}
+              disabled={discordDigestLoading}
+              className="flex items-center gap-1.5"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${discordDigestLoading ? "animate-spin" : ""}`} />
+              {discordDigestLoading ? "Sending..." : "Send now"}
+            </Button>
+            {discordDigestMessage && (
+              <span className={`text-xs ${discordDigestMessage.ok ? "text-green-600" : "text-destructive"}`}>
+                {discordDigestMessage.text}
               </span>
             )}
           </div>
