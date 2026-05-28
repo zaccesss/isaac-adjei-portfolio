@@ -4,6 +4,10 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-29
+
+- fix/night-emoji-partly-cloudy: partly cloudy at night now emits ☁️ instead of ⛅ - sun should not be visible in night conditions.
+
 ## 2026-05-28 (session 2)
 
 - fix/weather-accuracy-open-meteo-gps: switched mac-daemon.py from WeatherAPI to Open-Meteo (free, no API key, uses ECMWF for better UK accuracy); added CoreLocationCLI GPS fallback in fetch_location() for street-level precision over IP-based coordinates; fixed night emoji logic so only clear/mainly-clear nights show moon - cloudy conditions keep their cloud emoji at night; removed WEATHERAPI_KEY from .env.example; updated route.ts dayEmojis to no longer replace cloud emoji with moon.
