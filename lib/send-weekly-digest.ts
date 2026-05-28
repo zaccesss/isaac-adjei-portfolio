@@ -77,7 +77,7 @@ function buildEmailHtml(
           <!-- Header -->
           <tr>
             <td style="background:#0f172a;padding:24px 32px;">
-              <p style="margin:0;color:#94a3b8;font-size:12px;letter-spacing:0.05em;text-transform:uppercase;">Isaac Adjei - Nexus Dashboard</p>
+              <p style="margin:0;color:#94a3b8;font-size:12px;letter-spacing:0.05em;text-transform:uppercase;">Isaac Adjei - Dashboard</p>
               <h1 style="margin:8px 0 0;color:#f8fafc;font-size:22px;font-weight:700;">Your week in review</h1>
               <p style="margin:6px 0 0;color:#64748b;font-size:13px;">${startDate} - ${endDate}</p>
             </td>
@@ -200,7 +200,7 @@ function buildEmailHtml(
                   Open Dashboard
                 </a>
                 &nbsp;&middot;&nbsp;
-                Nexus - Isaac Adjei's private dashboard
+                Isaac Adjei's private dashboard
               </p>
             </td>
           </tr>
@@ -280,7 +280,7 @@ export async function sendWeeklyDigest(): Promise<DigestResult> {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: "Nexus Dashboard <contact@isaacadjei.me>",
+        from: "My Dashboard <contact@isaacadjei.me>",
         to: [toEmail],
         subject,
         html,

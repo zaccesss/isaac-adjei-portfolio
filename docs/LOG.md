@@ -6,6 +6,7 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ## 2026-05-28
 
+- PR fix/digest-rename: renamed "Nexus Dashboard" to "Dashboard" in email subject line, "My Dashboard" in the from field and removed "Nexus -" prefix from the footer tagline in lib/send-weekly-digest.ts.
 - PR #206 (fix/readme-and-share-cleanup): removed all em/en dashes from the entire repo (replaced with hyphens), removed Oxford commas, ShareButton scoped to project detail, blog slug, CV and links pages only (removed from experience, skills, about, now, notes, newsletter, consumed, colophon, uses, hall-of-fame and both notes sub-pages), added ShareButton to /cv and /links (next to name), fixed URL-encoded em dashes in OG metadata URLs, fixed TypeScript startTransition void issue across 16 dashboard files from PR #204.
 
 ## 2026-05-27
