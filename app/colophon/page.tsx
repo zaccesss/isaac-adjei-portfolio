@@ -130,6 +130,16 @@ const sections = [
         detail:
           "A separate API route fetches the currently playing track using the Spotify Web API. The OAuth access token is refreshed server-side and cached in Redis.",
       },
+      {
+        name: "PS5 daemon",
+        detail:
+          "A Cloudflare Worker (workers/ps5-presence) polls the PSN API every 60 seconds using the psnawp library. It writes my online status, current game and last-seen timestamp to Upstash Redis. The NPSSO session token is stored in Cloudflare secrets - it never touches the codebase or the client.",
+      },
+      {
+        name: "GitHub activity",
+        detail:
+          "The GitHub strip in the live status widget uses the GitHub REST API to show the last repository I pushed to and how long ago. Fetched server-side and cached briefly in Redis.",
+      },
     ],
   },
 ]

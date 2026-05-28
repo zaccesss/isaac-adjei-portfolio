@@ -9,35 +9,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Switched MacBook weather source from Open-Meteo to WeatherAPI.com for more accurate temperature and conditions; daemon now sends `is_day` flag so moon/sun emoji switches at real local sunrise rather than a fixed hour cutoff
-
-### Fixed
-
-- Moon emoji now uses WeatherAPI `is_day` field instead of a fixed 5am cutoff - correct across all seasons and locations
-
----
-
-## [Unreleased - previous]
-
-### Added
-
-- Share button on project detail pages, blog posts, CV page and links page (Web Share API with clipboard fallback and 2-second "Copied!" confirmation)
-- Open Graph thumbnails on every public page via `/api/og` - dynamic per-page title and description on all static and dynamic routes
-- Live status cards (device and activity widget) now also shown on the /now page
+- PS5 live card in the status widget - online/offline, current game and last-seen time via Cloudflare Worker polling PSN every 60s
+- Cloudflare Worker at workers/ps5-presence replaces the Mac-based PS5 daemon for presence polling
+- Inventory item detail pages at /dashboard/inventory/[category]/[id] with full field layout, warranty colour coding and edit/delete actions
+- Live status cards widget added to /now page
 - Pulsing blue "Updated live" indicator on the /now page header
-- Clickable GitHub profile link in the live status GitHub strip, shown after the last-pushed timestamp
-- GitHub strip moved below the device grid in the live status widget
+- Clickable GitHub profile link in the live status GitHub strip after the last-pushed timestamp
+- Share button on /cv and /links pages next to name
+- Open Graph thumbnails on every public page via /api/og
+- Switched MacBook weather source from Open-Meteo to WeatherAPI.com; daemon now sends `is_day` flag so moon/sun emoji switches at real local sunrise rather than a fixed hour cutoff
 
 ### Fixed
 
-- PS5 device name no longer shown in blue when online - names are now always default foreground colour across all device cards
-- Device type icons (Laptop, Monitor, PlayStation) now use foreground colour when online and muted when offline - reduces visual noise alongside the blue WiFi indicator
-- PS5 card no longer shows a redundant "Online" status line below the wifi indicator - status text is only shown for informative states such as "Busy"
+- PS5 card device name no longer shown in blue - names are now always default foreground colour across all device cards
+- Device type icons (Laptop, Monitor, PlayStation) now use foreground colour when online and muted when offline, reducing visual noise alongside the blue WiFi indicator
+- PS5 card no longer shows a redundant "Online" or "Offline" status line - status text is only shown for informative states such as "Busy"
+- Moon emoji now uses WeatherAPI `is_day` field instead of a fixed hour cutoff - correct across all seasons and locations
 
 ### Changed
 
-- Remove em and en dashes throughout the codebase; replaced with hyphens per UK English style
-- Remove Oxford commas throughout
+- Em and en dashes removed throughout; replaced with hyphens
+- Oxford commas removed throughout
 
 ---
 

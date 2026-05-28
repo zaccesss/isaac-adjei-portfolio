@@ -217,6 +217,7 @@ Shortcuts are ignored when focus is inside an `<input>`, `<textarea>` or `[conte
 | `SPOTIFY_CLIENT_SECRET` | Optional | Spotify app client secret |
 | `SPOTIFY_REFRESH_TOKEN` | Optional | Spotify long-lived OAuth refresh token |
 | `GITHUB_PAT` | Optional | GitHub PAT for `/api/github-activity` (raises rate limit to 5000/hr) |
+| `PSN_NPSSO` | Optional | 64-char NPSSO session token from Sony auth - used by the Cloudflare Worker to poll PSN presence; renew from playstation.com cookies if the PS5 card goes stale |
 | `SUPABASE_URL` | Dashboard | Supabase project URL |
 | `SUPABASE_ANON_KEY` | Dashboard | Supabase anon key |
 | `ALLOWED_GITHUB_ID` | Dashboard | Numeric GitHub user ID allowed to access the dashboard |
@@ -343,13 +344,15 @@ Vercel cron runs every Sunday at 18:00 UTC and calls `/api/dashboard/weekly-dige
 │   ├── images/projects/    # Project photos by slug
 │   ├── resume/             # CV PDFs and DOCX files
 │   └── Media/              # Video assets
-└── scripts/
-    ├── mac-daemon.py       # Writes MacBook battery status to Upstash Redis
-    ├── gpc-daemon.py       # Writes Gaming PC GPU/CPU stats to Upstash Redis
-    ├── lenovo-daemon.py    # Writes Lenovo battery status to Upstash Redis
-    ├── generate-pdfs.js    # Puppeteer: regenerate all role-specific PDFs
-    ├── generate-docx.js    # Regenerate role-specific Word files from cv.yml
-    └── spotify-auth.mjs    # One-time OAuth helper for Spotify refresh token
+├── scripts/
+│   ├── mac-daemon.py       # Writes MacBook battery status to Upstash Redis
+│   ├── gpc-daemon.py       # Writes Gaming PC GPU/CPU stats to Upstash Redis
+│   ├── lenovo-daemon.py    # Writes Lenovo battery status to Upstash Redis
+│   ├── generate-pdfs.js    # Puppeteer: regenerate all role-specific PDFs
+│   ├── generate-docx.js    # Regenerate role-specific Word files from cv.yml
+│   └── spotify-auth.mjs    # One-time OAuth helper for Spotify refresh token
+└── workers/
+    └── ps5-presence/       # Cloudflare Worker - polls PSN every 60s
 ```
 
 ---

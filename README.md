@@ -68,6 +68,7 @@ UPSTASH_REDIS_REST_TOKEN=
 SPOTIFY_CLIENT_ID=
 SPOTIFY_CLIENT_SECRET=
 SPOTIFY_REFRESH_TOKEN=
+PSN_NPSSO=
 ```
 
 All variables are optional for local dev - the site runs without any of them. See [DOCUMENTATION.md - Environment variables](DOCUMENTATION.md#environment-variables) for descriptions and which are required for specific features.
