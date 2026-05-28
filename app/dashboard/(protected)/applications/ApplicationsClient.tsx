@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search } from "lucide-react"
+import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List } from "lucide-react"
+import ApplicationsKanban from "./ApplicationsKanban"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -741,6 +742,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const [filterMyStatus, setFilterMyStatus] = useState("All")
   const [filterLocation, setFilterLocation] = useState("All")
   const [filterKeyword, setFilterKeyword] = useState("All")
+  const [view, setView] = useState<"table" | "kanban">("table")
   const [addOpen, setAddOpen] = useState(false)
   const [editApp, setEditApp] = useState<Application | null>(null)
   const [, startTransition] = useTransition()
@@ -982,20 +984,40 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
         <h1 className="text-lg font-semibold">Applications</h1>
-        <Dialog open={addOpen} onOpenChange={setAddOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-1 h-8 text-xs">
-              <Plus className="h-3.5 w-3.5" />
-              Add
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>New Application</DialogTitle>
-            </DialogHeader>
-            <AppForm onSave={handleAdd} onCancel={() => setAddOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center rounded-md border border-border overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setView("table")}
+              title="Table view"
+              className={`p-1.5 transition-colors ${view === "table" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <List className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("kanban")}
+              title="Kanban view"
+              className={`p-1.5 transition-colors ${view === "kanban" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-1 h-8 text-xs">
+                <Plus className="h-3.5 w-3.5" />
+                Add
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>New Application</DialogTitle>
+              </DialogHeader>
+              <AppForm onSave={handleAdd} onCancel={() => setAddOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -1117,8 +1139,15 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         </Select>
       </div>
 
+      {/* Kanban view */}
+      {view === "kanban" && (
+        <div className="flex-1 overflow-auto min-h-0 px-4 pb-4 pt-3">
+          <ApplicationsKanban applications={apps} />
+        </div>
+      )}
+
       {/* Table */}
-      <div className="flex-1 overflow-auto min-h-0 px-4 pb-4">
+      {view === "table" && <div className="flex-1 overflow-auto min-h-0 px-4 pb-4">
         {!hasAnyFiltered ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <p className="text-sm font-medium">No applications found</p>
@@ -1179,7 +1208,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
             </table>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Edit dialog */}
       <Dialog
