@@ -973,3 +973,63 @@ export async function getActivityLog(limit = 50) {
     .limit(limit)
   return data ?? []
 }
+
+// ─── Diary toggles ────────────────────────────────────────────────────────────
+// Requires: ALTER TABLE diary ADD COLUMN IF NOT EXISTS hidden boolean DEFAULT false;
+//           ALTER TABLE diary ADD COLUMN IF NOT EXISTS pinned boolean DEFAULT false;
+//           ALTER TABLE diary ADD COLUMN IF NOT EXISTS locked boolean DEFAULT false;
+
+export async function toggleDiaryHidden(id: string, hidden: boolean) {
+  if (!validId(id)) return INVALID
+  await supabase.from("diary").update({ hidden }).eq("id", id)
+  revalidatePath("/dashboard/diary")
+}
+
+export async function toggleDiaryPinned(id: string, pinned: boolean) {
+  if (!validId(id)) return INVALID
+  await supabase.from("diary").update({ pinned }).eq("id", id)
+  revalidatePath("/dashboard/diary")
+}
+
+export async function toggleDiaryLocked(id: string, locked: boolean) {
+  if (!validId(id)) return INVALID
+  await supabase.from("diary").update({ locked }).eq("id", id)
+  revalidatePath("/dashboard/diary")
+}
+
+// ─── Notes toggles ────────────────────────────────────────────────────────────
+// Requires: ALTER TABLE notes ADD COLUMN IF NOT EXISTS hidden boolean DEFAULT false;
+
+export async function toggleNoteHidden(id: string, hidden: boolean) {
+  if (!validId(id)) return INVALID
+  await supabase.from("notes").update({ hidden }).eq("id", id)
+  revalidatePath("/dashboard/notes")
+}
+
+export async function toggleNotePinned(id: string, pinned: boolean) {
+  if (!validId(id)) return INVALID
+  await supabase.from("notes").update({ pinned }).eq("id", id)
+  revalidatePath("/dashboard/notes")
+}
+
+export async function toggleNoteLocked(id: string, locked: boolean) {
+  if (!validId(id)) return INVALID
+  await supabase.from("notes").update({ locked }).eq("id", id)
+  revalidatePath("/dashboard/notes")
+}
+
+// ─── Vault toggles ────────────────────────────────────────────────────────────
+// Requires: ALTER TABLE vault ADD COLUMN IF NOT EXISTS hidden boolean DEFAULT false;
+//           ALTER TABLE vault ADD COLUMN IF NOT EXISTS locked boolean DEFAULT false;
+
+export async function toggleVaultHidden(id: string, hidden: boolean) {
+  if (!validId(id)) return INVALID
+  await supabase.from("vault").update({ hidden }).eq("id", id)
+  revalidatePath("/dashboard/vault")
+}
+
+export async function toggleVaultLocked(id: string, locked: boolean) {
+  if (!validId(id)) return INVALID
+  await supabase.from("vault").update({ locked }).eq("id", id)
+  revalidatePath("/dashboard/vault")
+}

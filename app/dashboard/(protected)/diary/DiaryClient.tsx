@@ -1,12 +1,13 @@
 ﻿"use client"
 
 import { useState, useTransition } from "react"
-import { createDiaryEntry, updateDiaryEntry, deleteDiaryEntry } from "../../actions"
+import { createDiaryEntry, updateDiaryEntry, deleteDiaryEntry, toggleDiaryHidden, toggleDiaryPinned, toggleDiaryLocked } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, BarChart2 } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, BarChart2, MoreVertical, EyeOff, Eye, Pin, PinOff, Lock, Unlock } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
 
 type Entry = {
@@ -14,6 +15,9 @@ type Entry = {
   title: string
   content: string
   mood: string | null
+  hidden: boolean
+  pinned: boolean
+  locked: boolean
   created_at: string
   updated_at: string
 }
@@ -151,10 +155,11 @@ function EntryForm({ initial, onSave, onCancel }: {
   )
 }
 
-function EntryCard({ entry, onEdit, onDelete }: {
+function EntryCard({ entry, onEdit, onDelete, onToggle }: {
   entry: Entry
   onEdit: (e: Entry) => void
   onDelete: (id: string) => void
+  onToggle: (id: string, field: "hidden" | "pinned" | "locked", value: boolean) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const mood = getMood(entry.mood)
@@ -165,12 +170,14 @@ function EntryCard({ entry, onEdit, onDelete }: {
   const isToday = new Date().toDateString() === date.toDateString()
 
   return (
-    <div className={`border border-border rounded-xl bg-card overflow-hidden hover:shadow-sm transition-shadow ${entry.mood ? MOOD_BG[entry.mood] ?? "" : ""}`}>
+    <div className={`border border-border rounded-xl bg-card overflow-hidden hover:shadow-sm transition-shadow ${entry.hidden ? "opacity-50" : ""} ${entry.mood ? MOOD_BG[entry.mood] ?? "" : ""}`}>
       <div className="p-4 flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-col gap-0.5 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               {isToday && <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-medium">Today</span>}
+              {entry.pinned && <Pin className="h-3 w-3 text-muted-foreground" />}
+              {entry.locked && <Lock className="h-3 w-3 text-muted-foreground" />}
               {mood && <span className="text-base">{mood.emoji}</span>}
               <h3 className="font-semibold text-sm">{entry.title}</h3>
             </div>
@@ -180,10 +187,32 @@ function EntryCard({ entry, onEdit, onDelete }: {
               {" · "}{wordCount} word{wordCount !== 1 ? "s" : ""}
             </p>
           </div>
-          <div className="flex gap-1 shrink-0">
-            <button type="button" onClick={() => onEdit(entry)} aria-label="Edit entry" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-            <button type="button" onClick={() => onDelete(entry.id)} aria-label="Delete entry" className="p-1.5 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button type="button" aria-label="Entry options" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                <MoreVertical className="h-3.5 w-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() => onEdit(entry)}>
+                <Pencil className="h-3.5 w-3.5 mr-2" />Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onToggle(entry.id, "pinned", !entry.pinned)}>
+                {entry.pinned ? <><PinOff className="h-3.5 w-3.5 mr-2" />Unpin</> : <><Pin className="h-3.5 w-3.5 mr-2" />Pin</>}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onToggle(entry.id, "hidden", !entry.hidden)}>
+                {entry.hidden ? <><Eye className="h-3.5 w-3.5 mr-2" />Show</> : <><EyeOff className="h-3.5 w-3.5 mr-2" />Hide</>}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onToggle(entry.id, "locked", !entry.locked)}>
+                {entry.locked ? <><Unlock className="h-3.5 w-3.5 mr-2" />Unlock</> : <><Lock className="h-3.5 w-3.5 mr-2" />Lock</>}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onDelete(entry.id)} className="text-destructive focus:text-destructive">
+                <Trash2 className="h-3.5 w-3.5 mr-2" />Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
@@ -217,6 +246,9 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
       ...data,
       // I coerce an empty mood string to null to match the nullable DB column
       mood: data.mood || null,
+      hidden: false,
+      pinned: false,
+      locked: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
@@ -235,6 +267,13 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
   function handleDelete(id: string) {
     setEntries((prev) => prev.filter((e) => e.id !== id))
     startTransition(() => void deleteDiaryEntry(id))
+  }
+
+  function handleToggle(id: string, field: "hidden" | "pinned" | "locked", value: boolean) {
+    setEntries((prev) => prev.map((e) => e.id === id ? { ...e, [field]: value } : e))
+    if (field === "hidden") startTransition(() => void toggleDiaryHidden(id, value))
+    else if (field === "pinned") startTransition(() => void toggleDiaryPinned(id, value))
+    else startTransition(() => void toggleDiaryLocked(id, value))
   }
 
   return (
@@ -266,7 +305,7 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {entries.map((e) => <EntryCard key={e.id} entry={e} onEdit={(entry) => setEditEntry(entry)} onDelete={handleDelete} />)}
+          {entries.map((e) => <EntryCard key={e.id} entry={e} onEdit={(entry) => setEditEntry(entry)} onDelete={handleDelete} onToggle={handleToggle} />)}
         </div>
       )}
 

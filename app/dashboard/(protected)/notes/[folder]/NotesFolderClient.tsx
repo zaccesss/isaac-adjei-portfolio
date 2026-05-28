@@ -2,13 +2,14 @@
 
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
-import { createNote, updateNote, deleteNote } from "@/app/dashboard/actions"
+import { createNote, updateNote, deleteNote, toggleNoteHidden, toggleNoteLocked, toggleNotePinned } from "@/app/dashboard/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { Plus, Pin, Lock, Search, Folder, Tag, Trash2, Eye, Edit2, Download, X } from "lucide-react"
+import { Plus, Pin, PinOff, Lock, Unlock, Search, Folder, Tag, Trash2, Eye, EyeOff, Edit2, Download, X, MoreVertical } from "lucide-react"
 import PinGate from "@/components/dashboard/PinGate"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { dashboardPage } from "@/lib/animations"
@@ -21,6 +22,7 @@ type Note = {
   tags: string[]
   pinned: boolean
   locked: boolean
+  hidden: boolean
   color: string | null
   created_at: string
   updated_at: string
@@ -76,6 +78,7 @@ export default function NotesFolderClient({
       id: crypto.randomUUID(),
       ...draft,
       pinned: false,
+      hidden: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
@@ -98,13 +101,6 @@ export default function NotesFolderClient({
     setNotes((n) => n.filter((x) => x.id !== id))
     if (selected?.id === id) setSelected(null)
     startTransition(() => void deleteNote(id))
-  }
-
-  function togglePin(note: Note) {
-    const updated = { ...note, pinned: !note.pinned }
-    setNotes((n) => n.map((x) => x.id === note.id ? updated : x))
-    if (selected?.id === note.id) setSelected(updated)
-    startTransition(() => void updateNote(note.id, { pinned: !note.pinned }))
   }
 
   function exportNote(note: Note) {
@@ -288,12 +284,35 @@ export default function NotesFolderClient({
             <>
               <div className="flex items-start justify-between gap-2">
                 <h2 className="font-semibold text-lg leading-snug">{selected.title}</h2>
-                <div className="flex gap-1 shrink-0">
-                  <button type="button" onClick={() => togglePin(selected)} aria-label={selected.pinned ? "Unpin" : "Pin"} className={`p-1.5 rounded hover:bg-muted transition-colors ${selected.pinned ? "text-primary" : "text-muted-foreground"}`}><Pin className="h-3.5 w-3.5" /></button>
-                  <button type="button" onClick={() => { setDraft({ title: selected.title, content: selected.content, folder: selected.folder, tags: selected.tags, color: selected.color, locked: selected.locked, pinned: selected.pinned }); setEditing(true) }} aria-label="Edit note" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Edit2 className="h-3.5 w-3.5" /></button>
-                  <button type="button" onClick={() => exportNote(selected)} aria-label="Export as markdown" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Download className="h-3.5 w-3.5" /></button>
-                  <button type="button" onClick={() => handleDelete(selected.id)} aria-label="Delete note" className="p-1.5 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button type="button" aria-label="Note options" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                      <MoreVertical className="h-3.5 w-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem onClick={() => { setDraft({ title: selected.title, content: selected.content, folder: selected.folder, tags: selected.tags, color: selected.color, locked: selected.locked, pinned: selected.pinned }); setEditing(true) }}>
+                      <Edit2 className="h-3.5 w-3.5 mr-2" />Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => exportNote(selected)}>
+                      <Download className="h-3.5 w-3.5 mr-2" />Export .md
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => { const updated = { ...selected, pinned: !selected.pinned }; setNotes((n) => n.map((x) => x.id === selected.id ? updated : x)); setSelected(updated); startTransition(() => void toggleNotePinned(selected.id, !selected.pinned)) }}>
+                      {selected.pinned ? <><PinOff className="h-3.5 w-3.5 mr-2" />Unpin</> : <><Pin className="h-3.5 w-3.5 mr-2" />Pin</>}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { const updated = { ...selected, hidden: !selected.hidden }; setNotes((n) => n.map((x) => x.id === selected.id ? updated : x)); setSelected(updated); startTransition(() => void toggleNoteHidden(selected.id, !selected.hidden)) }}>
+                      {selected.hidden ? <><Eye className="h-3.5 w-3.5 mr-2" />Show</> : <><EyeOff className="h-3.5 w-3.5 mr-2" />Hide</>}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { const updated = { ...selected, locked: !selected.locked }; setNotes((n) => n.map((x) => x.id === selected.id ? updated : x)); setSelected(updated); startTransition(() => void toggleNoteLocked(selected.id, !selected.locked)) }}>
+                      {selected.locked ? <><Unlock className="h-3.5 w-3.5 mr-2" />Unlock</> : <><Lock className="h-3.5 w-3.5 mr-2" />Lock</>}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleDelete(selected.id)} className="text-destructive focus:text-destructive">
+                      <Trash2 className="h-3.5 w-3.5 mr-2" />Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
