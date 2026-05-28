@@ -5,6 +5,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
+import LiveStatusCards from "@/components/shared/LiveStatusCards"
 import {
   BookOpen,
   Code2,
@@ -36,8 +37,11 @@ export default function NowPage() {
       {/* Header */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
-          Last updated {LAST_UPDATED}
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
+          </span>
+          Updated live &middot; Last updated {LAST_UPDATED}
         </div>
         <div className="flex items-center gap-2">
           <h1 className="text-4xl font-bold tracking-tight">Now</h1>
@@ -54,6 +58,7 @@ export default function NowPage() {
           </a>
           .
         </p>
+        <LiveStatusCards />
       </section>
 
       <Separator />

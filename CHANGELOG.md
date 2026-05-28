@@ -11,6 +11,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Share button on project detail pages, blog posts, CV page and links page (Web Share API with clipboard fallback and 2-second "Copied!" confirmation)
 - Open Graph thumbnails on every public page via `/api/og` - dynamic per-page title and description on all static and dynamic routes
+- Live status cards (device and activity widget) now also shown on the /now page
+- Pulsing green "Updated live" indicator added to the notes page tagline
 
 ### Changed
 
