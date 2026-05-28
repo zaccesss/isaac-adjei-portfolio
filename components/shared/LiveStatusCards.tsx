@@ -604,7 +604,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
       </div>
 
       {/* Discord / Lanyard card */}
-      {(alwaysShowDiscord ? lanyard !== null : lanyard && lanyard.discord_status !== "offline") && (() => {
+      {(alwaysShowDiscord || (lanyard && lanyard.discord_status !== "offline")) && (() => {
         const offline = !lanyard || lanyard.discord_status === "offline"
         const richActivity = !offline ? lanyard!.activities.find((a) => a.type !== 4) : null
         const customStatus = !offline ? lanyard!.activities.find((a) => a.type === 4) : null
