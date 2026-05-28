@@ -34,6 +34,22 @@ _EXCLUDE_INTERN_RE = re.compile(
     r'\b(internal|international|internally)\b', re.IGNORECASE
 )
 
+# I catch "Internal <function>" patterns that appear mid-title (not just at the start).
+# e.g. "Lead Engineer, Internal Engineering" or "Staff PM - Internal AI".
+_INTERNAL_FUNCTION_RE = re.compile(
+    r'\binternal\s+(engineering|engineer|audit|auditor|ai|ops|operations|'
+    r'tools|platform|systems|it\b|hr\b|recruiter|recruiting|transfer|mobility)',
+    re.IGNORECASE
+)
+
+# I skip the department-name fallback for clearly senior or non-student titles
+# so MongoDB / Adyen roles tagged under a university dept do not slip through.
+_SENIOR_ROLE_RE = re.compile(
+    r'\b(staff|senior|lead|principal|director|vp\b|vice president|head of|'
+    r'manager|recruiter|auditor|contractor|contract\b|associate recruiter)\b',
+    re.IGNORECASE
+)
+
 # I read credentials from environment variables set by GitHub Actions secrets
 # so nothing sensitive ever touches the repository.
 SUPABASE_URL = os.environ["SUPABASE_URL"]
@@ -382,6 +398,12 @@ def is_student_role(
     if re.match(r'^internal\b', title.strip(), re.IGNORECASE):
         return False
 
+    # I also reject "Internal <function>" anywhere in the title (e.g. "Lead
+    # Engineer, Internal Engineering" or "PM - Internal AI"). These are always
+    # full-time internal-team roles regardless of which company posted them.
+    if _INTERNAL_FUNCTION_RE.search(title):
+        return False
+
     # I check the title first because it is always present.
     t = title.lower()
 
@@ -401,8 +423,11 @@ def is_student_role(
 
     # I fall back to department names as a secondary signal for companies that
     # route all graduate roles through a dedicated department without labelling
-    # each title individually.
-    if dept_names:
+    # each title individually (e.g. Bloomberg "University Recruiting" dept).
+    # I skip this fallback for clearly senior or non-student titles so that
+    # priority companies like MongoDB with a university dept do not accidentally
+    # pull Staff / Lead / Recruiter / Auditor roles into the student pipeline.
+    if dept_names and not _SENIOR_ROLE_RE.search(title):
         d = " ".join(dept_names).lower()
         if any(term in d for term in STUDENT_DEPTS):
             return True
