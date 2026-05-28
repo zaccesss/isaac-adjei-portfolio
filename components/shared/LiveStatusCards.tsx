@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, GitBranch, Monitor, Github, ExternalLink } from "lucide-react"
-import { SiPlaystation } from "react-icons/si"
+import { SiPlaystation, SiDiscord } from "react-icons/si"
 import { cn } from "@/lib/utils"
 
 interface LastPlayed {
@@ -65,6 +65,38 @@ interface PS5Data {
   lastSeen: string | null
   status: string
   game: string | null
+}
+
+interface LanyardActivity {
+  type: number
+  name: string
+  details?: string
+  state?: string
+  timestamps?: { start?: number; end?: number }
+  assets?: { large_image?: string; large_text?: string; small_image?: string; small_text?: string }
+}
+
+interface LanyardData {
+  discord_status: "online" | "idle" | "dnd" | "offline"
+  activities: LanyardActivity[]
+  active_on_discord_desktop: boolean
+}
+
+const DISCORD_USER_ID = "1087417301583790212"
+
+const STATUS_COLOR: Record<string, string> = {
+  online: "bg-green-500",
+  idle:   "bg-yellow-500",
+  dnd:    "bg-red-500",
+}
+
+function elapsedSince(startMs: number): string {
+  const mins = Math.floor((Date.now() - startMs) / 60000)
+  if (mins < 1) return "just now"
+  if (mins < 60) return `${mins}m`
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  return m > 0 ? `${h}h ${m}m` : `${h}h`
 }
 
 function MarqueeText({ text, active, className }: { text: string; active: boolean; className?: string }) {
@@ -146,7 +178,7 @@ function countryName(code: string | null): string {
   }
 }
 
-export default function LiveStatusCards() {
+export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysShowDiscord?: boolean }) {
   const [time, setTime] = useState("")
   const [tz, setTz] = useState("")
   const [spotify, setSpotify] = useState<SpotifyData>({ playing: false, paused: false })
@@ -159,6 +191,8 @@ export default function LiveStatusCards() {
   const [gamingPC, setGamingPC] = useState<GamingPCData>({ online: false, lastSeen: null, gpu: null, cpu: null, currentGame: null, device: "ZACCESS-GPC" })
   const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
   const [ps5Data, setPs5Data] = useState<PS5Data>({ online: false, lastSeen: null, status: "Offline", game: null })
+  const [lanyard, setLanyard] = useState<LanyardData | null>(null)
+  const [lanyardLastOnline, setLanyardLastOnline] = useState<number | null>(null)
   const [liveProgressMs, setLiveProgressMs] = useState(0)
 
   useEffect(() => {
@@ -256,6 +290,25 @@ export default function LiveStatusCards() {
     fetch_()
     // I poll every 60s - matches the daemon write interval so data is always within one cycle of fresh
     const id = setInterval(fetch_, 60000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    async function fetch_() {
+      try {
+        const res = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_USER_ID}`)
+        if (res.ok) {
+          const json = await res.json() as { success: boolean; data: LanyardData }
+          if (json.success) {
+          setLanyard(json.data)
+          if (json.data.discord_status !== "offline") setLanyardLastOnline(Date.now())
+        }
+        }
+      } catch {}
+    }
+    fetch_()
+    // I poll every 30s - Lanyard updates presence within a few seconds of Discord broadcasting it
+    const id = setInterval(fetch_, 30000)
     return () => clearInterval(id)
   }, [])
 
@@ -549,6 +602,52 @@ export default function LiveStatusCards() {
         })()}
 
       </div>
+
+      {/* Discord / Lanyard card */}
+      {(alwaysShowDiscord ? lanyard !== null : lanyard && lanyard.discord_status !== "offline") && (() => {
+        const offline = !lanyard || lanyard.discord_status === "offline"
+        const richActivity = !offline ? lanyard!.activities.find((a) => a.type !== 4) : null
+        const customStatus = !offline ? lanyard!.activities.find((a) => a.type === 4) : null
+        const statusLabel = offline
+          ? "offline"
+          : lanyard!.discord_status === "dnd" ? "do not disturb" : lanyard!.discord_status
+
+        return (
+          <div className={cn("rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-2.5", offline && "opacity-50")}>
+            <div className="flex items-center gap-2">
+              <SiDiscord className="h-3.5 w-3.5 text-[#5865f2] shrink-0" />
+              <span className="text-xs font-semibold">zac</span>
+              <div className={cn("h-2 w-2 rounded-full shrink-0 ml-0.5", offline ? "bg-muted-foreground/40" : STATUS_COLOR[lanyard!.discord_status])} />
+              <span className="text-xs text-muted-foreground capitalize ml-auto">{statusLabel}</span>
+            </div>
+            {!offline && richActivity && (
+              <div className="space-y-0.5">
+                <p className="text-xs font-medium truncate">{richActivity.name}</p>
+                {richActivity.details && (
+                  <p className="text-xs text-muted-foreground truncate">{richActivity.details}</p>
+                )}
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
+                  {richActivity.state && <span className="truncate">{richActivity.state}</span>}
+                  {richActivity.timestamps?.start && (
+                    <>
+                      {richActivity.state && <span>·</span>}
+                      <span className="shrink-0">{elapsedSince(richActivity.timestamps.start)}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+            {!offline && !richActivity && customStatus?.state && (
+              <p className="text-xs text-muted-foreground truncate">{customStatus.state}</p>
+            )}
+            {offline && alwaysShowDiscord && (
+              <p className="text-xs text-muted-foreground">
+                {lanyardLastOnline ? `last seen ${elapsedSince(lanyardLastOnline)} ago` : "not seen this session"}
+              </p>
+            )}
+          </div>
+        )
+      })()}
 
       {/* GitHub strip */}
       <div className="rounded-2xl border border-border/60 bg-card shadow-sm py-3 px-4 flex items-center gap-2 text-sm">

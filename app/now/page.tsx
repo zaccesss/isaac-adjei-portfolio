@@ -58,7 +58,7 @@ export default function NowPage() {
           </a>
           .
         </p>
-        <LiveStatusCards />
+        <LiveStatusCards alwaysShowDiscord />
       </section>
 
       <Separator />
