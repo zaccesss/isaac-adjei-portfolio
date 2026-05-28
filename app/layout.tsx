@@ -13,6 +13,7 @@ import PublicShell from "@/components/layout/PublicShell"
 import CommandMenu from "@/components/shared/CommandMenu"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { SITE_URL } from "@/lib/constants"
+import { Analytics } from "@vercel/analytics/next"
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 
@@ -67,6 +68,7 @@ export const metadata: Metadata = {
     apple: [{ url: "/images/avatar.png", type: "image/png" }],
     shortcut: ["/images/avatar.png"],
   },
+  manifest: "/manifest.webmanifest",
   openGraph: {
     type: "website",
     locale: "en_GB",
@@ -134,6 +136,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           <PublicShell>{children}</PublicShell>
           <CommandMenu />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
