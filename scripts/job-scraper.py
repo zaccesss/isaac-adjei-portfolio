@@ -312,7 +312,7 @@ PRIORITY_COMPANIES = {
     "okta", "auth0", "snyk", "wiz", "lacework", "orca security",
     "gitlab", "jfrog", "harness", "circleci", "buildkite",
     "new relic", "dynatrace", "sumologic", "sumo logic", "splunk",
-    "twilio", "sendgrid", "vonage", "bandwidth",
+    "sendgrid", "vonage", "bandwidth",
     "digitalocean", "linode", "vultr", "hetzner",
     "nginx", "kong", "istio", "envoy",
     # More quant/finance shops
@@ -493,17 +493,13 @@ def infer_type(title: str, default: str = "Internship") -> str:
     # Events
     if any(term in t for term in EVENT_TERMS):
         return "Event"
-    # General Internship
-    if any(term in t for term in INTERNSHIP_TERMS):
+    # General Internship - I use whole-word regex here so "international" and
+    # "internationally" do not trigger a false intern classification.
+    if _INTERN_WHOLE_WORD_RE.search(t) and not _EXCLUDE_INTERN_RE.search(t):
         return "Internship"
     # I check seniority terms before falling through to the default so that
     # senior roles without any student-term do not get classified as Internship.
-    SENIORITY_TERMS = [
-        "staff", "principal", "senior", "lead", "director",
-        "head of", "manager", "associate director", "vp ", "vice president",
-        "president",
-    ]
-    if any(term in t for term in SENIORITY_TERMS):
+    if _SENIOR_ROLE_RE.search(title):
         return "Full-time Job"
     return default
 
@@ -572,6 +568,13 @@ def fetch_lever_details(slug: str, posting_id: str) -> dict:
 
 # ─── INSERT ─────────────────────────────────────────────────────────────────
 
+# I collect URLs seen this run so I can batch-refresh last_scraped_at at the
+# end without overwriting user-set status, notes or other fields.
+_seen_urls: set[str] = set()
+# I collect newly inserted student jobs for the end-of-run Discord alert.
+_new_jobs: list[dict] = []
+
+
 def insert_job(job: dict, existing_keys: set) -> bool:
     # I use a different date cutoff for full-time jobs (Jan 2026) vs internships (Sep 2025)
     cutoff = JOB_CUTOFF if job.get("type") == "Full-time Job" else CYCLE_CUTOFF
@@ -588,6 +591,11 @@ def insert_job(job: dict, existing_keys: set) -> bool:
     # zero network round trips.
     key = dedupe_key(job["company"], job["role"], job.get("url", ""))
     if key in existing_keys:
+        # I add the URL to the seen set so last_scraped_at is refreshed at the
+        # end of the run - but I never re-insert or upsert here, which would
+        # overwrite statuses or notes the user has set in the dashboard.
+        if url:
+            _seen_urls.add(url)
         return False
 
     record = {
@@ -597,7 +605,7 @@ def insert_job(job: dict, existing_keys: set) -> bool:
         # I use "scraped" so I can filter auto-discovered roles from ones I
         # manually added in the dashboard.
         "status":       "scraped",
-        "url":          job.get("url") or None,
+        "url":          url or None,
         "location":     normalize_location(job.get("location", "")),
         "notes":        job.get("notes", ""),
         # I leave applied_date as None because scraped roles have not been
@@ -615,17 +623,23 @@ def insert_job(job: dict, existing_keys: set) -> bool:
     }
 
     try:
-        # I use upsert rather than insert so that even if load_existing_keys
-        # returned an empty set (e.g. due to RLS blocking the SELECT) the DB
-        # itself deduplicates on the url column and no row is created twice.
-        supabase.table("applications").upsert(record, on_conflict="url").execute()
+        # I use insert (not upsert) because existing entries are handled above
+        # via the in-memory key check. If two scrapers somehow find the same URL
+        # in one run the second insert will fail gracefully - the first already
+        # added it to existing_keys so this branch is not reached in practice.
+        supabase.table("applications").insert(record).execute()
         # I add the key to the in-memory set immediately so subsequent
         # duplicates within the same run are caught without another DB query.
         existing_keys.add(key)
-        print(f"  + {job['company']} | {job['role']}")
+        if url:
+            _seen_urls.add(url)
+        jtype = record.get("type", "")
+        if jtype != "Full-time Job":
+            _new_jobs.append(job)
+        print(f"  + {job['company']} | {job['role']} {url}")
         return True
     except Exception as e:
-        print(f"  ! Failed to upsert {job['company']}: {e}")
+        print(f"  ! Failed to insert {job['company']}: {e}")
         return False
 
 
@@ -781,7 +795,14 @@ def scrape_trackr_all(existing_keys: set) -> int:
                     else:
                         # I still require a tech keyword for non-internship
                         # categories so non-tech roles are skipped.
-                        if not any(k in programme.lower() for k in TECH_KEYWORDS):
+                        if not any(
+                            k in programme.lower() for k in TECH_KEYWORDS
+                        ):
+                            continue
+                        # I also reject senior titles even from placement and
+                        # grad-scheme categories - The Trackr occasionally
+                        # lists staff or lead roles under these buckets.
+                        if _SENIOR_ROLE_RE.search(programme):
                             continue
 
                     # I store the opening date in notes because there is no
@@ -2139,6 +2160,112 @@ def scrape_remotive(existing_keys: set) -> int:
     return count
 
 
+# ─── REED.CO.UK ─────────────────────────────────────────────────────────────
+
+def scrape_reed(existing_keys: set) -> int:
+    # I use Reed's public API - REED_API_KEY must be set as a GitHub Actions
+    # secret. Register for free at reed.co.uk/developers/jobseeker to get one.
+    api_key = os.environ.get("REED_API_KEY", "")
+    if not api_key:
+        print("  REED_API_KEY not set - skipping Reed.co.uk")
+        return 0
+
+    SEARCHES = [
+        {"keywords": "software intern", "locationName": "United Kingdom"},
+        {"keywords": "technology internship", "locationName": "United Kingdom"},
+        {"keywords": "year in industry", "locationName": "United Kingdom"},
+        {"keywords": "industrial placement technology",
+         "locationName": "United Kingdom"},
+        {"keywords": "graduate scheme software",
+         "locationName": "United Kingdom"},
+    ]
+
+    count = 0
+    for params in SEARCHES:
+        try:
+            resp = requests.get(
+                "https://www.reed.co.uk/api/1.0/search",
+                params={**params, "resultsToTake": 100},
+                auth=(api_key, ""),
+                headers={"Accept": "application/json"},
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                print(f"  Reed HTTP {resp.status_code} for {params}")
+                continue
+
+            for job in resp.json().get("results", []):
+                title = job.get("jobTitle", "")
+                company = job.get("employerName", "")
+                location = job.get("locationName", "")
+                job_id = job.get("jobId", "")
+                job_url = (
+                    f"https://www.reed.co.uk/jobs/{job_id}"
+                    if job_id else ""
+                )
+                expiry = job.get("expirationDate", "")
+
+                if not is_relevant(title, company, location):
+                    continue
+                if insert_job({
+                    "company":  company,
+                    "role":     title,
+                    "type":     infer_type(title),
+                    "url":      job_url,
+                    "location": normalize_location(location),
+                    "source":   "Reed",
+                    "deadline": expiry,
+                }, existing_keys):
+                    count += 1
+
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"  Error Reed {params.get('keywords')}: {e}")
+
+    print(f"  Added {count} from Reed.co.uk")
+    return count
+
+
+# ─── DISCORD ALERT ──────────────────────────────────────────────────────────
+
+def send_discord_alert(new_jobs: list[dict]) -> None:
+    # I post new job findings to Discord so alerts appear on phone immediately
+    # after the daily scraper run rather than waiting for the Sunday digest.
+    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL", "")
+    if not webhook_url or not new_jobs:
+        return
+
+    # I batch into chunks of 20 to stay under Discord's embed field limit.
+    CHUNK = 20
+    for i in range(0, len(new_jobs), CHUNK):
+        chunk = new_jobs[i:i + CHUNK]
+        lines = []
+        for j in chunk:
+            company = j.get("company", "")
+            role = j.get("role", "")
+            url = j.get("url", "")
+            jtype = j.get("type", "")
+            label = f"[{company} - {role}]({url})" if url else f"{company} - {role}"
+            lines.append(f"- **{jtype}** {label}")
+
+        payload = {
+            "embeds": [{
+                "title": f"New jobs found ({len(new_jobs)} total)",
+                "description": "\n".join(lines),
+                "color": 0x5865F2,
+            }]
+        }
+        try:
+            requests.post(
+                webhook_url,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=10,
+            )
+        except Exception as e:
+            print(f"  Discord alert failed: {e}")
+
+
 # ─── MAIN ───────────────────────────────────────────────────────────────────
 
 def delete_stale_entries() -> None:
@@ -2156,12 +2283,37 @@ def delete_stale_entries() -> None:
         print(f"Warning: could not delete stale entries: {e}")
 
 
+def refresh_seen_timestamps() -> None:
+    # I batch-update last_scraped_at for all entries seen this run so the
+    # 30-day stale delete does not remove jobs that are still live on the
+    # source sites. I only touch last_scraped_at - all other columns
+    # (status, notes, starred etc.) remain exactly as the user left them.
+    if not _seen_urls:
+        return
+    seen_list = list(_seen_urls)
+    now = datetime.utcnow().isoformat()
+    BATCH = 100
+    try:
+        for i in range(0, len(seen_list), BATCH):
+            supabase.table("applications").update(
+                {"last_scraped_at": now}
+            ).in_("url", seen_list[i:i + BATCH]).execute()
+        print(f"Refreshed timestamps for {len(seen_list)} existing entries.")
+    except Exception as e:
+        print(f"Warning: timestamp refresh failed: {e}")
+
+
 def main():
+    global _seen_urls, _new_jobs
+    _seen_urls = set()
+    _new_jobs = []
+
     print(f"Job scraper starting at {datetime.now().isoformat()}")
     # I delete rows not seen in 30 days at the start of each run.
     # Only manually-added rows (status != "scraped") are preserved.
     delete_stale_entries()
-    # I load existing keys after the stale delete so the set reflects current DB state.
+    # I load existing keys after the stale delete so the set reflects
+    # current DB state.
     existing_keys = load_existing_keys()
     print(f"Found {len(existing_keys)} existing applications in DB")
 
@@ -2221,9 +2373,25 @@ def main():
     total += scrape_prospects(existing_keys)
     total += scrape_milkround(existing_keys)
 
+    print("\n--- Reed ---")
+    total += scrape_reed(existing_keys)
+
     # I run Remotive last because it is a dedicated full-time job source
     # (not an internship source) and only feeds the Jobs tab.
     total += scrape_remotive(existing_keys)
+
+    # I refresh timestamps for all entries seen this run without overwriting
+    # any user-set fields - this is what keeps jobs alive past the 30-day stale
+    # delete without resetting statuses the user has changed.
+    refresh_seen_timestamps()
+
+    # I send a Discord alert with all newly found student roles so I know
+    # what came in from today's run without waiting for the Sunday digest.
+    if _new_jobs:
+        print(
+            f"\nSending Discord alert for {len(_new_jobs)} new student roles..."
+        )
+        send_discord_alert(_new_jobs)
 
     print(f"\nDone. Added {total} new jobs.")
 

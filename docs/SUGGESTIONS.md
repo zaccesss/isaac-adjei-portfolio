@@ -14,12 +14,6 @@ Ideas raised during sessions but not yet planned or implemented.
 
 ## Dashboard
 
-### CV editor
-
-Protected route at `app/dashboard/(protected)/cv-editor/page.tsx`. Parses cv.yml sections into editable fields. On save, writes back to cv.yml or a Supabase JSON column and triggers PDF regeneration.
-
----
-
 ### Application analytics
 
 A funnel chart below the Kanban board showing conversion rates: Applied -> OA -> Interview -> Offer. Would make the pipeline data visually scannable at a glance. Could use Recharts (already in the project) with a simple bar or funnel layout.
@@ -34,11 +28,11 @@ Category pages load all items with no pagination. Add `LIMIT 50 OFFSET n` on the
 
 ## Job scraper - further improvements
 
-- **Reed.co.uk** - large UK job board with internship filter
-- **Milkround** - UK graduate aggregator
-- **Prospects.ac.uk** - official UK graduate careers site
-- **Email alerts** - when scraper finds new listings matching Isaac's skills, send a Resend summary rather than waiting for the weekly digest
-- **Discord webhook** - post new scraper listings to a private Discord channel as they arrive, so alerts appear on phone without waiting for the weekly email
+- **Reed.co.uk** - added (requires `REED_API_KEY` secret in GitHub Actions - register free at reed.co.uk/developers/jobseeker)
+- **Milkround** - done
+- **Prospects.ac.uk** - done
+- **Email alerts** - weekly Sunday digest already handles this (Resend)
+- **Discord webhook** - done (set `DISCORD_WEBHOOK_URL` GitHub Actions secret)
 
 ---
 
@@ -58,6 +52,13 @@ Decision: skipped for now as the site already has GitHub, Spotify, MacBook, PS5 
 
 ### Beehiiv newsletter page - match site branding
 
-The Beehiiv-hosted newsletter page uses Beehiiv's default branding, not the site's design. Update the Beehiiv publication settings to match isaacadjei.me: dark background, Geist font, same colour palette and header style. Beehiiv supports custom CSS and logo upload in publication settings.
+**To do in the Beehiiv web UI (no code needed):**
+
+1. Go to app.beehiiv.com -> Settings -> Design
+2. Upload the site logo (dark version)
+3. Set background: `#09090b` (zinc-950)
+4. Set text: `#fafafa`, accent: `#3b82f6` (blue-500)
+5. Set font to Geist or Inter (Geist not available in Beehiiv - use Inter as closest match)
+6. Add custom CSS if needed: target `.bn-page` for background and `.bn-header` for logo area
 
 ---
