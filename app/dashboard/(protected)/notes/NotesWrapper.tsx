@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Lock } from "lucide-react"
 import PinGate from "@/components/dashboard/PinGate"
 import NotesClient from "./NotesClient"
+import NotesNowCard from "./NotesNowCard"
 
 type Note = {
   id: string
@@ -19,9 +20,10 @@ type Note = {
   updated_at: string
 }
 
-export default function NotesWrapper({ pinVerified, notes }: {
+export default function NotesWrapper({ pinVerified, notes, nowStatus }: {
   pinVerified: boolean
   notes: Note[]
+  nowStatus: Record<string, string>
 }) {
   const router = useRouter()
 
@@ -61,6 +63,7 @@ export default function NotesWrapper({ pinVerified, notes }: {
           Lock
         </button>
       </div>
+      <NotesNowCard initial={nowStatus} />
       <NotesClient notes={notes} />
     </div>
   )
