@@ -13,9 +13,9 @@ import time
 import requests
 from datetime import datetime, timezone
 
-UPSTASH_URL   = os.environ["UPSTASH_REDIS_REST_URL"]
+UPSTASH_URL = os.environ["UPSTASH_REDIS_REST_URL"]
 UPSTASH_TOKEN = os.environ["UPSTASH_REDIS_REST_TOKEN"]
-PSN_NPSSO     = os.environ["PSN_NPSSO"]
+PSN_NPSSO = os.environ["PSN_NPSSO"]
 
 POLL_INTERVAL = 60  # I poll every 60 seconds - PSN rate limits are generous
 
@@ -38,25 +38,35 @@ def upstash(command: list) -> None:
 def get_presence() -> dict:
     # I use psnawp to read my own PSN account presence.
     from psnawp_api import PSNAWP
-    psnawp = PSNAWP(npsso_token=PSN_NPSSO)
+    psnawp = PSNAWP(npsso_cookie=PSN_NPSSO)
     client = psnawp.me()
-    presence = client.get_presence()
+    # I look up my own account as a User object - presence is only on User,
+    # not Client.
+    user = psnawp.user(online_id=client.online_id)
+    presence = user.get_presence()
     basic = presence.get("basicPresence", {})
     availability = basic.get("availability", "unavailable")
     online = availability == "availableToPlay"
-    playing = availability == "availableToPlay"
+    busy = availability == "doNotDisturb"
 
     game_info = (basic.get("gameTitleInfoList") or [{}])[0]
-    game_name = game_info.get("titleName") or game_info.get("npTitleId") or None
-    # I treat any non-game app (Twitch, Netflix etc.) as an active session too
-    # by reading titleName from the first item in gameTitleInfoList.
+    game_name = (
+        game_info.get("titleName") or game_info.get("npTitleId") or None
+    )
 
-    status = "Playing" if (online and game_name) else ("Online" if online else "Offline")
+    if game_name:
+        status = "Playing"
+    elif busy:
+        status = "Busy"
+    elif online:
+        status = "Online"
+    else:
+        status = "Offline"
 
     return {
-        "online":   online,
-        "status":   status,
-        "game":     game_name,
+        "online": online,
+        "status": status,
+        "game": game_name,
         "platform": "PS5",
         "lastSeen": datetime.now(timezone.utc).isoformat(),
     }
@@ -74,7 +84,8 @@ def main():
             # I always update last-known so the frontend has a fallback
             # even when ps5:status has expired.
             upstash(["SET", "ps5:last-known", payload_json])
-            print(f"[{payload['lastSeen'][:19]}] {payload['status']} - {payload.get('game') or 'no game'}")
+            game = payload.get("game") or "no game"
+            print(f"[{payload['lastSeen'][:19]}] {payload['status']} - {game}")
         except Exception as e:
             print(f"Error: {e}")
         time.sleep(POLL_INTERVAL)
