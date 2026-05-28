@@ -6,6 +6,7 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ## 2026-05-28
 
+- feat/ps5-daemon: new scripts/ps5-daemon.py and com.zacess.ps5-daemon.plist, new app/api/ps5/route.ts, PS5 card added to LiveStatusCards.tsx 2x2 grid, GitHub moved to full-width strip between Spotify and device grid, PSN_NPSSO added to .env.example.
 - feat/inventory-detail-pages: added /dashboard/inventory/[category]/[id] detail page with full item info, back navigation, edit/delete actions and warranty colour coding. Added stopPropagation on edit/delete icons in InventoryCategoryClient.tsx. SQL migration for updated_at column and trigger in supabase-schema.sql already added in a prior PR this session.
 - PR fix/scraper-accumulate-and-filters: replaced reset_scraped_entries() with 30-day TTL stale delete, added last_scraped_at and sponsors_visa columns to supabase-schema.sql (SECTION A and B), fixed Bug A (Remote - US location strings including "palo alto", "gurugram"), Bug B (Internal title rejection in is_student_role), Bug C (seniority terms default to Full-time Job in infer_type), Bug D (Singapore/Australia moved to UK_EU_TERMS), fixed The Trackr placement/spring-week category bypass, changed GitHub Actions cron from every 30 minutes to midnight daily, added NotesCell expand/collapse component in ApplicationsClient.tsx.
 - PR fix/digest-rename: renamed "Nexus Dashboard" to "Dashboard" in email subject line, "My Dashboard" in the from field and removed "Nexus -" prefix from the footer tagline in lib/send-weekly-digest.ts.

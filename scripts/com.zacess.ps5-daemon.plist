@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.zacess.ps5-daemon</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/opt/python@3.14/Frameworks/Python.framework/Versions/3.14/bin/python3</string>
+    <string>/Users/YOUR_USERNAME/dev/github/repos/isaac-adjei-portfolio/scripts/ps5-daemon.py</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>UPSTASH_REDIS_REST_URL</key>
+    <string>YOUR_UPSTASH_URL_HERE</string>
+    <key>UPSTASH_REDIS_REST_TOKEN</key>
+    <string>YOUR_UPSTASH_TOKEN_HERE</string>
+    <key>PSN_NPSSO</key>
+    <string>YOUR_NPSSO_TOKEN_HERE</string>
+  </dict>
+
+  <key>StartInterval</key>
+  <integer>60</integer>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/ps5-daemon.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/ps5-daemon-err.log</string>
+</dict>
+</plist>

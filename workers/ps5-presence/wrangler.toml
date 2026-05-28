@@ -1,0 +1,6 @@
+name = "ps5-presence"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[triggers]
+crons = ["* * * * *"]
