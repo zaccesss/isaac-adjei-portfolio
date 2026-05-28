@@ -147,7 +147,7 @@ export const profileLinks: LinkItem[] = [
   {
     title: "Discord",
     description: "Add me on Discord",
-    url: "https://discord.com/users/zac.nii",
+    url: "https://discord.com/users/1087417301583790212",
     icon: "discord",
     category: "social",
   },
