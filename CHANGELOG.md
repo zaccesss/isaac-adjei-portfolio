@@ -9,6 +9,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Switched MacBook weather source from Open-Meteo to WeatherAPI.com for more accurate temperature and conditions; daemon now sends `is_day` flag so moon/sun emoji switches at real local sunrise rather than a fixed hour cutoff
+
+### Fixed
+
+- Moon emoji now uses WeatherAPI `is_day` field instead of a fixed 5am cutoff - correct across all seasons and locations
+
+---
+
+## [Unreleased - previous]
+
+### Added
+
 - Share button on project detail pages, blog posts, CV page and links page (Web Share API with clipboard fallback and 2-second "Copied!" confirmation)
 - Open Graph thumbnails on every public page via `/api/og` - dynamic per-page title and description on all static and dynamic routes
 - Live status cards (device and activity widget) now also shown on the /now page

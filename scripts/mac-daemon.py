@@ -32,9 +32,10 @@ except ImportError:
 
 UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL")
 UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+WEATHERAPI_KEY = os.environ.get("WEATHERAPI_KEY")
 # I poll every 30s - frequent enough for a live widget but light on the Upstash free tier
 INTERVAL = 30
-# I refresh weather every 10 cycles (~5 min) to stay within the Open-Meteo free limit
+# I refresh weather every 10 cycles (~5 min) - well within WeatherAPI free tier of 1M calls/month
 WEATHER_EVERY = 10
 
 if not UPSTASH_URL or not UPSTASH_TOKEN:
@@ -52,31 +53,59 @@ print(
     flush=True,
 )
 
-WMO_MAP = {
-    0: ("Clear", "☀️"),
-    1: ("Mostly Clear", "🌤️"),
-    2: ("Partly Cloudy", "⛅"),
-    3: ("Overcast", "☁️"),
-    45: ("Foggy", "🌫️"),
-    48: ("Foggy", "🌫️"),
-    51: ("Drizzle", "🌦️"),
-    53: ("Drizzle", "🌦️"),
-    55: ("Drizzle", "🌦️"),
-    61: ("Rainy", "🌧️"),
-    63: ("Rainy", "🌧️"),
-    65: ("Heavy Rain", "🌧️"),
-    71: ("Snowy", "❄️"),
-    73: ("Snowy", "❄️"),
-    75: ("Heavy Snow", "❄️"),
-    77: ("Snowy", "❄️"),
-    80: ("Showers", "🌦️"),
-    81: ("Showers", "🌦️"),
-    82: ("Heavy Showers", "🌧️"),
-    85: ("Snow Showers", "❄️"),
-    86: ("Snow Showers", "❄️"),
-    95: ("Thunderstorm", "⛈️"),
-    96: ("Thunderstorm", "⛈️"),
-    99: ("Thunderstorm", "⛈️"),
+# I map WeatherAPI condition codes to display strings and emojis.
+# is_day=0 handling for Clear (1000) is done in fetch_weather so the
+# daemon itself emits the correct moon emoji rather than relying on
+# the API route to correct it after the fact.
+WEATHERAPI_MAP = {
+    1000: ("Clear", "☀️"),
+    1003: ("Partly Cloudy", "🌤️"),
+    1006: ("Cloudy", "⛅"),
+    1009: ("Overcast", "☁️"),
+    1030: ("Mist", "🌫️"),
+    1063: ("Patchy Rain", "🌦️"),
+    1066: ("Patchy Snow", "❄️"),
+    1069: ("Sleet", "🌨️"),
+    1072: ("Freezing Drizzle", "🌦️"),
+    1087: ("Thunderstorm", "⛈️"),
+    1114: ("Blowing Snow", "❄️"),
+    1117: ("Blizzard", "❄️"),
+    1135: ("Fog", "🌫️"),
+    1147: ("Freezing Fog", "🌫️"),
+    1150: ("Light Drizzle", "🌦️"),
+    1153: ("Drizzle", "🌦️"),
+    1168: ("Freezing Drizzle", "🌦️"),
+    1171: ("Heavy Freezing Drizzle", "🌦️"),
+    1180: ("Light Rain", "🌦️"),
+    1183: ("Rain", "🌧️"),
+    1186: ("Moderate Rain", "🌧️"),
+    1189: ("Rain", "🌧️"),
+    1192: ("Heavy Rain", "🌧️"),
+    1195: ("Heavy Rain", "🌧️"),
+    1198: ("Freezing Rain", "🌧️"),
+    1201: ("Heavy Freezing Rain", "🌧️"),
+    1204: ("Sleet", "🌨️"),
+    1207: ("Heavy Sleet", "🌨️"),
+    1210: ("Light Snow", "❄️"),
+    1213: ("Snow", "❄️"),
+    1216: ("Moderate Snow", "❄️"),
+    1219: ("Snow", "❄️"),
+    1222: ("Heavy Snow", "❄️"),
+    1225: ("Heavy Snow", "❄️"),
+    1237: ("Ice Pellets", "❄️"),
+    1240: ("Light Showers", "🌦️"),
+    1243: ("Showers", "🌧️"),
+    1246: ("Heavy Showers", "🌧️"),
+    1249: ("Sleet Showers", "🌨️"),
+    1252: ("Heavy Sleet Showers", "🌨️"),
+    1255: ("Light Snow Showers", "❄️"),
+    1258: ("Snow Showers", "❄️"),
+    1261: ("Light Ice Pellets", "❄️"),
+    1264: ("Ice Pellets", "❄️"),
+    1273: ("Thundery Rain", "⛈️"),
+    1276: ("Heavy Thundery Rain", "⛈️"),
+    1279: ("Thundery Snow", "⛈️"),
+    1282: ("Heavy Thundery Snow", "⛈️"),
 }
 
 _location = {}
@@ -113,30 +142,44 @@ def fetch_location():
 def fetch_weather():
     global _weather
     if not _location:
-        # I skip the weather fetch until location is known so I have valid coordinates to pass
+        # I skip until location is known so I have valid coordinates
         print("[weather] skipping - no location yet", flush=True)
         return
+    if not WEATHERAPI_KEY:
+        print("[weather] WEATHERAPI_KEY not set - skipping", flush=True)
+        return
     try:
-        # I use Open-Meteo because it is free with no API key and covers global locations
+        # I use WeatherAPI.com - more accurate than Open-Meteo and includes
+        # is_day so the moon emoji switches at the real local sunrise, not a
+        # fixed hour cutoff
         r = requests.get(
-            "https://api.open-meteo.com/v1/forecast",
+            "https://api.weatherapi.com/v1/current.json",
             params={
-                "latitude": _location["lat"],
-                "longitude": _location["lon"],
-                "current": "temperature_2m,weathercode",
-                "temperature_unit": "celsius",
-                "forecast_days": 1,
+                "key": WEATHERAPI_KEY,
+                "q": f"{_location['lat']},{_location['lon']}",
+                "aqi": "no",
             },
             timeout=5,
         )
         if r.ok:
             current = r.json().get("current", {})
-            code = int(current.get("weathercode", -1))
-            temp = round(current.get("temperature_2m", 0))
-            condition, emoji = WMO_MAP.get(code, ("Cloudy", "⛅"))
-            _weather = {"condition": condition, "emoji": emoji, "temp_c": temp}
+            code = int(current.get("condition", {}).get("code", 1000))
+            temp = round(current.get("temp_c", 0))
+            is_day = int(current.get("is_day", 1))
+            condition, emoji = WEATHERAPI_MAP.get(code, ("Cloudy", "⛅"))
+            # I replace the clear/sunny emoji with moon when is_day=0 so the
+            # widget matches real local night without a fixed hour cutoff
+            if not is_day and code == 1000:
+                emoji = "🌙"
+            _weather = {
+                "condition": condition,
+                "emoji": emoji,
+                "temp_c": temp,
+                "is_day": is_day,
+            }
             print(
-                f"[weather] {condition} {emoji} {temp}°C (code={code})",
+                f"[weather] {condition} {emoji} {temp}°C"
+                f" (code={code}, is_day={is_day})",
                 flush=True,
             )
         else:
@@ -161,6 +204,7 @@ def write_status():
         "weather_condition": _weather.get("condition") or None,
         "weather_emoji": _weather.get("emoji") or None,
         "temp_c": _weather.get("temp_c") if _weather else None,
+        "is_day": _weather.get("is_day", 1),
     }
 
     try:
