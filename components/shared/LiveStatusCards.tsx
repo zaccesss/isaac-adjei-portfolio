@@ -618,7 +618,16 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
               <SiDiscord className="h-3.5 w-3.5 text-[#5865f2] shrink-0" />
               <span className="text-xs font-semibold">zac</span>
               <div className={cn("h-2 w-2 rounded-full shrink-0 ml-0.5", offline ? "bg-muted-foreground/40" : STATUS_COLOR[lanyard!.discord_status])} />
-              <span className="text-xs text-muted-foreground capitalize ml-auto">{statusLabel}</span>
+              <span className="text-xs text-muted-foreground capitalize">{statusLabel}</span>
+              <a
+                href="https://discord.com/users/1087417301583790212"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Discord profile"
+                className="ml-auto text-foreground/60 hover:text-foreground transition-colors shrink-0"
+              >
+                <ExternalLink className="h-3 w-3" />
+              </a>
             </div>
             {!offline && richActivity && (
               <div className="space-y-0.5">
