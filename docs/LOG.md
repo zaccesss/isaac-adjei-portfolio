@@ -4,6 +4,10 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-28 (session 2)
+
+- fix/weather-accuracy-open-meteo-gps: switched mac-daemon.py from WeatherAPI to Open-Meteo (free, no API key, uses ECMWF for better UK accuracy); added CoreLocationCLI GPS fallback in fetch_location() for street-level precision over IP-based coordinates; fixed night emoji logic so only clear/mainly-clear nights show moon - cloudy conditions keep their cloud emoji at night; removed WEATHERAPI_KEY from .env.example; updated route.ts dayEmojis to no longer replace cloud emoji with moon.
+
 ## 2026-05-28
 
 - fix/scraper-category-and-adzuna (7b4498b): improved detect_category in job-scraper.py with word-boundary regex for "AI" (`\bai\b`), additional quant companies (Virtu, SIG, DRW, Flow Traders, Akuna), full Embedded category (firmware/fpga/vhdl/rtos/bare metal/hardware engineer/IoT/microcontroller); capped Adzuna results_per_page from 50 to 15 per search; added `_resolve_url()` to follow Adzuna redirect_url tracking links to the real company ATS page; SUGGESTIONS.md replaced with newsletter content tasks only (Issue 001-003 on Beehiiv).

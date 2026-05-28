@@ -55,7 +55,7 @@ export async function GET() {
       ? source.is_day === 0
       : new Date(new Date().toLocaleString("en-US", { timeZone: tz })).getHours() >= 19
         || new Date(new Date().toLocaleString("en-US", { timeZone: tz })).getHours() < 5
-    const dayEmojis = new Set(["☀️", "🌤️", "⛅"])
+    const dayEmojis = new Set(["☀️", "🌤️"])
     let weatherEmoji = source.weather_emoji ?? null
     if (isNight && weatherEmoji && dayEmojis.has(weatherEmoji)) {
       weatherEmoji = "🌙"
