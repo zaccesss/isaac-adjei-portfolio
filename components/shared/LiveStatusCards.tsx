@@ -606,7 +606,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
       {/* Discord / Lanyard card */}
       {(alwaysShowDiscord || (lanyard && lanyard.discord_status !== "offline")) && (() => {
         const offline = !lanyard || lanyard.discord_status === "offline"
-        const richActivity = !offline ? lanyard!.activities.find((a) => a.type !== 4) : null
+        const richActivities = !offline ? lanyard!.activities.filter((a) => a.type !== 4) : []
         const customStatus = !offline ? lanyard!.activities.find((a) => a.type === 4) : null
         const statusLabel = offline
           ? "offline"
@@ -629,24 +629,32 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
-            {!offline && richActivity && (
-              <div className="space-y-0.5">
-                <p className="text-xs font-medium truncate">{richActivity.name}</p>
-                {richActivity.details && (
-                  <p className="text-xs text-muted-foreground truncate">{richActivity.details}</p>
-                )}
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
-                  {richActivity.state && <span className="truncate">{richActivity.state}</span>}
-                  {richActivity.timestamps?.start && (
-                    <>
-                      {richActivity.state && <span>·</span>}
-                      <span className="shrink-0">{elapsedSince(richActivity.timestamps.start)}</span>
-                    </>
-                  )}
-                </div>
+            {!offline && richActivities.length > 0 && (
+              <div className="space-y-2">
+                {richActivities.map((activity, i) => (
+                  <div key={i} className={cn("space-y-0.5", i > 0 && "pt-2 border-t border-border/40")}>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/40 shrink-0">
+                        {activity.type === 2 ? "Listening" : activity.type === 3 ? "Watching" : "Playing"}
+                      </span>
+                      {activity.timestamps?.start && (
+                        <span className="text-[10px] text-muted-foreground/40 ml-auto shrink-0">
+                          {elapsedSince(activity.timestamps.start)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs font-medium truncate">{activity.name}</p>
+                    {activity.details && (
+                      <p className="text-xs text-muted-foreground truncate">{activity.details}</p>
+                    )}
+                    {activity.state && (
+                      <p className="text-xs text-muted-foreground/60 truncate">{activity.state}</p>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
-            {!offline && !richActivity && customStatus?.state && (
+            {!offline && richActivities.length === 0 && customStatus?.state && (
               <p className="text-xs text-muted-foreground truncate">{customStatus.state}</p>
             )}
             {offline && alwaysShowDiscord && (
