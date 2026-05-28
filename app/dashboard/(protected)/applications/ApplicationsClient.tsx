@@ -846,7 +846,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
     }
 
     if (filterKeyword !== "All") {
-      const cat = (a.category || detectCategory(a.company, a.role) || "").toLowerCase()
+      const cat = ((a.category && a.category !== "Software Engineering" ? a.category : null) || detectCategory(a.company, a.role) || "").toLowerCase()
       const kwMap: Record<string, string> = {
         "Software":      "software",
         "Data":          "data",
@@ -884,7 +884,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const grouped: Record<string, Application[]> = {}
   for (const cat of CATEGORIES) grouped[cat] = []
   for (const app of filtered) {
-    const cat = (app.category as Category) || detectCategory(app.company, app.role)
+    const cat = (app.category && app.category !== "Software Engineering" ? app.category as Category : null) || detectCategory(app.company, app.role)
     if (cat in grouped) grouped[cat].push(app)
     else grouped["Miscellaneous"].push(app)
   }
