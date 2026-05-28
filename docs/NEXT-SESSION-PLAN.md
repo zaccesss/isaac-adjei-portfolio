@@ -1,413 +1,305 @@
-# Next Session Plan - Scraper Fixes, PS5 Daemon, Inventory Detail Pages
+# Next Session Plan
 
-Delete this file once all items below are implemented.
-
----
-
-## Background concepts
-
-### What is a daemon?
-
-A **daemon** (pronounced "dee-mon", from Unix "Disk And Execution MONitor") is a background process with no UI that runs continuously. On the MacBook, `mac-daemon.py` is loaded by launchd (macOS's service manager) and wakes every 30 seconds, reads battery and weather, writes to Upstash Redis, then sleeps again. No window, no icon - always running silently. `gpc-daemon.py` and `lenovo-daemon.py` do the same on the other machines.
-
-### What is "Nexus Dashboard"?
-
-"Nexus" (Latin: connection/link) was a placeholder name used when the dashboard email digest was first built. It appears in `lib/send-weekly-digest.ts` in three places and has never been changed. Fix is trivial - see Item 1 below.
+Delete this file once all items below are marked DONE.
 
 ---
 
-## Item 1 - Rename "Nexus Dashboard" in email digest (5 min, do first)
+## Original 5 items - ALL DONE
 
-**File:** `lib/send-weekly-digest.ts`
-
-Three occurrences to change:
-
-- Line 80: `"Isaac Adjei - Nexus Dashboard"` -> `"Isaac Adjei - Dashboard"`
-- Line 203: `"Nexus - Isaac Adjei's private dashboard"` -> `"Isaac Adjei's private dashboard"`
-- Line 283: `from: "Nexus Dashboard <contact@isaacadjei.me>"` -> `from: "My Dashboard <contact@isaacadjei.me>"`
-
-**Branch:** `fix/digest-rename` - tiny PR, merge first before anything else.
+- [x] Item 1 - `fix/digest-rename` - renamed Nexus Dashboard in digest - PR #208 merged
+- [x] Item 2 - `fix/scraper-accumulate-and-filters` - scraper bugs, 30-day TTL, filters - PR #209 merged
+- [x] Item 3 - `feat/inventory-detail-pages` - inventory detail pages, updated_at trigger - PR #210 merged
+- [x] Item 4 - `feat/ps5-daemon` / `fix/livestatuscards-icons-and-github` - PS5 card, Cloudflare Worker - PR #211 merged
+- [x] Item 5 - `feat/notes-live-indicator-and-now-cards` - /now LiveStatusCards, pulsing indicator, PS5 card fixes - PR #214 merged
 
 ---
 
-## Item 2 - Scraper fixes (most urgent - broken right now)
+## Remaining work - TODO next session
 
-### What's wrong (from screenshots)
+### A - LiveStatusCards UI fixes (branch: `fix/livestatuscards-github-link-and-icon-colours`)
 
-The internships tab is showing roles that should never appear:
+**File:** `components/shared/LiveStatusCards.tsx`
 
-- **MongoDB "Staff Product Manager - Internal AI"** (Palo Alto) - senior PM role at a US office, not an intern
-- **MongoDB "Lead Engineer, Internal Engineering"** (Gurugram, India) - full-time senior engineer in India
-- **MongoDB "Associate Recruiter (Contract)"** (Gurugram) - recruiter role, non-tech, India
-- **Twilio "Technical Video Content Intern"** (Remote - US) - US-only, should be location-filtered
-- **Twilio "Go-to-market Analyst Intern"** (Remote - US) - US-only
-- **Twilio "Developer Advocacy Intern"** (Remote - US) - US-only
-- **Datadog "Software Engineer - Early Career"** (Lisbon, Portugal) - full-time entry-level, not UK
-- **Palantir "Forward Deployed Software Engineer, Internship"** (Paris, France) - non-UK
-- **Adyen "Internal Auditor - Security"** (Amsterdam) - non-tech, non-UK
+#### A1 - Device icon colours
 
-### Root causes
+The device type icons (Laptop for MacBook/Lenovo, Monitor for GPC, SiPlaystation for PS5) are currently blue when online. There is too much blue in the cards alongside the WiFi icon and "online now" text. Change all four device icons so they use foreground when online and muted when offline.
 
-**Bug A - "Remote - US" not caught**
-`US_LOCATIONS` set probably does not include the exact string `"remote - us"` (lowercase normalised). Fix: add `"remote - us"`, `"remote, us"`, `"us remote"` to `US_LOCATIONS` in `job-scraper.py`. Also reject any location string that ends with `", us"` after normalisation.
-
-**Bug B - "Internal [team]" roles slipping through**
-The regex `\b(internal|international|internally)\b` prevents "intern" false-positives but does not reject roles whose TITLE starts with "Internal" as a team descriptor (e.g. "Internal Engineering", "Internal AI"). These are department-facing roles, not student positions. Add a title-level rejection: if the job title begins with the word "Internal" (case-insensitive, word boundary), mark it as `NOT_A_ROLE` and skip entirely. This is separate from the intern-word exclusion.
-
-**Bug C - Default type "Internship" catches senior roles**
-`infer_type()` defaults to `"Internship"` when no student-term matches. Senior roles like "Staff Product Manager" and "Lead Engineer" pass no student-term check and so default to Internship type. Fix: add a seniority-term check BEFORE the default - if the title contains `staff`, `principal`, `senior`, `lead`, `director`, `head of`, `manager`, `associate` (non-internship sense), `vp`, `president`, default to `"Full-time Job"` instead of `"Internship"`. Also ensure the `is_student_role()` guard runs before inserting to the internship flow.
-
-**Bug D - Location filtering too loose**
-Palantir (Paris), Datadog (Lisbon), Adyen (Amsterdam) are non-UK EU. The corrected location policy is:
-
-- Prioritise UK roles
-- Accept: UK, Remote (global), Remote EU, Remote US, Remote Canada, EU cities (France, Germany, Netherlands, Ireland, Sweden, Switzerland), US remote, Canada remote, Singapore, Australia
-- Reject: India, Southeast Asia (Vietnam, Philippines, Bangladesh, Pakistan) and other non-major-tech regions
-- Remote roles labelled "Remote - US", "Remote - Canada", "Remote - EU" are fine
-- Non-remote EU city roles are acceptable for internships
-
-### Fix 2a - Accumulate instead of reset (30-day TTL)
-
-**Current behaviour:** `reset_scraped_entries()` deletes ALL `status='scraped'` rows before each run. Every run wipes the board and repopulates. If the run fails midway, data is lost.
-
-**New behaviour:**
-
-1. Add `last_scraped_at TIMESTAMPTZ` column to `applications` table in Supabase (no default - nullable)
-2. SQL migration: `ALTER TABLE applications ADD COLUMN last_scraped_at timestamptz;`
-3. Backfill: `UPDATE applications SET last_scraped_at = created_at WHERE status = 'scraped';` (run IMMEDIATELY after migration, before the next scraper run)
-4. In scraper: remove `reset_scraped_entries()` call entirely
-5. On each upsert, also set `last_scraped_at = NOW()` so live jobs stay fresh
-6. At the START of each run (before scraping), delete only truly stale entries:
-
-```python
-supabase.table("applications").delete() \
-  .eq("status", "scraped") \
-  .lt("last_scraped_at", (datetime.utcnow() - timedelta(days=30)).isoformat()) \
-  .execute()
-```
-
-7. Manual entries (any status other than `scraped`) are never touched
-
-**Scraper frequency:** Run once per day at midnight (00:00 UTC via GitHub Actions cron). If runtime is a concern, run every 3 days - quality over frequency.
-
-### Fix 2b - Fix Industrial Placements and Spring Weeks (keep the tabs)
-
-The Industrial Placements and Spring Weeks tabs stay. The problem is the scraper currently produces 0 results for both types - it is not detecting or classifying them. Fix the scraper to recognise:
-
-- Industrial placement keywords: "placement year", "industrial placement", "12-month placement", "sandwich year", "year in industry"
-- Spring week keywords: "spring week", "spring insight", "spring programme", "insight week"
-
-These should be scraped from all sources: Greenhouse API, Lever API, Ashby, Gradcracker, RateMyPlacement, TargetJobs, Bright Network, The-Trackr and direct priority company job pages.
-
-### Fix 2c - Role type coverage
-
-Cover every tech discipline relevant to a CS/EEE student. The scraper currently misses hardware, quant, DevOps and other non-software roles. Add keyword detection for:
-
-- Software engineering (already present)
-- Hardware / embedded / firmware / FPGA / PCB / electronics / EE
-- AI / ML / data science / data engineering / data analyst
-- Cloud / DevOps / platform engineering / infrastructure / SRE
-- Quant / quantitative research / quant developer
-- Cybersecurity / security engineering
-- Any other tech role relevant to the CV and course
-
-Keywords for each should be broad enough to catch variants (e.g. "machine learning" not just "ML").
-
-### Fix 2d - Full field extraction for all sources
-
-For ALL scraped sources (not just Greenhouse), extract:
-
-- `cv_required` (bool) - scan application questions and job text for "cv", "resume"
-- `cover_letter_required` (bool) - scan for "cover letter", "covering letter"
-- `sponsors_visa` (bool or "Unknown") - scan all job text and application questions for "visa", "right to work", "sponsorship". If not determinable, set `"Unknown"` - not null and not false
-- `opening_date` - parse from listing if present
-- `closing_date` / `deadline` - parse from listing if present
-- `notes` - populate with a 1-2 sentence summary from the job description (salary, perks, key details). If nothing available, leave blank.
-
-For Greenhouse companies, the full application form can be fetched:
+Changes needed (search for each and update):
 
 ```
-GET https://boards-api.greenhouse.io/v1/boards/{slug}/jobs/{id}?questions=true
+MacBook Laptop icon:   text-blue-500 -> text-foreground   (keep text-muted-foreground/40 for offline)
+Lenovo Laptop icon:    text-blue-500 -> text-foreground   (keep text-muted-foreground/40 for offline)
+GPC Monitor icon:      text-blue-500 -> text-foreground   (keep text-muted-foreground/40 for offline)
+PS5 SiPlaystation icon: text-blue-500 -> text-foreground  (keep text-muted-foreground/40 for offline)
 ```
 
-The `questions` array contains text for each application field. Scan it for the keywords above. Only do this for the top 30 priority companies to keep scraper runtime under control.
+**A2 - GitHub profile link**
 
-All fields should be populated wherever data exists. Use `"Unknown"` over null for anything that should be determinable. If a URL returns 404 or 4xx, mark the entry as stale or remove it on the next run rather than keeping a dead link.
+Add a clickable ExternalLink icon after the relative time in the GitHub strip, linking to `https://github.com/zaccesss`. The user wants: `pushed repo-name  4m ago | [link icon]`.
 
-### Fix 2e - Table row expansion
+1. Add `ExternalLink` to the lucide-react import at the top of the file.
+2. In the GitHub strip JSX, find the `<span className="text-xs text-muted-foreground/50 shrink-0 ml-auto">{github.relativeTime}</span>` line.
+3. Wrap that span and a new link in a `div` with `ml-auto flex items-center gap-1.5 shrink-0`:
 
-Applications table rows should expand for long Notes and description text. Add an expand/collapse toggle on any row where content overflows. No truncation that breaks layout.
+```tsx
+<div className="flex items-center gap-1.5 shrink-0 ml-auto">
+  <span className="text-xs text-muted-foreground/50">{github.relativeTime}</span>
+  <span className="text-foreground/20 dark:text-foreground/15 select-none">|</span>
+  <a
+    href="https://github.com/zaccesss"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-muted-foreground/40 hover:text-foreground transition-colors"
+  >
+    <ExternalLink className="h-3 w-3" />
+  </a>
+</div>
+```
 
-### SQL schema convention
+4. Also add the link to the no-recent-activity branch so it is always accessible:
 
-All new columns (`last_scraped_at`, `sponsors_visa`) must be added to `supabase-schema.sql`:
+```tsx
+<span className="text-xs text-muted-foreground/40">no recent activity</span>
+<a
+  href="https://github.com/zaccesss"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="ml-auto text-muted-foreground/40 hover:text-foreground transition-colors shrink-0"
+>
+  <ExternalLink className="h-3 w-3" />
+</a>
+```
 
-- SECTION A: add to the `applications` CREATE TABLE statement so fresh installs get them
-- SECTION B: add ALTER TABLE migration scripts so existing databases can be updated safely
-
-First-person comments throughout. No Oxford commas. No em/en dashes. UK English.
-
-### Branch and PR
-
-`fix/scraper-accumulate-and-filters` - one PR covering all scraper fixes. Run the Supabase migration BEFORE the next scheduled scraper run. Backfill `last_scraped_at` immediately after migration.
+**After editing:** confirm locally on `/notes` and `/now` before committing. Then commit, push and `gh pr create` + `gh pr merge --squash --delete-branch --auto`.
 
 ---
 
-## Item 3 - PS5 Status Card
+### B - Stale pages and documentation (branch: `chore/docs-stale-pages-and-changelog`)
 
-### What "NPSSO token" means and will it expire?
+**B1 - `app/colophon/page.tsx`**
 
-The NPSSO is a session cookie from Sony's authentication servers (`ca.account.sony.com`). It expires after **60 days of inactivity**. However - as long as the daemon is running and making PSN API calls every 60 seconds, the inactivity clock keeps resetting. In practice, if the MacBook is running continuously, the NPSSO **never expires**. You only need to manually renew it if the daemon is stopped for more than 60 days (e.g. laptop off for 2 months). Renewal takes 30 seconds: log into playstation.com, DevTools -> Application -> Cookies -> copy the `npsso` value, update `.env.local` and the launchd plist.
+In the `"The live status system"` section, add two new items after the Spotify item:
 
-### Architecture
-
-**New file:** `scripts/ps5-daemon.py`
-
-- Runs on MacBook via launchd alongside `mac-daemon.py` but strictly isolated - its own plist, its own PID
-- Uses `psnawp-api==2.1.0` Python library
-- Polls every 60 seconds (PSN rate limits are generous - no need to go lower)
-- Redis keys: `ps5:status` (TTL 120s) and `ps5:last-known` (no TTL)
-
-**Payload written to Redis:**
-
-```json
+```ts
 {
-  "online": true,
-  "status": "playing",
-  "game": "EA Sports FC 25",
-  "platform": "PS5",
-  "lastSeen": "2026-05-28T01:30:00Z"
-}
+  name: "PS5 daemon",
+  detail:
+    "A Cloudflare Worker (workers/ps5-presence) polls the PSN API every 60 seconds using the psnawp library. It writes my online status, current game and last-seen timestamp to Upstash Redis. The NPSSO session token is stored in Cloudflare secrets - it never touches the codebase or the client.",
+},
+{
+  name: "GitHub activity",
+  detail:
+    "The GitHub strip in the live status widget uses the GitHub REST API to show the last repository I pushed to and how long ago. Fetched server-side and cached briefly in Redis.",
+},
 ```
 
-**New env var:** `PSN_NPSSO` - 64-character hex string from the browser cookie.
+**B2 - `app/uses/page.tsx`**
 
-- Add a blank entry with comment to `.env.local.example`
-- Add to Vercel project settings (Production + Preview)
-- Never commit the real value anywhere
+Hardware section - add after the ESP32/STM32 item:
 
-**New API route:** `app/api/ps5/route.ts` - mirrors `app/api/gpc/route.ts` exactly, reads `ps5:status` with fallback to `ps5:last-known`
-
-**New launchd plist:** `scripts/com.zacess.ps5-daemon.plist` - mirrors mac-daemon plist, `KeepAlive = true`, StartInterval 60
-
-**Core daemon code:**
-
-```python
-from psnawp_api import PSNAWP
-psnawp = PSNAWP(npsso_token=os.environ["PSN_NPSSO"])
-client = psnawp.me()
-presence = client.get_presence()
-# I read the game title from gameTitleInfoList[0]["titleName"] when present
-# availability values: "availableToPlay" / "doNotDisturb" / "unavailable"
+```ts
+{
+  name: "PlayStation 5 (ZACCESS-PS5)",
+  detail:
+    "My PS5. Online status, current game and last-seen time are polled every 60 seconds by a Cloudflare Worker using the PSN presence API, and displayed live in the status widget on /notes and /now.",
+},
 ```
 
-**Account scope:** `psnawp.me()` reads my PSN account presence only - not the physical PS5 device. If someone else plays on their own PSN account on the same console, the card shows me as offline. This is the correct behaviour.
+Services section - add after the GitHub API item:
 
-**Rest mode:** When PS5 enters rest mode, PSN reports `availability: "unavailable"` and stops updating presence. The card shows "Offline" with the last-seen time from before rest mode. Last seen and status match in this state.
+```ts
+{
+  name: "Cloudflare Workers",
+  icon: `${SKI}=cloudflare`,
+  href: "https://workers.cloudflare.com",
+  detail:
+    "Serverless edge workers. One worker (workers/ps5-presence) polls the PSN API every minute and writes presence data to Upstash Redis, replacing the need for a daemon running on a local machine.",
+},
+```
 
-### PS5 device name
+**B3 - `DOCUMENTATION.md`**
 
-PSN's presence API returns `platform` ("PS5") only - it does not return the console's custom name. You CAN set a custom name on the PS5 at Settings > System > Console Name but it does not appear in the presence API. The display name is hardcoded as `ZACCESS-PS5` in LiveStatusCards.tsx.
+Find the env vars table and add after the Spotify entries:
 
-### PS5 daemon setup walkthrough
+```
+| `PSN_NPSSO` | Optional | 64-char NPSSO session token from Sony auth - used by the Cloudflare Worker to poll PSN presence; renew from playstation.com cookies if the PS5 card goes stale |
+```
 
-Follow these steps in order when setting up the daemon on the MacBook:
+Find the file structure tree and add `workers/ps5-presence/` after the `scripts/` block with a comment: `# Cloudflare Worker - polls PSN every 60s`.
 
-**Step 1** - Install the Python library:
+**B4 - `CHANGELOG.md` (repo)**
+
+The Unreleased section already has some entries. Add the missing ones and correct the device icon entry (icons are now foreground not blue). The Unreleased section should read:
+
+```markdown
+## [Unreleased]
+
+### Added
+
+- PS5 live card in the status widget - online/offline, current game and last-seen time via Cloudflare Worker polling PSN every 60s
+- Cloudflare Worker at workers/ps5-presence replaces the Mac-based PS5 daemon for presence polling
+- Inventory item detail pages at /dashboard/inventory/[category]/[id] with full field layout, warranty colour coding and edit/delete actions
+- Live status cards widget added to /now page
+- Pulsing blue "Updated live" indicator on the /now page header
+- Clickable GitHub profile link in the live status GitHub strip after the last-pushed timestamp
+- Share button on /cv and /links pages next to name
+- Open Graph thumbnails on every public page via /api/og
+
+### Fixed
+
+- PS5 card device name no longer shown in blue - names are now always default foreground colour across all device cards
+- Device type icons (Laptop, Monitor, PlayStation) now use foreground colour when online and muted when offline, reducing visual noise alongside the blue WiFi indicator
+- PS5 card no longer shows a redundant "Online" or "Offline" status line - status text is only shown for informative states such as "Busy"
+
+### Changed
+
+- Em and en dashes removed throughout; replaced with hyphens
+- Oxford commas removed throughout
+```
+
+**B5 - `app/changelog/page.tsx` (website)**
+
+The website changelog only shows public features - no dashboard or private items. Add a new `v2.4.0` entry (dated 2026-05-27) and update the Unreleased entry.
+
+Unreleased entry (update the existing one to this):
+
+```ts
+{
+  version: "Unreleased",
+  date: "",
+  added: [
+    "PS5 live card in the status widget - online/offline, current game and last-seen time, powered by a Cloudflare Worker polling PSN every 60 seconds",
+    "Live status cards widget added to /now page",
+    "Pulsing blue 'Updated live' indicator on the /now page header",
+    "Clickable GitHub profile link in the live status GitHub strip after the last-pushed timestamp",
+  ],
+  fixed: [
+    "PS5 card device name no longer shown in blue - device names are now always default foreground colour",
+    "Device type icons (Laptop, Monitor, PlayStation) now use foreground when online and muted when offline",
+    "PS5 card removed redundant 'Online'/'Offline' status line - status text only appears for informative states such as 'Busy'",
+  ],
+},
+```
+
+v2.4.0 entry (insert after Unreleased, before v2.3.0):
+
+```ts
+{
+  version: "v2.4.0",
+  date: "2026-05-27",
+  added: [
+    "Share button on project detail pages, blog posts, /cv and /links - Web Share API with clipboard fallback and 2-second 'Copied!' confirmation",
+    "Open Graph thumbnails on every public page via /api/og - dynamic per-page title and description",
+  ],
+  changed: [
+    "Em and en dashes removed throughout the site; replaced with hyphens",
+    "Oxford commas removed throughout",
+  ],
+},
+```
+
+**B6 - `README.md`**
+
+In the env vars block, add `PSN_NPSSO=` after the Spotify entries:
+
+```
+PSN_NPSSO=
+```
+
+**B7 - `docs/verification.md`**
+
+Add to the Dashboard - features section:
+
+```
+- [ ] `/dashboard/inventory/[category]/[id]` - Detail page loads with all fields; back navigation works; edit and delete buttons work
+```
+
+Add to the Dashboard - widgets section or a new "Live status widget" section:
+
+```
+- [ ] /notes - LiveStatusCards renders; PS5 card shows correct status; GitHub strip shows last push with clickable profile link
+- [ ] /now - LiveStatusCards renders identically to /notes; pulsing blue dot visible in header
+- [ ] PS5 card - when PS5 is online: device name in default foreground (not blue), icon in foreground, no redundant "Online" line below wifi status
+```
+
+**B8 - `docs/SUGGESTIONS.md`**
+
+Add to the bottom:
+
+```markdown
+### Inventory pagination
+
+Category pages have no pagination. Add `LIMIT 50 OFFSET n` on the Supabase query and pagination controls before the list grows past 50 items.
+
+---
+
+### Weather accuracy - Apple WeatherKit
+
+The daemon weather can be 2-3 degrees off the macOS Weather app because they use different data sources. Apple WeatherKit (requires Apple Developer account) is the same API that powers the Weather app - it would give GPS-accurate temperature and matching weather icons. Investigate as a replacement for the current OpenWeatherMap/weather source on the MacBook daemon. Also: the moon icon should only show between 7pm and 5am (sun rises early in summer - 6am was sometimes showing moon during daylight). Change the threshold in `scripts/mac-daemon.py` from `hour >= 19 or hour < 6` to `hour >= 19 or hour < 5`.
+
+---
+
+### PS5 NPSSO renewal reminder
+
+The NPSSO session token expires after 60 days of inactivity. If the Cloudflare Worker stops writing to Redis, the PS5 card shows stale data silently. Add a Vercel cron that checks the age of the `ps5:status` key in Redis once a week and sends a Resend email if the key is missing or older than 50 days, prompting a manual NPSSO renewal.
+```
+
+**B9 - `docs/LOG.md`**
+
+Add to the top under `## 2026-05-28`:
+
+```
+- chore/docs-stale-pages-and-changelog: updated colophon (PS5 daemon, GitHub activity entries), uses (PS5 hardware, Cloudflare Workers service), DOCUMENTATION.md (PSN_NPSSO env var, workers/ file structure), CHANGELOG.md (full unreleased section), website changelog page (Unreleased + v2.4.0 entries), README.md (PSN_NPSSO env var), verification.md (inventory detail page + live widget checks), SUGGESTIONS.md (3 new items: inventory pagination, Apple WeatherKit/moon hours, NPSSO renewal reminder). NEXT-SESSION-PLAN.md updated with done/not done status.
+- fix/livestatuscards-github-link-and-icon-colours: device type icons changed from blue-when-online to foreground-when-online (less visual noise), ExternalLink icon added to GitHub strip after relative time linking to github.com/zaccesss profile.
+```
+
+**After all edits:** confirm locally, then commit, push and create PRs as usual. No co-author lines.
+
+---
+
+### C - Security audit and verification (do after A and B are merged)
+
+Run through `docs/verification.md` manually. Pay attention to:
+
+- All `/api/dashboard/*` routes return 401 without a valid session
+- No secrets visible in client-side bundle (Network tab, confirm no env values in JS files)
+- CSP headers present on public pages
+- robots.txt still disallows /dashboard and /api/dashboard
+- PS5 card renders correctly on /notes and /now in both light and dark mode
+- GitHub strip link opens github.com/zaccesss in a new tab
+
+Also run:
 
 ```bash
-pip3 install psnawp-api==2.1.0
+grep -r "npsso\|upstash_redis_rest\|spotify_client_secret\|resend_api" --include="*.ts" --include="*.tsx" --include="*.py" -i . | grep -v ".env" | grep -v "node_modules"
 ```
 
-**Step 2** - Get your NPSSO token:
-
-- Open browser, go to playstation.com and sign in
-- Open DevTools (Cmd+Option+I) -> Application tab -> Cookies -> ca.account.sony.com
-- Find the cookie named `npsso` - copy its value (64-character hex string)
-
-**Step 3** - Add to `.env.local`:
-
-```
-PSN_NPSSO=your_64_char_token_here
-```
-
-**Step 4** - Add to Vercel (project -> Settings -> Environment Variables):
-Key: `PSN_NPSSO`, Value: the 64-char token. Apply to Production and Preview.
-
-**Step 5** - Add to the launchd plist EnvironmentVariables block (same section as UPSTASH keys in mac-daemon plist):
-
-```xml
-<key>PSN_NPSSO</key>
-<string>your_token_here</string>
-```
-
-**Step 6** - The code and plist files are created as part of the PR. Once merged, load the plist:
-
-```bash
-cp scripts/com.zacess.ps5-daemon.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.zacess.ps5-daemon.plist
-```
-
-**Step 7** - Verify it started and mac-daemon is still running:
-
-```bash
-launchctl list | grep zacess
-tail -f /tmp/ps5-daemon.log
-```
-
-**Note on credentials:** The user will provide NPSSO token and Upstash details directly in chat when we reach this step. Insert them directly into terminal commands. Do not hardcode or commit.
-
-### LiveStatusCards.tsx layout change
-
-**New full layout (top to bottom):**
-
-1. Weather + Time (full width)
-2. Spotify (full width)
-3. GitHub strip (full width, one line): `[GitHub icon]  |  [GitBranch icon]  pushed  **repo-name**  time`
-4. 2x2 device grid: MacBook | Lenovo | GPC | PS5
-
-The GitHub strip replaces the GitHub card in the 2x2 grid. It is full-width and one line tall - same width as weather and Spotify cards. GitHub icon first, then a divider, then GitBranch icon, then "pushed", then repo name (bold), then relative time (muted).
-
-**PS5 card (4 lines, accent colour blue matching other device cards):**
-
-1. SiPlaystation5 icon + "ZACCESS-PS5"
-2. Last seen relative time - always shown
-3. Status: "Playing", "Online" or "Offline"
-4. Game or app name - only shown when a game or media app (Twitch, Netflix, YouTube, Spotify etc.) is active. Disappears when nothing is open.
-
-**Branch:** `feat/ps5-daemon`
+Confirm zero results (no secrets hardcoded).
 
 ---
 
-## Item 4 - Inventory Item Detail Pages
+### D - Comments and code quality audit
 
-### Problem
+Scan all files changed in this session and confirm:
 
-`/dashboard/inventory/tech-and-devices` shows all items as cramped 2-column cards. Fields like purchase date, notes and full description are clipped. There is no way to see a single item's full details without opening the edit dialog.
+- All code comments are first person ("I check...", "I poll...", "I use...")
+- No em dashes (`-`) or en dashes used in comments or prose
+- No Oxford commas in comments or page content
+- No multi-line comment blocks - one short line maximum
+- No comments describing WHAT the code does (names already do that) - only WHY when non-obvious
 
-### Solution
-
-Add route: `app/dashboard/(protected)/inventory/[category]/[id]/page.tsx`
-
-**New files:**
-
-- `app/dashboard/(protected)/inventory/[category]/[id]/page.tsx` - server component, fetches single item by id, passes to client
-- `app/dashboard/(protected)/inventory/[category]/[id]/InventoryItemClient.tsx` - renders full detail layout
-
-**Modified files:**
-
-- `app/dashboard/(protected)/inventory/[category]/InventoryCategoryClient.tsx` - wrap each ItemCard in a `<Link href={.../{item.id}}>`. Stop edit/delete icon clicks from navigating (use `e.stopPropagation()`).
-- `app/dashboard/actions.ts` - after `deleteInventoryItem`, redirect to the category page (use `redirect()` from `next/navigation`)
-
-**Detail page layout:**
-
-```
-<- Back to Tech and Devices        [Edit]  [Delete]
-
-MacBook Air 13-inch (M5)
-[Tech and Devices]
-
-Description    Apple M5, 24GB RAM, 512GB SSD, macOS Tahoe 26
-Serial         C02X9FXX9Y
-Model          Mac17,3 - Production year 2026
-Quantity       1
-Price paid     £1,299
-Purchase date  March 2026
-Warranty       March 2027  <- red if within 3 months
-Notes          Primary dev machine
-```
-
-Also add `updated_at` column to `inventory_items` Supabase table (currently missing) with an auto-update trigger.
-
-SQL (add to `supabase-schema.sql` SECTION A and SECTION B):
-
-```sql
-ALTER TABLE inventory_items ADD COLUMN updated_at timestamptz DEFAULT now();
-CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = now(); RETURN NEW; END; $$ LANGUAGE plpgsql;
-CREATE TRIGGER inventory_items_updated_at
-  BEFORE UPDATE ON inventory_items
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-```
-
-**Branch:** `feat/inventory-detail-pages`
+Files to check: `components/shared/LiveStatusCards.tsx`, `app/now/page.tsx`, `app/colophon/page.tsx`, `app/uses/page.tsx`.
 
 ---
 
-## Item 5 - Notes page live indicator + LiveStatusCards on /now page
+### E - Moon hours fix (quick, can do standalone)
 
-### Notes page tagline
+**File:** `scripts/mac-daemon.py`
 
-Current text: "A public notebook. Not polished posts, just honest notes on what I am building, thinking about and planning. Updated as things change."
+The current threshold replaces day emojis with the moon emoji between 7pm and 6am. Sun can rise before 6am in summer so the moon sometimes shows during daylight. Change to 7pm-5am.
 
-Update to signal it is a live/actively updated page. Add a small pulsing dot indicator next to the heading or tagline (matching the style used in other live components), or update the wording to include "Live notebook" or "Updated live". The exact phrasing is flexible but it must make clear the page changes in real time.
+Find the condition (something like `hour >= 19 or hour < 6`) and change `< 6` to `< 5`.
 
-### LiveStatusCards on /now page
-
-LiveStatusCards currently appears on the /notes page only. Add it to the /now page too. It should render identically - same polling, same layout. No new component needed, just import and render LiveStatusCards in the /now page.
-
-These are public-facing changes. Add to CHANGELOG.md under [Unreleased].
-
-**Branch:** `feat/notes-live-indicator-and-now-cards`
+Branch: `fix/mac-daemon-moon-hours` - tiny change, merge immediately.
 
 ---
-
-## Suggested sequence
-
-| Order | Branch | Notes |
-|-------|--------|-------|
-| 1 | `fix/digest-rename` | 3-line change, done in 5 min |
-| 2 | `fix/scraper-accumulate-and-filters` | Run Supabase migration BEFORE next scraper run |
-| 3 | `feat/inventory-detail-pages` | Independent - no blockers |
-| 4 | `feat/ps5-daemon` | Needs PSN_NPSSO env var ready |
-| 5 | `feat/notes-live-indicator-and-now-cards` | Simple public change |
-
----
-
-## Additional advice
-
-- **Scraper runtime:** Current full run takes ~4-6 min. The CV/cover-letter Greenhouse calls add ~30s for 30 companies. If runtime exceeds limits, switch to every 3 days rather than daily.
-- **PS5 daemon isolation:** The PS5 daemon must not touch, restart or modify mac-daemon or any other running service. Verify with `launchctl list | grep zacess` after setup.
-- **Inventory pagination:** With 9 items currently it is fine, but add pagination to the category page before it grows - `LIMIT 50 OFFSET n` on the Supabase query.
-- **`last_scraped_at` backfill timing:** Run the backfill UPDATE immediately after the migration, before the next scheduled scraper run, or all existing scraped rows will look 30+ days stale and get deleted on first run.
-- **MongoDB and other priority companies:** After the scraper fixes, re-check the priority company list and remove any whose jobs are consistently non-UK and non-intern.
-- **Weather accuracy:** +/- 2-3 degrees difference between the dashboard and macOS weather is normal (different data sources). Investigate switching to Tomorrow.io or WeatherKit tied to exact GPS coordinates for better accuracy. Add to SUGGESTIONS.md.
-- **Subagents:** Use subagents where parallel work is possible. Write clear, detailed prompts with full context so each agent does not need to ask for it. If anything is unclear at any point, stop and ask instead of assuming.
-- **All code comments:** First person throughout ("I check...", "I use..."). Descriptive and clear.
-
----
-
-## Session end tasks (after all items implemented)
-
-1. Update `docs/verification.md` with these checks:
-   - Item 1: Send test digest from Settings, confirm sender shows "My Dashboard"
-   - Item 2: Trigger scraper from Settings, check no senior/US/India roles in internships, check placements and spring weeks tabs have results
-   - Item 3: Confirm `ps5:status` key in Upstash Redis, PS5 card renders correctly in LiveStatusCards
-   - Item 4: Navigate to /dashboard/inventory/tech-and-devices, click a card, confirm detail page loads
-   - Item 5: Confirm /now page shows LiveStatusCards, notes page tagline has live indicator
-   - Security: `grep -r "npsso\|upstash\|redis_token\|api_key" --include="*.ts" --include="*.py" .` to confirm no secrets committed
-
-2. Run full security check - no secrets committed, all API routes return Cache-Control: no-store, robots.txt still correct, rate limiting active
-
-3. Update pages if content is now stale:
-   - `/colophon` - if PS5 daemon changes the tech stack listed
-   - `/now` - if anything material changed
-   - `/uses` - if new tools or devices added (PS5 daemon, psnawp library)
-   - Any blog post describing how the site was built
-   - `README.md` and `docs/DOCUMENTATION.md` - new env vars, new daemon, new routes
-
-4. Log all items in `docs/LOG.md` (private changes only - nothing goes in CHANGELOG.md for these items)
-
-5. Delete this file
-
----
-
-## Previous session work (completed - for reference)
-
-PRs #203-207 all merged to main:
-
-- #203: memory/ -> docs/, README rewrite
-- #204: Security hardening (OG sanitisation, rate limiting, Cache-Control, server action validation)
-- #205: ShareButton + OG thumbnails on all public pages
-- #206: Em/en dash removal, ShareButton scoped to project/blog/cv/links, Oxford commas removed
-- #207: Verification checklist updated
