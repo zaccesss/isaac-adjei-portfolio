@@ -422,8 +422,8 @@ export default function LiveStatusCards() {
         {/* MacBook */}
         <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <Laptop className="h-4 w-4 text-muted-foreground shrink-0" />
-            <p className="text-xs font-semibold truncate">{mac.device ?? "MacBook Air"}</p>
+            <Laptop className={cn("h-4 w-4 shrink-0", online ? "text-blue-500" : "text-muted-foreground/40")} />
+            <p className={cn("text-xs font-semibold truncate", online ? "" : "text-foreground/50")}>{mac.device ?? "MacBook Air"}</p>
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center gap-1.5">
@@ -461,8 +461,8 @@ export default function LiveStatusCards() {
           return (
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Laptop className="h-4 w-4 text-muted-foreground shrink-0" />
-                <p className="text-xs font-semibold truncate">{lenovo.device ?? "Lenovo"}</p>
+                <Laptop className={cn("h-4 w-4 shrink-0", lOnline ? "text-blue-500" : "text-muted-foreground/40")} />
+                <p className={cn("text-xs font-semibold truncate", lOnline ? "" : "text-foreground/50")}>{lenovo.device ?? "Lenovo"}</p>
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5">
@@ -501,7 +501,7 @@ export default function LiveStatusCards() {
           return (
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Monitor className={cn("h-4 w-4 shrink-0", gOnline ? "text-muted-foreground" : "text-muted-foreground/40")} />
+                <Monitor className={cn("h-4 w-4 shrink-0", gOnline ? "text-blue-500" : "text-muted-foreground/40")} />
                 <p className={cn("text-xs font-semibold truncate", gOnline ? "" : "text-foreground/50")}>{gamingPC.device ?? "Gaming PC"}</p>
               </div>
               <div className="space-y-1.5">
@@ -540,7 +540,7 @@ export default function LiveStatusCards() {
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <SiPlaystation className={cn("h-4 w-4 shrink-0", pOnline ? "text-blue-500" : "text-muted-foreground/40")} />
-                <p className={cn("text-xs font-semibold truncate", pOnline ? "text-blue-500" : "text-foreground/50")}>ZACCESS-PS5</p>
+                <p className={cn("text-xs font-semibold truncate", pOnline ? "" : "text-foreground/50")}>ZACCESS-PS5</p>
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5">
@@ -553,7 +553,9 @@ export default function LiveStatusCards() {
                     {ps5Data.lastSeen ? pSeenText : "offline"}
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">{ps5Data.status}</p>
+                {ps5Data.status !== "Online" && ps5Data.status !== "Offline" && (
+                  <p className="text-xs text-muted-foreground">{ps5Data.status}</p>
+                )}
                 {ps5Data.online && ps5Data.game && (
                   <p className="text-xs text-muted-foreground truncate">{ps5Data.game}</p>
                 )}
