@@ -131,6 +131,7 @@ create table applications (
   cv_required           text,
   cover_letter_required text,
   written_answers       text,
+  last_scraped_at       TIMESTAMPTZ,
   sponsors_visa         text,
   category              text default 'Software Engineering'
 );
@@ -1047,6 +1048,20 @@ end $$;
 
 insert into config (key, value) values ('theme_preference', '"system"')
 on conflict (key) do nothing;
+
+
+-- ============================================================
+-- B.8 ADD last_scraped_at AND sponsors_visa TO applications
+-- ============================================================
+
+-- 2026-05-28: I add last_scraped_at to track when each scraped row was last
+-- seen so I can expire entries that have not appeared in 30 days.
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS last_scraped_at TIMESTAMPTZ;
+-- I use TEXT for sponsors_visa so I can store TRUE, FALSE or Unknown as strings.
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS sponsors_visa TEXT;
+-- I backfill last_scraped_at from created_at for existing scraped rows so they
+-- are not immediately treated as 30-day-stale on the first run after migration.
+UPDATE applications SET last_scraped_at = created_at WHERE status = 'scraped' AND last_scraped_at IS NULL;
 
 
 -- ============================================================
