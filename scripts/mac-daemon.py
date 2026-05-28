@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
 Mac daemon - writes battery, location and weather to Upstash Redis every 30s.
-Location and weather refresh every 10 cycles (~5 min) to keep free API usage
-low. City coordinates are used only for accurate weather - the city name is
-never stored. Only country code and timezone are stored for privacy.
+Location and weather refresh every 10 cycles (~5 min) to keep API usage low.
+City coordinates are used only for accurate weather - the city name is never
+stored. Only country code and timezone are stored for privacy.
 
 Setup:
+  brew install corelocationcli
   pip install psutil requests
 
 Run:
@@ -32,10 +33,7 @@ except ImportError:
 
 UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL")
 UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
-WEATHERAPI_KEY = os.environ.get("WEATHERAPI_KEY")
-# I poll every 30s - frequent enough for a live widget but light on the Upstash free tier
 INTERVAL = 30
-# I refresh weather every 10 cycles (~5 min) - well within WeatherAPI free tier of 1M calls/month
 WEATHER_EVERY = 10
 
 if not UPSTASH_URL or not UPSTASH_TOKEN:
@@ -45,76 +43,61 @@ if not UPSTASH_URL or not UPSTASH_TOKEN:
     )
     sys.exit(1)
 
-# I use scutil --get LocalHostName (e.g. Isaacs-MacBook-Air) rather than socket.gethostname()
-# because the hostname can be set to a generic value like Mac.Home via System Settings
+
+# I use scutil --get LocalHostName (e.g. Isaacs-MacBook-Air) rather than
+# socket.gethostname() because the hostname can be set to a generic value
+# like Mac.Home via System Settings
 def _get_device_name() -> str:
     try:
-        raw = subprocess.check_output(["scutil", "--get", "LocalHostName"], text=True).strip()
+        raw = subprocess.check_output(
+            ["scutil", "--get", "LocalHostName"], text=True
+        ).strip()
         return raw.replace("-", " ")
     except Exception:
         import socket as _socket
         return _socket.gethostname().replace(".local", "").replace("-", " ")
 
+
 DEVICE = _get_device_name()
 
 print(
-    f"Mac daemon started. Writing status every {INTERVAL}s. Press Ctrl+C to stop.",
+    f"Mac daemon started. Writing status every {INTERVAL}s. "
+    "Press Ctrl+C to stop.",
     flush=True,
 )
 
-# I map WeatherAPI condition codes to display strings and emojis.
-# is_day=0 handling for Clear (1000) is done in fetch_weather so the
-# daemon itself emits the correct moon emoji rather than relying on
-# the API route to correct it after the fact.
-WEATHERAPI_MAP = {
-    1000: ("Clear", "☀️"),
-    1003: ("Partly Cloudy", "🌤️"),
-    1006: ("Cloudy", "⛅"),
-    1009: ("Overcast", "☁️"),
-    1030: ("Mist", "🌫️"),
-    1063: ("Patchy Rain", "🌦️"),
-    1066: ("Patchy Snow", "❄️"),
-    1069: ("Sleet", "🌨️"),
-    1072: ("Freezing Drizzle", "🌦️"),
-    1087: ("Thunderstorm", "⛈️"),
-    1114: ("Blowing Snow", "❄️"),
-    1117: ("Blizzard", "❄️"),
-    1135: ("Fog", "🌫️"),
-    1147: ("Freezing Fog", "🌫️"),
-    1150: ("Light Drizzle", "🌦️"),
-    1153: ("Drizzle", "🌦️"),
-    1168: ("Freezing Drizzle", "🌦️"),
-    1171: ("Heavy Freezing Drizzle", "🌦️"),
-    1180: ("Light Rain", "🌦️"),
-    1183: ("Rain", "🌧️"),
-    1186: ("Moderate Rain", "🌧️"),
-    1189: ("Rain", "🌧️"),
-    1192: ("Heavy Rain", "🌧️"),
-    1195: ("Heavy Rain", "🌧️"),
-    1198: ("Freezing Rain", "🌧️"),
-    1201: ("Heavy Freezing Rain", "🌧️"),
-    1204: ("Sleet", "🌨️"),
-    1207: ("Heavy Sleet", "🌨️"),
-    1210: ("Light Snow", "❄️"),
-    1213: ("Snow", "❄️"),
-    1216: ("Moderate Snow", "❄️"),
-    1219: ("Snow", "❄️"),
-    1222: ("Heavy Snow", "❄️"),
-    1225: ("Heavy Snow", "❄️"),
-    1237: ("Ice Pellets", "❄️"),
-    1240: ("Light Showers", "🌦️"),
-    1243: ("Showers", "🌧️"),
-    1246: ("Heavy Showers", "🌧️"),
-    1249: ("Sleet Showers", "🌨️"),
-    1252: ("Heavy Sleet Showers", "🌨️"),
-    1255: ("Light Snow Showers", "❄️"),
-    1258: ("Snow Showers", "❄️"),
-    1261: ("Light Ice Pellets", "❄️"),
-    1264: ("Ice Pellets", "❄️"),
-    1273: ("Thundery Rain", "⛈️"),
-    1276: ("Heavy Thundery Rain", "⛈️"),
-    1279: ("Thundery Snow", "⛈️"),
-    1282: ("Heavy Thundery Snow", "⛈️"),
+# I map WMO weather codes (used by Open-Meteo) to display strings and emojis.
+# Night overrides for clear/mainly-clear are handled in fetch_weather so the
+# daemon emits the correct moon emoji rather than relying on the API route.
+OPENMETEO_MAP = {
+    0:  ("Clear", "☀️"),
+    1:  ("Mainly Clear", "🌤️"),
+    2:  ("Partly Cloudy", "⛅"),
+    3:  ("Overcast", "☁️"),
+    45: ("Fog", "🌫️"),
+    48: ("Freezing Fog", "🌫️"),
+    51: ("Light Drizzle", "🌦️"),
+    53: ("Drizzle", "🌦️"),
+    55: ("Heavy Drizzle", "🌦️"),
+    56: ("Freezing Drizzle", "🌦️"),
+    57: ("Heavy Freezing Drizzle", "🌦️"),
+    61: ("Light Rain", "🌦️"),
+    63: ("Rain", "🌧️"),
+    65: ("Heavy Rain", "🌧️"),
+    66: ("Freezing Rain", "🌧️"),
+    67: ("Heavy Freezing Rain", "🌧️"),
+    71: ("Light Snow", "❄️"),
+    73: ("Snow", "❄️"),
+    75: ("Heavy Snow", "❄️"),
+    77: ("Snow Grains", "❄️"),
+    80: ("Light Showers", "🌦️"),
+    81: ("Showers", "🌧️"),
+    82: ("Heavy Showers", "🌧️"),
+    85: ("Snow Showers", "❄️"),
+    86: ("Heavy Snow Showers", "❄️"),
+    95: ("Thunderstorm", "⛈️"),
+    96: ("Thunderstorm with Hail", "⛈️"),
+    99: ("Thunderstorm with Heavy Hail", "⛈️"),
 }
 
 _location = {}
@@ -123,20 +106,48 @@ _weather = {}
 
 def fetch_location():
     global _location
+    lat, lon = None, None
+
+    # I prefer CoreLocationCLI for street-level GPS precision; ipinfo.io is
+    # city-level only
     try:
-        # I use ipinfo.io because it returns coordinates without requiring an API key
+        result = subprocess.run(
+            ["CoreLocationCLI", "-once", "-format", "%latitude %longitude"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode == 0:
+            parts = result.stdout.strip().split()
+            lat, lon = float(parts[0]), float(parts[1])
+            print("[location] using CoreLocation GPS", flush=True)
+    except FileNotFoundError:
+        print(
+            "[location] CoreLocationCLI not found - "
+            "install with: brew install corelocationcli",
+            flush=True,
+        )
+    except Exception as e:
+        print(f"[location] CoreLocationCLI failed: {e}", flush=True)
+
+    # I always fetch ipinfo for country_code and timezone; it also provides a
+    # lat/lon fallback
+    try:
         r = requests.get("https://ipinfo.io/json", timeout=5)
         if r.ok:
             data = r.json()
             loc = data.get("loc", "")
             country_code = data.get("country", "")
-            # I fall back to Europe/London so timezone-aware displays degrade gracefully
+            # I fall back to Europe/London so timezone-aware displays degrade
+            # gracefully
             timezone = data.get("timezone", "Europe/London")
-            if loc and country_code:
-                lat, lon = loc.split(",")
+            if not lat and loc:
+                ip_lat, ip_lon = loc.split(",")
+                lat, lon = float(ip_lat), float(ip_lon)
+                print("[location] falling back to ipinfo coordinates",
+                      flush=True)
+            if lat and lon and country_code:
                 _location = {
-                    "lat": float(lat),
-                    "lon": float(lon),
+                    "lat": lat,
+                    "lon": lon,
                     "country_code": country_code,
                     "timezone": timezone,
                 }
@@ -154,31 +165,28 @@ def fetch_weather():
         # I skip until location is known so I have valid coordinates
         print("[weather] skipping - no location yet", flush=True)
         return
-    if not WEATHERAPI_KEY:
-        print("[weather] WEATHERAPI_KEY not set - skipping", flush=True)
-        return
     try:
-        # I use WeatherAPI.com - more accurate than Open-Meteo and includes
-        # is_day so the moon emoji switches at the real local sunrise, not a
-        # fixed hour cutoff
+        # I use Open-Meteo - free, no API key and more accurate for UK weather
+        # than WeatherAPI since it includes the European ECMWF model
         r = requests.get(
-            "https://api.weatherapi.com/v1/current.json",
+            "https://api.open-meteo.com/v1/forecast",
             params={
-                "key": WEATHERAPI_KEY,
-                "q": f"{_location['lat']},{_location['lon']}",
-                "aqi": "no",
+                "latitude": _location["lat"],
+                "longitude": _location["lon"],
+                "current": "temperature_2m,weather_code,is_day",
+                "forecast_days": 1,
             },
             timeout=5,
         )
         if r.ok:
             current = r.json().get("current", {})
-            code = int(current.get("condition", {}).get("code", 1000))
-            temp = round(current.get("temp_c", 0))
+            code = int(current.get("weather_code", 0))
+            temp = round(current.get("temperature_2m", 0))
             is_day = int(current.get("is_day", 1))
-            condition, emoji = WEATHERAPI_MAP.get(code, ("Cloudy", "⛅"))
-            # I replace the clear/sunny emoji with moon when is_day=0 so the
-            # widget matches real local night without a fixed hour cutoff
-            if not is_day and code == 1000:
+            condition, emoji = OPENMETEO_MAP.get(code, ("Cloudy", "⛅"))
+            # I map clear and mainly-clear nights to moon; cloudy emojis stay
+            # as-is since clouds look the same at night
+            if not is_day and code in (0, 1):
                 emoji = "🌙"
             _weather = {
                 "condition": condition,
@@ -224,9 +232,11 @@ def write_status():
                 "Content-Type": "application/json",
             },
             json=[
-                # I set a 600-second TTL so the key expires when the daemon stops, signalling offline
+                # I set a 600-second TTL so the key expires when the daemon
+                # stops, signalling offline
                 ["SET", "macbook:status", json.dumps(payload), "EX", 600],
-                # I write a TTL-free key so the dashboard can show the last-known state when offline
+                # I write a TTL-free key so the dashboard can show the
+                # last-known state when offline
                 ["SET", "macbook:last-known", json.dumps(payload)],
             ],
             timeout=10,
