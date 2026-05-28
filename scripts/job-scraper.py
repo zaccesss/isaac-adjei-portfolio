@@ -574,6 +574,33 @@ _seen_urls: set[str] = set()
 # I collect newly inserted student jobs for the end-of-run Discord alert.
 _new_jobs: list[dict] = []
 
+_FAANG = {"google", "meta", "amazon", "apple", "microsoft", "netflix", "deepmind", "openai", "anthropic"}
+_QUANT_COMPANIES = {"citadel", "optiver", "jane street", "imc", "jump", "two sigma", "susquehanna", "hudson river", "de shaw", "akuna", "virtu", "sig ", "drw", "flow traders"}
+_AI_RE = re.compile(r'\bai\b')
+
+def detect_category(company: str, role: str) -> str:
+    c = company.lower()
+    r = role.lower()
+    if any(f in c for f in _FAANG):
+        return "FAANG+"
+    if any(q in c for q in _QUANT_COMPANIES) or any(t in r for t in ("quant", "trading", "algorithmic", "derivatives", "fixed income")):
+        return "Quant Developer"
+    if (_AI_RE.search(r) or any(t in r for t in ("machine learning", "artificial intelligence", "deep learning", "llm", "generative ai", "nlp", "computer vision", "neural network"))):
+        return "AI and Machine Learning"
+    if any(t in r for t in ("data science", "data scientist", "data analyst", "data engineer", "analytics engineer", "business intelligence", "bi analyst")):
+        return "Data Science"
+    if any(t in r for t in ("embedded", "firmware", "fpga", "vhdl", "rtos", "bare metal", "hardware engineer", "electronics engineer", "circuit", "microcontroller", "iot engineer")):
+        return "Embedded"
+    if any(t in r for t in ("devops", "devsecops", "cloud engineer", "cloud developer", "site reliability", "sre", "platform engineer", "infrastructure engineer", "kubernetes", "terraform", "aws engineer", "azure engineer", "gcp ")):
+        return "DevOps and Infrastructure"
+    if any(t in r for t in ("security", "cyber", "penetration", "pen test", "soc analyst", "information security", "appsec", "threat")):
+        return "Cyber Security"
+    if any(t in r for t in ("consult", "advisory", "business analyst", "management information")):
+        return "Tech Consulting"
+    if any(t in r for t in ("it support", "service desk", "it technician", "helpdesk", "1st line", "2nd line")):
+        return "IT"
+    return "Software Engineering"
+
 
 def insert_job(job: dict, existing_keys: set) -> bool:
     # I use a different date cutoff for full-time jobs (Jan 2026) vs internships (Sep 2025)
@@ -620,6 +647,7 @@ def insert_job(job: dict, existing_keys: set) -> bool:
         "starred":      False,
         "last_scraped_at": datetime.utcnow().isoformat(),
         "sponsors_visa": job.get("sponsors_visa", None),
+        "category":     detect_category(job["company"], job["role"]),
     }
 
     try:
@@ -2257,11 +2285,27 @@ def scrape_adzuna(existing_keys: set) -> int:
         "engineering internship",
         "year in industry",
         "industrial placement",
-        "graduate scheme software",
+        "graduate scheme technology",
         "data science internship",
+        "machine learning internship",
         "embedded software intern",
+        "firmware engineer intern",
+        "cloud engineer internship",
+        "devops internship",
         "cyber security intern",
+        "quant developer internship",
     ]
+
+    def _resolve_url(tracking_url: str) -> str:
+        # I follow the Adzuna redirect to get the actual company/ATS URL.
+        # If it still lands on adzuna.co.uk the tracking link is kept as fallback.
+        try:
+            r = requests.head(tracking_url, allow_redirects=True, timeout=5)
+            if r.url and "adzuna" not in r.url:
+                return r.url
+        except Exception:
+            pass
+        return tracking_url
 
     count = 0
     for what in SEARCHES:
@@ -2273,7 +2317,7 @@ def scrape_adzuna(existing_keys: set) -> int:
                     "app_key":          app_key,
                     "what":             what,
                     "where":            "UK",
-                    "results_per_page": 50,
+                    "results_per_page": 15,
                     "content-type":     "application/json",
                 },
                 headers={"Accept": "application/json"},
@@ -2290,7 +2334,7 @@ def scrape_adzuna(existing_keys: set) -> int:
                     (job.get("location") or {})
                     .get("display_name", "")
                 )
-                job_url = job.get("redirect_url", "")
+                job_url = _resolve_url(job.get("redirect_url", ""))
                 expiry = job.get("expiration_date", "")
 
                 if not is_relevant(title, company, location):
@@ -2306,7 +2350,7 @@ def scrape_adzuna(existing_keys: set) -> int:
                 }, existing_keys):
                     count += 1
 
-            time.sleep(0.5)
+            time.sleep(1.0)
         except Exception as e:
             print(f"  Error Adzuna '{what}': {e}")
 
