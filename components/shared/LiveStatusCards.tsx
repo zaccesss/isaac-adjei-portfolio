@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, GitBranch, Monitor, Github } from "lucide-react"
+import { SiPlaystation5 } from "react-icons/si"
 import { cn } from "@/lib/utils"
 
 interface LastPlayed {
@@ -57,6 +58,13 @@ interface GamingPCData {
 interface GithubData {
   repo: string | null
   relativeTime: string | null
+}
+
+interface PS5Data {
+  online: boolean
+  lastSeen: string | null
+  status: string
+  game: string | null
 }
 
 function MarqueeText({ text, active, className }: { text: string; active: boolean; className?: string }) {
@@ -150,6 +158,7 @@ export default function LiveStatusCards() {
   const [lenovo, setLenovo] = useState<LenovoData>({ battery: null, charging: null, lastSeen: null, device: null })
   const [gamingPC, setGamingPC] = useState<GamingPCData>({ online: false, lastSeen: null, gpu: null, cpu: null, currentGame: null, device: "ZACCESS-GPC" })
   const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
+  const [ps5Data, setPs5Data] = useState<PS5Data>({ online: false, lastSeen: null, status: "Offline", game: null })
   const [liveProgressMs, setLiveProgressMs] = useState(0)
 
   useEffect(() => {
@@ -234,6 +243,19 @@ export default function LiveStatusCards() {
     }
     fetch_()
     const id = setInterval(fetch_, 300000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    async function fetch_() {
+      try {
+        const res = await fetch("/api/ps5")
+        if (res.ok) setPs5Data(await res.json())
+      } catch {}
+    }
+    fetch_()
+    // I poll every 60s - matches the daemon write interval so data is always within one cycle of fresh
+    const id = setInterval(fetch_, 60000)
     return () => clearInterval(id)
   }, [])
 
@@ -378,7 +400,23 @@ export default function LiveStatusCards() {
         )}
       </div>
 
-      {/* 2x2 device + github grid */}
+      {/* GitHub strip */}
+      <div className="rounded-2xl border border-border/60 bg-card shadow-sm py-3 px-4 flex items-center gap-2 text-sm">
+        <Github className="h-4 w-4 text-foreground/60 dark:text-foreground/50 shrink-0" />
+        <span className="text-foreground/30 dark:text-foreground/25 select-none">|</span>
+        <GitBranch className="h-3.5 w-3.5 text-foreground/50 dark:text-foreground/40 shrink-0" />
+        {github.repo ? (
+          <>
+            <span className="text-xs text-muted-foreground">pushed</span>
+            <span className="text-xs font-medium text-foreground/80 truncate">{github.repo}</span>
+            <span className="text-xs text-muted-foreground/50 shrink-0 ml-auto">{github.relativeTime}</span>
+          </>
+        ) : (
+          <span className="text-xs text-muted-foreground/40">no recent activity</span>
+        )}
+      </div>
+
+      {/* 2x2 device grid */}
       <div className="grid grid-cols-2 gap-3">
 
         {/* MacBook */}
@@ -495,24 +533,34 @@ export default function LiveStatusCards() {
           )
         })()}
 
-        {/* GitHub last pushed */}
-        <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
-          <div className="flex items-center gap-1.5">
-            <Github className="h-4 w-4 text-foreground/60 dark:text-foreground/50 shrink-0" />
-            <span className="text-foreground/30 dark:text-foreground/25 text-xs select-none">|</span>
-            <GitBranch className="h-3.5 w-3.5 text-foreground/50 dark:text-foreground/40 shrink-0" />
-          </div>
-          {github.repo ? (
-            <div className="space-y-0.5">
-              <p className="text-xs text-muted-foreground">
-                pushed <span className="font-medium text-foreground/80">{github.repo}</span>
-              </p>
-              <p className="text-xs text-muted-foreground/50">{github.relativeTime}</p>
+        {/* PS5 */}
+        {(() => {
+          const { text: pSeenText, online: pOnline } = relativeLastSeen(ps5Data.lastSeen)
+          return (
+            <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <SiPlaystation5 className={cn("h-4 w-4 shrink-0", pOnline ? "text-blue-500" : "text-muted-foreground/40")} />
+                <p className={cn("text-xs font-semibold truncate", pOnline ? "text-blue-500" : "text-foreground/50")}>ZACCESS-PS5</p>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  {pOnline ? (
+                    <Wifi className="h-3 w-3 text-blue-500 shrink-0" />
+                  ) : (
+                    <WifiOff className="h-3 w-3 text-muted-foreground/30 shrink-0" />
+                  )}
+                  <span className={cn("text-xs", pOnline ? "text-blue-500" : "text-muted-foreground/40")}>
+                    {ps5Data.lastSeen ? pSeenText : "offline"}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">{ps5Data.status}</p>
+                {ps5Data.online && ps5Data.game && (
+                  <p className="text-xs text-muted-foreground truncate">{ps5Data.game}</p>
+                )}
+              </div>
             </div>
-          ) : (
-            <p className="text-xs text-muted-foreground/40">no recent activity</p>
-          )}
-        </div>
+          )
+        })()}
 
       </div>
     </div>
