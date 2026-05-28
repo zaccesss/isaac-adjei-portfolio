@@ -18,6 +18,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Share button on /cv and /links pages next to name
 - Open Graph thumbnails on every public page via /api/og
 - Switched MacBook weather source from Open-Meteo to WeatherAPI.com; daemon now sends `is_day` flag so moon/sun emoji switches at real local sunrise rather than a fixed hour cutoff
+- Discord presence card in the live status widget on /now and /notes pages, powered by the Lanyard API (no auth required); shows status dot (online/idle/dnd/offline), current rich presence activity (game name, VS Code file and workspace, Spotify via Discord, JetBrains IDE) and custom Discord status text
+- Discord card on /now is always visible - shows last-seen time at reduced opacity when offline; on /notes it only appears when online, idle or dnd
+- Discord card shows all concurrent activities simultaneously (Playing, Listening, Watching) in a compact stacked list with type labels and elapsed time per activity, separated by dividers
+- External link icon on the Discord card opens the Discord profile in a new tab
 
 ### Fixed
 
@@ -25,6 +29,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Device type icons (Laptop, Monitor, PlayStation) now use foreground colour when online and muted when offline, reducing visual noise alongside the blue WiFi indicator
 - PS5 card no longer shows a redundant "Online" or "Offline" status line - status text is only shown for informative states such as "Busy"
 - Moon emoji now uses WeatherAPI `is_day` field instead of a fixed hour cutoff - correct across all seasons and locations
+- Discord card CSP: added api.lanyard.rest to connect-src in next.config.mjs so Lanyard REST and WebSocket calls are not blocked
 
 ### Changed
 

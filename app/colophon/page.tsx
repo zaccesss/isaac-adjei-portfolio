@@ -136,6 +136,11 @@ const sections = [
           "A Cloudflare Worker (workers/ps5-presence) polls the PSN API every 60 seconds using the psnawp library. It writes my online status, current game and last-seen timestamp to Upstash Redis. The NPSSO session token is stored in Cloudflare secrets - it never touches the codebase or the client.",
       },
       {
+        name: "Discord presence",
+        detail:
+          "The Discord card in the live status widget uses the Lanyard API - a free, open-source service that exposes Discord presence data. It shows my online status, current activity (game, VS Code workspace, Spotify via Discord) and custom status text. On /now the card is always visible; on /notes it hides when I go offline. Multiple concurrent activities are shown stacked with type labels.",
+      },
+      {
         name: "GitHub activity",
         detail:
           "The GitHub strip in the live status widget uses the GitHub REST API to show the last repository I pushed to and how long ago. Fetched server-side and cached briefly in Redis.",

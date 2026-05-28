@@ -1,35 +1,78 @@
 # Isaac Adjei - Portfolio
 
-> Personal portfolio at [isaacadjei.me](https://isaacadjei.me) - projects, blog, CV and a private dashboard.
+> Personal portfolio and private dashboard at [isaacadjei.me](https://isaacadjei.me)
 
 [![CI](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/ci.yml)
 [![Live](https://img.shields.io/badge/live-isaacadjei.me-000000?style=flat&logo=googlechrome&logoColor=white)](https://isaacadjei.me)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Next.js 16 App Router with TypeScript, Tailwind CSS and Framer Motion. Server-rendered where possible, client components only where interactivity requires it. Deployed on Vercel with Cloudflare DNS.
+Built with Next.js 16 App Router, TypeScript, Tailwind CSS and Framer Motion. Server-rendered where possible, client components only where interactivity requires it. Deployed on Vercel with Cloudflare DNS.
 
 > For full technical reference - pages, dashboard sections, CV system, API routes, environment variables and deployment notes - see [DOCUMENTATION.md](DOCUMENTATION.md).
 
 ---
 
+## What this is
+
+**Public site** at `isaacadjei.me` - projects, blog, CV, experience and a live status widget showing Spotify now-playing, MacBook/PC battery, GitHub last push, PS5 presence and Discord activity in real time.
+
+**Private dashboard** at `isaacadjei.me/dashboard` - a personal mission-control behind GitHub OAuth and a secondary PIN. Tracks job applications (with a daily job scraper that pulls from 11 sources), university modules and marks, diary entries, goals, habits, streaks, inventory, wishlist and vault. Sends a weekly email digest and a daily Discord embed.
+
+---
+
 ## Pages
+
+### Public
 
 | Route | Description |
 | --- | --- |
 | `/` | Hero, live status cards, social links |
-| `/about` | Story, education, awards, societies |
+| `/about` | Story, education, awards, societies and languages |
 | `/projects` | 10 engineering and software projects with full detail pages |
 | `/experience` | Work experience and internships timeline |
 | `/skills` | Tech stack across 15 categories |
-| `/blog` | 13 published posts with reading progress and TOC |
-| `/notes` | Public notebook |
+| `/blog` | 13+ published posts with reading progress bar and TOC sidebar |
+| `/notes` | Public notebook: current builds, summer plans and upcoming projects |
 | `/lab` | Interactive terminal with 30+ commands |
 | `/cv` | CV viewer with PDF and Word download |
 | `/consumed` | Monthly content log: videos, podcasts and books |
-| `/now` | Current snapshot |
-| `/newsletter` | Newsletter signup via Beehiiv |
+| `/now` | Current life snapshot with always-on Discord presence |
+| `/newsletter` | Newsletter signup and past issues via Beehiiv |
 | `/links` | All social and professional links |
 | `/changelog` | Public version history |
+
+### Private dashboard
+
+| Route | Description |
+| --- | --- |
+| `/dashboard` | Home with activity feed and stat cards |
+| `/dashboard/applications` | Job applications in table and Kanban view with funnel chart |
+| `/dashboard/diary` | Private diary with mood tracking and analytics |
+| `/dashboard/goals` | Goal tracker by category and status |
+| `/dashboard/streaks` | Streak tracker with 90-day heatmap |
+| `/dashboard/habits` | Habit tracker with frequency and check-in |
+| `/dashboard/notes` | Private notes by folder |
+| `/dashboard/vault` | Password, API key and card vault |
+| `/dashboard/inventory` | Device and equipment inventory |
+| `/dashboard/wishlist` | Wishlist by category |
+| `/dashboard/course` | University modules, marks and programme spec |
+| `/dashboard/health` | Gym plan, nutrition and running log |
+| `/dashboard/settings` | PIN, theme, digest triggers and job scraper |
+
+---
+
+## Live status widget
+
+The homepage, `/notes`, `/now` and `/lab` show an iOS-style live status grid:
+
+- **Spotify** - now-playing with album art and real-time progress bar; last-played fallback when idle
+- **London time** - always Europe/London timezone
+- **MacBook battery** - live percentage and charging state from a Python daemon writing to Upstash Redis every 30 seconds
+- **Gaming PC** - CPU and GPU usage and current game from a Windows daemon
+- **Lenovo** - battery and charging state from a Windows daemon
+- **GitHub** - last public push event with repo name and time
+- **PS5** - online status and current game via a Cloudflare Worker polling PSN every 60 seconds
+- **Discord** - real-time presence via Lanyard API; shows status, current activity (game, VS Code, Spotify) and custom status; on `/now` always visible; on `/notes` hidden when offline
 
 ---
 
@@ -50,28 +93,47 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+Most features work without any environment variables. The Spotify card, MacBook card, dashboard and job scraper require their respective secrets - see [DOCUMENTATION.md - Environment variables](DOCUMENTATION.md#environment-variables) for the full list with descriptions.
+
 ---
 
-## Environment variables
+## Tech stack
 
-Create `.env.local` in the project root:
+| Layer | Technology |
+| --- | --- |
+| Framework | Next.js 16 App Router |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4, shadcn/ui, Radix UI |
+| Animation | Framer Motion |
+| Auth | NextAuth.js v5 (GitHub OAuth) |
+| Database | Supabase (Postgres + PostgREST) |
+| Cache and rate limiting | Upstash Redis |
+| Email | Resend |
+| Newsletter | Beehiiv |
+| CAPTCHA | Cloudflare Turnstile |
+| Charts | Recharts |
+| Deployment | Vercel |
+| DNS | Cloudflare |
+| Discord presence | Lanyard API |
+| PS5 presence | Cloudflare Worker + PSN API |
+| CV generation | Puppeteer, html-to-docx |
+| Job scraper | Python, Playwright, GitHub Actions |
 
-```env
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-RESEND_API_KEY=
-NEXT_PUBLIC_TURNSTILE_SITE_KEY=
-TURNSTILE_SECRET_KEY=
-BEEHIIV_API_KEY=
-BEEHIIV_PUBLICATION_ID=
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
-SPOTIFY_CLIENT_ID=
-SPOTIFY_CLIENT_SECRET=
-SPOTIFY_REFRESH_TOKEN=
-PSN_NPSSO=
+---
+
+## Repository structure
+
+```text
+app/            Next.js App Router pages and API routes
+components/     Shared and dashboard-specific components
+data/           Static data (projects, blog posts, CV YAML, skills)
+docs/           Internal session logs, rules and verification checklist
+hooks/          Custom React hooks
+lib/            Shared utilities, digest helpers and constants
+public/         Static assets (images, CV PDFs, media)
+scripts/        Python daemons, CV generation scripts, Spotify auth helper
+workers/        Cloudflare Worker for PS5 presence polling
 ```
-
-All variables are optional for local dev - the site runs without any of them. See [DOCUMENTATION.md - Environment variables](DOCUMENTATION.md#environment-variables) for descriptions and which are required for specific features.
 
 ---
 
