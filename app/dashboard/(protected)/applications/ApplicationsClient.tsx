@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List } from "lucide-react"
+import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp } from "lucide-react"
 import ApplicationsKanban from "./ApplicationsKanban"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -731,6 +731,63 @@ function CategoryGroup({
   )
 }
 
+// ─── Funnel chart ─────────────────────────────────────────────────────────────
+
+function ApplicationsFunnel({ apps }: { apps: Application[] }) {
+  const statuses = apps.map((a) => normaliseStatus(a.status))
+
+  const applied = statuses.filter(
+    (s) => !["Not Applied", "Interested", "Not Interested"].includes(s)
+  ).length
+  const assessment = statuses.filter((s) =>
+    ["Online Assessment", "Case Study", "HireVue", "Telephone Interview", "Video Interview",
+      "Face-to-face Interview", "Assessment Centre", "Offer Received"].includes(s)
+  ).length
+  const interview = statuses.filter((s) =>
+    ["Telephone Interview", "Video Interview", "Face-to-face Interview", "Assessment Centre", "Offer Received"].includes(s)
+  ).length
+  const offer = statuses.filter((s) => s === "Offer Received").length
+
+  const stages = [
+    { label: "Applied", count: applied, color: "bg-blue-500" },
+    { label: "Assessment", count: assessment, color: "bg-violet-500" },
+    { label: "Interview", count: interview, color: "bg-amber-500" },
+    { label: "Offer", count: offer, color: "bg-green-500" },
+  ]
+  const max = applied || 1
+
+  return (
+    <div className="border-t border-border px-4 py-4 shrink-0 bg-background">
+      <div className="flex items-center gap-2 mb-3">
+        <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Application Funnel</span>
+      </div>
+      <div className="flex flex-col gap-2">
+        {stages.map((stage, i) => {
+          const pct = Math.round((stage.count / max) * 100)
+          const prev = stages[i - 1]
+          const convRate = prev ? (prev.count > 0 ? Math.round((stage.count / prev.count) * 100) : 0) : null
+          return (
+            <div key={stage.label} className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground w-20 shrink-0">{stage.label}</span>
+              <div className="flex-1 bg-muted rounded-full h-1.5">
+                <div
+                  className={`${stage.color} h-1.5 rounded-full transition-all duration-500`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <span className="text-xs font-semibold w-5 text-right tabular-nums">{stage.count}</span>
+              <span className="text-xs text-muted-foreground w-10 text-right tabular-nums">
+                {convRate !== null ? `${convRate}%` : ""}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ─── Main client ──────────────────────────────────────────────────────────────
 
 export default function ApplicationsClient({ applications: initial }: { applications: Application[] }) {
@@ -1209,6 +1266,9 @@ export default function ApplicationsClient({ applications: initial }: { applicat
           </div>
         )}
       </div>}
+
+      {/* Funnel */}
+      <ApplicationsFunnel apps={apps} />
 
       {/* Edit dialog */}
       <Dialog
