@@ -64,6 +64,11 @@ const sections: Array<{
         name: "ESP32 and STM32",
         detail: "Both used in Phaemos, my predictive maintenance platform. The ESP32 handles WiFi, MQTT and sensor polling using the Arduino framework. The STM32 runs lower-level firmware for data acquisition. Two very different programming models on one project.",
       },
+      {
+        name: "PlayStation 5 (ZACCESS-PS5)",
+        detail:
+          "My PS5. Online status, current game and last-seen time are polled every 60 seconds by a Cloudflare Worker using the PSN presence API, and displayed live in the status widget on /notes and /now.",
+      },
     ],
   },
   {
@@ -175,6 +180,13 @@ const sections: Array<{
         icon: `${SKI}=github`,
         href: "https://docs.github.com/en/graphql",
         detail: "Used to pull contribution heatmap data, commit counts, pull request counts, top languages and last push timestamp for the GitHub stats card on the lab page. GraphQL means I fetch exactly what I need in one request.",
+      },
+      {
+        name: "Cloudflare Workers",
+        icon: `${SKI}=cloudflare`,
+        href: "https://workers.cloudflare.com",
+        detail:
+          "Serverless edge workers. One worker (workers/ps5-presence) polls the PSN API every minute and writes presence data to Upstash Redis, replacing the need for a daemon running on a local machine.",
       },
       {
         name: "Beehiiv",

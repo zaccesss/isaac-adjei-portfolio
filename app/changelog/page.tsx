@@ -33,12 +33,33 @@ const releases: ChangeEntry[] = [
   {
     version: "Unreleased",
     date: "",
+    added: [
+      "PS5 live card in the status widget - online/offline, current game and last-seen time, powered by a Cloudflare Worker polling PSN every 60 seconds",
+      "Live status cards widget added to /now page",
+      "Pulsing blue 'Updated live' indicator on the /now page header",
+      "Clickable GitHub profile link in the live status GitHub strip after the last-pushed timestamp",
+    ],
     fixed: [
+      "PS5 card device name no longer shown in blue - device names are now always default foreground colour",
+      "Device type icons (Laptop, Monitor, PlayStation) now use foreground when online and muted when offline",
+      "PS5 card removed redundant 'Online'/'Offline' status line - status text only appears for informative states such as 'Busy'",
       "/all-pages keyboard shortcut shows ⌘+I on Mac and Ctrl+I on Windows/Linux; symbol size bumped to text-sm for visibility",
       "pages command on /all-pages highlighted in primary colour and links directly to /lab",
     ],
     security: [
       "Force brace-expansion to 5.0.6 via npm overrides to resolve CVE-2026-45149 (GHSA-jxxr-4gwj-5jf2) - transitive dep via eslint-config-next",
+    ],
+  },
+  {
+    version: "v2.4.0",
+    date: "2026-05-27",
+    added: [
+      "Share button on project detail pages, blog posts, /cv and /links - Web Share API with clipboard fallback and 2-second 'Copied!' confirmation",
+      "Open Graph thumbnails on every public page via /api/og - dynamic per-page title and description",
+    ],
+    changed: [
+      "Em and en dashes removed throughout the site; replaced with hyphens",
+      "Oxford commas removed throughout",
     ],
   },
   {
