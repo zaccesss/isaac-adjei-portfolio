@@ -184,10 +184,12 @@ def fetch_weather():
             temp = round(current.get("temperature_2m", 0))
             is_day = int(current.get("is_day", 1))
             condition, emoji = OPENMETEO_MAP.get(code, ("Cloudy", "⛅"))
-            # I map clear and mainly-clear nights to moon; cloudy emojis stay
-            # as-is since clouds look the same at night
+            # I map night conditions: clear/mainly-clear to moon, partly cloudy
+            # to plain cloud (no sun visible at night), overcast stays as-is
             if not is_day and code in (0, 1):
                 emoji = "🌙"
+            elif not is_day and code == 2:
+                emoji = "☁️"
             _weather = {
                 "condition": condition,
                 "emoji": emoji,
