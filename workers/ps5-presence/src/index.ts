@@ -20,8 +20,9 @@ interface Env {
   IGDB_CLIENT_SECRET?: string
 }
 
-const PSN_CLIENT_ID = "09515159-7237-4370-9b40-3806e67c0891"
-const PSN_CLIENT_SECRET = "ucPjka5tntB2KqsP"
+// These are Sony's public Android app credentials extracted from the PSN APK - not user secrets. gitleaks:allow
+const PSN_CLIENT_ID = "09515159-7237-4370-9b40-3806e67c0891" // gitleaks:allow
+const PSN_CLIENT_SECRET = "ucPjka5tntB2KqsP" // gitleaks:allow
 const PSN_REDIRECT_URI = "com.scee.psxandroid.scecompcall://redirect"
 const PSN_ACCOUNT_ID = "322685844450023200"
 const REFRESH_TOKEN_KEY = "psn:refresh_token"
