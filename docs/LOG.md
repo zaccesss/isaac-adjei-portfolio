@@ -4,9 +4,59 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
-## 2026-05-29 (session 3)
+## 2026-05-29 (session 3 - v2.6.0 release)
 
-- feat/blog-drafts-vault-expiry-skills: FPGA post published (date 2026-05-29, expanded for beginners with mental model intro, LED blink example, FPGA vs MCU guide, tools section); RTOS post unpublished as draft; two must-watch videos embedded (Nand2Tetris TED + Steve Jobs Stanford) on FPGA and resources posts; video ContentBlock type added to blog.ts and renderer; images added to AVR, LED Cube, AstonCV and portfolio posts; Phaemos description changed from past to present tense; all build errors from duplicate braces fixed.
+Large content and feature session culminating in PR #235 (merged) and tagged v2.6.0.
+
+**Blog content published (8 new posts):**
+- Getting Started with FPGAs - beginner mental model, VHDL LED blink example, FPGA vs MCU comparison, tool links (Vivado, Quartus, IceStorm), Wikimedia SPI/I2C diagrams, FPGA references section
+- Bionic Vision and Ocular Prosthetics - retinoblastoma epidemiology, conventional prosthetics, retinal implants (Argus II, PRIMA), cortical implants, optogenetics, PubMed search references to avoid stale IDs
+- TypeScript Patterns That Actually Matter in Production - discriminated unions, satisfies operator, branded types, const assertions, exhaustiveness checking with never
+- Why Every Software Engineer Should Understand Hardware - article type, abstraction costs, debugging across layers, performance intuition
+- Resources for Engineering and Technology - renamed from embedded/software only; curated books, courses, YouTube channels (3Blue1Brown, Fireship, Theo, ByteByteGo, LowLevelTV, Computerphile, Reducible), coding tools (VS Code, JetBrains, Obsidian, Notion, Figma, Godbolt, Excalidraw), /consumed link, must-watch video section
+- IoT Security Gaps - expanded with Mirai botnet, KRACK, Ripple20, ETSI EN 303 645, OWASP IoT Top 10; all reference links verified
+- SPI vs I2C - deep technical comparison with clock modes, address conflicts, pull-up resistors, I2C bus hang recovery, comparison table; Wikimedia timing diagrams embedded
+- RTOS Fundamentals - published initially then swapped to draft in favour of FPGA post
+
+**Blog content: drafts added (published: false):**
+- UART From Scratch (bare metal AVR C, baud rate calculation, printf via UART stream)
+- DMA Explained (STM32, circular mode, cache coherency on Cortex-M7)
+- RTOS Fundamentals (swapped from published back to draft)
+
+**New blog post types and features:**
+- `video` ContentBlock type added to blog.ts and renderer (YouTube embed via iframe)
+- Must-watch videos section on resources post only (Nand2Tetris TED + Steve Jobs Stanford 2005)
+- Images added to AVR bare metal, LED Cube, AstonCV and building my portfolio posts
+- SPI vs I2C Wikimedia timing diagrams added - `upload.wikimedia.org` added to remotePatterns, `dangerouslyAllowSVG: true` enabled
+
+**Updated content:**
+- Building My Portfolio - rewritten intro with zacess.com origin story; private dashboard/job scraper details removed; date changed to October 2025; zacess.com terminal screenshot added
+- Phaemos blog post, project page and notes entry - updated for 4-node hardware architecture (ESP32 primary with 11 sensors, STM32 Black Pill 100Hz FFT, Arduino Nano secondary, Raspberry Pi Pico 2W MicroPython ambient node)
+- Business analytics post type corrected from research to notes
+
+**Private dashboard features:**
+- Vault expiry alerts cron at 0 9 * * * - `lib/vault-expiry-check.ts` + `/api/dashboard/vault-expiry-check/route.ts`; checks vault key_expiry (ISO date), card_expiry (MM/YY parsed) and inventory warranty_expiry; sends Discord embed sorted by days remaining; red if anything within 7 days, orange otherwise; silent if nothing expiring
+- `InspirationWidget` shared component created - motivation (ZenQuotes) and scripture (labs.bible.org) widgets extracted from `/blog/page.tsx` and placed at bottom of `/notes/page.tsx` above the lab terminal link
+
+**Mac daemon updates:**
+- Switched from WeatherAPI to Open-Meteo (ECMWF model, no API key needed)
+- CoreLocationCLI GPS added for street-level location accuracy; ipinfo.io retained for country/timezone
+- Night emoji logic: only clear (WMO 0) and mainly-clear (WMO 1) show moon at night; partly cloudy (WMO 2) shows ☁️; other cloud conditions unchanged
+
+**Skills reordering in generate-role-cvs.js:**
+- `reorderSkillsBlock()` function implemented; parses `<p>` elements in skills-block by strong label prefix and reorders per `roleConfig.skillPriority`
+
+**RSS feed:**
+- Channel description updated to reflect new post types (research, article, resources)
+- Feed is dynamic - auto-includes all published posts; no manual entries needed
+
+**Docs and release:**
+- CHANGELOG.md: unreleased content moved to v2.6.0 section; v2.5.0 section split out
+- DASHBOARD.md: vault expiry alerts section added with full implementation detail
+- PROJECT.md: Mac daemon section updated for Open-Meteo and CoreLocationCLI
+- verification.md: blog and vault expiry checks updated
+- SUGGESTIONS.md: newsletter items removed; CV auto PDF and LinkedIn sync kept; 6 mindblowing ideas added
+- Tagged v2.6.0 and GitHub release created
 
 ## 2026-05-29 (session 2)
 

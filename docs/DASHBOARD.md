@@ -119,6 +119,22 @@ Category grouping note: the Supabase column has `DEFAULT 'Software Engineering'`
 
 ---
 
+## Vault expiry alerts
+
+- Vercel cron: daily at 9am UTC via `GET /api/dashboard/vault-expiry-check` (CRON_SECRET protected)
+- Route: `app/api/dashboard/vault-expiry-check/route.ts`
+- Logic: `lib/vault-expiry-check.ts`
+- Checks three expiry sources:
+  - `vault_entries.key_expiry` - ISO date string from API key entries (date input, format `YYYY-MM-DD`)
+  - `vault_entries.card_expiry` - MM/YY format from card entries (parsed to last day of that month)
+  - `inventory_items.warranty_expiry` - ISO date string from inventory warranty fields
+- Alert window: 30 days. Any item expiring within 30 days (or already expired) triggers the embed.
+- Discord embed: sorted by days remaining (soonest first), red colour if anything expires within 7 days, orange otherwise
+- Only sends a Discord message if at least one item is expiring - silent if nothing is due
+- Required in Vercel env vars: `DISCORD_WEBHOOK_URL`, `CRON_SECRET`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`
+
+---
+
 ## Weekly email digest
 
 - Vercel cron: every Sunday at 18:00 UTC via `GET /api/dashboard/weekly-digest` (CRON_SECRET protected)
@@ -136,6 +152,11 @@ Key applications columns added in migrations (all in Section B):
 
 - `opening_date`, `last_year_opening`, `housing_location`, `cv_required`, `cover_letter_required`, `written_answers`, `category` (B.8 - added 2026-05-21)
 - `last_scraped_at`, `sponsors_visa` (B.9 - added 2026-05-28)
+
+Vault expiry fields (already present from initial schema):
+- `vault_entries.key_expiry` - DATE type, populated by the API key entry form
+- `vault_entries.card_expiry` - TEXT type, MM/YY format, populated by the card entry form
+- `inventory_items.warranty_expiry` - DATE type, populated by the inventory entry form
 
 ---
 
