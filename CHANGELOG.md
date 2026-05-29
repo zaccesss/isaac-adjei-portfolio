@@ -12,10 +12,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Spotify card shows Spotify icon and external link to profile in card header
 - GPC daemon now fetches game cover art from IGDB (Twitch API) on first game detection and caches per session; falls back to publisher CDN URLs when IGDB is not configured
 - GPC daemon sends `game_image` alongside the game name; GPC card renders the cover art thumbnail next to the game name
+- GPC daemon 5-tier game detection: hardcoded dict, Steam Web API, Epic Games local manifests, EA App local manifests and process-name IGDB fuzzy search - detects any installed game automatically without hardcoding exe names
 - PS5 worker now fetches game cover art from IGDB (Twitch API) on each cron run; falls back to PSN `conceptIconUrl` when IGDB is not configured or the lookup fails
 - PS5 card renders the IGDB cover art thumbnail next to the game name when online; shows last game and cover art greyed out when offline
 - FiveM added to GPC game detection
 - GPC daemon cover art added for GTA V, GTA VI, FC 26, FC 27, Apex Legends, Rocket League, Overwatch 2, Fortnite, Minecraft and FiveM
+- Now and Lab added to main navigation
+- Notes page replaced full live status widget with a slim animated teaser strip linking to /now
+- Contact page now shows email address below the contact form
+- Footer social row reordered and simplified: All Pages, Contact, Newsletter, LinkedIn, GitHub, ORCID
+- Footer newsletter signup form removed; newsletter signup remains on /blog and /newsletter pages
+- Navigation centred in header using three-zone grid layout
+
+### Changed
+
+- Spotify icon colour changed from Spotify green to blue to match site colour theme
+- GitHub strip moved above Discord card in live status widget so it is always visible
+- Home removed from navigation; avatar already links to homepage
 
 ### Fixed
 
@@ -26,6 +39,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - PS5 worker updated to use current PSN client ID and required headers; the old client ID was removed by PSN and caused 400 errors
 - PS5 worker now exchanges the NPSSO for a refresh token on first run and stores it in KV; subsequent runs use the refresh token so the NPSSO is only needed once per ~60 days
 - PS5 worker IGDB request now includes `Content-Type: text/plain` header required by the Apicalypse query format; without it the API silently returned no results
+- PS5 card no longer shows online when the console is off; API now returns last genuine online timestamp rather than the cron polling timestamp
 
 ---
 

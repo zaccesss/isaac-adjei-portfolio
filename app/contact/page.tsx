@@ -31,8 +31,17 @@ export default function ContactPage() {
         </p>
       </div>
       <ContactForm />
-      <div className="pt-4">
-        <p className="text-sm text-muted-foreground mb-4">Or find me on:</p>
+      <div className="space-y-4 pt-2">
+        <p className="text-sm text-muted-foreground">
+          Prefer email?{" "}
+          <a
+            href="mailto:contact@isaacadjei.me"
+            className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+          >
+            contact@isaacadjei.me
+          </a>
+        </p>
+        <p className="text-sm text-muted-foreground">Or find me on:</p>
         <SocialLinks />
       </div>
     </div>

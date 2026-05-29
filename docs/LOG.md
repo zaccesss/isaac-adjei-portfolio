@@ -14,7 +14,7 @@ Branch: `fix/discord-activity-icon-ps5-last-game`
 
 The old PSN client ID `09515159-7237-4370-9b4e-4f1afab1cbf2` was silently decommissioned. Discovered the replacement by inspecting the `psnawp` Python library source:
 - New client ID: `09515159-7237-4370-9b40-3806e67c0891`
-- New client secret: `ucPjka5tntB2KqsP`
+- New client secret: `[REDACTED - stored as Cloudflare Worker secret, never committed]`
 - New redirect URI: `com.scee.psxandroid.scecompcall://redirect`
 - PSN now also requires extra headers: `X-Requested-With`, `Sec-Fetch-Dest`, `Sec-Fetch-Mode`, `Sec-Fetch-Site` on the authorize request; `User-Agent` and `X-Psn-Correlation-Id` plus a `cid` body field on the token exchange.
 
