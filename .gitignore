@@ -1,6 +1,7 @@
 # private - never commit
 supabase-setup.sql
 module-course-extract/
+newsletter-issues.md
 
 # dependencies
 /node_modules
