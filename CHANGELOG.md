@@ -7,6 +7,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Spotify card shows Spotify icon and external link to profile in card header
+- GPC daemon now fetches game cover art from IGDB (Twitch API) on first game detection and caches per session; falls back to publisher CDN URLs when IGDB is not configured
+- GPC daemon sends `game_image` alongside the game name; GPC card renders the cover art thumbnail next to the game name
+- FiveM added to GPC game detection
+- GPC daemon cover art added for GTA V, GTA VI, FC 26, FC 27, Apex Legends, Rocket League, Overwatch 2, Fortnite, Minecraft and FiveM
+
+### Fixed
+
+- Discord activity card now sorts Playing (type 0) before Watching (type 3) to match Discord's display order
+- Discord activity large icon now shows the small icon as a bottom-right overlay (file icon for VS Code, etc.)
+- Discord activity elapsed timestamp now shows seconds in `H:MM:SS` / `M:SS` format matching Discord, and updates live every second
+- Discord activity timestamps show elapsed/total for activities with an end time (e.g. Netflix episodes); elapsed only for activities with a start time
+- PS5 worker updated to use current PSN client ID and required headers; the old client ID was removed by PSN and caused 400 errors
+- PS5 worker now exchanges the NPSSO for a refresh token on first run and stores it in KV; subsequent runs use the refresh token so the NPSSO is only needed once per ~60 days
+
 ---
 
 ## [v2.6.0] - 2026-05-29

@@ -1,8 +1,12 @@
 /**
  * PS5 presence worker - runs on Cloudflare Workers, triggered every minute.
  *
- * I exchange the PSN NPSSO cookie for an access token, fetch presence for
- * my account, then write the result to two Upstash Redis keys:
+ * I exchange the PSN NPSSO cookie for an access token + refresh token on first
+ * run, then store the refresh token in KV. On every subsequent run I use the
+ * stored refresh token so the NPSSO cookie is only needed once (or when the
+ * refresh token eventually expires after ~60 days).
+ *
+ * I write the result to two Upstash Redis keys:
  *   ps5:status     - live payload with a 120-second TTL
  *   ps5:last-known - last known state, no TTL
  */
@@ -11,12 +15,16 @@ interface Env {
   PSN_NPSSO: string
   UPSTASH_REDIS_REST_URL: string
   UPSTASH_REDIS_REST_TOKEN: string
+  PS5_KV: KVNamespace
+  IGDB_CLIENT_ID?: string
+  IGDB_CLIENT_SECRET?: string
 }
 
-const PSN_CLIENT_ID = "09515159-7237-4370-9b4e-4f1afab1cbf2"
-const PSN_CLIENT_SECRET = "ucPjkaTxEJi0uHEd"
-const PSN_REDIRECT_URI = "com.scee.psxandroid.sso://redirect"
+const PSN_CLIENT_ID = "09515159-7237-4370-9b40-3806e67c0891"
+const PSN_CLIENT_SECRET = "ucPjka5tntB2KqsP"
+const PSN_REDIRECT_URI = "com.scee.psxandroid.scecompcall://redirect"
 const PSN_ACCOUNT_ID = "322685844450023200"
+const REFRESH_TOKEN_KEY = "psn:refresh_token"
 
 async function upstash(env: Env, command: unknown[]): Promise<void> {
   const res = await fetch(env.UPSTASH_REDIS_REST_URL, {
@@ -30,8 +38,8 @@ async function upstash(env: Env, command: unknown[]): Promise<void> {
   if (!res.ok) throw new Error(`Upstash error: ${res.status}`)
 }
 
-async function getAccessToken(npsso: string): Promise<string> {
-  // I exchange the NPSSO cookie for an OAuth auth code, then for an access token.
+async function exchangeNpsso(npsso: string): Promise<{ access_token: string; refresh_token: string }> {
+  // Exchange NPSSO cookie for auth code, then for access + refresh tokens.
   const params = new URLSearchParams({
     access_type: "offline",
     client_id: PSN_CLIENT_ID,
@@ -40,15 +48,24 @@ async function getAccessToken(npsso: string): Promise<string> {
     scope: "psn:mobile.v2.core psn:clientapp",
   })
 
+  const cid = crypto.randomUUID()
   const authorizeRes = await fetch(
     `https://ca.account.sony.com/api/authz/v3/oauth/authorize?${params}`,
     {
-      headers: { Cookie: `npsso=${npsso}` },
+      headers: {
+        Cookie: `npsso=${npsso}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-Requested-With": "com.scee.psxandroid",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "same-site",
+      },
       redirect: "manual",
     }
   )
 
   const location = authorizeRes.headers.get("location") ?? ""
+  console.log(`PSN authorize: status=${authorizeRes.status} location=${location || "(empty)"}`)
   const codeMatch = location.match(/[?&]code=([^&]+)/)
   if (!codeMatch) throw new Error(`No auth code in redirect: ${location}`)
 
@@ -60,11 +77,15 @@ async function getAccessToken(npsso: string): Promise<string> {
       headers: {
         Authorization: `Basic ${basicAuth}`,
         "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "com.sony.snei.np.android.sso.share.oauth.versa.USER_AGENT",
+        "X-Psn-Correlation-Id": cid,
       },
       body: new URLSearchParams({
+        cid,
         grant_type: "authorization_code",
         code: codeMatch[1],
         redirect_uri: PSN_REDIRECT_URI,
+        scope: "psn:mobile.v2.core psn:clientapp",
         token_format: "jwt",
       }),
     }
@@ -75,19 +96,110 @@ async function getAccessToken(npsso: string): Promise<string> {
     throw new Error(`Token exchange failed: ${tokenRes.status} ${err}`)
   }
 
-  const data = await tokenRes.json() as { access_token: string }
-  return data.access_token
+  const data = await tokenRes.json() as { access_token: string; refresh_token: string }
+  return { access_token: data.access_token, refresh_token: data.refresh_token }
 }
 
-async function fetchPresence(accessToken: string): Promise<{
+async function exchangeRefreshToken(refreshToken: string): Promise<{ access_token: string; refresh_token: string }> {
+  const basicAuth = btoa(`${PSN_CLIENT_ID}:${PSN_CLIENT_SECRET}`)
+  const cid = crypto.randomUUID()
+  const tokenRes = await fetch(
+    "https://ca.account.sony.com/api/authz/v3/oauth/token",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${basicAuth}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "com.sony.snei.np.android.sso.share.oauth.versa.USER_AGENT",
+        "X-Psn-Correlation-Id": cid,
+      },
+      body: new URLSearchParams({
+        cid,
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        token_format: "jwt",
+        scope: "psn:mobile.v2.core psn:clientapp",
+      }),
+    }
+  )
+
+  if (!tokenRes.ok) throw new Error(`Refresh token exchange failed: ${tokenRes.status}`)
+
+  const data = await tokenRes.json() as { access_token: string; refresh_token: string }
+  return { access_token: data.access_token, refresh_token: data.refresh_token }
+}
+
+async function getAccessToken(env: Env): Promise<string> {
+  const storedRefreshToken = await env.PS5_KV.get(REFRESH_TOKEN_KEY)
+
+  if (storedRefreshToken) {
+    try {
+      const { access_token, refresh_token } = await exchangeRefreshToken(storedRefreshToken)
+      // PSN rotates refresh tokens on each use — persist the new one.
+      await env.PS5_KV.put(REFRESH_TOKEN_KEY, refresh_token)
+      console.log("Auth: used stored refresh token")
+      return access_token
+    } catch (e) {
+      console.log(`Refresh token failed (${e}), falling back to NPSSO`)
+    }
+  }
+
+  // First run or refresh token expired — fall back to NPSSO.
+  const { access_token, refresh_token } = await exchangeNpsso(env.PSN_NPSSO)
+  await env.PS5_KV.put(REFRESH_TOKEN_KEY, refresh_token)
+  console.log("Auth: used NPSSO, stored new refresh token")
+  return access_token
+}
+
+const IGDB_NAME_MAP: Record<string, string> = {
+  "EA SPORTS FC 26": "EA Sports FC 26",
+  "EA SPORTS FC 27": "EA Sports FC 27",
+}
+
+async function fetchIgdbCover(env: Env, gameName: string): Promise<string | null> {
+  if (!env.IGDB_CLIENT_ID || !env.IGDB_CLIENT_SECRET) return null
+  try {
+    const tokenRes = await fetch(
+      `https://id.twitch.tv/oauth2/token?client_id=${env.IGDB_CLIENT_ID}&client_secret=${env.IGDB_CLIENT_SECRET}&grant_type=client_credentials`,
+      { method: "POST" }
+    )
+    if (!tokenRes.ok) return null
+    const { access_token } = await tokenRes.json() as { access_token: string }
+
+    const igdbName = IGDB_NAME_MAP[gameName] ?? gameName
+    const coversRes = await fetch("https://api.igdb.com/v4/games", {
+      method: "POST",
+      headers: {
+        "Client-ID": env.IGDB_CLIENT_ID,
+        "Authorization": `Bearer ${access_token}`,
+      },
+      body: `search "${igdbName}"; fields name, cover.url; where cover != null; limit 1;`,
+    })
+    if (!coversRes.ok) return null
+    const results = await coversRes.json() as Array<{ cover?: { url?: string } }>
+    const url = results[0]?.cover?.url
+    if (!url) return null
+    return "https:" + url.replace("/t_thumb/", "/t_cover_big/")
+  } catch {
+    return null
+  }
+}
+
+async function fetchPresence(accessToken: string, env: Env): Promise<{
   online: boolean
   status: string
   game: string | null
+  game_image: string | null
   platform: string
   lastSeen: string
 }> {
+  const params = new URLSearchParams({
+    type: "primary",
+    platforms: "PS4,PS5,MOBILE_APP,PSPC",
+    withOwnGameTitleInfo: "true",
+  })
   const res = await fetch(
-    `https://m.np.playstation.com/api/userProfile/v1/internal/users/${PSN_ACCOUNT_ID}/basicPresences?presenceType=PRIMARY`,
+    `https://m.np.playstation.com/api/userProfile/v2/internal/users/${PSN_ACCOUNT_ID}/basicPresences?${params}`,
     { headers: { Authorization: `Bearer ${accessToken}` } }
   )
 
@@ -96,7 +208,7 @@ async function fetchPresence(accessToken: string): Promise<{
   const data = await res.json() as {
     basicPresence?: {
       availability?: string
-      gameTitleInfoList?: Array<{ titleName?: string; npTitleId?: string }>
+      gameTitleInfoList?: Array<{ titleName?: string; npTitleId?: string; conceptIconUrl?: string; titleIconUrl?: string }>
     }
   }
 
@@ -107,6 +219,9 @@ async function fetchPresence(accessToken: string): Promise<{
 
   const gameInfo = (basic.gameTitleInfoList ?? [{}])[0]
   const game = gameInfo?.titleName ?? gameInfo?.npTitleId ?? null
+  // I prefer IGDB cover art (stable box art) over PSN's conceptIconUrl (changes with promotions)
+  const psnImage = gameInfo?.conceptIconUrl ?? gameInfo?.titleIconUrl ?? null
+  const gameImage = game ? (await fetchIgdbCover(env, game) ?? psnImage) : null
 
   let status: string
   if (game) status = "Playing"
@@ -118,6 +233,7 @@ async function fetchPresence(accessToken: string): Promise<{
     online,
     status,
     game: game ?? null,
+    game_image: gameImage,
     platform: "PS5",
     lastSeen: new Date().toISOString(),
   }
@@ -125,15 +241,11 @@ async function fetchPresence(accessToken: string): Promise<{
 
 export default {
   async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
-    const accessToken = await getAccessToken(env.PSN_NPSSO)
-    const presence = await fetchPresence(accessToken)
+    const accessToken = await getAccessToken(env)
+    const presence = await fetchPresence(accessToken, env)
     const payload = JSON.stringify(presence)
 
-    // I write the live key with a 120-second TTL so the frontend
-    // knows the worker is running and data is fresh.
     await upstash(env, ["SET", "ps5:status", payload, "EX", "120"])
-    // I always update last-known so the frontend has a fallback
-    // even when ps5:status has expired.
     await upstash(env, ["SET", "ps5:last-known", payload])
 
     console.log(`[${presence.lastSeen.slice(0, 19)}] ${presence.status} - ${presence.game ?? "no game"}`)

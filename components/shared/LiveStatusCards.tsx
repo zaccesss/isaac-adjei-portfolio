@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, GitBranch, Monitor, Github, ExternalLink } from "lucide-react"
-import { SiPlaystation, SiDiscord } from "react-icons/si"
+import { SiPlaystation, SiDiscord, SiSpotify } from "react-icons/si"
 import { cn } from "@/lib/utils"
 
 interface LastPlayed {
@@ -52,6 +52,7 @@ interface GamingPCData {
   gpu: string | null
   cpu: string | null
   currentGame: string | null
+  gameImage: string | null
   device: string | null
 }
 
@@ -104,10 +105,44 @@ function activityIconUrl(activity: LanyardActivity): string | null {
   return null
 }
 
+function activitySmallIconUrl(activity: LanyardActivity): string | null {
+  const img = activity.assets?.small_image
+  if (!img) return null
+  if (img.startsWith("mp:external/")) {
+    return `https://media.discordapp.net/external/${img.slice("mp:external/".length)}`
+  }
+  if (activity.application_id) {
+    return `https://cdn.discordapp.com/app-assets/${activity.application_id}/${img}.png`
+  }
+  return null
+}
+
+// For activities with an end timestamp (e.g. Netflix episodes), show elapsed/total like Discord does.
+// For activities with only a start timestamp, show elapsed time.
+function activityTimestamp(activity: LanyardActivity): string | null {
+  const { start, end } = activity.timestamps ?? {}
+  if (!start) return null
+  if (end) {
+    const elapsed = Math.max(0, Date.now() - start)
+    const total = end - start
+    return `${formatMs(elapsed)} / ${formatMs(total)}`
+  }
+  return activityElapsed(start)
+}
+
 const STATUS_COLOR: Record<string, string> = {
   online: "bg-green-500",
   idle:   "bg-yellow-500",
   dnd:    "bg-red-500",
+}
+
+function activityElapsed(startMs: number): string {
+  const totalSecs = Math.max(0, Math.floor((Date.now() - startMs) / 1000))
+  const h = Math.floor(totalSecs / 3600)
+  const m = Math.floor((totalSecs % 3600) / 60)
+  const s = totalSecs % 60
+  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+  return `${m}:${String(s).padStart(2, "0")}`
 }
 
 function elapsedSince(startMs: number): string {
@@ -208,7 +243,8 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
     weatherCondition: null, weatherEmoji: null, tempC: null,
   })
   const [lenovo, setLenovo] = useState<LenovoData>({ battery: null, charging: null, lastSeen: null, device: null })
-  const [gamingPC, setGamingPC] = useState<GamingPCData>({ online: false, lastSeen: null, gpu: null, cpu: null, currentGame: null, device: "ZACCESS-GPC" })
+  const [gamingPC, setGamingPC] = useState<GamingPCData>({ online: false, lastSeen: null, gpu: null, cpu: null, currentGame: null, gameImage: null, device: "ZACCESS-GPC" })
+  const [, setActivityTick] = useState(0)
   const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
   const [ps5Data, setPs5Data] = useState<PS5Data>({ online: false, lastSeen: null, status: "Offline", game: null, gameImage: null, lastGame: null, lastGameImage: null })
   const [lanyard, setLanyard] = useState<LanyardData | null>(null)
@@ -224,6 +260,11 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [mac.timezone])
+
+  useEffect(() => {
+    const id = setInterval(() => setActivityTick((n) => n + 1), 1000)
+    return () => clearInterval(id)
+  }, [])
 
   useEffect(() => {
     async function fetch_() {
@@ -278,6 +319,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
             cpu:         data.cpu !== null ? `${data.cpu}%` : null,
             gpu:         data.gpu !== null ? `${data.gpu}%` : null,
             currentGame: data.game,
+            gameImage:   data.game_image ?? null,
           })
         }
       } catch {}
@@ -387,9 +429,21 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
       <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
         {hasTrack ? (
           <div className="p-4 space-y-3">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-blue-500">
-              {spotifyLabel}
-            </p>
+            <div className="flex items-center gap-2">
+              <SiSpotify className="h-3.5 w-3.5 text-[#1db954] shrink-0" />
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-blue-500 flex-1 truncate">
+                {spotifyLabel}
+              </p>
+              <a
+                href="https://open.spotify.com/user/zaccesss"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Spotify profile"
+                className="text-foreground/60 hover:text-foreground transition-colors shrink-0"
+              >
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
             <div className="flex items-center gap-3">
               {spotify.albumArt ? (
                 <Image
@@ -434,9 +488,21 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
         ) : spotify.lastPlayed ? (
           // I render last_played at reduced opacity with a grayscale thumbnail to signal the track is not currently active
           <div className="p-4 space-y-3 opacity-50">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Last Played
-            </p>
+            <div className="flex items-center gap-2">
+              <SiSpotify className="h-3.5 w-3.5 text-[#1db954] shrink-0" />
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground flex-1">
+                Last Played
+              </p>
+              <a
+                href="https://open.spotify.com/user/zaccesss"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Spotify profile"
+                className="text-foreground/60 hover:text-foreground transition-colors shrink-0"
+              >
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
             <div className="flex items-center gap-3">
               {spotify.lastPlayed.albumArt ? (
                 <Image
@@ -463,10 +529,22 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
             <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
               <span className="text-muted-foreground text-lg">♫</span>
             </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                Spotify
-              </p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <SiSpotify className="h-3 w-3 text-[#1db954] shrink-0" />
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                  Spotify
+                </p>
+                <a
+                  href="https://open.spotify.com/user/zaccesss"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Spotify profile"
+                  className="ml-auto text-foreground/60 hover:text-foreground transition-colors shrink-0"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
               <p className="text-sm text-muted-foreground">Nothing playing</p>
             </div>
           </div>
@@ -580,7 +658,15 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                   </p>
                 )}
                 {gOnline && gamingPC.currentGame && (
-                  <p className="text-xs text-muted-foreground truncate">Playing: {gamingPC.currentGame}</p>
+                  <div className="flex items-start justify-between gap-2 mt-0.5">
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">Playing</p>
+                      <p className="text-xs font-medium truncate">{gamingPC.currentGame}</p>
+                    </div>
+                    {gamingPC.gameImage && (
+                      <Image src={gamingPC.gameImage} alt={gamingPC.currentGame} width={40} height={40} className="h-10 w-10 rounded shrink-0 object-cover" unoptimized />
+                    )}
+                  </div>
                 )}
                 {!gOnline && !gamingPC.lastSeen && (
                   <p className="text-xs text-muted-foreground/30">daemon not set up</p>
@@ -610,31 +696,36 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                     {ps5Data.lastSeen ? pSeenText : "offline"}
                   </span>
                 </div>
-                {ps5Data.status !== "Online" && ps5Data.status !== "Offline" && (
-                  <p className="text-xs text-muted-foreground">{ps5Data.status}</p>
-                )}
-                {ps5Data.online && ps5Data.game && (
-                  <div className="flex items-center gap-2 pt-0.5">
+                {ps5Data.online && ps5Data.game ? (
+                  <div className="flex items-start justify-between gap-2 pt-0.5">
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">{ps5Data.status}</p>
+                      <p className="text-xs font-medium truncate">{ps5Data.game}</p>
+                    </div>
                     {ps5Data.gameImage && (
                       <img
                         src={ps5Data.gameImage}
                         alt={ps5Data.game}
-                        className="h-8 w-14 rounded object-cover shrink-0"
+                        className="h-10 w-10 rounded shrink-0 object-cover"
                       />
                     )}
-                    <p className="text-xs text-muted-foreground truncate">{ps5Data.game}</p>
                   </div>
-                )}
+                ) : ps5Data.online && ps5Data.status !== "Online" && ps5Data.status !== "Offline" ? (
+                  <p className="text-xs text-muted-foreground">{ps5Data.status}</p>
+                ) : null}
                 {!ps5Data.online && ps5Data.lastGame && (
-                  <div className="flex items-center gap-2 pt-0.5 opacity-40">
+                  <div className="flex items-start justify-between gap-2 pt-0.5 opacity-40">
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">Last played</p>
+                      <p className="text-xs text-muted-foreground truncate">{ps5Data.lastGame}</p>
+                    </div>
                     {ps5Data.lastGameImage && (
                       <img
                         src={ps5Data.lastGameImage}
                         alt={ps5Data.lastGame}
-                        className="h-8 w-14 rounded object-cover shrink-0"
+                        className="h-10 w-10 rounded shrink-0 object-cover"
                       />
                     )}
-                    <p className="text-xs text-muted-foreground truncate">Last played: {ps5Data.lastGame}</p>
                   </div>
                 )}
               </div>
@@ -647,7 +738,10 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
       {/* Discord / Lanyard card */}
       {(alwaysShowDiscord || (lanyard && lanyard.discord_status !== "offline")) && (() => {
         const offline = !lanyard || lanyard.discord_status === "offline"
-        const richActivities = !offline ? lanyard!.activities.filter((a) => a.type !== 4) : []
+        // I sort Playing (type 0) before Watching (type 3) to match Discord's own display order
+        const richActivities = !offline
+          ? lanyard!.activities.filter((a) => a.type !== 4).sort((a, b) => a.type - b.type)
+          : []
         const customStatus = !offline ? lanyard!.activities.find((a) => a.type === 4) : null
         const statusLabel = offline
           ? "offline"
@@ -674,23 +768,35 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
               <div className="space-y-2">
                 {richActivities.map((activity, i) => {
                   const iconUrl = activityIconUrl(activity)
+                  const smallIconUrl = activitySmallIconUrl(activity)
+                  const timestamp = activityTimestamp(activity)
                   return (
                     <div key={i} className={cn("flex gap-2.5", i > 0 && "pt-2 border-t border-border/40")}>
                       {iconUrl && (
-                        <img
-                          src={iconUrl}
-                          alt={activity.assets?.large_text ?? activity.name}
-                          className="h-10 w-10 rounded shrink-0 object-cover"
-                        />
+                        <div className="relative shrink-0 h-10 w-10">
+                          <img
+                            src={iconUrl}
+                            alt={activity.assets?.large_text ?? activity.name}
+                            className="h-10 w-10 rounded object-cover"
+                          />
+                          {smallIconUrl && (
+                            <img
+                              src={smallIconUrl}
+                              alt={activity.assets?.small_text ?? ""}
+                              title={activity.assets?.small_text ?? ""}
+                              className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-card object-cover bg-card"
+                            />
+                          )}
+                        </div>
                       )}
                       <div className="space-y-0.5 min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/40 shrink-0">
                             {activity.type === 2 ? "Listening" : activity.type === 3 ? "Watching" : "Playing"}
                           </span>
-                          {activity.timestamps?.start && (
-                            <span className="text-[10px] text-muted-foreground/40 ml-auto shrink-0">
-                              {elapsedSince(activity.timestamps.start)}
+                          {timestamp && (
+                            <span className="text-[10px] text-muted-foreground/40 ml-auto shrink-0 font-mono">
+                              {timestamp}
                             </span>
                           )}
                         </div>

@@ -10,8 +10,19 @@ metadata:
 
 ## When Back at Uni (Requires GPC Access)
 
-**Gaming PC Game Cover Art**
-The GPC daemon detects games via `KNOWN_GAMES` in `scripts/gpc-daemon.py`. To add cover art, extend with a `GAME_IMAGES` dict mapping game names to Steam header CDN URLs (`https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/header.jpg`). Store `game_image` in the Redis payload, expose it from `/api/gpc/route.ts` and render it in `LiveStatusCards.tsx` the same way the PS5 card does. Steam App IDs to add: GTA V=271590, Apex Legends=1172470, Rocket League=252950, Overwatch 2=2357570. Requires restarting the GPC daemon after the change.
+**Gaming PC Game Cover Art — READY, IGDB integrated, restart daemon + set env vars**
+
+`scripts/gpc-daemon.py` now fetches cover art from IGDB (Twitch API) on first detection of each game and caches the result in memory. Falls back to hardcoded publisher CDN URLs if IGDB credentials are not set.
+
+**To activate on the Windows GPC:**
+1. Set two new env vars alongside the existing Upstash ones (NSSM environment or Windows system env):
+   - `IGDB_CLIENT_ID` — from dev.twitch.tv/console (free Twitch developer app)
+   - `IGDB_CLIENT_SECRET` — from the same Twitch app
+2. `nssm restart gpc-daemon`
+
+To create the Twitch app: dev.twitch.tv/console → Register Your Application → Category: Application Integration → Redirect URL: http://localhost → Create → copy Client ID and generate Secret.
+
+To add more games: add the exe name to `KNOWN_GAMES` in `scripts/gpc-daemon.py`. IGDB fetches art automatically. Add to `IGDB_NAME_MAP` only if the IGDB title differs from your short name (e.g. "GTA V" → "Grand Theft Auto V").
 
 ---
 
