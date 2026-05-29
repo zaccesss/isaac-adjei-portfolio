@@ -7,6 +7,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
+import { usePathname } from "next/navigation"
 import { useScrollPosition } from "@/hooks/useScrollPosition"
 import { cn } from "@/lib/utils"
 import Navigation from "./Navigation"
@@ -15,7 +16,9 @@ import ThemeToggle from "@/components/shared/ThemeToggle"
 
 export default function Header() {
   const scrollY = useScrollPosition()
+  const pathname = usePathname()
   const isScrolled = scrollY > 10
+  const isHome = pathname === "/"
 
   return (
     <header
@@ -38,7 +41,7 @@ export default function Header() {
               className="object-cover w-full h-full"
             />
           </div>
-          <span className="font-mono text-[10px] font-semibold tracking-tight text-muted-foreground group-hover:text-primary transition-colors leading-none">
+          <span className={cn("font-mono text-[10px] font-semibold tracking-tight transition-colors leading-none", isHome ? "text-primary" : "text-muted-foreground group-hover:text-primary")}>
             zaccess
           </span>
         </Link>
