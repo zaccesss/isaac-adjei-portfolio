@@ -105,6 +105,7 @@ function activityIconUrl(activity: LanyardActivity): string | null {
   return null
 }
 
+// I build the small icon URL (shown as a bottom-right overlay on the large icon, e.g. a file type icon over the VS Code logo)
 function activitySmallIconUrl(activity: LanyardActivity): string | null {
   const img = activity.assets?.small_image
   if (!img) return null
@@ -244,6 +245,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
   })
   const [lenovo, setLenovo] = useState<LenovoData>({ battery: null, charging: null, lastSeen: null, device: null })
   const [gamingPC, setGamingPC] = useState<GamingPCData>({ online: false, lastSeen: null, gpu: null, cpu: null, currentGame: null, gameImage: null, device: "ZACCESS-GPC" })
+  // I never read this value - the setter is all I need to force a re-render every second so Discord elapsed timestamps stay live
   const [, setActivityTick] = useState(0)
   const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
   const [ps5Data, setPs5Data] = useState<PS5Data>({ online: false, lastSeen: null, status: "Offline", game: null, gameImage: null, lastGame: null, lastGameImage: null })
@@ -261,6 +263,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
     return () => clearInterval(id)
   }, [mac.timezone])
 
+  // I tick every second so Discord activity elapsed timestamps re-render in real time without polling the API
   useEffect(() => {
     const id = setInterval(() => setActivityTick((n) => n + 1), 1000)
     return () => clearInterval(id)
@@ -713,6 +716,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                 ) : ps5Data.online && ps5Data.status !== "Online" && ps5Data.status !== "Offline" ? (
                   <p className="text-xs text-muted-foreground">{ps5Data.status}</p>
                 ) : null}
+                {/* I show the last known game at reduced opacity when offline so there is always something useful on the card */}
                 {!ps5Data.online && ps5Data.lastGame && (
                   <div className="flex items-start justify-between gap-2 pt-0.5 opacity-40">
                     <div className="min-w-0">

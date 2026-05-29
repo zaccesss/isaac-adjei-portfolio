@@ -77,8 +77,18 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 
 ### Gaming PC card
 - Redis keys: `gpc:status` (TTL 600s), `gpc:last-known` (no TTL)
-- Shows: last seen, CPU%, active game name
+- Shows: last seen, CPU%, active game name and cover art thumbnail
 - Offline rule: when offline show ONLY last seen time. Never show CPU/GPU/game when stale.
+- Game cover art: fetched from IGDB on first detection per daemon session; falls back to hardcoded CDN URLs
+
+### PS5 card
+- Redis keys: `ps5:status` (TTL 120s), `ps5:last-known` (no TTL)
+- Shows: online/offline, current game with IGDB cover art, last-seen time
+- Offline rule: shows last known game and cover art at reduced opacity with "last seen X ago"
+- Powered by Cloudflare Worker `workers/ps5-presence/` — cron every minute
+- PSN auth: NPSSO cookie exchanged for access + refresh token on first run; refresh token stored in KV `PS5_KV`, rotated on each use (~60 day lifetime)
+- Game cover art: IGDB lookup on every cron run; falls back to PSN `conceptIconUrl` (changes with promotions)
+- Worker secrets: `PSN_NPSSO`, `IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
 
 ### GitHub card
 - `Github` icon | `GitBranch` icon - "pushed {repo}" + relative time

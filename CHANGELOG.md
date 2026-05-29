@@ -12,6 +12,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Spotify card shows Spotify icon and external link to profile in card header
 - GPC daemon now fetches game cover art from IGDB (Twitch API) on first game detection and caches per session; falls back to publisher CDN URLs when IGDB is not configured
 - GPC daemon sends `game_image` alongside the game name; GPC card renders the cover art thumbnail next to the game name
+- PS5 worker now fetches game cover art from IGDB (Twitch API) on each cron run; falls back to PSN `conceptIconUrl` when IGDB is not configured or the lookup fails
+- PS5 card renders the IGDB cover art thumbnail next to the game name when online; shows last game and cover art greyed out when offline
 - FiveM added to GPC game detection
 - GPC daemon cover art added for GTA V, GTA VI, FC 26, FC 27, Apex Legends, Rocket League, Overwatch 2, Fortnite, Minecraft and FiveM
 
@@ -23,6 +25,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Discord activity timestamps show elapsed/total for activities with an end time (e.g. Netflix episodes); elapsed only for activities with a start time
 - PS5 worker updated to use current PSN client ID and required headers; the old client ID was removed by PSN and caused 400 errors
 - PS5 worker now exchanges the NPSSO for a refresh token on first run and stores it in KV; subsequent runs use the refresh token so the NPSSO is only needed once per ~60 days
+- PS5 worker IGDB request now includes `Content-Type: text/plain` header required by the Apicalypse query format; without it the API silently returned no results
 
 ---
 

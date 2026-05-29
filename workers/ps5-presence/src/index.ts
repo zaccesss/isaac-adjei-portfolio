@@ -151,36 +151,61 @@ async function getAccessToken(env: Env): Promise<string> {
   return access_token
 }
 
+// PSN returns marketing names; IGDB uses official titles — map the differences here.
 const IGDB_NAME_MAP: Record<string, string> = {
   "EA SPORTS FC 26": "EA Sports FC 26",
   "EA SPORTS FC 27": "EA Sports FC 27",
+  // PSN may return short names for GTA titles; IGDB needs the full official name.
+  "GTA V":  "Grand Theft Auto V",
+  "GTA VI": "Grand Theft Auto VI",
+  // GTA Online is technically part of GTA V on IGDB
+  "Grand Theft Auto Online": "Grand Theft Auto V",
+  "GTA Online": "Grand Theft Auto V",
 }
 
 async function fetchIgdbCover(env: Env, gameName: string): Promise<string | null> {
+  // I skip the lookup entirely if the secrets are not configured to avoid noisy errors.
   if (!env.IGDB_CLIENT_ID || !env.IGDB_CLIENT_SECRET) return null
   try {
+    // I use the client_credentials flow — no user login needed, tokens last ~60 days.
     const tokenRes = await fetch(
       `https://id.twitch.tv/oauth2/token?client_id=${env.IGDB_CLIENT_ID}&client_secret=${env.IGDB_CLIENT_SECRET}&grant_type=client_credentials`,
       { method: "POST" }
     )
-    if (!tokenRes.ok) return null
+    if (!tokenRes.ok) {
+      console.log(`[igdb] token fetch failed: ${tokenRes.status}`)
+      return null
+    }
     const { access_token } = await tokenRes.json() as { access_token: string }
 
     const igdbName = IGDB_NAME_MAP[gameName] ?? gameName
+    console.log(`[igdb] searching for '${igdbName}' (PSN name: '${gameName}')`)
     const coversRes = await fetch("https://api.igdb.com/v4/games", {
       method: "POST",
       headers: {
         "Client-ID": env.IGDB_CLIENT_ID,
         "Authorization": `Bearer ${access_token}`,
+        // IGDB requires Content-Type text/plain for Apicalypse query bodies.
+        "Content-Type": "text/plain",
       },
       body: `search "${igdbName}"; fields name, cover.url; where cover != null; limit 1;`,
     })
-    if (!coversRes.ok) return null
-    const results = await coversRes.json() as Array<{ cover?: { url?: string } }>
+    if (!coversRes.ok) {
+      console.log(`[igdb] games request failed: ${coversRes.status}`)
+      return null
+    }
+    const results = await coversRes.json() as Array<{ name?: string; cover?: { url?: string } }>
     const url = results[0]?.cover?.url
-    if (!url) return null
-    return "https:" + url.replace("/t_thumb/", "/t_cover_big/")
-  } catch {
+    if (!url) {
+      console.log(`[igdb] no cover found for '${igdbName}' (${results.length} results)`)
+      return null
+    }
+    // IGDB returns protocol-relative thumbnail URLs; upgrade to full HTTPS big cover.
+    const coverUrl = "https:" + url.replace("/t_thumb/", "/t_cover_big/")
+    console.log(`[igdb] cover for '${results[0]?.name}': ${coverUrl}`)
+    return coverUrl
+  } catch (e) {
+    console.log(`[igdb] unexpected error for '${gameName}': ${e}`)
     return null
   }
 }
