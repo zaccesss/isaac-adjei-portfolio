@@ -2,8 +2,8 @@
 
 // Sticky site header with a blur backdrop that appears once the user scrolls down.
 // I use the useScrollPosition hook to detect scroll and swap Tailwind classes accordingly.
-// The header renders the desktop Navigation and the MobileNav side by side - CSS hides
-// whichever one isn't appropriate for the current viewport width.
+// On mobile I use flex + justify-between so the controls stay pinned to the far right
+// even when the desktop Navigation is hidden. On md+ a three-zone grid centres the nav.
 
 import Link from "next/link"
 import Image from "next/image"
@@ -29,8 +29,8 @@ export default function Header() {
           : "bg-transparent"
       )}
     >
-      {/* I use a three-zone grid so the nav sits truly centred regardless of avatar/toggle width */}
-      <div className="container grid h-16 items-center grid-cols-[1fr_auto_1fr]">
+      {/* flex on mobile keeps controls pinned to the right; grid on md+ centres the nav */}
+      <div className="container flex h-16 items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr]">
         <Link href="/" title="Home" className="flex flex-col items-center gap-0.5 group w-fit">
           <div className="w-7 h-7 rounded-full overflow-hidden border border-primary/30 group-hover:border-primary/70 transition-colors">
             <Image

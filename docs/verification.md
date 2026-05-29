@@ -5,6 +5,16 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 
 ---
 
+## Mobile header and banner
+
+- [ ] Mobile header alignment - on a phone or narrow window (below 768px wide), the theme toggle and hamburger icon sit flush to the far right of the header; they are never centred
+- [ ] iPad split-view / half-screen desktop - resize the browser window to less than half; confirm toggle and hamburger remain pinned right, not drifting toward the centre
+- [ ] Mobile banner visible - on a screen narrower than 768px a slim "best experienced on a laptop or desktop" strip appears below the header
+- [ ] Mobile banner dismissible - clicking the X on the banner hides it; it does not reappear until the page reloads
+- [ ] Mobile banner hidden on desktop - on a screen 768px or wider the banner is not rendered at all
+
+---
+
 ## Public pages
 
 - [ ] `/` - Homepage loads, hero visible, navigation works
