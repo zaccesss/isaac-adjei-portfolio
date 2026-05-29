@@ -12,7 +12,7 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 - **Repo:** https://github.com/zaccesss/isaac-adjei-portfolio
 - **Local path:** `/Users/isaacadjei/dev/github/repos/isaac-adjei-portfolio`
 - **Framework:** Next.js 16 App Router, TypeScript, Tailwind CSS, shadcn/ui, Framer Motion
-- **Deployment:** Vercel (auto-deploys on push to main)
+- **Deployment:** Vercel (main Next.js app, auto-deploys on push to main); Cloudflare Workers (PS5 presence worker, deployed manually via Wrangler)
 - **DNS:** Cloudflare
 - **DB:** Supabase PostgreSQL (dashboard only)
 - **Cache:** Upstash Redis (live status cards, rate limiting)
@@ -40,12 +40,20 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 | `CRON_SECRET` | Auth for Vercel cron routes (weekly digest) |
 | `DIGEST_EMAIL` | Email to receive weekly dashboard summary |
 | `GH_PAT` | GitHub PAT with workflow scope - enables Run Now in dashboard settings |
+| `PSN_NPSSO` | PS5 Cloudflare Worker only - 64-char hex from playstation.com cookies. Not a Vercel env var. |
+| `IGDB_CLIENT_ID` | Twitch Developer App - used by PS5 Worker and GPC daemon for IGDB cover art |
+| `IGDB_CLIENT_SECRET` | Twitch Developer App secret (same app as above) |
+| `STEAM_API_KEY` | Steam Web API key - GPC daemon only, for 5-tier game detection |
+| `STEAM_ID` | Steam64 user ID (format: 76561198xxxxxxxxx) - GPC daemon only |
+| `BEEHIIV_API_KEY` | Beehiiv newsletter API |
+| `BEEHIIV_PUBLICATION_ID` | Beehiiv publication ID (format: pub_xxx) |
+| `NEXT_PUBLIC_GA_ID` | Google Analytics measurement ID |
 
 ---
 
 ## Live status widget system
 
-**Layout (component: components/shared/LiveStatusCards.tsx, used on /notes /home /lab)**
+**Layout (component: components/shared/LiveStatusCards.tsx, used on /notes /home /lab; full widget on /now, slim teaser strip on /notes)**
 
 ```
 [Weather + Time - full width]
@@ -79,13 +87,13 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 - Redis keys: `gpc:status` (TTL 600s), `gpc:last-known` (no TTL)
 - Shows: last seen, CPU%, active game name and cover art thumbnail
 - Offline rule: when offline show ONLY last seen time. Never show CPU/GPU/game when stale.
-- Game cover art: fetched from IGDB on first detection per daemon session; falls back to hardcoded CDN URLs
+- Game detection uses 5-tier logic: (1) hardcoded KNOWN_GAMES dict, (2) Steam Web API, (3) Epic Games local manifests, (4) EA App local manifests, (5) psutil process scanning with IGDB fuzzy name matching. Cover art is fetched from IGDB on first detection per session and cached in memory.
 
 ### PS5 card
 - Redis keys: `ps5:status` (TTL 120s), `ps5:last-known` (no TTL)
 - Shows: online/offline, current game with IGDB cover art, last-seen time
-- Offline rule: shows last known game and cover art at reduced opacity with "last seen X ago"
-- Powered by Cloudflare Worker `workers/ps5-presence/` — cron every minute
+- Offline rule: when offline shows text-only last played game name (no image); "Last played: [game]" text below the last-seen timestamp.
+- Powered by Cloudflare Worker `workers/ps5-presence/` - cron every minute
 - PSN auth: NPSSO cookie exchanged for access + refresh token on first run; refresh token stored in KV `PS5_KV`, rotated on each use (~60 day lifetime)
 - Game cover art: IGDB lookup on every cron run; falls back to PSN `conceptIconUrl` (changes with promotions)
 - Worker secrets: `PSN_NPSSO`, `IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
@@ -115,6 +123,7 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 - Always set multiple env vars in ONE nssm call (two separate calls overwrite each other)
 - SERVICE_PAUSED means the process CRASHED - always check the log
 - Run all nssm commands in admin PowerShell
+- GPC daemon requires IGDB_CLIENT_ID, IGDB_CLIENT_SECRET, STEAM_API_KEY and STEAM_ID in AppEnvironmentExtra (set all in ONE nssm call - two separate calls overwrite each other)
 
 ---
 
@@ -124,6 +133,22 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 - PDF download served from `public/resume/Isaac_Adjei_CV.pdf` via `/api/cv-pdf`
 - PDF is auto-regenerated via GitHub Actions whenever `cv.html` changes on main (`.github/workflows/cv-pdf.yml`)
 - To edit: change `cv.html`, push - PDF regenerates automatically
+
+---
+
+## Cloudflare Worker (PS5 presence)
+
+- **Worker path:** `workers/ps5-presence/`
+- **Deploy:** `cd workers/ps5-presence && npx wrangler@3 deploy`
+- **Secrets to set (via `wrangler secret put`):**
+  - `PSN_NPSSO` - 64-char hex NPSSO cookie from playstation.com
+  - `IGDB_CLIENT_ID` - Twitch app client ID
+  - `IGDB_CLIENT_SECRET` - Twitch app client secret
+  - `UPSTASH_REDIS_REST_URL` - same as main site
+  - `UPSTASH_REDIS_REST_TOKEN` - same as main site
+- **KV namespace:** `PS5_KV` - stores the PSN refresh token so the NPSSO is only needed once per ~60 days
+- **Cron:** every minute, configured in `wrangler.toml` schedule
+- **To renew NPSSO:** `echo "your-npsso" | npx wrangler@3 secret put PSN_NPSSO`
 
 ---
 

@@ -5,41 +5,54 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased]
+## [v2.7.0] - 2026-05-29
 
 ### Added
 
-- Spotify card shows Spotify icon and external link to profile in card header
-- GPC daemon now fetches game cover art from IGDB (Twitch API) on first game detection and caches per session; falls back to publisher CDN URLs when IGDB is not configured
-- GPC daemon sends `game_image` alongside the game name; GPC card renders the cover art thumbnail next to the game name
-- GPC daemon 5-tier game detection: hardcoded dict, Steam Web API, Epic Games local manifests, EA App local manifests and process-name IGDB fuzzy search - detects any installed game automatically without hardcoding exe names
-- PS5 worker now fetches game cover art from IGDB (Twitch API) on each cron run; falls back to PSN `conceptIconUrl` when IGDB is not configured or the lookup fails
-- PS5 card renders the IGDB cover art thumbnail next to the game name when online; shows last game and cover art greyed out when offline
-- FiveM added to GPC game detection
-- GPC daemon cover art added for GTA V, GTA VI, FC 26, FC 27, Apex Legends, Rocket League, Overwatch 2, Fortnite, Minecraft and FiveM
-- Now and Lab added to main navigation
-- Notes page replaced full live status widget with a slim animated teaser strip linking to /now
+- PS5 Busy mode: doNotDisturb PSN status treated as online; `busy` field added to Worker, API route and card
+- Notes page teaser strip: slim animated live status preview on /notes linking to /now; full widget removed from notes
+- Now and Lab added to main navigation; navigation centred in header using three-zone grid layout
 - Contact page now shows email address below the contact form
 - Footer social row reordered and simplified: All Pages, Contact, Newsletter, LinkedIn, GitHub, ORCID
-- Footer newsletter signup form removed; newsletter signup remains on /blog and /newsletter pages
-- Navigation centred in header using three-zone grid layout
+- Footer newsletter signup form removed; newsletter signup remains on /blog and /newsletter
+- Spotify card shows Spotify icon and external link to profile in card header
+- GPC daemon fetches cover art from IGDB (Twitch API) on first game detection and caches per session; falls back to publisher CDN URLs when IGDB is not configured
+- GPC daemon sends `game_image` alongside the game name; GPC card renders the cover art thumbnail next to the game name
+- GPC daemon 5-tier game detection: hardcoded dict, Steam Web API, Epic Games manifests, EA App manifests and process-name IGDB fuzzy search - detects any installed game without hardcoding exe names
+- FiveM added to GPC game detection
+- GPC daemon cover art for GTA V, GTA VI, FC 26, FC 27, Apex Legends, Rocket League, Overwatch 2, Fortnite, Minecraft and FiveM
+- PS5 Worker fetches game cover art from IGDB on each cron run; falls back to PSN `conceptIconUrl` when IGDB is not configured or the lookup fails
+- PS5 card renders IGDB cover art when online; shows text-only last played game name when offline (no image)
+- PS5 Worker exchanges NPSSO for a refresh token on first run and stores it in KV; subsequent runs use the refresh token so the NPSSO is only needed once per 60 days
 
 ### Changed
 
 - Spotify icon colour changed from Spotify green to blue to match site colour theme
 - GitHub strip moved above Discord card in live status widget so it is always visible
 - Home removed from navigation; avatar already links to homepage
+- /uses and /now text references to "notes page" corrected to "now page"
+- docs/PROJECT.md updated: Cloudflare Worker section added, env vars table expanded, GPC and PS5 sections updated
+- docs/LOG.md Session 5 entry added covering all changes in this release
+- docs/TROUBLESHOOTING.md created with 8 common issues and fixes
+- docs/verification.md updated with live status and GPC 5-tier checks
+- docs/SUGGESTIONS.md updated with Steam env vars and Discussions page suggestion
+- .env.example updated with IGDB and Steam env vars
+- .github/SECURITY.md created
 
 ### Fixed
 
-- Discord activity card now sorts Playing (type 0) before Watching (type 3) to match Discord's display order
-- Discord activity large icon now shows the small icon as a bottom-right overlay (file icon for VS Code, etc.)
-- Discord activity elapsed timestamp now shows seconds in `H:MM:SS` / `M:SS` format matching Discord, and updates live every second
-- Discord activity timestamps show elapsed/total for activities with an end time (e.g. Netflix episodes); elapsed only for activities with a start time
-- PS5 worker updated to use current PSN client ID and required headers; the old client ID was removed by PSN and caused 400 errors
-- PS5 worker now exchanges the NPSSO for a refresh token on first run and stores it in KV; subsequent runs use the refresh token so the NPSSO is only needed once per ~60 days
-- PS5 worker IGDB request now includes `Content-Type: text/plain` header required by the Apicalypse query format; without it the API silently returned no results
-- PS5 card no longer shows online when the console is off; API now returns last genuine online timestamp rather than the cron polling timestamp
+- feed.xml?raw no longer crashes with Cloudflare CPU timeout; returns raw XML directly instead of running regex transforms
+- PS5 lastGame and lastGameImage now read from `lastKnown` instead of the live source so the last played game persists when offline
+- PS5 card no longer shows online when console is off; API returns last genuine online timestamp rather than cron polling timestamp
+- PS5 Worker updated to current PSN client ID and required headers; old client ID was removed by PSN and caused 400 errors
+- PS5 Worker IGDB request includes `Content-Type: text/plain` header required by the Apicalypse query format; without it the API silently returned no results
+- Discord activity card sorts Playing (type 0) before Watching (type 3) to match Discord display order
+- Discord activity large icon shows the small icon as a bottom-right overlay
+- Discord activity elapsed timestamp shows seconds in H:MM:SS / M:SS format matching Discord and updates live every second
+
+### Security
+
+- Force `brace-expansion` to 5.0.6 via npm overrides to resolve CVE-2026-45149 (GHSA-jxxr-4gwj-5jf2)
 
 ---
 
@@ -537,5 +550,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-[Unreleased]: https://github.com/zaccesss/isaac-adjei-portfolio/compare/v1.1.0...HEAD
+[v2.7.0]: https://github.com/zaccesss/isaac-adjei-portfolio/compare/v2.6.0...v2.7.0
+[v2.6.0]: https://github.com/zaccesss/isaac-adjei-portfolio/compare/v2.5.0...v2.6.0
+[v2.5.0]: https://github.com/zaccesss/isaac-adjei-portfolio/compare/v2.4.0...v2.5.0
+[v2.4.0]: https://github.com/zaccesss/isaac-adjei-portfolio/compare/v1.1.0...v2.4.0
 [v1.1.0]: https://github.com/zaccesss/isaac-adjei-portfolio/compare/v1.0.1...v1.1.0

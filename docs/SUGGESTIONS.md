@@ -10,7 +10,7 @@ metadata:
 
 ## When Back at Uni (Requires GPC Access)
 
-**Gaming PC Game Cover Art — READY, IGDB integrated, restart daemon + set env vars**
+**Gaming PC Game Cover Art - READY, IGDB integrated, restart daemon + set env vars**
 
 `scripts/gpc-daemon.py` now fetches cover art from IGDB (Twitch API) on first detection of each game and caches the result in memory. Falls back to hardcoded publisher CDN URLs if IGDB credentials are not set.
 
@@ -18,18 +18,29 @@ metadata:
 
 Set all four env vars in ONE nssm call (two separate calls overwrite each other):
 ```powershell
-nssm set gpc-daemon AppEnvironmentExtra UPSTASH_REDIS_REST_URL=https://your-db.upstash.io UPSTASH_REDIS_REST_TOKEN=your_token IGDB_CLIENT_ID=your_twitch_client_id IGDB_CLIENT_SECRET=your_twitch_client_secret
+nssm set gpc-daemon AppEnvironmentExtra UPSTASH_REDIS_REST_URL=https://your-db.upstash.io UPSTASH_REDIS_REST_TOKEN=your_token IGDB_CLIENT_ID=your_twitch_client_id IGDB_CLIENT_SECRET=your_twitch_client_secret STEAM_API_KEY=your_steam_api_key STEAM_ID=76561198xxxxxxxxx
 nssm restart gpc-daemon
 ```
 The `IGDB_CLIENT_ID` and `IGDB_CLIENT_SECRET` are the same Twitch app credentials already set as secrets in the PS5 Cloudflare Worker. Copy them from there.
 
 To create the Twitch app: dev.twitch.tv/console → Register Your Application → Category: Application Integration → Redirect URL: http://localhost → Create → copy Client ID and generate Secret.
 
+To get a Steam API key: steamcommunity.com/dev/apikey - set domain to "localhost" for personal use.
+Steam ID: find yours at steamcommunity.com/id/[your-username] then convert via steamid.io.
+
 To add more games: add the exe name to `KNOWN_GAMES` in `scripts/gpc-daemon.py`. IGDB fetches art automatically. Add to `IGDB_NAME_MAP` only if the IGDB title differs from your short name (e.g. "GTA V" → "Grand Theft Auto V").
 
 ---
 
 ## Deferred - Implement Next Session
+
+**Discussions page**
+A page where visitors can leave comments or reactions on blog posts and projects. Two approaches:
+
+- giscus: uses GitHub Discussions as the backend, free, no database needed, maps each post to a Discussion thread by URL. Add `<Giscus>` component to blog post and project pages.
+- Supabase-backed comments: full control over moderation and schema. Requires an auth strategy for commenters.
+
+giscus is the lower-effort path and keeps everything in GitHub. Either approach lets people interact without a dedicated account system.
 
 **CV Automation - Auto PDF Generation**
 Replace the manual print-to-PDF step in generate-role-cvs.js with automatic Puppeteer PDF generation triggered on CV changes. Already scaffolded in the script - just needs the trigger and output pipeline wired up.

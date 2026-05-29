@@ -73,6 +73,12 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 - [ ] Discord card (offline, /now) - Card shows greyed-out "last seen Xm ago" rather than disappearing
 - [ ] Discord card (offline, /notes) - Card is completely hidden when offline
 - [ ] Discord card external link - Clicking the link icon opens discord.com/users/1087417301583790212 in a new tab
+- [ ] PS5 offline "Last played" - when PS5 is offline, "Last played: [game name]" text is visible below "last seen Xm ago" on the card; no cover art image is shown when offline
+- [ ] PS5 IGDB cover art - when PS5 is online and in a game, the cover art shown is the IGDB image (not the PSN promotional conceptIconUrl)
+- [ ] PS5 lastSeen reflects genuine last-online time - compare card's "last seen" time to when the PS5 was actually switched off; it should not show the cron polling time
+- [ ] GPC 5-tier known-games - a game in the KNOWN_GAMES dict (e.g. EA FC) is detected when the process is running
+- [ ] GPC 5-tier Steam - a Steam game not in KNOWN_GAMES is detected via Steam Web API when STEAM_API_KEY is set in NSSM
+- [ ] GPC env vars complete - IGDB_CLIENT_ID, IGDB_CLIENT_SECRET, STEAM_API_KEY and STEAM_ID are all set in NSSM AppEnvironmentExtra; verify with `nssm get gpc-daemon AppEnvironmentExtra`
 
 ---
 

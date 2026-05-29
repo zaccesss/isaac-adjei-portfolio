@@ -1299,7 +1299,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     date: "2025-09-01",
     type: "blog",
     description:
-      "How I rebuilt my portfolio from scratch and kept building it: the full tech stack, every major decision from the base Next.js setup to the live device status system and what shipping something personal actually teaches you.",
+      "How I rebuilt my portfolio from scratch and kept building it: Next.js App Router, TypeScript, Tailwind CSS, Upstash Redis, Vercel, Python daemons for live device status, a custom PS5 OAuth v2 Cloudflare Worker, 5-tier GPC game detection with IGDB cover art, Discord presence via Lanyard and Spotify now-playing - and what shipping something personal actually teaches you.",
     tags: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Redis", "Vercel", "Python"],
     readingTime: 15,
     published: true,

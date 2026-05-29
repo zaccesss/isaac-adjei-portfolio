@@ -123,7 +123,7 @@ const sections = [
       {
         name: "Lenovo and Gaming PC daemons",
         detail:
-          "Run via NSSM (Non-Sucking Service Manager) as Windows services so they auto-start on boot and restart on crash. The Gaming PC daemon also uses pynvml to read NVIDIA GPU utilisation and scans running processes to detect active games.",
+          "Run via NSSM (Non-Sucking Service Manager) as Windows services so they auto-start on boot and restart on crash. The Gaming PC daemon uses pynvml for NVIDIA GPU utilisation and detects the active game through five tiers: a hardcoded known-games map, Steam Web API, Epic Games local manifests, EA App local manifests and process-name IGDB fuzzy matching. Cover art is fetched from IGDB on first detection per session.",
       },
       {
         name: "Spotify integration",
@@ -133,7 +133,7 @@ const sections = [
       {
         name: "PS5 daemon",
         detail:
-          "A Cloudflare Worker (workers/ps5-presence) polls the PSN API every 60 seconds using the psnawp library. It writes my online status, current game and last-seen timestamp to Upstash Redis. The NPSSO session token is stored in Cloudflare secrets - it never touches the codebase or the client.",
+          "A Cloudflare Worker (workers/ps5-presence) polls the PSN presence API every 60 seconds using a custom OAuth v2 implementation - no third-party libraries. The NPSSO session cookie is exchanged for an access and refresh token on first run; the refresh token is stored in Cloudflare Workers KV under PS5_KV and rotated automatically so the NPSSO is only needed once every 60 days or so. Cover art is fetched from IGDB on every cron run. Online status, current game, cover art and last-seen timestamp are written to Upstash Redis.",
       },
       {
         name: "Discord presence",
