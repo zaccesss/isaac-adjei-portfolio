@@ -8,6 +8,13 @@ metadata:
 
 # Future Features
 
+## When Back at Uni (Requires GPC Access)
+
+**Gaming PC Game Cover Art**
+The GPC daemon detects games via `KNOWN_GAMES` in `scripts/gpc-daemon.py`. To add cover art, extend with a `GAME_IMAGES` dict mapping game names to Steam header CDN URLs (`https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/header.jpg`). Store `game_image` in the Redis payload, expose it from `/api/gpc/route.ts` and render it in `LiveStatusCards.tsx` the same way the PS5 card does. Steam App IDs to add: GTA V=271590, Apex Legends=1172470, Rocket League=252950, Overwatch 2=2357570. Requires restarting the GPC daemon after the change.
+
+---
+
 ## Deferred - Implement Next Session
 
 **CV Automation - Auto PDF Generation**
