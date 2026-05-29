@@ -14,11 +14,14 @@ metadata:
 
 `scripts/gpc-daemon.py` now fetches cover art from IGDB (Twitch API) on first detection of each game and caches the result in memory. Falls back to hardcoded publisher CDN URLs if IGDB credentials are not set.
 
-**To activate on the Windows GPC:**
-1. Set two new env vars alongside the existing Upstash ones (NSSM environment or Windows system env):
-   - `IGDB_CLIENT_ID` — from dev.twitch.tv/console (free Twitch developer app)
-   - `IGDB_CLIENT_SECRET` — from the same Twitch app
-2. `nssm restart gpc-daemon`
+**To activate on the Windows GPC (run in admin PowerShell):**
+
+Set all four env vars in ONE nssm call (two separate calls overwrite each other):
+```powershell
+nssm set gpc-daemon AppEnvironmentExtra UPSTASH_REDIS_REST_URL=https://your-db.upstash.io UPSTASH_REDIS_REST_TOKEN=your_token IGDB_CLIENT_ID=your_twitch_client_id IGDB_CLIENT_SECRET=your_twitch_client_secret
+nssm restart gpc-daemon
+```
+The `IGDB_CLIENT_ID` and `IGDB_CLIENT_SECRET` are the same Twitch app credentials already set as secrets in the PS5 Cloudflare Worker. Copy them from there.
 
 To create the Twitch app: dev.twitch.tv/console → Register Your Application → Category: Application Integration → Redirect URL: http://localhost → Create → copy Client ID and generate Secret.
 
