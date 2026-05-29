@@ -32,10 +32,10 @@ export async function GET() {
       redis.get<PS5Payload>("ps5:last-known"),
     ])
 
-    // live key has a 120s TTL - if it exists the daemon polled within the last 2 minutes
-    const online = live !== null
-    // I prefer live data, but fall back to last-known so lastSeen is always available even when the PS5 is off
+    // I use the payload's online field, not live !== null - the worker always runs every minute
+    // so the live key is always present. source.online reflects actual PSN presence.
     const source = live ?? lastKnown
+    const online = source?.online === true
 
     if (!source) {
       return NextResponse.json(

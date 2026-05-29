@@ -85,3 +85,8 @@ const nextConfig = {
 }
 
 export default nextConfig
+
+// I only init OpenNext Cloudflare in local dev - it breaks Vercel builds if run unconditionally
+if (isDev) {
+  import('@opennextjs/cloudflare').then(m => m.initOpenNextCloudflareForDev());
+}

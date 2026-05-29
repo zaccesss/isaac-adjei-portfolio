@@ -7,6 +7,8 @@ import * as readline from "readline"
 
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET
+// I use the portfolio root as the redirect URI because Spotify requires an exact match
+// and I don't need a real callback page - the code is in the URL which I read manually.
 const REDIRECT_URI = "https://isaacadjei.me"
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
@@ -17,6 +19,7 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
   process.exit(1)
 }
 
+// I request only the two scopes the /api/spotify route actually needs.
 const scope = "user-read-currently-playing user-read-playback-state"
 const authUrl =
   `https://accounts.spotify.com/authorize` +
@@ -51,6 +54,7 @@ rl.question("Paste the redirect URL here: ", async (redirectUrl) => {
 
   console.log("\nExchanging code for tokens...")
 
+  // I use Basic auth with base64-encoded client_id:client_secret as required by the Spotify token endpoint.
   const response = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {
@@ -71,6 +75,8 @@ rl.question("Paste the redirect URL here: ", async (redirectUrl) => {
     process.exit(1)
   }
 
+  // I only need the refresh_token - the access_token expires after 1 hour
+  // but the refresh_token is long-lived and the API route uses it on every request.
   console.log("\n========================================")
   console.log("SUCCESS! Add this to your Vercel env vars:")
   console.log("========================================")
