@@ -43,12 +43,12 @@ const sections: Array<{
       {
         name: "Gaming PC (ZACCESS-GPC)",
         icon: `${SI}/nvidia`,
-        detail: "Custom Windows desktop with an NVIDIA GeForce RTX 4060 and Intel CPU. My main machine for development, gaming and compute-heavy work. It runs a background Python daemon that monitors GPU utilisation via pynvml, CPU load via psutil and active game detection, all streamed live to the notes page on this site.",
+        detail: "Custom Windows desktop with an NVIDIA GeForce RTX 4060 and Intel CPU. My main machine for development, gaming and compute-heavy work. It runs a background Python daemon that detects the active game via five tiers: a known-games map, Steam Web API, Epic and EA App manifests, then psutil process scanning with IGDB fuzzy name matching. All streamed live to the now page.",
       },
       {
         name: "MacBook (ZACCESS-MBK)",
         icon: `${DEV}/apple/apple-original.svg`,
-        detail: "My portable development machine. Runs a launchd-managed Python daemon (mac-daemon.py) that writes battery level, charging state, timezone and weather to Redis every 30 seconds, powering the live status widget on the notes page.",
+        detail: "My portable development machine. Runs a launchd-managed Python daemon (mac-daemon.py) that writes battery level, charging state, timezone and weather to Redis every 30 seconds, powering the live status widget on the now page.",
       },
       {
         name: "Lenovo Laptop (ZACCESS-LNV)",
@@ -173,7 +173,7 @@ const sections: Array<{
         name: "Spotify API",
         icon: `${SI}/spotify`,
         href: "https://developer.spotify.com",
-        detail: "Powers the currently-playing card on the notes page: track title, artist, album art and a real-time progress bar. OAuth token refresh is handled server-side via a Next.js API route so the client never touches credentials.",
+        detail: "Powers the currently-playing card on the now page: track title, artist, album art and a real-time progress bar. OAuth token refresh is handled server-side via a Next.js API route so the client never touches credentials.",
       },
       {
         name: "GitHub API (GraphQL)",

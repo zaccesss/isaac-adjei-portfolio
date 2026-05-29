@@ -11,6 +11,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
 
 type PS5Payload = {
   online: boolean
+  busy: boolean
   status: string
   game: string | null
   game_image: string | null
@@ -47,15 +48,20 @@ export async function GET() {
     return NextResponse.json(
       {
         online,
+        // I only expose busy: true when the user is currently online in do-not-disturb mode.
+        // When offline, busy is irrelevant so I always return false.
+        busy:       online && (source.busy === true),
         // I return lastKnown.lastSeen so offline periods show the last time the PS5 was
         // genuinely on - source.lastSeen updates every cron tick and causes "online now" forever
         lastSeen:   lastKnown?.lastSeen ?? null,
         status:     online ? source.status : "Offline",
         game:       online ? (source.game ?? null) : null,
         gameImage:  online ? (source.game_image ?? null) : null,
-        // I expose last game and its image so the card can show them greyed when offline
-        lastGame:   source.game ?? null,
-        lastGameImage: source.game_image ?? null,
+        // I read lastGame from lastKnown, not source - source.game is null when offline
+        // because the worker writes game: null to ps5:status every cron tick.
+        // lastKnown only updates when the PS5 is genuinely online, so it always has the last real game.
+        lastGame:      lastKnown?.game       ?? null,
+        lastGameImage: lastKnown?.game_image ?? null,
       },
       { headers: { "Cache-Control": "no-store" } }
     )
