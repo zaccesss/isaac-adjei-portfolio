@@ -63,7 +63,7 @@ Built with Next.js 16 App Router, TypeScript, Tailwind CSS and Framer Motion. Se
 
 ## Live status widget
 
-The homepage, `/notes`, `/now` and `/lab` show an iOS-style live status grid:
+The homepage (`/`), `/now` and `/lab` show the full iOS-style live status grid. `/notes` shows a slim animated teaser strip linking to `/now`.
 
 - **Spotify** - now-playing with album art and real-time progress bar; last-played fallback when idle
 - **London time** - always Europe/London timezone
@@ -84,10 +84,7 @@ The homepage, `/notes`, `/now` and `/lab` show an iOS-style live status grid:
 git clone https://github.com/zaccesss/isaac-adjei-portfolio.git
 cd isaac-adjei-portfolio
 npm install
-
-# Activate repo git hooks (strips AI Co-authored-by trailers)
 git config core.hooksPath .githooks
-
 npm run dev
 ```
 
@@ -98,6 +95,10 @@ Most features work without any environment variables. The Spotify card, MacBook 
 ---
 
 ## Tech stack
+
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=nextjs,ts,tailwind,react,py,supabase,redis,vercel,cloudflare,github,discord,postgres&theme=dark" alt="Tech stack icons" />
+</p>
 
 | Layer | Technology |
 | --- | --- |
@@ -113,9 +114,9 @@ Most features work without any environment variables. The Spotify card, MacBook 
 | CAPTCHA | Cloudflare Turnstile |
 | Charts | Recharts |
 | Deployment | Vercel |
-| DNS | Cloudflare |
+| DNS and edge workers | Cloudflare |
 | Discord presence | Lanyard API |
-| PS5 presence | Cloudflare Worker + PSN API |
+| PS5 presence | Cloudflare Worker + custom PSN OAuth v2 |
 | CV generation | Puppeteer, html-to-docx |
 | Job scraper | Python, Playwright, GitHub Actions |
 
