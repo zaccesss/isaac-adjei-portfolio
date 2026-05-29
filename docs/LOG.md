@@ -4,6 +4,54 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-29 (session 5 - chore/docs-content-updates + release)
+
+Branch: `chore/docs-content-updates`
+
+This session completed Stage 2 (docs and content updates) and Stage 3 (v2.7.0 release and branch cleanup). PRs #241 and #242 had already merged to main before this session began.
+
+### PR #241 changes (merged before this session)
+
+- Navigation reordered: Home removed (avatar links to homepage), Now and Lab added, navigation centred in header using a three-zone grid layout
+- Footer social row simplified: All Pages, Contact, Newsletter, LinkedIn, GitHub, ORCID - newsletter form removed from footer
+- Contact page now shows email address (contact@isaacadjei.me) below the form
+- Notes page: full live status widget replaced with a slim animated teaser strip linking to /now
+- Spotify icon colour changed from Spotify green to blue to match site colour theme
+- GitHub strip moved above Discord card in live status widget
+- PS5 always-online fix: API now returns last genuine online timestamp from lastKnown rather than the cron polling time
+
+### PR #242 changes (merged before this session)
+
+- feed.xml?raw CPU fix: removed the buildRawHtml() function which ran six chained regex transforms over the full XML string and hit Cloudflare's CPU time limit. Now returns raw XML directly with Content-Type: application/rss+xml.
+- PS5 Busy mode: doNotDisturb PSN status treated as online; busy field added to Worker, API route and LiveStatusCards.tsx card
+- PS5 lastGame fix: lastGame and lastGameImage now read from lastKnown (no TTL) instead of the live source object which is null when offline
+- Notes-to-now text corrections: /now page Listening section changed from "notes page" link to "above" (already on the now page); /uses page GPC and MacBook details corrected; sitemap lastModified dates updated to 2026-05-29
+
+### Stage 2 - docs and content updates (this branch)
+
+**Files updated:**
+
+- `app/uses/page.tsx`: PS5 detail rewritten to mention custom OAuth v2 (no psnawp), NPSSO exchange, Cloudflare Workers KV refresh token storage and IGDB cover art; /notes removed from routing reference (only /now)
+- `app/colophon/page.tsx`: PS5 daemon section rewritten from "psnawp library" to custom OAuth v2 implementation with KV token storage; GPC daemon updated to describe 5-tier detection and IGDB cover art
+- `app/changelog/page.tsx`: Unreleased entries moved to v2.7.0 (2026-05-29) release block; v2.7.0 includes all changes from sessions 4 and 5
+- `CHANGELOG.md`: Unreleased section replaced with v2.7.0 section; footer links updated
+- `data/blog.ts`: building-my-portfolio post description updated to mention PS5 OAuth v2, 5-tier GPC daemon and IGDB cover art
+- `docs/PROJECT.md`: deployment updated to mention Cloudflare Workers; env vars table expanded (IGDB, Steam, Beehiiv, GA); GPC section updated to 5-tier; PS5 offline rule updated to text-only; Cloudflare Worker section added
+- `docs/LOG.md`: this entry added
+- `docs/verification.md`: live status section updated with PS5 IGDB, offline text, GPC 5-tier and env var checks
+- `docs/SUGGESTIONS.md`: NSSM command updated with STEAM_API_KEY and STEAM_ID; Discussions page suggestion added
+- `docs/TROUBLESHOOTING.md`: new file with 8 common issues and fixes
+- `.env.example`: IGDB and Steam vars added
+- `.github/SECURITY.md`: new file
+
+### Stage 3 - release
+
+- Tagged v2.7.0 and published GitHub release
+- Stale local branches cleaned up
+- Memory updated to reflect v2.7.0 released
+
+---
+
 ## 2026-05-29 (session 4 - fix/discord-activity-icon-ps5-last-game)
 
 Branch: `fix/discord-activity-icon-ps5-last-game`
