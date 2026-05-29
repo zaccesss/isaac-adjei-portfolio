@@ -63,6 +63,7 @@ interface GithubData {
 
 interface PS5Data {
   online: boolean
+  busy: boolean
   lastSeen: string | null
   status: string
   game: string | null
@@ -248,7 +249,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
   // I never read this value - the setter is all I need to force a re-render every second so Discord elapsed timestamps stay live
   const [, setActivityTick] = useState(0)
   const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
-  const [ps5Data, setPs5Data] = useState<PS5Data>({ online: false, lastSeen: null, status: "Offline", game: null, gameImage: null, lastGame: null, lastGameImage: null })
+  const [ps5Data, setPs5Data] = useState<PS5Data>({ online: false, busy: false, lastSeen: null, status: "Offline", game: null, gameImage: null, lastGame: null, lastGameImage: null })
   const [lanyard, setLanyard] = useState<LanyardData | null>(null)
   const [lanyardLastOnline, setLanyardLastOnline] = useState<number | null>(null)
   const [liveProgressMs, setLiveProgressMs] = useState(0)
@@ -698,6 +699,14 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                   <span className={cn("text-xs", pOnline ? "text-blue-500" : "text-muted-foreground/40")}>
                     {ps5Data.lastSeen ? pSeenText : "offline"}
                   </span>
+                  {/* I always show Busy next to the online indicator when in do-not-disturb,
+                      regardless of whether a game is playing */}
+                  {ps5Data.busy && (
+                    <>
+                      <span className="text-xs text-muted-foreground/30">·</span>
+                      <span className="text-xs text-amber-500/80 font-medium">Busy</span>
+                    </>
+                  )}
                 </div>
                 {ps5Data.online && ps5Data.game ? (
                   <div className="flex items-start justify-between gap-2 pt-0.5">
@@ -713,10 +722,10 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                       />
                     )}
                   </div>
-                ) : ps5Data.online && ps5Data.status !== "Online" && ps5Data.status !== "Offline" ? (
+                ) : ps5Data.online && ps5Data.status !== "Online" && ps5Data.status !== "Offline" && ps5Data.status !== "Busy" ? (
                   <p className="text-xs text-muted-foreground">{ps5Data.status}</p>
                 ) : null}
-                {/* I show the last known game at reduced opacity when offline so there is always something useful on the card */}
+                {/* I show the last known game at reduced opacity when offline - image on the right, game name below label */}
                 {!ps5Data.online && ps5Data.lastGame && (
                   <div className="flex items-start justify-between gap-2 pt-0.5 opacity-40">
                     <div className="min-w-0">

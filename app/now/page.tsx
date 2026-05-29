@@ -216,11 +216,7 @@ export default function NowPage() {
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Whatever Spotify decides I need that day. Heavy rotation of Afrobeats and Afropop at the
-          moment. You can see what I am playing right now on the{" "}
-          <Link href="/notes" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
-            notes page
-          </Link>
-          .
+          moment. You can see what I am playing right now above in the live status section.
         </p>
       </section>
 

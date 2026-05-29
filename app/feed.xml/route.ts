@@ -159,72 +159,6 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>) {
 </html>`
 }
 
-function buildRawHtml(xml: string): string {
-  // Escape XML for safe HTML embedding, then apply colour spans
-  const escaped = xml
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-
-  const highlighted = escaped
-    // CDATA blocks
-    .replace(/(&lt;!\[CDATA\[)([\s\S]*?)(\]\]&gt;)/g, '<span class="c">$1</span><span class="cd">$2</span><span class="c">$3</span>')
-    // XML declaration and processing instructions
-    .replace(/(&lt;\?)([\s\S]*?)(\?&gt;)/g, '<span class="pi">$1$2$3</span>')
-    // Comments
-    .replace(/(&lt;!--)([\s\S]*?)(--&gt;)/g, '<span class="cm">$1$2$3</span>')
-    // Closing tags
-    .replace(/(&lt;\/)([\w:-]+)(&gt;)/g, '<span class="tb">$1</span><span class="tn">$2</span><span class="tb">$3</span>')
-    // Opening/self-closing tags with attributes
-    .replace(/(&lt;)([\w:-]+)((?:\s[\s\S]*?)?)(\/?&gt;)/g, (_, open, name, attrs, close) => {
-      const coloredAttrs = attrs.replace(/([\w:-]+)(=)(&quot;[^&]*&quot;|'[^']*')/g,
-        '<span class="an">$1</span><span class="tb">$2</span><span class="av">$3</span>')
-      return `<span class="tb">${open}</span><span class="tn">${name}</span>${coloredAttrs}<span class="tb">${close}</span>`
-    })
-
-  return `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Isaac Adjei - RSS Feed (raw XML)</title>
-    <link rel="icon" type="image/png" href="${SITE_URL}/images/avatar.png" />
-    <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { background: #09090b; color: #e4e4e7; font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace; font-size: 0.8125rem; line-height: 1.6; padding: 2rem 1rem; }
-      .container { max-width: 900px; margin: 0 auto; }
-      .topbar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #27272a; flex-wrap: wrap; }
-      .topbar a { color: #3b82f6; text-decoration: none; font-size: 0.8125rem; }
-      .topbar a:hover { text-decoration: underline; }
-      .topbar span { color: #52525b; }
-      .label { font-size: 0.75rem; color: #52525b; margin-bottom: 0.5rem; }
-      pre { white-space: pre-wrap; word-break: break-all; }
-      .tb { color: #71717a; }
-      .tn { color: #60a5fa; }
-      .an { color: #f472b6; }
-      .av { color: #fb923c; }
-      .pi { color: #a78bfa; }
-      .cm { color: #4b5563; font-style: italic; }
-      .c  { color: #71717a; }
-      .cd { color: #86efac; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="topbar">
-        <a href="${SITE_URL}/feed.xml">← Back to feed</a>
-        <span>·</span>
-        <a href="${SITE_URL}/blog">Blog</a>
-        <span>·</span>
-        <span style="color:#a1a1aa">Copy <code style="color:#60a5fa">${SITE_URL}/feed.xml</code> into your RSS reader to subscribe</span>
-      </div>
-      <p class="label">feed.xml</p>
-      <pre>${highlighted}</pre>
-    </div>
-  </body>
-</html>`
-}
-
 export function GET(request: Request) {
   const url = new URL(request.url)
   const accept = request.headers.get("accept") ?? ""
@@ -233,16 +167,18 @@ export function GET(request: Request) {
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
 
-  if (forceRaw && accept.includes("text/html")) {
-    return new Response(buildRawHtml(buildXml(posts)), {
+  // I serve plain XML when ?raw is requested - the old syntax-highlighted HTML viewer
+  // ran too many regex passes over the full XML string and exceeded Cloudflare's CPU limit.
+  if (forceRaw) {
+    return new Response(buildXml(posts), {
       headers: {
-        "Content-Type": "text/html; charset=utf-8",
+        "Content-Type": "application/rss+xml; charset=utf-8",
         "Cache-Control": "public, max-age=3600",
       },
     })
   }
 
-  if (accept.includes("text/html") && !forceRaw) {
+  if (accept.includes("text/html")) {
     return new Response(buildHtml(posts), {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
