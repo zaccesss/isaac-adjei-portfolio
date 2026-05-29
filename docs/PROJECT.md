@@ -88,11 +88,15 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 
 ## Mac daemon
 
-- `scripts/mac-daemon.py` - runs via launchd plist
+- `scripts/mac-daemon.py` - runs via launchd plist on macOS
 - Writes every 30s to `macbook:status` (TTL 600s) and `macbook:last-known` (no TTL)
-- Weather via open-meteo, location via ipinfo.io
-- City never written to Redis (privacy)
-- To restart: `launchctl unload ~/Library/LaunchAgents/me.isaacadjei.macdaemon.plist && launchctl load ...`
+- **Weather:** Open-Meteo API (free, no key, ECMWF model) - more accurate for UK weather than WeatherAPI
+- **Location:** CoreLocationCLI (GPS, street-level precision) with ipinfo.io as fallback for coordinates; ipinfo.io always used for `country_code` and `timezone`
+- City is never written to Redis (privacy). Only `country_code` and `timezone` stored.
+- Night emoji: `is_day` field from Open-Meteo determines moon vs sun. Clear and mainly-clear at night show moon. Partly cloudy at night shows plain cloud.
+- Setup requirements: `brew install corelocationcli` + `pip install psutil requests`
+- To restart: `pkill -f mac-daemon.py && python3 scripts/mac-daemon.py`
+- env vars needed: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
 
 ## Windows NSSM daemon gotchas
 
