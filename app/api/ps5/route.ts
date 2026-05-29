@@ -13,6 +13,7 @@ type PS5Payload = {
   online: boolean
   status: string
   game: string | null
+  game_image: string | null
   platform: string
   lastSeen: string
 }
@@ -21,7 +22,7 @@ export async function GET() {
   try {
     if (!redis) {
       return NextResponse.json(
-        { online: false, lastSeen: null, status: "Offline", game: null },
+        { online: false, lastSeen: null, status: "Offline", game: null, gameImage: null, lastGame: null, lastGameImage: null },
         { headers: { "Cache-Control": "no-store" } }
       )
     }
@@ -38,7 +39,7 @@ export async function GET() {
 
     if (!source) {
       return NextResponse.json(
-        { online: false, lastSeen: null, status: "Offline", game: null },
+        { online: false, lastSeen: null, status: "Offline", game: null, gameImage: null, lastGame: null, lastGameImage: null },
         { headers: { "Cache-Control": "no-store" } }
       )
     }
@@ -46,10 +47,13 @@ export async function GET() {
     return NextResponse.json(
       {
         online,
-        lastSeen: source.lastSeen,
-        status:   online ? source.status : "Offline",
-        // I only expose game when online - stale values from last-known would be misleading
-        game:     online ? (source.game ?? null) : null,
+        lastSeen:   source.lastSeen,
+        status:     online ? source.status : "Offline",
+        game:       online ? (source.game ?? null) : null,
+        gameImage:  online ? (source.game_image ?? null) : null,
+        // I expose last game and its image so the card can show them greyed when offline
+        lastGame:   source.game ?? null,
+        lastGameImage: source.game_image ?? null,
       },
       { headers: { "Cache-Control": "no-store" } }
     )

@@ -65,6 +65,9 @@ interface PS5Data {
   lastSeen: string | null
   status: string
   game: string | null
+  gameImage: string | null
+  lastGame: string | null
+  lastGameImage: string | null
 }
 
 interface LanyardActivity {
@@ -74,6 +77,7 @@ interface LanyardActivity {
   state?: string
   timestamps?: { start?: number; end?: number }
   assets?: { large_image?: string; large_text?: string; small_image?: string; small_text?: string }
+  application_id?: string
 }
 
 interface LanyardData {
@@ -83,6 +87,22 @@ interface LanyardData {
 }
 
 const DISCORD_USER_ID = "1087417301583790212"
+
+// I build the activity icon URL from Lanyard's asset data following Discord's CDN format
+function activityIconUrl(activity: LanyardActivity): string | null {
+  const img = activity.assets?.large_image
+  if (!img) return null
+  if (img.startsWith("mp:external/")) {
+    return `https://media.discordapp.net/external/${img.slice("mp:external/".length)}`
+  }
+  if (img.startsWith("spotify:")) {
+    return `https://i.scdn.co/image/${img.slice("spotify:".length)}`
+  }
+  if (activity.application_id) {
+    return `https://cdn.discordapp.com/app-assets/${activity.application_id}/${img}.png`
+  }
+  return null
+}
 
 const STATUS_COLOR: Record<string, string> = {
   online: "bg-green-500",
@@ -190,7 +210,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
   const [lenovo, setLenovo] = useState<LenovoData>({ battery: null, charging: null, lastSeen: null, device: null })
   const [gamingPC, setGamingPC] = useState<GamingPCData>({ online: false, lastSeen: null, gpu: null, cpu: null, currentGame: null, device: "ZACCESS-GPC" })
   const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
-  const [ps5Data, setPs5Data] = useState<PS5Data>({ online: false, lastSeen: null, status: "Offline", game: null })
+  const [ps5Data, setPs5Data] = useState<PS5Data>({ online: false, lastSeen: null, status: "Offline", game: null, gameImage: null, lastGame: null, lastGameImage: null })
   const [lanyard, setLanyard] = useState<LanyardData | null>(null)
   const [lanyardLastOnline, setLanyardLastOnline] = useState<number | null>(null)
   const [liveProgressMs, setLiveProgressMs] = useState(0)
@@ -594,7 +614,28 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                   <p className="text-xs text-muted-foreground">{ps5Data.status}</p>
                 )}
                 {ps5Data.online && ps5Data.game && (
-                  <p className="text-xs text-muted-foreground truncate">{ps5Data.game}</p>
+                  <div className="flex items-center gap-2 pt-0.5">
+                    {ps5Data.gameImage && (
+                      <img
+                        src={ps5Data.gameImage}
+                        alt={ps5Data.game}
+                        className="h-8 w-14 rounded object-cover shrink-0"
+                      />
+                    )}
+                    <p className="text-xs text-muted-foreground truncate">{ps5Data.game}</p>
+                  </div>
+                )}
+                {!ps5Data.online && ps5Data.lastGame && (
+                  <div className="flex items-center gap-2 pt-0.5 opacity-40">
+                    {ps5Data.lastGameImage && (
+                      <img
+                        src={ps5Data.lastGameImage}
+                        alt={ps5Data.lastGame}
+                        className="h-8 w-14 rounded object-cover shrink-0"
+                      />
+                    )}
+                    <p className="text-xs text-muted-foreground truncate">Last played: {ps5Data.lastGame}</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -631,27 +672,39 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
             </div>
             {!offline && richActivities.length > 0 && (
               <div className="space-y-2">
-                {richActivities.map((activity, i) => (
-                  <div key={i} className={cn("space-y-0.5", i > 0 && "pt-2 border-t border-border/40")}>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/40 shrink-0">
-                        {activity.type === 2 ? "Listening" : activity.type === 3 ? "Watching" : "Playing"}
-                      </span>
-                      {activity.timestamps?.start && (
-                        <span className="text-[10px] text-muted-foreground/40 ml-auto shrink-0">
-                          {elapsedSince(activity.timestamps.start)}
-                        </span>
+                {richActivities.map((activity, i) => {
+                  const iconUrl = activityIconUrl(activity)
+                  return (
+                    <div key={i} className={cn("flex gap-2.5", i > 0 && "pt-2 border-t border-border/40")}>
+                      {iconUrl && (
+                        <img
+                          src={iconUrl}
+                          alt={activity.assets?.large_text ?? activity.name}
+                          className="h-10 w-10 rounded shrink-0 object-cover"
+                        />
                       )}
+                      <div className="space-y-0.5 min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/40 shrink-0">
+                            {activity.type === 2 ? "Listening" : activity.type === 3 ? "Watching" : "Playing"}
+                          </span>
+                          {activity.timestamps?.start && (
+                            <span className="text-[10px] text-muted-foreground/40 ml-auto shrink-0">
+                              {elapsedSince(activity.timestamps.start)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs font-medium truncate">{activity.name}</p>
+                        {activity.details && (
+                          <p className="text-xs text-muted-foreground truncate">{activity.details}</p>
+                        )}
+                        {activity.state && (
+                          <p className="text-xs text-muted-foreground/60 truncate">{activity.state}</p>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-xs font-medium truncate">{activity.name}</p>
-                    {activity.details && (
-                      <p className="text-xs text-muted-foreground truncate">{activity.details}</p>
-                    )}
-                    {activity.state && (
-                      <p className="text-xs text-muted-foreground/60 truncate">{activity.state}</p>
-                    )}
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
             {!offline && richActivities.length === 0 && customStatus?.state && (

@@ -54,6 +54,21 @@ def get_presence() -> dict:
         game_info.get("titleName") or game_info.get("npTitleId") or None
     )
 
+    # I log the full game_info dict the first time a game is detected so I can
+    # see exactly which image URL fields PSN returns for future image support
+    if game_name:
+        print(f"[game_info] {json.dumps(game_info)}", flush=True)
+
+    # I try every field name PSN has been observed to use for game cover images
+    game_image = (
+        game_info.get("titleIconUrl")
+        or game_info.get("conceptIconUrl")
+        or game_info.get("imageUrl")
+        or game_info.get("iconUrl")
+        or game_info.get("titleIcon")
+        or None
+    )
+
     if game_name:
         status = "Playing"
     elif busy:
@@ -67,6 +82,7 @@ def get_presence() -> dict:
         "online": online,
         "status": status,
         "game": game_name,
+        "game_image": game_image,
         "platform": "PS5",
         "lastSeen": datetime.now(timezone.utc).isoformat(),
     }
