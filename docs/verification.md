@@ -23,9 +23,9 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 - [ ] `/experience` - Loads correctly, timeline renders
 - [ ] `/skills` - Skills grid renders, icons load
 - [ ] `/cv` - CV page loads, PDF preview works, download buttons work
-- [ ] `/blog` - Loads, published posts visible
-- [ ] `/blog/[slug]` - A published post loads and renders correctly
-- [ ] `/notes` - Loads, note articles accessible
+- [ ] `/blog` - Loads, published posts visible; motivation and scripture widgets no longer appear at the bottom
+- [ ] `/blog/[slug]` - A published post loads and renders correctly; ol-links references render as numbered clickable links
+- [ ] `/notes` - Loads; motivation and scripture widgets appear above the lab terminal link at the bottom
 - [ ] `/lab` - Loads
 - [ ] `/now` - Loads
 - [ ] `/consumed` - Loads, tabs work, media cards render
@@ -131,6 +131,7 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 - [ ] Weekly email digest - Trigger from Settings > Weekly Digest; email arrives at DIGEST_EMAIL via Resend with goals, applications, streaks and diary sections
 - [ ] Discord daily digest - Trigger from Settings > Discord Digest > "Send now"; rich embed appears in Discord channel with 4 inline fields (goals, applications, streaks, diary)
 - [ ] Discord digest cron - Vercel cron dashboard shows `0 8 * * *` job for `/api/dashboard/discord-digest`
+- [ ] Vault expiry cron - Vercel cron dashboard shows `0 9 * * *` job for `/api/dashboard/vault-expiry-check`; trigger manually from Vercel and confirm Discord embed appears for any entries expiring within 30 days
 
 ---
 
