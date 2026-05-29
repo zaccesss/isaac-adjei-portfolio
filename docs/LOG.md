@@ -4,6 +4,41 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-29 (session 6 - fix/mobile-header-banner)
+
+Branch: `fix/mobile-header-banner`
+
+### Problem 1: Header controls centred instead of far right on small screens
+
+On viewports narrower than the `md` breakpoint (768px) - phones, iPad split-view, half-width desktop windows - the theme toggle and hamburger icon were drifting toward the centre of the header instead of staying pinned far right.
+
+Root cause: the header container used `grid-cols-[1fr_auto_1fr]` at all screen sizes. On mobile the `<Navigation>` component renders as `<nav className="hidden md:flex">` (display: none). A grid item with display:none still occupies its column in some browsers and the auto track did not collapse cleanly, shifting the third column away from the right edge.
+
+Fix: switched the container to `flex items-center justify-between` on mobile (avatar stays left, controls stay right, hidden nav takes no space) and `md:grid md:grid-cols-[1fr_auto_1fr]` on larger screens to keep the centred nav.
+
+Files changed:
+
+- `components/layout/Header.tsx`: container class updated
+
+### Problem 2: No indication to mobile visitors that the site is desktop-optimised
+
+Added `components/layout/MobileBanner.tsx` - a slim `md:hidden` strip below the header with a monitor icon and a dismissible "This site is best experienced on a laptop or desktop" notice. Wired into `components/layout/PublicShell.tsx` between `<Header>` and `<main>`.
+
+Files changed:
+
+- `components/layout/MobileBanner.tsx`: new file
+- `components/layout/PublicShell.tsx`: MobileBanner imported and rendered after Header
+
+### Docs updated this session
+
+- `CHANGELOG.md`: Unreleased section added with Added and Fixed entries
+- `app/changelog/page.tsx`: Unreleased entry added at top of releases array
+- `docs/LOG.md`: this entry added
+- `docs/verification.md`: mobile header and banner checks added
+- `DOCUMENTATION.md`: MobileBanner.tsx added to file structure and layout components list
+
+---
+
 ## 2026-05-29 (session 5 - chore/docs-content-updates + release)
 
 Branch: `chore/docs-content-updates`
