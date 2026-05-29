@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- Mobile banner: slim dismissible notice below the header on screens narrower than 768px suggesting the site is best viewed on a laptop or desktop; hidden via `md:hidden` so it never appears on wider screens
+
+### Fixed
+
+- Header theme toggle and hamburger menu now pin correctly to the far right on small screens (phones, narrow windows, iPad split-view); replaced the three-column grid with `flex justify-between` on mobile and `md:grid md:grid-cols-[1fr_auto_1fr]` on larger screens so the controls are never left drifting toward the centre when the desktop navigation is hidden
+
+---
+
 ## [v2.7.0] - 2026-05-29
 
 ### Added

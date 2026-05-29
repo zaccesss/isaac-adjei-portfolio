@@ -509,7 +509,7 @@ Both routes verify `Authorization: Bearer <CRON_SECRET>` before executing.
 │
 ├── components/
 │   ├── dashboard/          # Dashboard-only components
-│   ├── layout/             # Header, Footer, Navigation, MobileNav
+│   ├── layout/             # Header, Footer, Navigation, MobileNav, MobileBanner
 │   ├── projects/           # ProjectCard, ProjectDetail, ImageGallery
 │   ├── sections/           # Hero, FeaturedProjects, ExperienceTimeline, etc.
 │   ├── shared/             # SocialLinks, CommandMenu, ThemeToggle, LiveStatusCards
