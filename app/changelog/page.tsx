@@ -27,32 +27,46 @@ type ChangeEntry = {
   security?: string[]
 }
 
-// I list releases newest-first. The "Unreleased" entry at the top covers
-// anything that has shipped to the site but has not yet been tagged.
+// I list releases newest-first.
 const releases: ChangeEntry[] = [
   {
-    version: "Unreleased",
-    date: "",
+    version: "v2.7.0",
+    date: "2026-05-29",
     added: [
-      "PS5 live card in the status widget - online/offline, current game and last-seen time, powered by a Cloudflare Worker polling PSN every 60 seconds",
-      "Live status cards widget added to /now page",
-      "Pulsing blue 'Updated live' indicator on the /now page header",
-      "Clickable GitHub profile link in the live status GitHub strip after the last-pushed timestamp",
-      "Discord presence card in the live status widget on /now and /notes, powered by the Lanyard API; shows status dot, current rich activity (game, VS Code, Spotify via Discord) and custom status text",
-      "Discord card on /now is always visible - shows last-seen time at reduced opacity when offline; on /notes it only appears when online, idle or dnd",
-      "Discord card shows all concurrent activities simultaneously (Playing, Listening, Watching) in a stacked list with type labels and elapsed time per activity",
-      "External link icon on the Discord card opens the Discord profile in a new tab",
+      "PS5 Busy mode: doNotDisturb PSN status treated as online; busy field added to Worker, API route and card",
+      "Notes page teaser strip: slim animated live status preview on /notes linking to /now; full widget removed from notes",
+      "Now and Lab added to main navigation; navigation centred in header using three-zone grid layout",
+      "Contact page now shows email address below the contact form",
+      "Footer social row reordered and simplified: All Pages, Contact, Newsletter, LinkedIn, GitHub, ORCID",
+      "Footer newsletter signup form removed; newsletter signup remains on /blog and /newsletter",
+      "Spotify card shows Spotify icon and external link to profile in card header",
+      "GPC daemon fetches cover art from IGDB (Twitch API) on first game detection and caches per session",
+      "GPC daemon sends game_image alongside game name; GPC card renders the cover art thumbnail",
+      "GPC daemon 5-tier game detection: hardcoded dict, Steam Web API, Epic Games manifests, EA App manifests and process-name IGDB fuzzy search",
+      "FiveM added to GPC game detection",
+      "GPC daemon cover art for GTA V, FC 26, Apex Legends, Rocket League, Overwatch 2, Fortnite, Minecraft and FiveM",
+      "PS5 Worker fetches game cover art from IGDB on each cron run; falls back to PSN conceptIconUrl when IGDB is not configured",
+      "PS5 card renders IGDB cover art when online; shows text-only last played game name when offline",
+      "PS5 Worker exchanges NPSSO for a refresh token on first run and stores it in KV; subsequent runs use the refresh token automatically",
+    ],
+    changed: [
+      "Spotify icon colour changed from Spotify green to blue to match site colour theme",
+      "GitHub strip moved above Discord card in live status widget",
+      "Home removed from navigation; avatar links to homepage",
+      "/uses and /now references to 'notes page' corrected to 'now page'",
     ],
     fixed: [
-      "PS5 card device name no longer shown in blue - device names are now always default foreground colour",
-      "Device type icons (Laptop, Monitor, PlayStation) now use foreground when online and muted when offline",
-      "PS5 card removed redundant 'Online'/'Offline' status line - status text only appears for informative states such as 'Busy'",
-      "/all-pages keyboard shortcut shows ⌘+I on Mac and Ctrl+I on Windows/Linux; symbol size bumped to text-sm for visibility",
-      "pages command on /all-pages highlighted in primary colour and links directly to /lab",
-      "Discord card CSP: added api.lanyard.rest to connect-src so Lanyard requests are not blocked by the browser",
+      "feed.xml?raw no longer crashes with Cloudflare CPU timeout; returns raw XML directly instead of running regex transforms",
+      "PS5 lastGame and lastGameImage now read from lastKnown instead of the live source so the last played game persists when offline",
+      "PS5 card no longer shows online when console is off; API returns last genuine online timestamp rather than cron polling timestamp",
+      "PS5 Worker updated to current PSN client ID and required headers; old client ID was removed by PSN and caused 400 errors",
+      "PS5 Worker IGDB request includes Content-Type: text/plain header required by the Apicalypse query format",
+      "Discord activity card sorts Playing before Watching to match Discord display order",
+      "Discord activity large icon shows the small icon as a bottom-right overlay",
+      "Discord activity elapsed timestamp shows seconds in H:MM:SS / M:SS format and updates live every second",
     ],
     security: [
-      "Force brace-expansion to 5.0.6 via npm overrides to resolve CVE-2026-45149 (GHSA-jxxr-4gwj-5jf2) - transitive dep via eslint-config-next",
+      "Force brace-expansion to 5.0.6 via npm overrides to resolve CVE-2026-45149 (GHSA-jxxr-4gwj-5jf2)",
     ],
   },
   {

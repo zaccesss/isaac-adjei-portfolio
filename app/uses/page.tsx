@@ -67,7 +67,7 @@ const sections: Array<{
       {
         name: "PlayStation 5 (ZACCESS-PS5)",
         detail:
-          "My PS5. Online status, current game and last-seen time are polled every 60 seconds by a Cloudflare Worker using the PSN presence API, and displayed live in the status widget on /notes and /now.",
+          "My PS5. Online status, current game and last-seen time are polled every 60 seconds by a Cloudflare Worker using a custom OAuth v2 implementation against the PSN presence API - no third-party libraries. The NPSSO session cookie is exchanged for an access and refresh token on first run; the refresh token is stored in Cloudflare Workers KV and rotated automatically. Cover art is fetched from IGDB on every cron run. Status is displayed live on /now.",
       },
     ],
   },
