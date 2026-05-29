@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { Terminal, Lightbulb, Wrench, CalendarDays, Github, ExternalLink, ArrowRight } from "lucide-react"
-import LiveStatusCards from "@/components/shared/LiveStatusCards"
 import InspirationWidget from "@/components/shared/InspirationWidget"
 
 export const metadata: Metadata = {
@@ -63,7 +62,21 @@ export default function NotesPage() {
           A public notebook. Not polished posts, just honest notes on what I am building, thinking
           about and planning. Updated as things change.
         </p>
-        <LiveStatusCards />
+        {/* I replaced the full live status cards with a slim teaser that links to /now
+            to keep the notes page focused on content rather than a dashboard */}
+        <Link
+          href="/now"
+          className="group flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 hover:border-primary/30 transition-colors w-fit"
+        >
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" />
+          </span>
+          <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+            See what I&apos;m doing right now
+          </span>
+          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
+        </Link>
       </section>
 
       <Separator />

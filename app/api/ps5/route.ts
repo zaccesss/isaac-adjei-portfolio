@@ -47,7 +47,9 @@ export async function GET() {
     return NextResponse.json(
       {
         online,
-        lastSeen:   source.lastSeen,
+        // I return lastKnown.lastSeen so offline periods show the last time the PS5 was
+        // genuinely on - source.lastSeen updates every cron tick and causes "online now" forever
+        lastSeen:   lastKnown?.lastSeen ?? null,
         status:     online ? source.status : "Offline",
         game:       online ? (source.game ?? null) : null,
         gameImage:  online ? (source.game_image ?? null) : null,

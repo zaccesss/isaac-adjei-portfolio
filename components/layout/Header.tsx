@@ -26,8 +26,9 @@ export default function Header() {
           : "bg-transparent"
       )}
     >
-      <div className="container flex h-16 items-center justify-between">
-        <Link href="/" title="Home" className="flex flex-col items-center gap-0.5 group">
+      {/* I use a three-zone grid so the nav sits truly centred regardless of avatar/toggle width */}
+      <div className="container grid h-16 items-center grid-cols-[1fr_auto_1fr]">
+        <Link href="/" title="Home" className="flex flex-col items-center gap-0.5 group w-fit">
           <div className="w-7 h-7 rounded-full overflow-hidden border border-primary/30 group-hover:border-primary/70 transition-colors">
             <Image
               src="/images/avatar.png"
@@ -41,8 +42,8 @@ export default function Header() {
             zaccess
           </span>
         </Link>
-        <div className="flex items-center gap-4">
-          <Navigation />
+        <Navigation />
+        <div className="flex items-center gap-4 justify-end">
           <ThemeToggle />
           <MobileNav />
         </div>

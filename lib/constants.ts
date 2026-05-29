@@ -26,13 +26,14 @@ export const ROUTES = {
 
 // The label + href for each item shown in the nav bar
 export const NAV_LINKS = [
-  { label: "Home", href: ROUTES.home },
   { label: "About", href: ROUTES.about },
   { label: "Projects", href: ROUTES.projects },
   { label: "Experience", href: ROUTES.experience },
   { label: "Skills", href: ROUTES.skills },
   { label: "Blog", href: ROUTES.blog },
   { label: "Notes", href: ROUTES.notes },
+  { label: "Now", href: ROUTES.now },
+  { label: "Lab", href: ROUTES.lab },
   { label: "Contact", href: ROUTES.contact },
   { label: "Links", href: ROUTES.links },
 ] as const

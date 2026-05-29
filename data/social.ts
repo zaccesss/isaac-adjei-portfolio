@@ -10,34 +10,22 @@ export interface SocialLink {
 
 export const socialLinks: SocialLink[] = [
   {
-    name: "Website",
-    url: "https://zacess.com",
+    name: "All Pages",
+    url: "/all-pages",
     icon: "globe",
-    username: "zacess.com",
+    username: "all-pages",
   },
   {
-    name: "Links",
-    url: "https://www.isaacadjei.me/links",
-    icon: "link",
-    username: "www.isaacadjei.me/links",
-  },
-  {
-    name: "Email",
-    url: "mailto:contact@isaacadjei.me",
+    name: "Contact",
+    url: "/contact",
     icon: "mail",
-    username: "contact@isaacadjei.me",
+    username: "contact",
   },
   {
     name: "Newsletter",
-    url: "https://isaacadjei.me/newsletter",
+    url: "/newsletter",
     icon: "newsletter",
-    username: "isaacadjei.me/newsletter",
-  },
-  {
-    name: "ORCID",
-    url: "https://orcid.org/0009-0001-8298-5098",
-    icon: "orcid",
-    username: "0009-0001-8298-5098",
+    username: "newsletter",
   },
   {
     name: "LinkedIn",
@@ -50,5 +38,11 @@ export const socialLinks: SocialLink[] = [
     url: "https://github.com/zaccesss",
     icon: "github",
     username: "@zaccesss",
+  },
+  {
+    name: "ORCID",
+    url: "https://orcid.org/0009-0001-8298-5098",
+    icon: "orcid",
+    username: "0009-0001-8298-5098",
   },
 ]
