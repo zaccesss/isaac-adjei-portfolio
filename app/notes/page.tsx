@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { Terminal, Lightbulb, Wrench, CalendarDays, Github, ExternalLink, ArrowRight } from "lucide-react"
 import LiveStatusCards from "@/components/shared/LiveStatusCards"
+import InspirationWidget from "@/components/shared/InspirationWidget"
 
 export const metadata: Metadata = {
   title: "Notes",
@@ -20,7 +21,7 @@ const currentProjects = [
     name: "Phaemos",
     badge: "Ongoing",
     description:
-      "Full-stack predictive maintenance platform. FastAPI backend, Isolation Forest anomaly detection, Next.js live dashboard, ESP32 and STM32 firmware. Actively adding features, improving the ML pipeline and working towards a production deployment.",
+      "Full-stack predictive maintenance platform. Four hardware nodes: ESP32 primary (11 sensors), STM32 Black Pill (100Hz FFT vibration in HAL C), Arduino Nano (secondary sensors) and Raspberry Pi Pico 2W (MicroPython ambient node). FastAPI backend, Isolation Forest anomaly detection, Next.js live dashboard. Actively building the hardware layer and firmware.",
     projectHref: "/projects/phaemos",
     websiteHref: "https://phaemos.com",
     githubHref: "https://github.com/zaccesss/phaemos",
@@ -245,7 +246,7 @@ export default function NotesPage() {
         </div>
       </section>
 
-      <Separator />
+      <InspirationWidget />
 
       {/* Lab link */}
       <Link

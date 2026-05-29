@@ -52,6 +52,45 @@ const roles = {
   }
 };
 
+// I map each skillPriority key to the start of its <strong> label in cv.html
+const SKILL_KEY_PREFIXES = {
+  Languages:    'Languages',
+  Embedded:     'Embedded',
+  Web:          'Web',
+  'AI/ML':      'AI/ML',
+  Cloud:        'Cloud',
+  Professional: 'Professional',
+};
+
+function getSkillKey(paragraph) {
+  const match = paragraph.match(/<strong>([^<]+)/);
+  if (!match) return null;
+  const label = match[1].trim();
+  for (const [key, prefix] of Object.entries(SKILL_KEY_PREFIXES)) {
+    if (label.startsWith(prefix)) return key;
+  }
+  return null;
+}
+
+function reorderSkillsBlock(skillsHtml, priority) {
+  // I extract every <p>...</p> inside the skills-block and sort by priority
+  const paragraphs = [...skillsHtml.matchAll(/<p[\s\S]*?<\/p>/gi)].map(m => m[0]);
+  if (!paragraphs.length) return skillsHtml;
+
+  const sorted = [...paragraphs].sort((a, b) => {
+    const idxA = priority.indexOf(getSkillKey(a) ?? '');
+    const idxB = priority.indexOf(getSkillKey(b) ?? '');
+    return (idxA === -1 ? priority.length : idxA)
+         - (idxB === -1 ? priority.length : idxB);
+  });
+
+  return skillsHtml.replace(
+    /(<div class="skills-block">)([\s\S]*?)(<\/div>)/,
+    (_, open, _inner, close) =>
+      open + '\n\n' + sorted.join('\n\n') + '\n\n' + close
+  );
+}
+
 function extractSection(html, startMarker, endMarker) {
   const start = html.indexOf(startMarker);
   if (start === -1) return '';
@@ -80,9 +119,8 @@ function createRoleCV(roleConfig) {
       <div class="profile">${roleConfig.profile}</div>
     </div>`;
 
-  // Reorder skills based on priority
-  let reorderedSkills = skills;
-  // TODO: Parse and reorder skills based on roleConfig.skillPriority
+  // I reorder skills so the most relevant categories appear first for the target role
+  const reorderedSkills = reorderSkillsBlock(skills, roleConfig.skillPriority);
 
   // Build the CV without JavaScript
   let cv = header + '\n' + profileHTML + '\n' + education + '\n' + reorderedSkills + '\n' + projects + '\n' + experience + '\n' + volunteering + '\n' + languages + '\n</body>\n</html>';

@@ -15,7 +15,11 @@ const nextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
       { protocol: "https", hostname: "www.google.com" },
+      { protocol: "https", hostname: "upload.wikimedia.org" },
     ],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     // Serve images in AVIF (best compression) with WebP as a fallback.
     // Next.js negotiates the format automatically via Accept headers.
     formats: ["image/avif", "image/webp"],

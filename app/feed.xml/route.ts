@@ -36,7 +36,7 @@ ${categories}
   <channel>
     <title>Isaac Adjei</title>
     <link>${SITE_URL}</link>
-    <description>Engineering and tech write-ups, project breakdowns, journal entries and research notes by Isaac Adjei.</description>
+    <description>Engineering and tech write-ups, project breakdowns, research posts, journal entries, articles and curated resources by Isaac Adjei.</description>
     <language>en-gb</language>
     <managingEditor>contact@isaacadjei.me (Isaac Adjei)</managingEditor>
     <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml" />
