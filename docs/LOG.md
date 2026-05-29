@@ -4,6 +4,75 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-29 (session 4 - fix/discord-activity-icon-ps5-last-game)
+
+Branch: `fix/discord-activity-icon-ps5-last-game`
+
+### Problems faced and fixes
+
+**Problem 1: PSN OAuth client ID removed by Sony (400 on every authorize request)**
+
+The old PSN client ID `09515159-7237-4370-9b4e-4f1afab1cbf2` was silently decommissioned. Discovered the replacement by inspecting the `psnawp` Python library source:
+- New client ID: `09515159-7237-4370-9b40-3806e67c0891`
+- New client secret: `ucPjka5tntB2KqsP`
+- New redirect URI: `com.scee.psxandroid.scecompcall://redirect`
+- PSN now also requires extra headers: `X-Requested-With`, `Sec-Fetch-Dest`, `Sec-Fetch-Mode`, `Sec-Fetch-Site` on the authorize request; `User-Agent` and `X-Psn-Correlation-Id` plus a `cid` body field on the token exchange.
+
+**Problem 2: Stale NPSSO cookie**
+
+The NPSSO was invalidated after signing out of PlayStation.com during debugging. Chrome stores it encrypted (AES-128-CBC, key from macOS Keychain) in `~/Library/Application Support/Google/Chrome/Profile 1/Cookies`. Wrote a Python script using `pycryptodome` to decrypt and extract it. Full script is in the `.claude` memory log.
+
+Fix: `echo "npsso" | npx wrangler@3 secret put PSN_NPSSO`
+
+**Problem 3: Wrong PSN presence API version (v1 → v2)**
+
+Old v1 endpoint returned 400. v2 returns 200 and also includes `conceptIconUrl` for the current game. Updated endpoint:
+```
+GET /api/userProfile/v2/internal/users/{id}/basicPresences?type=primary&platforms=PS4,PS5,MOBILE_APP,PSPC&withOwnGameTitleInfo=true
+```
+
+**Problem 4: IGDB cover art not appearing (PS5 card showing PSN promo image)**
+
+Root cause identified in session 4: the IGDB games API request was missing `Content-Type: text/plain`. IGDB's Apicalypse query format requires this header for the body to be parsed. Without it the API returns no results silently. Also the `catch {}` block was completely silent — added `console.log` so Cloudflare Worker logs show what happened.
+
+Fix: added `"Content-Type": "text/plain"` header to the IGDB `/v4/games` request, added logging throughout `fetchIgdbCover`, expanded `IGDB_NAME_MAP` to cover GTA Online and GTA V/VI short names.
+
+**Problem 5: Discord activity icons wrong**
+
+`mp:external/` prefix maps to Discord's media CDN, `spotify:` to Spotify's CDN, and `application_id` + asset key to Discord's app-assets CDN. Fixed icon URL construction in `LiveStatusCards.tsx`.
+
+**Problem 6: Discord timestamps showing hours without seconds**
+
+Changed `activityElapsed()` to format as `H:MM:SS` / `M:SS`, added `activityTick` state incrementing every second so timestamps update live in the browser.
+
+**Problem 7: PS5 last game not showing**
+
+The `ps5:last-known` key stores the last known state even when the PS5 is offline. The API route at `/api/ps5` reads both `ps5:status` (live, 120s TTL) and `ps5:last-known` (no TTL) and exposes `lastGame` / `lastGameImage` so the card can show the last game greyed when offline.
+
+### Files changed this session
+
+| File | What changed |
+|------|-------------|
+| `workers/ps5-presence/src/index.ts` | New PSN client ID/secret/redirect, v2 presence endpoint, IGDB cover art with `Content-Type: text/plain`, logging, expanded name map, first-person comments |
+| `workers/ps5-presence/wrangler.toml` | KV namespace binding `PS5_KV` added |
+| `components/shared/LiveStatusCards.tsx` | Discord timestamps (seconds, live tick), Spotify icon, GPC/PS5 card layout, activity sorting |
+| `scripts/gpc-daemon.py` | IGDB cover art via Twitch API, FiveM, fallback CDN URLs, game_image in payload, first-person comments |
+| `scripts/spotify-auth.mjs` | First-person comments added |
+| `app/api/ps5/route.ts` | Reads `game_image` (snake_case) from Redis, exposes `lastGame` / `lastGameImage` |
+| `.gitignore` | Added `.open-next`, `.wrangler`, `.dev.vars*` |
+
+### GPC daemon Windows NSSM setup (to do when back at uni)
+
+The GPC daemon needs these env vars in NSSM — set them all in ONE call:
+```powershell
+nssm set gpc-daemon AppEnvironmentExtra UPSTASH_REDIS_REST_URL=https://... UPSTASH_REDIS_REST_TOKEN=... IGDB_CLIENT_ID=... IGDB_CLIENT_SECRET=...
+nssm restart gpc-daemon
+```
+
+The IGDB credentials (`IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`) are the same Twitch app credentials used by the PS5 worker. Set them so the daemon can fetch box art without falling back to the hardcoded CDN URLs.
+
+---
+
 ## 2026-05-29 (session 3 - v2.6.0 release)
 
 Large content and feature session culminating in PR #235 (merged) and tagged v2.6.0.
