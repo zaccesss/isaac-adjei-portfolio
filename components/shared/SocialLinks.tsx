@@ -37,8 +37,8 @@ export default function SocialLinks({
           <Link
             key={social.name}
             href={social.url}
-            target={social.url.startsWith("mailto") ? undefined : "_blank"}
-            rel="noopener noreferrer"
+            target={social.url.startsWith("http") ? "_blank" : undefined}
+            rel={social.url.startsWith("http") ? "noopener noreferrer" : undefined}
             className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
             aria-label={social.name}
           >

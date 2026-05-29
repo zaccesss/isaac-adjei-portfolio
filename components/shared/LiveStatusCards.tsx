@@ -433,7 +433,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
         {hasTrack ? (
           <div className="p-4 space-y-3">
             <div className="flex items-center gap-2">
-              <SiSpotify className="h-3.5 w-3.5 text-[#1db954] shrink-0" />
+              <SiSpotify className="h-3.5 w-3.5 text-blue-500 shrink-0" />
               <p className="text-[10px] font-semibold uppercase tracking-widest text-blue-500 flex-1 truncate">
                 {spotifyLabel}
               </p>
@@ -492,7 +492,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
           // I render last_played at reduced opacity with a grayscale thumbnail to signal the track is not currently active
           <div className="p-4 space-y-3 opacity-50">
             <div className="flex items-center gap-2">
-              <SiSpotify className="h-3.5 w-3.5 text-[#1db954] shrink-0" />
+              <SiSpotify className="h-3.5 w-3.5 text-blue-500 shrink-0" />
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground flex-1">
                 Last Played
               </p>
@@ -534,7 +534,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <SiSpotify className="h-3 w-3 text-[#1db954] shrink-0" />
+                <SiSpotify className="h-3 w-3 text-blue-500 shrink-0" />
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
                   Spotify
                 </p>
@@ -739,6 +739,45 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
 
       </div>
 
+      {/* GitHub strip - always visible, above the conditional Discord card */}
+      <div className="rounded-2xl border border-border/60 bg-card shadow-sm py-3 px-4 flex items-center gap-2 text-sm">
+        <Github className="h-4 w-4 text-foreground/60 dark:text-foreground/50 shrink-0" />
+        <span className="text-foreground/30 dark:text-foreground/25 select-none">|</span>
+        <GitBranch className="h-3.5 w-3.5 text-foreground/50 dark:text-foreground/40 shrink-0" />
+        {github.repo ? (
+          <>
+            <span className="text-xs text-muted-foreground">pushed</span>
+            <span className="text-xs font-medium text-foreground/80 truncate">{github.repo}</span>
+            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+              <span className="text-xs text-muted-foreground/50">{github.relativeTime}</span>
+              <span className="text-foreground/20 dark:text-foreground/15 select-none">|</span>
+              <a
+                href="https://github.com/zaccesss"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub profile"
+                className="text-foreground/60 hover:text-foreground transition-colors"
+              >
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          </>
+        ) : (
+          <>
+            <span className="text-xs text-muted-foreground/40">no recent activity</span>
+            <a
+              href="https://github.com/zaccesss"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub profile"
+              className="ml-auto text-foreground/60 hover:text-foreground transition-colors shrink-0"
+            >
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </>
+        )}
+      </div>
+
       {/* Discord / Lanyard card */}
       {(alwaysShowDiscord || (lanyard && lanyard.discord_status !== "offline")) && (() => {
         const offline = !lanyard || lanyard.discord_status === "offline"
@@ -829,44 +868,6 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
         )
       })()}
 
-      {/* GitHub strip */}
-      <div className="rounded-2xl border border-border/60 bg-card shadow-sm py-3 px-4 flex items-center gap-2 text-sm">
-        <Github className="h-4 w-4 text-foreground/60 dark:text-foreground/50 shrink-0" />
-        <span className="text-foreground/30 dark:text-foreground/25 select-none">|</span>
-        <GitBranch className="h-3.5 w-3.5 text-foreground/50 dark:text-foreground/40 shrink-0" />
-        {github.repo ? (
-          <>
-            <span className="text-xs text-muted-foreground">pushed</span>
-            <span className="text-xs font-medium text-foreground/80 truncate">{github.repo}</span>
-            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
-              <span className="text-xs text-muted-foreground/50">{github.relativeTime}</span>
-              <span className="text-foreground/20 dark:text-foreground/15 select-none">|</span>
-              <a
-                href="https://github.com/zaccesss"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub profile"
-                className="text-foreground/60 hover:text-foreground transition-colors"
-              >
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-          </>
-        ) : (
-          <>
-            <span className="text-xs text-muted-foreground/40">no recent activity</span>
-            <a
-              href="https://github.com/zaccesss"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="GitHub profile"
-              className="ml-auto text-foreground/60 hover:text-foreground transition-colors shrink-0"
-            >
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </>
-        )}
-      </div>
     </div>
   )
 }

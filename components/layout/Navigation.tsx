@@ -13,7 +13,7 @@ export default function Navigation() {
   const pathname = usePathname()
 
   return (
-    <nav className="hidden md:flex items-center gap-6">
+    <nav className="hidden md:flex items-center gap-5">
       {NAV_LINKS.map((link) => {
         const isActive = pathname === link.href
         return (
