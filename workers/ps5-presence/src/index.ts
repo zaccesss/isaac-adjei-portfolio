@@ -213,6 +213,7 @@ async function fetchIgdbCover(env: Env, gameName: string): Promise<string | null
 
 async function fetchPresence(accessToken: string, env: Env): Promise<{
   online: boolean
+  busy: boolean
   status: string
   game: string | null
   game_image: string | null
@@ -240,7 +241,9 @@ async function fetchPresence(accessToken: string, env: Env): Promise<{
 
   const basic = data.basicPresence ?? {}
   const availability = basic.availability ?? "unavailable"
-  const online = availability === "availableToPlay"
+  // I treat doNotDisturb as online - the PS5 is on and active, it is just a social status.
+  // Only "unavailable" (appear offline / truly offline) counts as not online.
+  const online = availability === "availableToPlay" || availability === "doNotDisturb"
   const busy = availability === "doNotDisturb"
 
   const gameInfo = (basic.gameTitleInfoList ?? [{}])[0]
@@ -257,6 +260,7 @@ async function fetchPresence(accessToken: string, env: Env): Promise<{
 
   return {
     online,
+    busy,
     status,
     game: game ?? null,
     game_image: gameImage,
