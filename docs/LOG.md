@@ -4,6 +4,14 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-29 (session 3)
+
+- feat/blog-drafts-vault-expiry-skills: FPGA post published (date 2026-05-29, expanded for beginners with mental model intro, LED blink example, FPGA vs MCU guide, tools section); RTOS post unpublished as draft; two must-watch videos embedded (Nand2Tetris TED + Steve Jobs Stanford) on FPGA and resources posts; video ContentBlock type added to blog.ts and renderer; images added to AVR, LED Cube, AstonCV and portfolio posts; Phaemos description changed from past to present tense; all build errors from duplicate braces fixed.
+
+## 2026-05-29 (session 2)
+
+- feat/blog-drafts-vault-expiry-skills: published IoT security and SPI vs I2C drafts with significantly expanded content and references; added two new drafts (UART bare metal, RTOS fundamentals) as published: false; expanded "building my portfolio" post with live status system, dashboard, job scraper, Supabase and security sections; fixed skills reordering TODO in generate-role-cvs.js (WEATHERAPI_MAP replaced with reorderSkillsBlock function); built vault expiry alerts cron (lib/vault-expiry-check.ts + /api/dashboard/vault-expiry-check route) checking key_expiry, card_expiry and warranty_expiry, sending Discord embed for items expiring within 30 days, added to vercel.json at 0 9 * * *; updated SUGGESTIONS.md with CV automation and mindblowing ideas; fixed business analytics post type from research to notes.
+
 ## 2026-05-29
 
 - fix/night-emoji-partly-cloudy: partly cloudy at night now emits ☁️ instead of ⛅ - sun should not be visible in night conditions.

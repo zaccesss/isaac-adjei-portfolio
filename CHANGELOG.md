@@ -9,6 +9,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Published IoT security gaps, SPI vs I2C, RTOS fundamentals, UART bare metal research posts with expanded content and verified linked references
+- Published article "Why Every Software Engineer Should Understand Hardware"
+- Published "Resources for Engineering and Technology" with curated books, courses, YouTube channels and tools
+- Published "Bionic Vision and Ocular Prosthetics: Where the Science Actually Stands" research post
+- Published "TypeScript Patterns That Actually Matter in Production" blog post
+- Two draft posts added: DMA Explained and Getting Started with FPGAs
+- Motivation and scripture widgets moved from /blog to /notes page
+
+### Changed
+
+- "Building My Portfolio" blog post updated with live status system section and corrected origin story
+- Business analytics post type corrected from research to notes
+- Resources post renamed from embedded/software engineering to engineering and technology with tools and YouTube sections added
+
 - PS5 live card in the status widget - online/offline, current game and last-seen time via Cloudflare Worker polling PSN every 60s
 - Cloudflare Worker at workers/ps5-presence replaces the Mac-based PS5 daemon for presence polling
 - Inventory item detail pages at /dashboard/inventory/[category]/[id] with full field layout, warranty colour coding and edit/delete actions

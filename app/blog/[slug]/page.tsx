@@ -172,6 +172,25 @@ function renderBlock(block: ContentBlock, i: number, headingIds?: Map<number, st
           )}
         </figure>
       )
+    case "video":
+      return (
+        <figure key={i} className="space-y-2 my-4">
+          <div className="relative aspect-video rounded-lg overflow-hidden border border-border/60">
+            <iframe
+              src={`https://www.youtube.com/embed/${block.youtubeId}`}
+              title={block.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
+          {block.description && (
+            <figcaption className="text-xs text-center text-muted-foreground italic">
+              {block.description}
+            </figcaption>
+          )}
+        </figure>
+      )
     case "divider":
       return <hr key={i} className="border-border/40" />
     default:
