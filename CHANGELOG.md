@@ -7,48 +7,69 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [v2.6.0] - 2026-05-29
+
 ### Added
 
-- Published IoT security gaps, SPI vs I2C, RTOS fundamentals, UART bare metal research posts with expanded content and verified linked references
-- Published article "Why Every Software Engineer Should Understand Hardware"
-- Published "Resources for Engineering and Technology" with curated books, courses, YouTube channels and tools
-- Published "Bionic Vision and Ocular Prosthetics: Where the Science Actually Stands" research post
-- Published "TypeScript Patterns That Actually Matter in Production" blog post
-- Two draft posts added: DMA Explained and Getting Started with FPGAs
-- Motivation and scripture widgets moved from /blog to /notes page
+- 8 new published blog posts across research, blog, article and resources types:
+  - "Getting Started with FPGAs" - beginner-friendly VHDL introduction with LED blink example, tool links and Wikimedia architecture diagrams
+  - "Bionic Vision and Ocular Prosthetics: Where the Science Actually Stands" - retinoblastoma, Argus II, PRIMA, optogenetic therapy, engineering challenges in restoring vision
+  - "TypeScript Patterns That Actually Matter in Production" - discriminated unions, satisfies, branded types, const assertions and exhaustiveness checking
+  - "Why Every Software Engineer Should Understand Hardware" - opinion article on abstraction costs and debugging across layers
+  - "Resources for Engineering and Technology" - curated books, courses, YouTube channels and coding tools with descriptions and links; must-watch video section; link to /consumed
+  - "Security Gaps in Consumer IoT" - Mirai, KRACK, Ripple20, ETSI EN 303 645, OWASP IoT Top 10 with verified references
+  - "SPI vs I2C: When to Use Which" - deep technical comparison with Wikimedia timing diagrams, clock modes, address conflicts and code examples
+  - "RTOS Fundamentals" - FreeRTOS task scheduling, queues, mutexes and stack management (published then swapped to draft in favour of FPGA post)
+- 3 draft posts: UART From Scratch, DMA Explained and Getting Started with FPGAs (swapped from RTOS)
+- YouTube video embed support via new `video` ContentBlock type and renderer
+- Motivation and scripture widgets extracted to shared `InspirationWidget` component and moved from /blog to /notes page
+- `upload.wikimedia.org` added to Next.js `remotePatterns`; `dangerouslyAllowSVG` enabled for SVG diagram support
+- MacBook daemon switched from WeatherAPI to Open-Meteo (ECMWF model) for better UK weather accuracy
+- CoreLocationCLI GPS integration in mac-daemon.py for street-level location precision over IP geolocation
+- Night emoji fix: cloudy conditions now show cloud emoji rather than moon; only clear and mainly-clear nights show moon
+- PS5 live card in the status widget - online/offline, current game and last-seen time via Cloudflare Worker polling PSN every 60s
+- Discord presence card in the live status widget on /now and /notes, powered by the Lanyard API; shows status dot, current rich presence activity and elapsed time
+- Discord card shows all concurrent activities (Playing, Listening, Watching) in a stacked list with type labels and dividers
+- External link icon on Discord card opens Discord profile in a new tab
+- Live status cards widget added to /now page with pulsing blue "Updated live" indicator
+- Clickable GitHub profile link in the live status GitHub strip
+- Share button on /cv and /links pages
+- Open Graph thumbnails on every public page via /api/og
 
 ### Changed
 
-- "Building My Portfolio" blog post updated with live status system section and corrected origin story
+- "Building My Portfolio" blog post expanded with live status system section and rewritten origin story to reflect zacess.com starting point
+- Phaemos blog post, project page and notes entry updated for 4-node hardware architecture (ESP32, STM32 Black Pill, Arduino Nano, Raspberry Pi Pico 2W) and full sensor list
+- Resources post renamed from embedded/software engineering to engineering and technology with tools and YouTube sections
 - Business analytics post type corrected from research to notes
-- Resources post renamed from embedded/software engineering to engineering and technology with tools and YouTube sections added
+- RSS feed channel description updated to reflect new post types
+
+### Fixed
+
+- Cloudy night conditions now show cloud emoji rather than moon
+- SPI vs I2C and other research posts now use `ol-links` blocks with verified reference URLs
+- PubMed reference IDs replaced with PubMed search URLs to avoid stale or incorrect direct links
+- Broken Cloudflare Dyn, Mandiant and PSTI reference links replaced with verified alternatives
+- Discord card CSP: added `api.lanyard.rest` to connect-src
+- PS5 card device name and icons use foreground colour instead of blue
+- PS5 card no longer shows redundant "Online"/"Offline" status line
+
+---
+
+## [v2.5.0] - 2026-05-28
+
+### Added
 
 - PS5 live card in the status widget - online/offline, current game and last-seen time via Cloudflare Worker polling PSN every 60s
 - Cloudflare Worker at workers/ps5-presence replaces the Mac-based PS5 daemon for presence polling
 - Inventory item detail pages at /dashboard/inventory/[category]/[id] with full field layout, warranty colour coding and edit/delete actions
-- Live status cards widget added to /now page
-- Pulsing blue "Updated live" indicator on the /now page header
-- Clickable GitHub profile link in the live status GitHub strip after the last-pushed timestamp
-- Share button on /cv and /links pages next to name
-- Open Graph thumbnails on every public page via /api/og
-- MacBook daemon now uses Open-Meteo (ECMWF model) for weather and CoreLocationCLI for street-level GPS coordinates, replacing WeatherAPI and IP-based location for better UK accuracy
-- Discord presence card in the live status widget on /now and /notes pages, powered by the Lanyard API (no auth required); shows status dot (online/idle/dnd/offline), current rich presence activity (game name, VS Code file and workspace, Spotify via Discord, JetBrains IDE) and custom Discord status text
-- Discord card on /now is always visible - shows last-seen time at reduced opacity when offline; on /notes it only appears when online, idle or dnd
-- Discord card shows all concurrent activities simultaneously (Playing, Listening, Watching) in a compact stacked list with type labels and elapsed time per activity, separated by dividers
-- External link icon on the Discord card opens the Discord profile in a new tab
 
 ### Fixed
 
-- PS5 card device name no longer shown in blue - names are now always default foreground colour across all device cards
-- Device type icons (Laptop, Monitor, PlayStation) now use foreground colour when online and muted when offline, reducing visual noise alongside the blue WiFi indicator
-- PS5 card no longer shows a redundant "Online" or "Offline" status line - status text is only shown for informative states such as "Busy"
-- Cloudy conditions at night now show cloud emoji instead of moon - only clear and mainly-clear nights show moon
-- Discord card CSP: added api.lanyard.rest to connect-src in next.config.mjs so Lanyard REST and WebSocket calls are not blocked
-
-### Changed
-
-- Em and en dashes removed throughout; replaced with hyphens
-- Oxford commas removed throughout
+- PS5 card device name no longer shown in blue
+- Device type icons use foreground colour when online and muted when offline
 
 ---
 
