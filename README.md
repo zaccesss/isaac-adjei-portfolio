@@ -72,7 +72,7 @@ The homepage (`/`), `/now` and `/lab` show the full iOS-style live status grid. 
 - **Lenovo** - battery and charging state from a Windows daemon
 - **GitHub** - last public push event with repo name and time
 - **PS5** - online status and current game via a Cloudflare Worker polling PSN every 60 seconds
-- **Discord** - real-time presence via Lanyard API; shows status, current activity (game, VS Code, Spotify) and custom status; on `/now` always visible; on `/notes` hidden when offline
+- **Discord** - real-time presence via Lanyard API; shows status dot, current activity (game, VS Code, Spotify) and custom status text; always visible on `/now` - shows "last seen Xm ago" at reduced opacity when offline
 
 ---
 
@@ -96,9 +96,60 @@ Most features work without any environment variables. The Spotify card, MacBook 
 
 ## Tech stack
 
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=nextjs,ts,tailwind,react,py,supabase,redis,vercel,cloudflare,github,discord,postgres&theme=dark" alt="Tech stack icons" />
-</p>
+<table align="center">
+  <tr>
+    <td align="center" width="96">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg" width="48" height="48" alt="Next.js" />
+      <br><sub><b>Next.js 16</b></sub>
+    </td>
+    <td align="center" width="96">
+      <img src="https://techstack-generator.vercel.app/ts-icon.svg" width="48" height="48" alt="TypeScript" />
+      <br><sub><b>TypeScript</b></sub>
+    </td>
+    <td align="center" width="96">
+      <img src="https://techstack-generator.vercel.app/react-icon.svg" width="48" height="48" alt="React" />
+      <br><sub><b>React</b></sub>
+    </td>
+    <td align="center" width="96">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg" width="48" height="48" alt="Tailwind CSS" />
+      <br><sub><b>Tailwind CSS</b></sub>
+    </td>
+    <td align="center" width="96">
+      <img src="https://techstack-generator.vercel.app/python-icon.svg" width="48" height="48" alt="Python" />
+      <br><sub><b>Python</b></sub>
+    </td>
+    <td align="center" width="96">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/framermotion/framermotion-original.svg" width="48" height="48" alt="Framer Motion" />
+      <br><sub><b>Framer Motion</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="96">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/supabase/supabase-original.svg" width="48" height="48" alt="Supabase" />
+      <br><sub><b>Supabase</b></sub>
+    </td>
+    <td align="center" width="96">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg" width="48" height="48" alt="Redis" />
+      <br><sub><b>Upstash Redis</b></sub>
+    </td>
+    <td align="center" width="96">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" width="48" height="48" alt="PostgreSQL" />
+      <br><sub><b>PostgreSQL</b></sub>
+    </td>
+    <td align="center" width="96">
+      <img src="https://skillicons.dev/icons?i=vercel" width="48" height="48" alt="Vercel" />
+      <br><sub><b>Vercel</b></sub>
+    </td>
+    <td align="center" width="96">
+      <img src="https://skillicons.dev/icons?i=cloudflare" width="48" height="48" alt="Cloudflare" />
+      <br><sub><b>Cloudflare</b></sub>
+    </td>
+    <td align="center" width="96">
+      <img src="https://techstack-generator.vercel.app/github-icon.svg" width="48" height="48" alt="GitHub" />
+      <br><sub><b>GitHub</b></sub>
+    </td>
+  </tr>
+</table>
 
 | Layer | Technology |
 | --- | --- |
