@@ -253,7 +253,11 @@ export const projects: Project[] = [
     category: "other",
     featured: true,
     images: [
+      "/images/projects/git-unlocked/github-logo-3d.jpg",
       "/images/projects/git-unlocked/git_unlocked_banner.svg",
+      "/images/projects/git-unlocked/octocat-laptop.jpg",
+      "/images/projects/git-unlocked/octocat-groot.jpg",
+      "/images/projects/git-unlocked/octocat-closeup.jpg",
     ],
     github: "https://github.com/zaccesss/git-unlocked",
     date: "2026",
