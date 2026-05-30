@@ -284,7 +284,7 @@ export default function NotesPage() {
       </Link>
 
       <p className="text-xs text-muted-foreground font-mono text-center">
-        Last updated May 2026
+        Last updated June 2026
       </p>
 
     </div>
