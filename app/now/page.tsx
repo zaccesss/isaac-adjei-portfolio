@@ -76,10 +76,10 @@ export default function NowPage() {
           <h2 className="text-base font-semibold">Where I am</h2>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Based in Birmingham, UK, studying Electronic Engineering and Computer Science at Aston University,
-          working towards a First Class BEng. This academic year is coming to a close and I am already
-          preparing for what comes next. I split my time between Birmingham for uni and London, where
-          most of my family is based.
+          Based in London for the summer. I study Electronic Engineering and Computer Science at Aston
+          University in Birmingham, working towards a First Class BEng. The academic year has just
+          wrapped up so I am back in London, where most of my family is based. Come September it is
+          back to Birmingham for the next year.
         </p>
       </section>
 
@@ -93,11 +93,12 @@ export default function NowPage() {
         </div>
         <div className="space-y-2 text-sm text-muted-foreground leading-relaxed">
           <p>
-            The academic year has wrapped up. I am spending the summer going deeper into the areas I enjoyed most:
-            embedded systems, signals and machine learning.
+            The academic year has wrapped up. I am using the summer to go deeper into the things
+            I care about: embedded systems, signals, machine learning and digital hardware design.
+            Starting FPGA development from scratch, learning VHDL and working up to real hardware designs.
           </p>
           <p>
-            I am also working through a business analytics course independently, covering probability,
+            Still working through a business analytics course independently, covering probability,
             statistics, Python, descriptive analytics, ML and prescriptive optimisation. Publishing
             notes and interactive tools{" "}
             <a
@@ -109,6 +110,10 @@ export default function NowPage() {
               as I go
             </a>
             .
+          </p>
+          <p>
+            Getting serious about competitive programming too - working through Neetcode and Leetcode
+            consistently, practising on Codeforces and entering hackathons where I can.
           </p>
         </div>
       </section>
@@ -129,9 +134,11 @@ export default function NowPage() {
               </Link>
             </p>
             <p className="leading-relaxed">
-              A full-stack predictive maintenance platform. FastAPI backend, Isolation Forest anomaly detection,
-              Next.js live dashboard, ESP32 and STM32 firmware. Actively improving the ML pipeline
-              and working towards a production deployment.
+              A full-stack predictive maintenance platform. Four hardware nodes: ESP32 primary
+              (11 sensors), STM32 Black Pill (100 Hz FFT vibration), Arduino Nano (secondary sensors)
+              and Raspberry Pi Pico 2W (ambient node). FastAPI backend, Isolation Forest anomaly
+              detection, Next.js live dashboard. Actively building the hardware layer and refining
+              the ML pipeline.
             </p>
           </div>
           <div className="space-y-1">
@@ -147,10 +154,22 @@ export default function NowPage() {
             </p>
           </div>
           <div className="space-y-1">
+            <p className="font-medium text-foreground">
+              <Link href="/notes/world-cup-ai-predictor" className="hover:text-primary transition-colors">
+                World Cup 2026 AI Predictor
+              </Link>
+            </p>
+            <p className="leading-relaxed">
+              Getting started on an ML system trained on historical World Cup data to predict
+              group stage outcomes and the eventual winner of FIFA World Cup 2026. Early stages -
+              dataset collection and model architecture planning.
+            </p>
+          </div>
+          <div className="space-y-1">
             <p className="font-medium text-foreground">This site</p>
             <p className="leading-relaxed">
-              Always iterating. Right now adding new pages, a live multi-device status widget and
-              improving how the site feels to navigate.
+              The live multi-device status widget is shipped. Focused on content updates
+              and polish now - pages like this one.
             </p>
           </div>
         </div>
@@ -191,8 +210,14 @@ export default function NowPage() {
             models on microcontrollers with tight memory and power constraints.
           </p>
           <p>
-            Also thinking about what an internship in this space actually looks like and which
-            companies are genuinely doing interesting low-level work rather than wrapping LLM APIs.
+            Actively looking and applying for internships, placements and professional work
+            experience. Focused on roles with real engineering depth. I have been attending industry
+            events and networking with people doing work I genuinely find interesting.
+          </p>
+          <p>
+            I have been invited to Sky&apos;s campus the day before my birthday, celebrating being
+            shortlisted for the Black Heritage Undergraduate of the Year award. It means a lot and
+            I am genuinely looking forward to it.
           </p>
         </div>
       </section>
@@ -206,9 +231,11 @@ export default function NowPage() {
           <h2 className="text-base font-semibold">Outside of work</h2>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Back at the gym consistently. Playing piano when I need to step away from screens.
-          Cooking more, eating out less. Cycling when the weather allows, which in Birmingham is
-          less often than I would like.
+          Back at the gym consistently. Running more regularly too - short routes, building the
+          habit. Hiking when I get the chance to get out of the city. Playing piano when I need to
+          step away from screens. Getting better at cooking - less eating out, more experimenting
+          in the kitchen. Cycling when the weather allows, which in London is actually more often
+          than Birmingham.
         </p>
       </section>
 
