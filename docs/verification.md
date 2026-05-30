@@ -12,6 +12,7 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 - [ ] Mobile banner visible - on a screen narrower than 768px a slim "best experienced on a laptop or desktop" strip appears below the header
 - [ ] Mobile banner dismissible - clicking the X on the banner hides it; it does not reappear until the page reloads
 - [ ] Mobile banner hidden on desktop - on a screen 768px or wider the banner is not rendered at all
+- [ ] Mobile banner text colour - text is foreground-coloured (clear black on light, white on dark), not grey; compare against the surrounding page text to confirm
 
 ---
 
@@ -37,7 +38,9 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 - [ ] `/blog/[slug]` - A published post loads and renders correctly; ol-links references render as numbered clickable links
 - [ ] `/notes` - Loads; motivation and scripture widgets appear above the lab terminal link at the bottom
 - [ ] `/lab` - Loads
-- [ ] `/now` - Loads
+- [ ] `/now` - Loads; header shows pulsing blue dot and "Updated live" only - no "Last updated" date text visible
+- [ ] `/notes` - footer shows "Last updated June 2026"
+- [ ] `/privacy` - heading area shows "Last updated: June 2026"
 - [ ] `/consumed` - Loads, tabs work, media cards render
 - [ ] `/newsletter` - Loads, subscribe form visible
 - [ ] `/changelog` - Loads, entries visible
@@ -86,6 +89,7 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 - [ ] PS5 offline "Last played" - when PS5 is offline, "Last played: [game name]" text is visible below "last seen Xm ago" on the card; no cover art image is shown when offline
 - [ ] PS5 IGDB cover art - when PS5 is online and in a game, the cover art shown is the IGDB image (not the PSN promotional conceptIconUrl)
 - [ ] PS5 lastSeen reflects genuine last-online time - compare card's "last seen" time to when the PS5 was actually switched off; it should not show the cron polling time
+- [ ] PS5 cron cadence - confirm in Cloudflare dashboard that the worker cron is set to `*/2 * * * *` (every 2 minutes); KV write count should be ~720/day, not ~1,440
 - [ ] GPC 5-tier known-games - a game in the KNOWN_GAMES dict (e.g. EA FC) is detected when the process is running
 - [ ] GPC 5-tier Steam - a Steam game not in KNOWN_GAMES is detected via Steam Web API when STEAM_API_KEY is set in NSSM
 - [ ] GPC env vars complete - IGDB_CLIENT_ID, IGDB_CLIENT_SECRET, STEAM_API_KEY and STEAM_ID are all set in NSSM AppEnvironmentExtra; verify with `nssm get gpc-daemon AppEnvironmentExtra`

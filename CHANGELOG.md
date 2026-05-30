@@ -12,10 +12,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Mobile banner: slim dismissible notice below the header on screens narrower than 768px suggesting the site is best viewed on a laptop or desktop; hidden via `md:hidden` so it never appears on wider screens
 - git-unlocked project gallery expanded with 4 new images: 3D GitHub logo badge (card preview), Octocat with GitHub profile on laptop, Octocat and Groot figurines and close-up Octocat; card preview image updated from banner SVG to the 3D logo badge
 - /now page intro now links to nownownow.com/p/n4lZ alongside the existing Derek Sivers credit so visitors can find the listed profile
+- Colophon expanded: shadcn/ui and next-themes as separate entries; backend section adds Vercel, Resend, Beehiiv, GitHub Actions and Cloudflare Turnstile; design section adds GA4, share feature and responsive design note; new "Notable pages and features" section covers /lab, /blog renderer, /consumed, /changelog and OG image generation; all live status entries expanded with more detail; Vercel and Cloudflare links added to header meta
+- /now page content refreshed: updated Where I am (London for summer), Studying (FPGA/VHDL, competitive programming on Neetcode/Leetcode/Codeforces, hackathons), Building (accurate Phaemos hardware detail, World Cup 2026 AI Predictor added, This site blurb updated), Thinking about (internship search, events, Sky campus mention), Outside of work (running and hiking added)
+
+### Changed
+
+- PS5 Cloudflare Worker cron reduced from every minute to every 2 minutes to stay within the 1,000 write/day free tier KV limit (720 writes/day vs previous 1,440); Redis TTL for ps5:status extended from 120s to 150s to keep a 30s buffer between key expiry and the next poll
 
 ### Fixed
 
 - Header theme toggle and hamburger menu now pin correctly to the far right on small screens (phones, narrow windows, iPad split-view); replaced the three-column grid with `flex justify-between` on mobile and `md:grid md:grid-cols-[1fr_auto_1fr]` on larger screens so the controls are never left drifting toward the centre when the desktop navigation is hidden
+- Mobile banner text changed from `text-muted-foreground` (grey on both modes) to `text-foreground` so it reads clearly as black on light and white on dark
+- /now page header now shows "Updated live" only - removed "Last updated May 2026" which was misleading alongside a live indicator
+- /notes and /privacy pages updated from "May 2026" to "June 2026"
 
 ---
 
