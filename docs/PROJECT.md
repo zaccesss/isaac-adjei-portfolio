@@ -90,7 +90,7 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 - Game detection uses 5-tier logic: (1) hardcoded KNOWN_GAMES dict, (2) Steam Web API, (3) Epic Games local manifests, (4) EA App local manifests, (5) psutil process scanning with IGDB fuzzy name matching. Cover art is fetched from IGDB on first detection per session and cached in memory.
 
 ### PS5 card
-- Redis keys: `ps5:status` (TTL 120s), `ps5:last-known` (no TTL)
+- Redis keys: `ps5:status` (TTL 150s), `ps5:last-known` (no TTL)
 - Shows: online/offline, current game with IGDB cover art, last-seen time
 - Offline rule: when offline shows text-only last played game name (no image); "Last played: [game]" text below the last-seen timestamp.
 - Powered by Cloudflare Worker `workers/ps5-presence/` - cron every minute

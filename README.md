@@ -71,7 +71,7 @@ The homepage (`/`), `/now` and `/lab` show the full iOS-style live status grid. 
 - **Gaming PC** - CPU and GPU usage and current game from a Windows daemon
 - **Lenovo** - battery and charging state from a Windows daemon
 - **GitHub** - last public push event with repo name and time
-- **PS5** - online status and current game via a Cloudflare Worker polling PSN every 60 seconds
+- **PS5** - online status and current game via a Cloudflare Worker polling PSN every 2 minutes
 - **Discord** - real-time presence via Lanyard API; shows status dot, current activity (game, VS Code, Spotify) and custom status text; always visible on `/now` - shows "last seen Xm ago" at reduced opacity when offline
 
 ---
