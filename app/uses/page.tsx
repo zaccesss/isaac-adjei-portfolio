@@ -67,7 +67,7 @@ const sections: Array<{
       {
         name: "PlayStation 5 (ZACCESS-PS5)",
         detail:
-          "My PS5. Online status, current game and last-seen time are polled every 60 seconds by a Cloudflare Worker using a custom OAuth v2 implementation against the PSN presence API - no third-party libraries. The NPSSO session cookie is exchanged for an access and refresh token on first run; the refresh token is stored in Cloudflare Workers KV and rotated automatically. Cover art is fetched from IGDB on every cron run. Status is displayed live on /now.",
+          "My PS5. Online status, current game and last-seen time are polled every 2 minutes by a Cloudflare Worker using a custom OAuth v2 implementation against the PSN presence API - no third-party libraries. The NPSSO session cookie is exchanged for an access and refresh token on first run; the refresh token is stored in Cloudflare Workers KV and rotated automatically. Cover art is fetched from IGDB on every cron run. Status is displayed live on /now.",
       },
     ],
   },
@@ -186,7 +186,7 @@ const sections: Array<{
         icon: `${SKI}=cloudflare`,
         href: "https://workers.cloudflare.com",
         detail:
-          "Serverless edge workers. One worker (workers/ps5-presence) polls the PSN API every minute and writes presence data to Upstash Redis, replacing the need for a daemon running on a local machine.",
+          "Serverless edge workers. One worker (workers/ps5-presence) polls the PSN API every 2 minutes and writes presence data to Upstash Redis, replacing the need for a daemon running on a local machine.",
       },
       {
         name: "Beehiiv",
