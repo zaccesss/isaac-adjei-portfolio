@@ -56,6 +56,15 @@ export default function NowPage() {
           >
             Derek Sivers
           </a>
+          . Also listed on{" "}
+          <a
+            href="https://nownownow.com/p/n4lZ"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+          >
+            nownownow.com
+          </a>
           .
         </p>
         <LiveStatusCards alwaysShowDiscord />
