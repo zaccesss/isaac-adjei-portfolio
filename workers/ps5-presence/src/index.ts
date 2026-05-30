@@ -275,7 +275,7 @@ export default {
     const presence = await fetchPresence(accessToken, env)
     const payload = JSON.stringify(presence)
 
-    await upstash(env, ["SET", "ps5:status", payload, "EX", "120"])
+    await upstash(env, ["SET", "ps5:status", payload, "EX", "150"])
     // I only update last-known when the PS5 is actually online so the "last seen" timestamp
     // reflects when it was genuinely active — not just when the cron last ran while offline.
     if (presence.online) {
