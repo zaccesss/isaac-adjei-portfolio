@@ -34,6 +34,7 @@ const releases: ChangeEntry[] = [
     date: "2026-05-29",
     added: [
       "Mobile banner: slim dismissible notice below the header on screens narrower than 768px suggesting the site is best viewed on a laptop or desktop",
+      "/now page intro links to my nownownow.com profile alongside the Derek Sivers credit",
     ],
     fixed: [
       "Header theme toggle and hamburger menu now pin to the far right on small screens; replaced the three-column grid with flex layout on mobile so the controls no longer drift toward the centre when the desktop navigation is hidden",

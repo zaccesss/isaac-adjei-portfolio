@@ -4,6 +4,28 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-05-30 (content/git-unlocked-images-newsletter - nownownow profile link)
+
+Branch: `content/git-unlocked-images-newsletter`
+
+### Change: nownownow.com profile linked from /now page
+
+I added a link to my nownownow.com profile (`nownownow.com/p/n4lZ`) in the /now page intro paragraph, right after the existing Derek Sivers credit. This lets visitors find the listed profile and signals that the page is part of the nownownow movement.
+
+I also considered adding it to the /links page but chose not to - the nownownow profile is really just a pointer back to this page, so it belongs on /now rather than alongside independent external profiles.
+
+Files changed:
+
+- `app/now/page.tsx`: nownownow.com/p/n4lZ linked in the intro paragraph after the Derek Sivers mention
+
+### Documentation
+
+- `CHANGELOG.md`: Unreleased Added section updated with nownownow link entry
+- `app/changelog/page.tsx`: Unreleased added array updated with matching entry
+- `docs/LOG.md`: this entry added
+
+---
+
 ## 2026-05-29 (session 6 - fix/mobile-header-banner)
 
 Branch: `fix/mobile-header-banner`
