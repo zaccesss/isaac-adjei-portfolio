@@ -28,9 +28,6 @@ export const metadata: Metadata = {
   },
 }
 
-// I update this date manually every time I change anything on this page
-const LAST_UPDATED = "May 2026"
-
 export default function NowPage() {
   return (
     <div className="container max-w-2xl py-24 space-y-14">
@@ -41,7 +38,7 @@ export default function NowPage() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500" />
           </span>
-          Updated live &middot; Last updated {LAST_UPDATED}
+          Updated live
         </div>
         <div className="flex items-center gap-2">
           <h1 className="text-4xl font-bold tracking-tight">Now</h1>
