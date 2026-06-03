@@ -28,6 +28,8 @@ import {
   SiOrcid,
   SiPatreon,
   SiBuymeacoffee,
+  SiGitlab,
+  SiCodeberg,
 } from "react-icons/si"
 import { Globe, Mail, ExternalLink, Newspaper } from "lucide-react"
 import Image from "next/image"
@@ -40,6 +42,8 @@ const iconMap: Record<string, React.ElementType> = {
   globe: Globe,
   linkedin: FaLinkedin,
   github: FaGithub,
+  gitlab: SiGitlab,
+  codeberg: SiCodeberg,
   substack: SiSubstack,
   mail: Mail,
   twitter: FaXTwitter,
@@ -65,6 +69,8 @@ const iconMap: Record<string, React.ElementType> = {
 const brandClasses: Record<string, { bg: string; icon: string }> = {
   linkedin: { bg: "bg-[#0A66C2]/10", icon: "text-[#0A66C2]" },
   github: { bg: "bg-gray-800/10", icon: "text-gray-800 dark:text-gray-200" },
+  gitlab: { bg: "bg-[#FC6D26]/10", icon: "text-[#FC6D26]" },
+  codeberg: { bg: "bg-[#2185D0]/10", icon: "text-[#2185D0]" },
   substack: { bg: "bg-[#FF6719]/10", icon: "text-[#FF6719]" },
   twitter: { bg: "bg-gray-900/10", icon: "text-gray-900 dark:text-gray-100" },
   threads: { bg: "bg-gray-900/10", icon: "text-gray-900 dark:text-gray-100" },

@@ -72,6 +72,20 @@ export const profileLinks: LinkItem[] = [
     category: "professional",
   },
   {
+    title: "GitLab",
+    description: "Follow on GitLab - code, engineering & open source projects",
+    url: "https://gitlab.com/zaccesss",
+    icon: "gitlab",
+    category: "professional",
+  },
+  {
+    title: "Codeberg",
+    description: "Follow on Codeberg - code, engineering & open source projects",
+    url: "https://codeberg.org/zaccesss",
+    icon: "codeberg",
+    category: "professional",
+  },
+  {
     title: "LeetCode",
     description: "Track my LeetCode progress and problem-solving",
     url: "https://leetcode.com/u/zacadjei",
