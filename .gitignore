@@ -2,6 +2,7 @@
 supabase-setup.sql
 module-course-extract/
 newsletter-issues.md
+/docs/cv-redesign-ideas.md
 
 # dependencies
 /node_modules
