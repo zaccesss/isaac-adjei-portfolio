@@ -19,7 +19,16 @@ import {
   FaThreads,
   FaPlaystation,
 } from "react-icons/fa6"
-import { SiCodeforces, SiKick, SiLeetcode, SiSubstack, SiLinktree, SiOrcid } from "react-icons/si"
+import {
+  SiCodeforces,
+  SiKick,
+  SiLeetcode,
+  SiSubstack,
+  SiLinktree,
+  SiOrcid,
+  SiPatreon,
+  SiBuymeacoffee,
+} from "react-icons/si"
 import { Globe, Mail, ExternalLink, Newspaper } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -49,6 +58,8 @@ const iconMap: Record<string, React.ElementType> = {
   linktree: SiLinktree,
   orcid: SiOrcid,
   newspaper: Newspaper,
+  patreon: SiPatreon,
+  buymeacoffee: SiBuymeacoffee,
 }
 
 const brandClasses: Record<string, { bg: string; icon: string }> = {
@@ -71,15 +82,18 @@ const brandClasses: Record<string, { bg: string; icon: string }> = {
   linktree: { bg: "bg-[#43E55E]/10", icon: "text-[#43E55E]" },
   orcid: { bg: "bg-[#A6CE39]/10", icon: "text-[#A6CE39]" },
   newspaper: { bg: "bg-primary/10", icon: "text-primary" },
+  patreon: { bg: "bg-[#FF424D]/10", icon: "text-[#FF424D]" },
+  buymeacoffee: { bg: "bg-[#FFDD00]/15", icon: "text-[#FFDD00]" },
 }
 
 const categoryLabel: Record<LinkItem["category"], string> = {
   professional: "Professional",
   social: "Social",
   content: "Content",
+  support: "Support",
 }
 
-const categories: LinkItem["category"][] = ["professional", "social", "content"]
+const categories: LinkItem["category"][] = ["professional", "social", "content", "support"]
 
 export default function LinksPage() {
   return (

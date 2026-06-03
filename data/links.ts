@@ -8,7 +8,7 @@ export interface LinkItem {
   url: string
   icon: string
   iconImage?: string
-  category: "professional" | "social" | "content"
+  category: "professional" | "social" | "content" | "support"
 }
 
 export const profileLinks: LinkItem[] = [
@@ -185,5 +185,20 @@ export const profileLinks: LinkItem[] = [
     url: "https://kick.com/zaccess",
     icon: "kick",
     category: "content",
+  },
+  // Support
+  {
+    title: "Patreon",
+    description: "Support me on Patreon - exclusive perks & content",
+    url: "https://www.patreon.com/cw/zaccesss",
+    icon: "patreon",
+    category: "support",
+  },
+  {
+    title: "Buy Me a Coffee",
+    description: "Buy me a coffee - one-time support, much appreciated",
+    url: "https://buymeacoffee.com/zaccesss",
+    icon: "buymeacoffee",
+    category: "support",
   },
 ]
