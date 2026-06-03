@@ -10,6 +10,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - /links page: new Support section at the bottom with Patreon and Buy Me a Coffee links
+- /links page: GitLab and Codeberg profile links added under Professional, each with platform brand colours
+- README: GitLab and Codeberg profile badges added alongside the existing GitHub badge
 
 ---
 

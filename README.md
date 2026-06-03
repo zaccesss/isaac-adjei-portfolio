@@ -196,6 +196,8 @@ Built by [Isaac Adjei](https://isaacadjei.me)
 [![isaacadjei.me](https://img.shields.io/badge/isaacadjei.me-000000?style=for-the-badge)](https://isaacadjei.me)
 [![zacess.com](https://img.shields.io/badge/zacess.com-000000?style=for-the-badge)](https://zacess.com)
 [![GitHub](https://img.shields.io/badge/github-zaccesss-181717?style=for-the-badge&logo=github)](https://github.com/zaccesss)
+[![GitLab](https://img.shields.io/badge/gitlab-zaccesss-FC6D26?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/zaccesss)
+[![Codeberg](https://img.shields.io/badge/codeberg-zaccesss-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/zaccesss)
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=80&section=footer" alt="footer" />
 
