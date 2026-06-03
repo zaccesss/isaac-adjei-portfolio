@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- /links page: new Support section at the bottom with Patreon and Buy Me a Coffee links
+
 ---
 
 ## [v2.8.0] - 2026-05-30
