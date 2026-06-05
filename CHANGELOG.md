@@ -12,6 +12,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - /links page: new Support section at the bottom with Patreon and Buy Me a Coffee links
 - /links page: GitLab and Codeberg profile links added under Professional, each with platform brand colours
 - README: GitLab and Codeberg profile badges added alongside the existing GitHub badge
+- dotfiles project added to /projects: full detail page with overview, 8 highlights, tech stack and 2-image gallery (welcome banner and cmds output); covers 59 numbered topic files, cross-platform alias consistency, accessibility colour scheme, 3-platform git mirroring, nvm lazy-load and Starship integration
+- /uses Terminal and shell section: dotfiles entry with cross-platform environment detail and Starship entry with shared config explanation
+- Skills page Core Tools: Starship added with Simple Icons CDN icon
+- Project detail page: inline code rendering via backtick syntax so command names render as styled `code` elements rather than plain text
 
 ---
 
