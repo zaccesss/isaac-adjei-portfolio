@@ -97,6 +97,7 @@ export const skillCategories: SkillCategory[] = [
       { name: "Postman", icon: `${DEV}/postman/postman-original.svg` },
       { name: "Slack", icon: `${DEV}/slack/slack-original.svg` },
       { name: "Gradle", icon: `${DEV}/gradle/gradle-original.svg` },
+      { name: "Starship", icon: "https://cdn.simpleicons.org/starship" },
     ],
   },
   {

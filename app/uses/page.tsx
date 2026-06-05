@@ -130,6 +130,18 @@ const sections: Array<{
     heading: "Terminal and shell",
     items: [
       {
+        name: "dotfiles",
+        icon: `${SKI}=bash`,
+        href: "https://github.com/zaccesss/dotfiles",
+        detail: "My cross-platform shell environment for macOS (zsh), Linux (bash) and Windows (PowerShell 7). 59 numbered topic files loaded in order, one per area of concern, from git aliases and navigation shortcuts through to Docker, Kubernetes, cloud platforms and 30+ language toolchains. Every alias has the same name on all three platforms so muscle memory carries across machines. The colour scheme is deliberate: I lost sight in my right eye at age two and colour does the depth-cue job that binocular vision usually handles. Cyan, magenta, green and yellow were chosen for contrast and tested under deuteranopia and protanopia simulations. Every git push fans out to GitHub, GitLab and Codeberg simultaneously via push URLs, with a pre-push hook that auto-registers new repos on first push.",
+      },
+      {
+        name: "Starship",
+        icon: `${SI}/starship`,
+        href: "https://starship.rs",
+        detail: "Cross-shell prompt. One starship.toml in the shared/ folder of my dotfiles covers macOS, Linux and Windows. Change it once and it updates on every device. Shows git branch and status, active language version and command duration. Loaded last at topic file 59 so all aliases and environment variables are already in place before the prompt hooks in.",
+      },
+      {
         name: "PowerShell",
         icon: `${WIKI}/2/2f/PowerShell_5.0_icon.png`,
         href: "https://learn.microsoft.com/en-us/powershell",
@@ -138,7 +150,7 @@ const sections: Array<{
       {
         name: "Bash / zsh",
         icon: `${DEV}/bash/bash-original.svg`,
-        detail: "Shell of choice on the MacBook and any Linux environment. zsh with a minimal setup. I do not use heavy frameworks, just a clean prompt and a few aliases.",
+        detail: "Shell of choice on the MacBook and any Linux environment. zsh on macOS, bash on Linux — both load the same dotfiles topic structure so the experience is identical.",
       },
       {
         name: "NSSM",
