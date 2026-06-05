@@ -19,6 +19,15 @@ interface Props {
   project: Project
 }
 
+function renderWithCode(text: string) {
+  const parts = text.split(/(`[^`]+`)/)
+  return parts.map((part, i) =>
+    part.startsWith("`") && part.endsWith("`")
+      ? <code key={i} className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded text-foreground">{part.slice(1, -1)}</code>
+      : part
+  )
+}
+
 export default function ProjectDetail({ project }: Props) {
   return (
     <motion.div
@@ -79,7 +88,7 @@ export default function ProjectDetail({ project }: Props) {
           <h2 className="text-xl font-semibold">Overview</h2>
           {project.longDescription.split("\n\n").map((para, i) => (
             <p key={i} className="text-muted-foreground leading-relaxed">
-              {para}
+              {renderWithCode(para)}
             </p>
           ))}
         </div>

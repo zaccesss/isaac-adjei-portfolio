@@ -4,6 +4,37 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-06-05 (feat/dotfiles-project)
+
+Branch: `feat/dotfiles-project`
+
+### Change: dotfiles project added to the portfolio
+
+I added my dotfiles repo as a full project entry in `data/projects.ts`. The detail page covers the 59-file modular structure, cross-platform alias consistency across macOS (zsh), Linux (bash) and Windows (PowerShell 7), the accessibility-motivated colour scheme (cyan, magenta, green, yellow chosen under deuteranopia/protanopia simulations), 3-platform git mirroring via push URLs with a pre-push hook, nvm lazy-load saving ~200ms per shell start, Starship loaded last at topic 59, ShellCheck/markdownlint CI and the 9-entry engineering journal.
+
+Two terminal screenshots added to the project gallery: `banner.png` (welcome banner crop, 764x406) and `cmds.png` (full cmds output, 1400x823).
+
+I also added two entries to the /uses Terminal and shell section - one for the dotfiles repo itself and one for Starship - and added Starship to the Skills page Core Tools category using the Simple Icons CDN icon (skillicons.dev does not have this icon).
+
+I added a `renderWithCode()` helper to `ProjectDetail.tsx` so backtick-wrapped text in `longDescription` renders as styled `<code>` elements rather than plain text.
+
+Files changed:
+
+- `data/projects.ts`: dotfiles project entry added at end of projects array
+- `app/uses/page.tsx`: dotfiles and Starship entries added to Terminal and shell section
+- `data/skills.ts`: Starship added to Core Tools category
+- `components/projects/ProjectDetail.tsx`: renderWithCode helper added; paragraph renderer updated to use it
+- `public/images/projects/dotfiles/banner.png`: new screenshot - welcome banner crop
+- `public/images/projects/dotfiles/cmds.png`: new screenshot - cmds command output
+
+### Documentation
+
+- `CHANGELOG.md`: Unreleased Added section updated with 4 new entries
+- `app/changelog/page.tsx`: Unreleased added array updated with matching entries
+- `docs/LOG.md`: this entry added
+
+---
+
 ## 2026-05-30 (content/git-unlocked-images-newsletter - nownownow profile link)
 
 Branch: `content/git-unlocked-images-newsletter`
