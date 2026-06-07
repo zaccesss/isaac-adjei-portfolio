@@ -23,19 +23,20 @@ export const profileLinks: LinkItem[] = [
   },
   {
     title: "zacess.com",
-    description: "Visit my personal website & digital home",
+    description: "Visit my business website & digital home",
     url: "https://zacess.com",
     icon: "globe",
     iconImage: "/images/zacess_logo.png",
     category: "professional",
   },
-  {
-    title: "Linktree",
-    description: "All my links in one place - @zaccess",
-    url: "https://linktr.ee/zaccess",
-    icon: "linktree",
-    category: "professional",
-  },
+  // Linktree - hidden for now since the /links page on isaacadjei.me replaces it
+  // {
+  //   title: "Linktree",
+  //   description: "All my links in one place - @zaccess",
+  //   url: "https://linktr.ee/zaccess",
+  //   icon: "linktree",
+  //   category: "professional",
+  // },
   {
     title: "Email",
     description: "Get in touch - contact@isaacadjei.me",
@@ -45,7 +46,7 @@ export const profileLinks: LinkItem[] = [
   },
   {
     title: "Newsletter",
-    description: "Subscribe to my newsletter - engineering, tech, hardware, software and more",
+    description: "Subscribe to my newsletter - engineering, tech and more",
     url: "https://isaacadjei.me/newsletter",
     icon: "newspaper",
     category: "professional",

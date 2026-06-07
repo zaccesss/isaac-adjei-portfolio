@@ -1,7 +1,4 @@
 # private - never commit
-supabase-setup.sql
-module-course-extract/
-newsletter-issues.md
 /docs/cv-redesign-ideas.md
 
 # dependencies
@@ -54,32 +51,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Cursor IDE (local plans, rules — not for version control)
-.cursor/
-
-# Claude Code local settings (tool config, not for version control)
-.claude/
-
-# Copilot local instructions (not for version control)
-.github/copilot-instructions.md
-
 # IDE / editor
 .vscode/settings.json
 *.swp
 *.swo
-
-# Local repo clones for reference - never commit
-repo-extract/
-
-# Blog content and personal materials - never commit
-blog-extract/
-blog-extract-my-testimony-and-journey/
-
-# Local project repo clones for reference - never commit
-astoncv/
-
-# Claude Code auto-memory - committed intentionally, delete folder when Windows daemons are done
-# memory/
 
 # Temporary CV backup files
 original_cv.html
