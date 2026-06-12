@@ -1,0 +1,21 @@
+name: Vault Expiry Check
+
+on:
+  schedule:
+    # I run at 08:00 UTC every day so alerts arrive at the start of the working day.
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # I call the Next.js API route rather than running the TypeScript directly
+      # so the check runs against the production Supabase instance and uses the
+      # same code path as the live dashboard.
+      - name: Call vault expiry check endpoint
+        run: |
+          curl -sf \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.NEXT_PUBLIC_SITE_URL }}/api/dashboard/vault-expiry-check"

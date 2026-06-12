@@ -1,6 +1,19 @@
 import { supabase } from "@/lib/supabase"
 
-const ALERT_DAYS = 30
+// I use per-type thresholds so time-sensitive documents (passports) alert
+// earlier than short-lived secrets (API keys).
+const ALERT_DAYS: Record<string, number> = {
+  passport: 90,
+  warranty: 30,
+  card:     30,
+  api_key:  14,
+  default:  30,
+}
+
+function alertDays(type: string): number {
+  // I fall back to the default threshold for any type not in the config.
+  return ALERT_DAYS[type] ?? ALERT_DAYS.default
+}
 
 type ExpiringItem = {
   source: "vault" | "inventory"
@@ -37,21 +50,21 @@ export async function checkVaultExpiry(): Promise<{ ok: boolean; sent: boolean; 
 
   // I check api_key entries with an ISO date expiry
   const { data: vaultKeys } = await supabase
-    .from("vault_entries")
+    .from("vault")
     .select("name, type, key_expiry")
     .not("key_expiry", "is", null)
 
   for (const row of vaultKeys ?? []) {
     if (!row.key_expiry) continue
     const days = daysUntil(row.key_expiry)
-    if (days <= ALERT_DAYS) {
+    if (days <= alertDays(row.type ?? "default")) {
       expiring.push({ source: "vault", name: row.name, type: row.type, expiresOn: row.key_expiry, daysLeft: days })
     }
   }
 
   // I check card entries with MM/YY expiry
   const { data: vaultCards } = await supabase
-    .from("vault_entries")
+    .from("vault")
     .select("name, type, card_expiry")
     .not("card_expiry", "is", null)
 
@@ -60,7 +73,7 @@ export async function checkVaultExpiry(): Promise<{ ok: boolean; sent: boolean; 
     const iso = parseCardExpiry(row.card_expiry)
     if (!iso) continue
     const days = daysUntil(iso)
-    if (days <= ALERT_DAYS) {
+    if (days <= alertDays("card")) {
       expiring.push({ source: "vault", name: row.name, type: "card", expiresOn: row.card_expiry, daysLeft: days })
     }
   }
@@ -74,7 +87,7 @@ export async function checkVaultExpiry(): Promise<{ ok: boolean; sent: boolean; 
   for (const row of inventoryItems ?? []) {
     if (!row.warranty_expiry) continue
     const days = daysUntil(row.warranty_expiry)
-    if (days <= ALERT_DAYS) {
+    if (days <= alertDays("warranty")) {
       expiring.push({ source: "inventory", name: row.name, type: row.category ?? "item", expiresOn: row.warranty_expiry, daysLeft: days })
     }
   }
