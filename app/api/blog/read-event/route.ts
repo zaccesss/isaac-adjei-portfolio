@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase"
 
 // I initialise Redis conditionally so the route still builds without env vars.
 let redis: Redis | null = null
@@ -15,13 +15,6 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
   })
 }
-
-// I use the service-role key here because this route runs server-side and does not
-// pass user credentials — it writes on behalf of an anonymous visitor.
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-)
 
 const VALID_DEPTHS = new Set([25, 50, 75, 100])
 const VALID_SLUG = /^[a-z0-9-]{1,120}$/
@@ -34,8 +27,6 @@ const WINDOW_SECONDS = 600
 function ipKey(ip: string) {
   return `blog:read-event:${ip}`
 }
-
-export const runtime = "edge"
 
 export async function POST(req: NextRequest) {
   // I parse the body defensively — the route receives fire-and-forget beacon requests.

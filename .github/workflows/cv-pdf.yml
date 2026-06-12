@@ -64,6 +64,9 @@ jobs:
 
       - name: Generate DOCX from cv.html
         run: |
+          # I install html-to-docx locally so it is available without adding it to
+          # package.json — this keeps it out of the production bundle.
+          npm install --no-save html-to-docx
           node -e "
           const fs = require('fs');
           const path = require('path');
