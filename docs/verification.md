@@ -191,6 +191,17 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 
 ---
 
+## New dashboard pages (2026-06-12 session)
+
+- [ ] `/dashboard/opensource` - page loads; add a test contribution with repo/title/status fields; save; entry appears in list; delete it; list is empty again
+- [ ] `/dashboard/blog-analytics` - page loads without error (will be empty until scroll events fire from a real blog visit)
+- [ ] `/dashboard/coding` - page loads without error (will be empty until first wakatime-sync workflow run)
+- [ ] Blog scroll events - open any blog post on the live site, scroll to the bottom, then check Supabase `blog_read_events` table for a new row with the correct slug and depth=100
+- [ ] WakaTime sync - trigger `wakatime-sync.yml` manually via GitHub Actions workflow_dispatch; verify one or more rows appear in the Supabase `wakatime_daily` table
+- [ ] Blog analytics sidebar (after events exist) - `/dashboard/blog-analytics` shows funnel bars per post with correct 25/50/75/100% counts
+
+---
+
 ## Sign-off
 
 **Date:** ___________

@@ -1,6 +1,5 @@
 # private - never commit
-/docs/cv-redesign-ideas.md
-session-logs/
+docs/session-logs/
 
 # dependencies
 /node_modules
