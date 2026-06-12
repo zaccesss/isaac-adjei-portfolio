@@ -2,13 +2,32 @@ name: Job Scraper
 
 on:
   schedule:
-    # I run the scraper once per day at midnight UTC to avoid hammering job boards.
+    # I run at midnight UTC every day so fresh roles appear by morning.
     - cron: "0 0 * * *"
   workflow_dispatch:
 
+# I cancel any in-progress run when a new one is triggered so two runs never
+# write to the DB simultaneously and create duplicate rows.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
-  scrape:
-    runs-on: ubuntu-22.04
+  # I run API-only scrapers in one job so they are never held up by the time
+  # Playwright takes to install and warm up in the browser job.
+  api-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # I set SCRAPER_MODE so main() skips The Trackr in this job.
+      SCRAPER_MODE: api
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      REED_API_KEY: ${{ secrets.REED_API_KEY }}
+      ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+      ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+      JOOBLE_API_KEY: ${{ secrets.JOOBLE_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -16,20 +35,75 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          # I cache the pip download cache so repeated installs skip the
+          # network for packages that have not changed.
+          cache: pip
 
       - name: Install dependencies
         run: pip install -r scripts/requirements.txt
 
-      - name: Install Playwright browser
-        run: python -m playwright install chromium --with-deps
-
-      - name: Run scraper
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          REED_API_KEY: ${{ secrets.REED_API_KEY }}
-          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
-          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
-          JOOBLE_API_KEY: ${{ secrets.JOOBLE_API_KEY }}
+      - name: Run API scrapers
         run: python scripts/job-scraper.py
+
+      # I append the per-source Markdown table to the job summary so failures
+      # are visible at a glance without reading 500 lines of log output.
+      - name: Write source summary
+        if: always()
+        run: |
+          if [ -f source-stats.md ]; then
+            cat source-stats.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  # I run The Trackr (Playwright) in a separate job so the browser install
+  # does not delay the faster API job. The two jobs run in parallel.
+  browser-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # I set SCRAPER_MODE so main() runs only The Trackr in this job.
+      SCRAPER_MODE: browser
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      # I cache the Playwright browser binary so repeated runs skip the ~80 MB
+      # download. The key includes requirements.txt so a Playwright version bump
+      # automatically invalidates the cache.
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('scripts/requirements.txt') }}
+
+      - name: Install Playwright browser
+        run: |
+          # I only run the full install on a cache miss; on a cache hit I only
+          # need OS-level deps (install-deps) which is much faster than the full
+          # browser binary download.
+          if [ "${{ steps.pw-cache.outputs.cache-hit }}" = "true" ]; then
+            python -m playwright install-deps chromium
+          else
+            python -m playwright install --with-deps chromium
+          fi
+
+      - name: Run browser scrapers
+        run: python scripts/job-scraper.py
+
+      - name: Write source summary
+        if: always()
+        run: |
+          if [ -f source-stats.md ]; then
+            cat source-stats.md >> "$GITHUB_STEP_SUMMARY"
+          fi

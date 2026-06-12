@@ -1,0 +1,43 @@
+name: WakaTime Sync
+
+on:
+  schedule:
+    # I run at 23:30 UTC daily so the previous day's data is fully settled before fetch.
+    - cron: "30 23 * * *"
+  workflow_dispatch:
+
+concurrency:
+  # I cancel any in-progress run when a new one is triggered manually.
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # I cache pip dependencies so repeated runs don't re-download packages.
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('scripts/requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Sync WakaTime data to Supabase
+        env:
+          WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/wakatime-sync.py

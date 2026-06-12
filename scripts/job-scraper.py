@@ -92,6 +92,21 @@ TECH_KEYWORDS = [
     "signal processing", "rf", "photonics", "asic", "vlsi", "soc",
 ]
 
+# I allow the GitHub Actions workflow to pass SCRAPER_MODE=api or
+# SCRAPER_MODE=browser so two parallel jobs can split the work without
+# running each other's scrapers.
+SCRAPER_MODE = os.environ.get("SCRAPER_MODE", "all")  # "api" | "browser" | "all"
+
+# I accumulate one row per source so main() can write a summary table at the end.
+_source_stats: list[dict] = []
+
+
+def _record_stat(source: str, rows: int, note: str = "") -> None:
+    # I append to the module-level list rather than returning so every scraper
+    # function can call this without needing to thread a return value through.
+    _source_stats.append({"source": source, "rows": rows, "note": note})
+
+
 # ─── PER-CATEGORY STUDENT TERM SETS ────────────────────────────────────────
 # I split student terms by category so the scraper can identify the correct
 # application type for each role rather than lumping everything into one bag.
@@ -345,6 +360,11 @@ def dedupe_key(company: str, role: str, url: str = "") -> str:
     # two different sources is never inserted twice. I strip trailing slashes
     # because the same URL can appear with and without one.
     if url and url.startswith("http"):
+        # I normalise both Greenhouse URL domains to the old format so rows
+        # inserted before the domain change (boards.greenhouse.io) and rows
+        # inserted after (job-boards.greenhouse.io) hash to the same key and
+        # never trigger a 23505 unique constraint violation.
+        url = url.replace("job-boards.greenhouse.io", "boards.greenhouse.io")
         raw = url.strip().rstrip("/")
     else:
         # I fall back to company+role when there is no URL. I lower-case and
@@ -893,7 +913,15 @@ def scrape_greenhouse(
             location = ""
             for meta in job.get("metadata") or []:
                 if meta and meta.get("name") == "Job Posting Location":
-                    location = meta.get("value") or ""
+                    # I check isinstance because the value field can be a list
+                    # (e.g. ["London, UK", "Remote"]) for multi-location postings.
+                    # Calling .lower() on a list crashes with AttributeError.
+                    val = meta.get("value")
+                    location = (
+                        ", ".join(str(v) for v in val if v)
+                        if isinstance(val, list)
+                        else (val or "")
+                    )
                     break
             # I fall back to the top-level location when metadata lacks a city.
             if not location:
@@ -1005,56 +1033,28 @@ def scrape_lever(
     return count
 
 
-# ─── ASHBY (Next.js __NEXT_DATA__ embed) ─────────────────────────────────────
+# ─── ASHBY (REST posting API) ────────────────────────────────────────────────
 
 def scrape_ashby(
     slug: str, company_name: str, existing_keys: set
 ) -> int:
-    """Ashby job boards embed all data in __NEXT_DATA__ - no headless needed.
-
-    I use requests + BeautifulSoup here because although Ashby is a Next.js
-    app, it statically generates the jobs page and embeds the full job list
-    in the __NEXT_DATA__ script tag on first HTML load.
-    """
-    url = f"https://jobs.ashbyhq.com/{slug}"
+    # I use Ashby's official posting REST API which replaced the __NEXT_DATA__
+    # static embed. No API key is required - the endpoint is public.
+    url = f"https://api.ashbyhq.com/posting-api/job-board/{slug}"
     count = 0
     try:
+        # I request the JSON endpoint directly rather than scraping the HTML.
         resp = requests.get(url, headers=HEADERS, timeout=15)
-        soup = BeautifulSoup(resp.text, "html.parser")
-
-        # I target the script tag by id rather than iterating all scripts.
-        el = soup.find("script", id="__NEXT_DATA__")
-        if not el:
-            print(f"  Ashby {company_name}: no __NEXT_DATA__ found")
+        if resp.status_code != 200:
+            print(f"  Ashby {company_name}: HTTP {resp.status_code}")
             return 0
-
-        data = json.loads(el.string)
-        page_props = (
-            data.get("props", {}).get("pageProps", {})
-        )
-        # I try multiple key names because different Ashby versions use
-        # different field names for the jobs list.
-        jobs = (
-            page_props.get("jobPostings")
-            or page_props.get("jobs")
-            or page_props.get("allJobPostings")
-            or []
-        )
-
-        for job in jobs:
-            # I try multiple field names because Ashby's schema is
-            # inconsistent across employers.
-            title = job.get("title") or job.get("jobTitle", "")
-            location = (
-                job.get("locationName") or job.get("location", "")
-            )
-            # I fall back to constructing the URL from slug + id when
-            # jobUrl is absent.
-            job_url = (
-                job.get("jobUrl")
-                or f"{url}/{job.get('id', '')}"
-            )
-
+        # I iterate the top-level jobs array; the schema is consistent across
+        # all employers on this endpoint.
+        for job in resp.json().get("jobs", []):
+            # I prefer jobUrl but fall back to applyUrl when it is absent.
+            title = job.get("title", "")
+            location = job.get("location", "")
+            job_url = job.get("jobUrl") or job.get("applyUrl", "")
             if is_relevant(title, company_name, location):
                 if insert_job({
                     "company":  company_name,
@@ -1075,256 +1075,10 @@ def scrape_ashby(
                     "source":   "Ashby",
                 }, existing_keys):
                     count += 1
-
-        time.sleep(0.5)
+        # I sleep 0.6 s between slugs to stay well under Ashby's rate limit.
+        time.sleep(0.6)
     except Exception as e:
         print(f"  Error Ashby {company_name}: {e}")
-    return count
-
-
-# ─── GRADCRACKER (BeautifulSoup - UK STEM, EEE focused) ──────────────────────
-
-def scrape_gradcracker(existing_keys: set) -> int:
-    # I target both computing/technology and electronic/electrical engineering
-    # because EEE is my degree and many hardware/embedded roles appear there.
-    print("\nScraping Gradcracker...")
-    count = 0
-    urls = [
-        (
-            "https://www.gradcracker.com/search/"
-            "computing-technology/internship-jobs",
-            "internship",
-        ),
-        (
-            "https://www.gradcracker.com/search/"
-            "computing-technology/work-placements",
-            "Industrial Placement",
-        ),
-        (
-            "https://www.gradcracker.com/search/"
-            "electronic-electrical-engineering/internship-jobs",
-            "internship",
-        ),
-        (
-            "https://www.gradcracker.com/search/"
-            "electronic-electrical-engineering/work-placements",
-            "Industrial Placement",
-        ),
-        (
-            "https://www.gradcracker.com/search/"
-            "computing-technology/graduate-jobs",
-            "Graduate",
-        ),
-    ]
-    for url, job_type in urls:
-        try:
-            resp = requests.get(url, headers=HEADERS, timeout=15)
-            soup = BeautifulSoup(resp.text, "html.parser")
-            # I try multiple selector patterns in case Gradcracker changes
-            # their markup.
-            for item in soup.select(
-                ".opportunity, .job-card, article, .tw-group"
-            ):
-                company_el = item.select_one(
-                    ".company, .employer, h3, .tw-font-bold"
-                )
-                title_el = item.select_one(
-                    ".title, .job-title, h2, a"
-                )
-                link_el = item.find("a")
-                location_el = item.select_one(".location, .place")
-
-                # I coerce missing elements to empty strings rather than
-                # None so is_relevant never throws a TypeError.
-                company = (
-                    company_el.get_text(strip=True)
-                    if company_el else ""
-                )
-                title = (
-                    title_el.get_text(strip=True)
-                    if title_el else ""
-                )
-                link = (
-                    link_el.get("href", "")
-                    if link_el else ""
-                )
-                location = (
-                    location_el.get_text(strip=True)
-                    if location_el else ""
-                )
-
-                # I prepend the origin for relative links.
-                if not link.startswith("http"):
-                    link = f"https://www.gradcracker.com{link}"
-                if not company or not title:
-                    continue
-                if not is_relevant(title, company, location):
-                    continue
-
-                if insert_job({
-                    "company":  company,
-                    "role":     title,
-                    "type":     job_type,
-                    "url":      link,
-                    "location": location,
-                    "source":   "Gradcracker",
-                }, existing_keys):
-                    count += 1
-            # I sleep 2 seconds to avoid Gradcracker's Cloudflare rate limit.
-            time.sleep(2)
-        except Exception as e:
-            print(f"  Error Gradcracker {url}: {e}")
-    return count
-
-
-# ─── RATEMYPLACEMENT ────────────────────────────────────────────────────────
-
-def scrape_ratemyplacement(existing_keys: set) -> int:
-    # I include engineering as well as technology because embedded and hardware
-    # roles often appear under engineering on this board.
-    print("\nScraping RateMyPlacement...")
-    count = 0
-    urls = [
-        (
-            "https://www.ratemyplacement.co.uk/jobs"
-            "?role=technology&type=placement-year",
-            "Industrial Placement",
-        ),
-        (
-            "https://www.ratemyplacement.co.uk/jobs"
-            "?role=technology&type=summer-internship",
-            "Internship",
-        ),
-        (
-            "https://www.ratemyplacement.co.uk/jobs"
-            "?role=engineering&type=placement-year",
-            "Industrial Placement",
-        ),
-    ]
-    for url, job_type in urls:
-        try:
-            resp = requests.get(url, headers=HEADERS, timeout=15)
-            soup = BeautifulSoup(resp.text, "html.parser")
-            # I try multiple card selectors in case RateMyPlacement redesigns.
-            for item in soup.select(
-                ".job-listing, .vacancy-card, article, .opportunity-card"
-            ):
-                company_el = item.select_one(
-                    ".company-name, .employer, h3"
-                )
-                title_el = item.select_one(".job-title, .role-title, h2")
-                link_el = item.find("a")
-                location_el = item.select_one(".location")
-
-                company = (
-                    company_el.get_text(strip=True)
-                    if company_el else ""
-                )
-                title = (
-                    title_el.get_text(strip=True)
-                    if title_el else ""
-                )
-                link = (
-                    link_el.get("href", "")
-                    if link_el else ""
-                )
-                location = (
-                    location_el.get_text(strip=True)
-                    if location_el else ""
-                )
-
-                if not link.startswith("http"):
-                    link = (
-                        f"https://www.ratemyplacement.co.uk{link}"
-                    )
-                if not company or not title:
-                    continue
-                if not is_relevant(title, company, location):
-                    continue
-
-                if insert_job({
-                    "company":  company,
-                    "role":     title,
-                    "type":     job_type,
-                    "url":      link,
-                    "location": location,
-                    "source":   "RateMyPlacement",
-                }, existing_keys):
-                    count += 1
-            time.sleep(2)
-        except Exception as e:
-            print(f"  Error RateMyPlacement {url}: {e}")
-    return count
-
-
-# ─── TARGETJOBS ─────────────────────────────────────────────────────────────
-
-def scrape_targetjobs(existing_keys: set) -> int:
-    print("\nScraping TargetJobs...")
-    count = 0
-    # I target engineering alongside IT because semiconductor and aerospace
-    # roles appear exclusively in the engineering category on TargetJobs.
-    urls = [
-        (
-            "https://targetjobs.co.uk/internships/it-and-technology",
-            "internship",
-        ),
-        (
-            "https://targetjobs.co.uk/placements/it-and-technology",
-            "Industrial Placement",
-        ),
-        (
-            "https://targetjobs.co.uk/internships"
-            "/engineering-and-manufacturing",
-            "internship",
-        ),
-    ]
-    for url, job_type in urls:
-        try:
-            resp = requests.get(url, headers=HEADERS, timeout=15)
-            soup = BeautifulSoup(resp.text, "html.parser")
-            for item in soup.select(".vacancy, article, .job-listing"):
-                company_el = item.select_one(".employer, .company, h3")
-                title_el = item.select_one(".job-title, h2, a")
-                link_el = item.find("a")
-                location_el = item.select_one(".location")
-
-                company = (
-                    company_el.get_text(strip=True)
-                    if company_el else ""
-                )
-                title = (
-                    title_el.get_text(strip=True)
-                    if title_el else ""
-                )
-                link = (
-                    link_el.get("href", "")
-                    if link_el else ""
-                )
-                location = (
-                    location_el.get_text(strip=True)
-                    if location_el else ""
-                )
-
-                if not link.startswith("http"):
-                    link = f"https://targetjobs.co.uk{link}"
-                if not company or not title:
-                    continue
-                if not is_relevant(title, company, location):
-                    continue
-
-                if insert_job({
-                    "company":  company,
-                    "role":     title,
-                    "type":     job_type,
-                    "url":      link,
-                    "location": location,
-                    "source":   "TargetJobs",
-                }, existing_keys):
-                    count += 1
-            time.sleep(2)
-        except Exception as e:
-            print(f"  Error TargetJobs {url}: {e}")
     return count
 
 
@@ -1388,406 +1142,51 @@ def scrape_smartrecruiters(
     return count
 
 
-def scrape_totaljobs(existing_keys: set) -> int:
-    """TotalJobs - one of the largest UK job boards."""
-    print("\nScraping TotalJobs...")
-    count = 0
-    urls = [
-        (
-            "https://www.totaljobs.com/jobs"
-            "/software-engineer/internship-jobs",
-            "internship",
-        ),
-        (
-            "https://www.totaljobs.com/jobs"
-            "/software-developer/internship-jobs",
-            "internship",
-        ),
-        (
-            "https://www.totaljobs.com/jobs"
-            "/software-engineer/graduate-jobs",
-            "Graduate",
-        ),
-        (
-            "https://www.totaljobs.com/jobs"
-            "/technology/placement-jobs",
-            "Industrial Placement",
-        ),
-    ]
-    for url, job_type in urls:
-        try:
-            resp = requests.get(url, headers=HEADERS, timeout=15)
-            soup = BeautifulSoup(resp.text, "html.parser")
-
-            # I try multiple card selectors because TotalJobs updates markup
-            # periodically.
-            for item in soup.select(
-                "article.job-card, .job-tile, [data-testid='job-item']"
-            ):
-                company_el = item.select_one(
-                    ".job-card__company, .company-name, h3.title"
-                )
-                title_el = item.select_one(
-                    ".job-card__title, h2, "
-                    "a[data-testid='job-item-title']"
-                )
-                link_el = item.find("a")
-                location_el = item.select_one(
-                    ".job-card__location, .location"
-                )
-
-                company = (
-                    company_el.get_text(strip=True)
-                    if company_el else ""
-                )
-                title = (
-                    title_el.get_text(strip=True)
-                    if title_el else ""
-                )
-                link = (
-                    link_el.get("href", "")
-                    if link_el else ""
-                )
-                location = (
-                    location_el.get_text(strip=True)
-                    if location_el else ""
-                )
-
-                if not link.startswith("http"):
-                    link = f"https://www.totaljobs.com{link}"
-                if not company or not title:
-                    continue
-                if not is_relevant(title, company, location):
-                    continue
-
-                if insert_job({
-                    "company":  company,
-                    "role":     title,
-                    "type":     job_type,
-                    "url":      link,
-                    "location": location,
-                    "source":   "TotalJobs",
-                }, existing_keys):
-                    count += 1
-
-            time.sleep(2)
-        except Exception as e:
-            print(f"  Error TotalJobs {url}: {e}")
-    return count
-
-
-def scrape_prospects(existing_keys: set) -> int:
-    """Prospects - the official UK graduate careers website.
-
-    I scrape Prospects because it aggregates roles from smaller UK employers
-    that do not have their own Greenhouse or Lever boards.
-    """
-    print("\nScraping Prospects...")
-    count = 0
-    urls = [
-        (
-            "https://www.prospects.ac.uk/jobs-and-work-experience"
-            "/job-sectors/information-technology"
-            "/it-internships-placements",
-            "Industrial Placement",
-        ),
-        (
-            "https://www.prospects.ac.uk/jobs-and-work-experience"
-            "/job-sectors/engineering-and-manufacturing"
-            "/engineering-internships",
-            "internship",
-        ),
-        (
-            "https://www.prospects.ac.uk/jobs-and-work-experience"
-            "/job-sectors/information-technology/it-graduate-jobs",
-            "Graduate",
-        ),
-    ]
-    for url, job_type in urls:
-        try:
-            resp = requests.get(url, headers=HEADERS, timeout=15)
-            soup = BeautifulSoup(resp.text, "html.parser")
-
-            for item in soup.select(
-                ".job-listing, article, .vacancy-item"
-            ):
-                company_el = item.select_one(".company, .employer, h3")
-                title_el = item.select_one(".title, h2, a")
-                link_el = item.find("a")
-                location_el = item.select_one(".location")
-
-                company = (
-                    company_el.get_text(strip=True)
-                    if company_el else ""
-                )
-                title = (
-                    title_el.get_text(strip=True)
-                    if title_el else ""
-                )
-                link = (
-                    link_el.get("href", "")
-                    if link_el else ""
-                )
-                location = (
-                    location_el.get_text(strip=True)
-                    if location_el else ""
-                )
-
-                if not link.startswith("http"):
-                    link = f"https://www.prospects.ac.uk{link}"
-                if not company or not title:
-                    continue
-                if not is_relevant(title, company, location):
-                    continue
-
-                if insert_job({
-                    "company":  company,
-                    "role":     title,
-                    "type":     job_type,
-                    "url":      link,
-                    "location": location,
-                    "source":   "Prospects",
-                }, existing_keys):
-                    count += 1
-
-            time.sleep(2)
-        except Exception as e:
-            print(f"  Error Prospects {url}: {e}")
-    return count
-
-
-def scrape_brightnetwork(existing_keys: set) -> int:
-    # I use BrightNetwork's search endpoint rather than a category page
-    # because the search results include roles from multiple sectors in one
-    # request.
-    print("\nScraping BrightNetwork...")
-    count = 0
-    searches = [
-        (
-            "https://www.brightnetwork.co.uk/search/"
-            "?search=software+engineer+internship+uk",
-            "internship",
-        ),
-        (
-            "https://www.brightnetwork.co.uk/search/"
-            "?search=engineering+placement+uk",
-            "Industrial Placement",
-        ),
-        (
-            "https://www.brightnetwork.co.uk/search/"
-            "?search=technology+spring+week+uk",
-            "Spring Week",
-        ),
-        (
-            "https://www.brightnetwork.co.uk/search/"
-            "?search=graduate+scheme+technology+uk",
-            "Graduate",
-        ),
-    ]
-    for url, job_type in searches:
-        try:
-            resp = requests.get(url, headers=HEADERS, timeout=15)
-            soup = BeautifulSoup(resp.text, "html.parser")
-            # I try three different card selectors to handle current and past
-            # BrightNetwork markup.
-            for card in soup.select(
-                "[data-testid='job-card'], "
-                ".job-card, "
-                "article.opportunity"
-            ):
-                company_el = card.select_one(
-                    ".company-name, [data-testid='company'], h3"
-                )
-                title_el = card.select_one(
-                    ".job-title, [data-testid='job-title'], h2"
-                )
-                link_el = card.find("a")
-                location_el = card.select_one(
-                    ".location, [data-testid='location']"
-                )
-
-                company = (
-                    company_el.get_text(strip=True)
-                    if company_el else ""
-                )
-                title = (
-                    title_el.get_text(strip=True)
-                    if title_el else ""
-                )
-                link = (
-                    link_el.get("href", "")
-                    if link_el else ""
-                )
-                location = (
-                    location_el.get_text(strip=True)
-                    if location_el else ""
-                )
-
-                if not link.startswith("http"):
-                    link = f"https://www.brightnetwork.co.uk{link}"
-                if not company or not title:
-                    continue
-                if not is_relevant(title, company, location):
-                    continue
-
-                if insert_job({
-                    "company":  company,
-                    "role":     title,
-                    "type":     job_type,
-                    "url":      link,
-                    "location": location,
-                    "source":   "BrightNetwork",
-                }, existing_keys):
-                    count += 1
-            time.sleep(2)
-        except Exception as e:
-            print(f"  Error BrightNetwork: {e}")
-    return count
-
-
 # ─── COMPANY LISTS ──────────────────────────────────────────────────────────
 
 # I group companies by ATS vendor so it is easy to add new ones in the right
 # section. Each tuple is (ats_slug, display_name).
 
 # (greenhouse_slug, display_name)
+# I keep only slugs confirmed to return HTTP 200 in recent runs.
+# Companies that migrated away from Greenhouse return 404 for every request
+# and are not guessed - wrong slugs never match their new ATS.
 GREENHOUSE_COMPANIES = [
-    # Big tech & cloud
-    ("cloudflare",        "Cloudflare"),
-    ("stripe",            "Stripe"),
-    ("figma",             "Figma"),
-    ("anthropic",         "Anthropic"),
-    ("databricks",        "Databricks"),
-    ("snowflakecomputing", "Snowflake"),
-    ("nvidia",            "NVIDIA"),
-    ("coinbase",          "Coinbase"),
-    ("samsara",           "Samsara"),
-    ("coreweave",         "CoreWeave"),
-    ("anduril",           "Anduril Industries"),
-    ("scaleai",           "Scale AI"),
-    # Finance & banking
-    ("goldmansachs",      "Goldman Sachs"),
-    ("wise",              "Wise"),
-    ("revolut",           "Revolut"),
-    # Fintech & payments
-    ("brex",              "Brex"),
-    ("ramp",              "Ramp"),
-    ("plaid",             "Plaid"),
-    ("rippling",          "Rippling"),
-    ("adyen",             "Adyen"),
-    ("klarna",            "Klarna"),
-    # Trading & quant
-    ("citadel",           "Citadel"),
-    ("citadelsecurities", "Citadel Securities"),
-    ("akunacapital",      "Akuna Capital"),
-    ("imc",               "IMC Trading"),
-    ("janestreet",        "Jane Street"),
-    ("twosigma",          "Two Sigma"),
-    ("optiver",           "Optiver"),
-    # Developer tools & infra
-    ("hashicorp",         "HashiCorp"),
-    ("grafana",           "Grafana Labs"),
-    ("sentry",            "Sentry"),
-    ("mongodb",           "MongoDB"),
-    ("elastic",           "Elastic"),
-    ("confluent",         "Confluent"),
-    ("datadog",           "Datadog"),
-    ("retool",            "Retool"),
-    ("notion",            "Notion"),
-    ("duolingo",          "Duolingo"),
-    ("airtable",          "Airtable"),
-    ("asana",             "Asana"),
-    ("hubspot",           "HubSpot"),
-    ("intercom",          "Intercom"),
-    ("squareup",          "Block (Square)"),
-    ("robinhood",         "Robinhood"),
-    ("atlassian",         "Atlassian"),
-    ("zendesk",           "Zendesk"),
-    # Cloud & security
-    ("crowdstrike",       "CrowdStrike"),
-    ("okta",              "Okta"),
-    ("gitlab",            "GitLab"),
-    ("jfrog",             "JFrog"),
-    ("newrelic",          "New Relic"),
-    ("dynatrace",         "Dynatrace"),
-    ("snyk",              "Snyk"),
-    ("twilio",            "Twilio"),
-    ("pagerduty",         "PagerDuty"),
-    ("sumo-logic",        "Sumo Logic"),
-    ("harness",           "Harness"),
-    ("wiz-io",            "Wiz"),
-    # More developer tools
-    ("1password",         "1Password"),
-    ("zapier",            "Zapier"),
-    ("segment",           "Segment"),
-    ("amplitude",         "Amplitude"),
-    ("mixpanel",          "Mixpanel"),
-    ("postman",           "Postman"),
-    ("miro",              "Miro"),
-    # Deep tech & AI
-    ("cohere",            "Cohere"),
-    ("together",          "Together AI"),
-    ("replicate",         "Replicate"),
-    ("modal",             "Modal"),
-    # UK tech companies
-    ("thoughtmachine",    "Thought Machine"),
-    ("darktrace",         "Darktrace"),
-    ("onfido",            "Onfido"),
-    ("improbable",        "Improbable"),
-    ("monzo",             "Monzo"),
-    ("checkout",          "Checkout.com"),
-    ("starlingbank",      "Starling Bank"),
-    ("benevolentai",      "BenevolentAI"),
-    # Data & analytics
-    ("fivetran",          "Fivetran"),
-    ("dbtlabs",           "dbt Labs"),
-    ("airbyte",           "Airbyte"),
-    ("starburst",         "Starburst"),
-    ("collibra",          "Collibra"),
-    # Productivity & collaboration
-    ("dropbox",           "Dropbox"),
-    ("box",               "Box"),
-    ("mural",             "MURAL"),
-    ("coda",              "Coda"),
-    # More cloud & infra
-    ("fastly",            "Fastly"),
-    ("cockroachlabs",     "CockroachDB"),
-    ("weaviate",          "Weaviate"),
-    ("pinecone",          "Pinecone"),
-    # Defence & aerospace
-    ("baesystems",        "BAE Systems"),
-    ("leidos",            "Leidos"),
+    ("cloudflare",    "Cloudflare"),
+    ("stripe",        "Stripe"),
+    ("figma",         "Figma"),
+    ("anthropic",     "Anthropic"),
+    ("databricks",    "Databricks"),
+    ("coinbase",      "Coinbase"),
+    ("samsara",       "Samsara"),
+    ("coreweave",     "CoreWeave"),
+    ("imc",           "IMC Trading"),
+    ("janestreet",    "Jane Street"),
+    ("datadog",       "Datadog"),
+    ("gitlab",        "GitLab"),
+    ("twilio",        "Twilio"),
+    ("pagerduty",     "PagerDuty"),
+    ("adyen",         "Adyen"),
+    ("dropbox",       "Dropbox"),
+    ("fastly",        "Fastly"),
+    ("asana",         "Asana"),
+    ("intercom",      "Intercom"),
+    ("amplitude",     "Amplitude"),
+    ("mixpanel",      "Mixpanel"),
+    ("postman",       "Postman"),
+    ("robinhood",     "Robinhood"),
+    ("starburst",     "Starburst"),
+    ("collibra",      "Collibra"),
+    ("cockroachlabs", "CockroachDB"),
+    ("atlassian",     "Atlassian"),
 ]
 
-# (lever_slug, display_name)
+# I keep only the three Lever slugs confirmed to return HTTP 200.
+# The other 24 slugs returned 404 across 10 consecutive runs.
 LEVER_COMPANIES = [
     ("palantir",     "Palantir"),
-    ("netlify",      "Netlify"),
-    ("canva",        "Canva"),
-    ("discord",      "Discord"),
-    ("reddit",       "Reddit"),
-    ("twitch",       "Twitch"),
     ("wealthsimple", "Wealthsimple"),
-    ("shopify",      "Shopify"),
     ("cloudinary",   "Cloudinary"),
-    ("mux",          "Mux"),
-    ("launchdarkly", "LaunchDarkly"),
-    ("tailscale",    "Tailscale"),
-    ("fly",          "Fly.io"),
-    ("zeditor",      "Zed"),
-    ("intercom",     "Intercom"),
-    ("zendesk",      "Zendesk"),
-    ("docusign",     "DocuSign"),
-    ("greenhouse",   "Greenhouse"),
-    ("remote",       "Remote"),
-    ("deel",         "Deel"),
-    ("ripple",       "Ripple"),
-    ("figma",        "Figma"),
-    ("deliveroo",    "Deliveroo"),
-    ("skyscanner",   "Skyscanner"),
-    ("getmomo",      "Momo"),
-    ("arm",          "ARM"),
-    ("wayve",        "Wayve"),
 ]
 
 # (ashby_slug, display_name)
@@ -1903,70 +1302,6 @@ def scrape_apple(existing_keys: set) -> int:
     return count
 
 
-# ─── GOOGLE CAREERS ──────────────────────────────────────────────────────────
-
-def scrape_google(existing_keys: set) -> int:
-    """Scrape Google UK internships via their careers search API."""
-    print("\nScraping Google Careers (UK)...")
-    count = 0
-    search_terms = ["intern", "internship", "placement"]
-    seen: set = set()
-    for term in search_terms:
-        try:
-            resp = requests.get(
-                "https://careers.google.com/api/v3/search/",
-                params={
-                    "q": term,
-                    "location.address": "United Kingdom",
-                    "employment_type": "INTERN",
-                    "jlo": "en_US",
-                    "num": 50,
-                },
-                headers={**HEADERS, "Referer": "https://careers.google.com/"},
-                timeout=15,
-            )
-            if resp.status_code != 200:
-                print(f"  Google ({term}): HTTP {resp.status_code}")
-                continue
-            for job in resp.json().get("jobs", []):
-                jid = job.get("id") or job.get("title", "")
-                if jid in seen:
-                    continue
-                seen.add(jid)
-                title = job.get("title", "")
-                location = ""
-                for loc in job.get("locations", []):
-                    if isinstance(loc, dict):
-                        location = loc.get("display", "") or loc.get("city", "")
-                        if location:
-                            break
-                    elif isinstance(loc, str):
-                        location = loc
-                        break
-                rel_url = job.get("relative_url") or job.get("apply_url") or ""
-                job_url = (
-                    f"https://careers.google.com{rel_url}"
-                    if rel_url and rel_url.startswith("/")
-                    else rel_url
-                )
-                if not is_relevant(title, "Google", location):
-                    continue
-                if insert_job({
-                    "company":  "Google",
-                    "role":     title,
-                    "type":     infer_type(title),
-                    "url":      job_url,
-                    "location": location,
-                    "source":   "Google Careers",
-                }, existing_keys):
-                    count += 1
-            time.sleep(1)
-        except Exception as e:
-            print(f"  Error Google ({term}): {e}")
-    print(f"  Added {count} from Google Careers")
-    return count
-
-
 # ─── MICROSOFT CAREERS ────────────────────────────────────────────────────────
 
 def scrape_microsoft(existing_keys: set) -> int:
@@ -2032,110 +1367,6 @@ def scrape_microsoft(existing_keys: set) -> int:
             print(f"  Error Microsoft p{page}: {e}")
             break
     print(f"  Added {count} from Microsoft Careers")
-    return count
-
-
-# ─── AMAZON JOBS ─────────────────────────────────────────────────────────────
-
-def scrape_amazon(existing_keys: set) -> int:
-    """Scrape Amazon UK student roles from amazon.jobs JSON API."""
-    print("\nScraping Amazon Jobs (UK)...")
-    count = 0
-    for query in ["software intern", "data intern", "engineer intern"]:
-        try:
-            resp = requests.get(
-                "https://www.amazon.jobs/en/search.json",
-                params={
-                    "base_query": query,
-                    "country":    "GBR",
-                    "result_limit": "50",
-                    "sort":       "relevant",
-                },
-                headers={**HEADERS, "Referer": "https://www.amazon.jobs/"},
-                timeout=15,
-            )
-            if resp.status_code != 200:
-                print(f"  Amazon ({query}): HTTP {resp.status_code}")
-                continue
-            for job in resp.json().get("jobs", []):
-                title = job.get("title", "")
-                city = job.get("city", "")
-                country_code = job.get("country_code", "")
-                location = (
-                    f"{city}, UK"
-                    if city and country_code == "GBR"
-                    else city or ""
-                )
-                path = job.get("job_path", "")
-                job_url = f"https://www.amazon.jobs{path}" if path else ""
-                if not is_relevant(title, "Amazon", location):
-                    continue
-                if insert_job({
-                    "company":  "Amazon",
-                    "role":     title,
-                    "type":     infer_type(title),
-                    "url":      job_url,
-                    "location": location,
-                    "source":   "Amazon Jobs",
-                }, existing_keys):
-                    count += 1
-            time.sleep(0.5)
-        except Exception as e:
-            print(f"  Error Amazon ({query}): {e}")
-    print(f"  Added {count} from Amazon Jobs")
-    return count
-
-
-# ─── MILKROUND (UK student jobs) ──────────────────────────────────────────────
-
-def scrape_milkround(existing_keys: set) -> int:
-    # I scrape Milkround's tech/engineering jobs section for UK student roles.
-    # Milkround is a major UK student job board with placement and internship listings.
-    print("\nScraping Milkround (UK student jobs)...")
-    count = 0
-    keywords = ["software", "engineering", "technology", "data", "intern", "placement"]
-    for keyword in keywords:
-        url = f"https://www.milkround.com/jobs/{keyword}"
-        try:
-            resp = requests.get(url, headers=HEADERS, timeout=15)
-            if resp.status_code != 200:
-                print(f"  Milkround ({keyword}): HTTP {resp.status_code}")
-                continue
-            soup = BeautifulSoup(resp.text, "html.parser")
-            # I look for job cards - Milkround uses article elements with job listings
-            job_cards = soup.find_all("article", class_=re.compile("job|listing|card"))
-            if not job_cards:
-                # Fallback: try finding by data attributes or generic containers
-                job_cards = soup.find_all("div", attrs={"data-testid": re.compile("job|listing")})
-            for card in job_cards[:20]:  # Limit per keyword to avoid spam
-                try:
-                    title_elem = card.find("h2") or card.find("h3") or card.find("a")
-                    title = title_elem.get_text(strip=True) if title_elem else ""
-                    company_elem = card.find(class_=re.compile("company|employer"))
-                    company = company_elem.get_text(strip=True) if company_elem else "Unknown"
-                    location_elem = card.find(class_=re.compile("location|city"))
-                    location = location_elem.get_text(strip=True) if location_elem else "United Kingdom"
-                    link_elem = card.find("a", href=True)
-                    job_url = link_elem["href"] if link_elem else ""
-                    if job_url and not job_url.startswith("http"):
-                        job_url = f"https://www.milkround.com{job_url}"
-                    if not is_relevant_job(title, company, location):
-                        continue
-                    if insert_job({
-                        "company": company,
-                        "role": title,
-                        "type": infer_type(title),
-                        "url": job_url,
-                        "location": normalize_location(location),
-                        "source": "Milkround",
-                    }, existing_keys):
-                        count += 1
-                except Exception as e:
-                    continue
-            time.sleep(1)  # Be polite to Milkround servers
-        except Exception as e:
-            print(f"  Error Milkround ({keyword}): {e}")
-    print(f"  Added {count} from Milkround")
     return count
 
 
@@ -2602,94 +1833,137 @@ def main():
     _seen_urls = set()
     _new_jobs = []
 
-    print(f"Job scraper starting at {datetime.now().isoformat()}")
-    # I delete rows not seen in 30 days at the start of each run.
-    # Only manually-added rows (status != "scraped") are preserved.
-    delete_stale_entries()
-    # I load existing keys after the stale delete so the set reflects
-    # current DB state.
+    print(f"Job scraper starting at {datetime.now().isoformat()} (SCRAPER_MODE={SCRAPER_MODE})")
+
+    # I only run cleanup functions in the api/all job so the browser job does
+    # not compete with the api job to delete and refresh rows in parallel.
+    if SCRAPER_MODE in ("api", "all"):
+        # I delete rows not seen in 30 days at the start of each run.
+        # Only manually-added rows (status != "scraped") are preserved.
+        delete_stale_entries()
+
+    # I load existing keys after the optional stale delete so the set reflects
+    # current DB state regardless of which mode is running.
     existing_keys = load_existing_keys()
     print(f"Found {len(existing_keys)} existing applications in DB")
 
     total = 0
 
-    # I run The Trackr first because it requires a headless browser and is the
-    # most likely to fail - if it crashes the rest of the run still completes.
-    total += scrape_trackr_all(existing_keys)
+    # I only run The Trackr in browser or all mode - it needs a headless browser.
+    if SCRAPER_MODE in ("browser", "all"):
+        try:
+            n = scrape_trackr_all(existing_keys)
+            total += n
+            _record_stat("The Trackr", n)
+        except Exception as e:
+            # I guard the call site too because an uncaught exception here would
+            # abort the whole run - the try/except inside scrape_trackr_all only
+            # catches per-category errors, not startup failures.
+            print(f"  Error The Trackr: {e}")
+            _record_stat("The Trackr", 0, str(e))
 
-    # I run the JSON API scrapers next because they are the most reliable and
-    # fastest - no HTML parsing involved.
-    print("\n--- Greenhouse ---")
-    for slug, name in GREENHOUSE_COMPANIES:
-        n = scrape_greenhouse(slug, name, existing_keys)
-        # I only print companies that actually yielded new rows so the log
-        # stays readable.
-        if n:
-            print(f"  {name}: {n}")
+    # I run all API scrapers when SCRAPER_MODE is api or all.
+    if SCRAPER_MODE in ("api", "all"):
+        # I run the JSON API scrapers because they are the most reliable and
+        # fastest - no HTML parsing involved.
+        print("\n--- Greenhouse ---")
+        gh_total = 0
+        for slug, name in GREENHOUSE_COMPANIES:
+            n = scrape_greenhouse(slug, name, existing_keys)
+            # I only print companies that actually yielded new rows so the log
+            # stays readable.
+            if n:
+                print(f"  {name}: {n}")
+            gh_total += n
+        total += gh_total
+        _record_stat("Greenhouse", gh_total)
+
+        print("\n--- Lever ---")
+        lv_total = 0
+        for slug, name in LEVER_COMPANIES:
+            n = scrape_lever(slug, name, existing_keys)
+            if n:
+                print(f"  {name}: {n}")
+            lv_total += n
+        total += lv_total
+        _record_stat("Lever", lv_total)
+
+        print("\n--- Ashby ---")
+        ab_total = 0
+        for slug, name in ASHBY_COMPANIES:
+            n = scrape_ashby(slug, name, existing_keys)
+            if n:
+                print(f"  {name}: {n}")
+            ab_total += n
+        total += ab_total
+        _record_stat("Ashby", ab_total)
+
+        print("\n--- SmartRecruiters ---")
+        sr_total = 0
+        for company_id, name in SMARTRECRUITERS_COMPANIES:
+            n = scrape_smartrecruiters(company_id, name, existing_keys)
+            if n:
+                print(f"  {name}: {n}")
+            sr_total += n
+        total += sr_total
+        _record_stat("SmartRecruiters", sr_total)
+
+        # I wrap Apple and Microsoft in try/except at the call site because
+        # their APIs return empty bodies or 404s intermittently - an uncaught
+        # exception would abort the rest of the run.
+        print("\n--- Apple Careers ---")
+        try:
+            n = scrape_apple(existing_keys)
+            total += n
+            _record_stat("Apple Careers", n)
+        except Exception as e:
+            print(f"  Error Apple: {e}")
+            _record_stat("Apple Careers", 0, str(e))
+
+        print("\n--- Microsoft Careers ---")
+        try:
+            n = scrape_microsoft(existing_keys)
+            total += n
+            _record_stat("Microsoft Careers", n)
+        except Exception as e:
+            print(f"  Error Microsoft: {e}")
+            _record_stat("Microsoft Careers", 0, str(e))
+
+        print("\n--- Reed ---")
+        n = scrape_reed(existing_keys)
         total += n
+        _record_stat("Reed", n)
 
-    print("\n--- Lever ---")
-    for slug, name in LEVER_COMPANIES:
-        n = scrape_lever(slug, name, existing_keys)
-        if n:
-            print(f"  {name}: {n}")
+        print("\n--- Adzuna ---")
+        n = scrape_adzuna(existing_keys)
         total += n
+        _record_stat("Adzuna", n)
 
-    print("\n--- Ashby ---")
-    for slug, name in ASHBY_COMPANIES:
-        n = scrape_ashby(slug, name, existing_keys)
-        if n:
-            print(f"  {name}: {n}")
+        print("\n--- Jooble ---")
+        n = scrape_jooble(existing_keys)
         total += n
+        _record_stat("Jooble", n)
 
-    print("\n--- SmartRecruiters ---")
-    for company_id, name in SMARTRECRUITERS_COMPANIES:
-        n = scrape_smartrecruiters(company_id, name, existing_keys)
-        if n:
-            print(f"  {name}: {n}")
+        print("\n--- Arbeitnow ---")
+        n = scrape_arbeitnow(existing_keys)
         total += n
+        _record_stat("Arbeitnow", n)
 
-    # Custom scrapers for big-tech companies that use their own ATS platforms
-    # and are therefore not reachable via Greenhouse/Lever/Ashby.
-    print("\n--- Big Tech Custom Scrapers ---")
-    total += scrape_apple(existing_keys)
-    total += scrape_google(existing_keys)
-    total += scrape_microsoft(existing_keys)
-    total += scrape_amazon(existing_keys)
+        print("\n--- Jobicy ---")
+        n = scrape_jobicy(existing_keys)
+        total += n
+        _record_stat("Jobicy", n)
 
-    # I run the HTML scrapers after the API scrapers because they are slower
-    # and more fragile - they are also the most likely to get rate-limited.
-    total += scrape_gradcracker(existing_keys)
-    total += scrape_ratemyplacement(existing_keys)
-    total += scrape_targetjobs(existing_keys)
-    total += scrape_brightnetwork(existing_keys)
-    total += scrape_totaljobs(existing_keys)
-    total += scrape_prospects(existing_keys)
-    total += scrape_milkround(existing_keys)
+        # I run Remotive last because it is a dedicated full-time job source
+        # (not an internship source) and only feeds the Jobs tab.
+        n = scrape_remotive(existing_keys)
+        total += n
+        _record_stat("Remotive", n)
 
-    print("\n--- Reed ---")
-    total += scrape_reed(existing_keys)
-
-    print("\n--- Adzuna ---")
-    total += scrape_adzuna(existing_keys)
-
-    print("\n--- Jooble ---")
-    total += scrape_jooble(existing_keys)
-
-    print("\n--- Arbeitnow ---")
-    total += scrape_arbeitnow(existing_keys)
-
-    print("\n--- Jobicy ---")
-    total += scrape_jobicy(existing_keys)
-
-    # I run Remotive last because it is a dedicated full-time job source
-    # (not an internship source) and only feeds the Jobs tab.
-    total += scrape_remotive(existing_keys)
-
-    # I refresh timestamps for all entries seen this run without overwriting
-    # any user-set fields - this is what keeps jobs alive past the 30-day stale
-    # delete without resetting statuses the user has changed.
-    refresh_seen_timestamps()
+        # I refresh timestamps for all entries seen this run without overwriting
+        # any user-set fields - this is what keeps jobs alive past the 30-day
+        # stale delete without resetting statuses the user has changed.
+        refresh_seen_timestamps()
 
     # I send a Discord alert with all newly found student roles so I know
     # what came in from today's run without waiting for the Sunday digest.
@@ -2700,6 +1974,23 @@ def main():
         send_discord_alert(_new_jobs)
 
     print(f"\nDone. Added {total} new jobs.")
+
+    # I write a Markdown summary table to source-stats.md so the workflow can
+    # cat it into $GITHUB_STEP_SUMMARY and make failures visible at a glance.
+    if _source_stats:
+        # I write to source-stats.md regardless of whether GITHUB_STEP_SUMMARY
+        # is set so the file can be inspected locally too.
+        lines = [
+            "| Source | Rows added | Note |",
+            "|---|---|---|",
+        ]
+        for stat in _source_stats:
+            # I coerce None note to empty string for cleaner table output.
+            note = stat.get("note") or ""
+            lines.append(f"| {stat['source']} | {stat['rows']} | {note} |")
+        summary_text = "\n".join(lines) + "\n"
+        with open("source-stats.md", "w") as fh:
+            fh.write(summary_text)
 
 
 if __name__ == "__main__":
