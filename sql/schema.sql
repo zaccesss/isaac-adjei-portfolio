@@ -917,181 +917,102 @@ insert into config (key, value) values
 
 
 -- ============================================================
--- SECTION B: MIGRATION (ALTER TABLE for existing databases)
--- I keep this section separate because it is safe to run on a live
--- database without losing data. I use IF NOT EXISTS everywhere so
--- it is idempotent.
+-- A.17 NEW TABLES — open source, blog analytics and WakaTime
+-- I add these three tables for features built in June 2026:
+-- open source contributions tracker, blog scroll-depth events
+-- and daily WakaTime coding activity sync.
+-- Run: these are included in the fresh schema and also in
+--      migrations 004, 005 and 006 for existing databases.
 -- ============================================================
 
-
--- ============================================================
--- B.1 ADD updated_at TO GOALS
--- I need updated_at on goals because the weekly digest queries it
--- to count "goals touched this week".
--- ============================================================
-
-alter table goals add column if not exists updated_at timestamptz default now();
-
-
--- ============================================================
--- B.2 GROUP F COLUMNS - DIARY
--- I add hidden, pinned and locked to support the 3-dot menu UI.
--- ============================================================
-
-alter table diary add column if not exists hidden boolean default false;
-alter table diary add column if not exists pinned boolean default false;
-alter table diary add column if not exists locked boolean default false;
-
-
--- ============================================================
--- B.3 GROUP F COLUMN - NOTES (hidden)
--- I only add hidden because pinned and locked already exist.
--- ============================================================
-
-alter table notes add column if not exists hidden boolean default false;
-
-
--- ============================================================
--- B.4 GROUP F COLUMNS - VAULT
--- ============================================================
-
-alter table vault add column if not exists hidden boolean default false;
-alter table vault add column if not exists locked boolean default false;
-
-
--- ============================================================
--- B.5 FIX APPLICATIONS URL UNIQUE INDEX
--- I clean up duplicates and create a robust unconditional unique
--- index on url so PostgREST can do ON CONFLICT (url) upserts.
--- ============================================================
-
--- I delete all scraped entries so they do not block the index.
-delete from applications where status = 'scraped';
-
--- I delete duplicate urls in manual entries, keeping the newest.
-delete from applications
-where id in (
-  select id from (
-    select id, row_number() over (partition by url order by created_at desc) as rn
-    from applications
-    where url is not null and url <> ''
-  ) t
-  where rn > 1
+-- I track open source contributions and their status here.
+create table if not exists opensource_contributions (
+  id            uuid primary key default gen_random_uuid(),
+  repo          text not null,
+  pr_title      text not null,
+  pr_url        text,
+  pr_number     integer,
+  status        text not null default 'open',
+  language      text,
+  notes         text,
+  submitted_at  date not null default current_date,
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
 );
 
-drop index if exists applications_url_unique;
-create unique index if not exists applications_url_unique
-  on applications (url);
-
-
--- ============================================================
--- B.6 NEW TABLES - activity_log, habits, habit_logs
--- I use CREATE TABLE IF NOT EXISTS so this is safe on existing DBs.
--- ============================================================
-
-create table if not exists activity_log (
+-- I record scroll-depth events from blog post readers.
+-- The unique index makes upserts idempotent per visitor per post.
+create table if not exists blog_read_events (
   id          uuid primary key default gen_random_uuid(),
-  created_at  timestamptz default now(),
-  action      text not null,
-  entity_type text,
-  entity_id   uuid,
-  details     jsonb default '{}'
+  slug        text not null,
+  depth       integer not null,
+  ip_hash     text not null,
+  created_at  timestamptz default now()
 );
 
-create table if not exists habits (
-  id          uuid primary key default gen_random_uuid(),
-  created_at  timestamptz default now(),
-  name        text not null,
-  frequency   text not null default 'daily',
-  description text,
-  active      boolean default true,
-  color       text default '#6366f1',
-  order_index int default 0
+create unique index if not exists blog_read_events_unique
+  on blog_read_events (slug, depth, ip_hash);
+
+-- I store one row per calendar day of WakaTime coding activity.
+create table if not exists wakatime_daily (
+  id             uuid primary key default gen_random_uuid(),
+  date           date not null unique,
+  total_seconds  integer not null default 0,
+  languages      jsonb default '[]',
+  projects       jsonb default '[]',
+  editors        jsonb default '[]'
 );
 
-create table if not exists habit_logs (
-  id        uuid primary key default gen_random_uuid(),
-  habit_id  uuid references habits(id) on delete cascade,
-  date      date not null,
-  completed boolean default true,
-  notes     text,
-  unique(habit_id, date)
-);
+-- I enable RLS on the three new tables.
+alter table opensource_contributions enable row level security;
+alter table blog_read_events         enable row level security;
+alter table wakatime_daily           enable row level security;
 
--- I enable RLS on the new tables. The DO blocks make this idempotent
--- because alter table ... enable row level security errors on second run.
-alter table activity_log enable row level security;
-alter table habits       enable row level security;
-alter table habit_logs   enable row level security;
-
--- I create the RLS policies if they do not exist. The DO block
--- catches the "policy already exists" error.
-do $$
-begin
-  if not exists (select 1 from pg_policies where tablename = 'activity_log' and policyname = 'allow all') then
-    create policy "allow all" on activity_log for all using (true);
-  end if;
-  if not exists (select 1 from pg_policies where tablename = 'habits' and policyname = 'allow all') then
-    create policy "allow all" on habits for all using (true);
-  end if;
-  if not exists (select 1 from pg_policies where tablename = 'habit_logs' and policyname = 'allow all') then
-    create policy "allow all" on habit_logs for all using (true);
-  end if;
-end $$;
+-- I allow all access because this is a single-user dashboard
+-- protected by NextAuth. RLS is defence in depth.
+create policy "allow all" on opensource_contributions for all using (true);
+create policy "allow all" on blog_read_events         for all using (true);
+create policy "allow all" on wakatime_daily           for all using (true);
 
 
 -- ============================================================
--- B.7 SEED - theme_preference CONFIG KEY
--- I add the theme_preference key for dark mode persistence across
--- devices. on conflict do nothing makes this idempotent.
+-- A.18 RPC FUNCTION — blog_read_funnel
+-- I create a stable SQL function that aggregates scroll-depth
+-- events into a per-post reading funnel.
+-- Run: included in fresh schema and also in migration 007.
 -- ============================================================
 
-insert into config (key, value) values ('theme_preference', '"system"')
-on conflict (key) do nothing;
-
-
--- ============================================================
--- B.8 ADD APPLICATIONS TRACKER COLUMNS (2026-05-21)
--- I add the columns introduced with the applications tracker
--- rebuild. All use IF NOT EXISTS so this is safe on existing DBs.
--- ============================================================
-
--- I store the opening and last-year opening dates so I can colour-code
--- how early or late I am applying relative to historical patterns.
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS opening_date          date;
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS last_year_opening     date;
--- I store housing info, CV and cover letter requirements as text because the
--- values come from scraper notes and can be free-form strings.
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS housing_location      text;
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS cv_required           text;
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS cover_letter_required text;
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS written_answers       text;
--- I use category to group applications by role type in the dashboard.
--- The default of 'Software Engineering' is intentional - it matches the
--- Section A default so existing rows are not treated as uncategorised.
--- Client-side detectCategory() skips this default and re-derives the
--- category from company and role title to ensure correct grouping.
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS category text DEFAULT 'Software Engineering';
-
-
--- ============================================================
--- B.9 ADD last_scraped_at AND sponsors_visa TO applications
--- ============================================================
-
--- 2026-05-28: I add last_scraped_at to track when each scraped row was last
--- seen so I can expire entries that have not appeared in 30 days.
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS last_scraped_at TIMESTAMPTZ;
--- I use TEXT for sponsors_visa so I can store TRUE, FALSE or Unknown as strings.
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS sponsors_visa TEXT;
--- I backfill last_scraped_at from created_at for existing scraped rows so they
--- are not immediately treated as 30-day-stale on the first run after migration.
-UPDATE applications SET last_scraped_at = created_at WHERE status = 'scraped' AND last_scraped_at IS NULL;
+create or replace function blog_read_funnel()
+returns table (
+  slug            text,
+  reached_25      bigint,
+  reached_50      bigint,
+  reached_75      bigint,
+  reached_100     bigint,
+  completion_rate float
+)
+language sql stable as $$
+  select
+    slug,
+    count(*) filter (where depth = 25)   as reached_25,
+    count(*) filter (where depth = 50)   as reached_50,
+    count(*) filter (where depth = 75)   as reached_75,
+    count(*) filter (where depth = 100)  as reached_100,
+    case
+      when count(*) filter (where depth = 25) = 0 then null
+      else count(*) filter (where depth = 100)::float
+           / count(*) filter (where depth = 25)
+    end as completion_rate
+  from blog_read_events
+  group by slug
+  order by reached_25 desc;
+$$;
 
 
 -- ============================================================
--- END OF FILE
--- I run SECTION A once on a fresh database, then SECTION B every
--- time I deploy new schema changes. SECTION B is idempotent so
--- running it multiple times is harmless.
+-- END OF SCHEMA
+-- I run this file once on a fresh Supabase project to create
+-- every table, index, RLS policy and seed record from scratch.
+-- For existing databases, run the individual migration files in
+-- sql/migrations/ instead.
 -- ============================================================
-
