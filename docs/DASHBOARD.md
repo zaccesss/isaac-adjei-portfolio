@@ -45,6 +45,9 @@ Private section at `/dashboard` - not linked from public nav, sitemap or command
 | `/dashboard/streaks` | 90-day heatmap; per-streak activity line chart; check-in |
 | `/dashboard/habits` | Habit tracker with frequency (daily/weekly) and check-in logging |
 | `/dashboard/settings` | PIN change, theme toggle, scraper trigger, weekly digest test, Discord digest trigger |
+| `/dashboard/opensource` | Open source contributions tracker — add, edit and delete merged PRs submitted to external repos |
+| `/dashboard/blog-analytics` | Blog read funnel — scroll depth stats per post (25/50/75/100% reached) |
+| `/dashboard/coding` | WakaTime heatmap — daily coding activity from the wakatime-sync GitHub Actions workflow |
 
 ---
 
@@ -146,7 +149,7 @@ Category grouping note: the Supabase column has `DEFAULT 'Software Engineering'`
 
 ## Supabase schema
 
-Full schema in `supabase-schema.sql`. Run Section A on a fresh project, Section B on an existing database (idempotent, safe to re-run).
+Full schema in `sql/schema.sql`. Run on a fresh project to create all tables from scratch. For existing databases, run the individual migration files in `sql/migrations/` (001–007) in order. See [sql/README.md](../sql/README.md) for the fresh-install guide.
 
 Key applications columns added in migrations (all in Section B):
 

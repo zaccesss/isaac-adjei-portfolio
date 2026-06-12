@@ -158,3 +158,35 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 - Entries under `[Unreleased]`: Added / Changed / Fixed / Removed
 - No em dashes, no Oxford comma
 - Public changes only. Dashboard changes go in `docs/LOG.md`.
+
+---
+
+## Session log — 2026-06-12
+
+### Features built
+
+- **Job scraper fixes** (`scripts/job-scraper.py`, `.github/workflows/job-scraper.yml`): multi-source scraper rebuilt with Playwright + REST APIs (Gradcracker, Handshake, Workable etc.); deduplication; sponsors_visa field; 30-day expiry logic; cron Mon-Fri 07:00 UTC
+- **Vault expiry check** (`lib/vault-expiry-check.ts`, `.github/workflows/vault-expiry-check.yml`): daily cron at 09:00 UTC; checks vault key_expiry, card_expiry and inventory warranty_expiry; sends Discord embed sorted by days remaining
+- **Open source contributions page** (`app/dashboard/(protected)/opensource/`): full CRUD table for tracking merged PRs to external repos; `opensource_contributions` Supabase table
+- **Blog read analytics** (`components/blog/ScrollDepthTracker.tsx`, `app/api/blog/read-event/route.ts`, `app/dashboard/(protected)/blog-analytics/`): scroll-depth events at 25/50/75/100%; per-IP rate limiting via Upstash Redis; `blog_read_events` table + `blog_read_funnel()` RPC; dashboard funnel chart
+- **WakaTime coding heatmap** (`scripts/wakatime-sync.py`, `.github/workflows/wakatime-sync.yml`, `app/dashboard/(protected)/coding/`): daily sync of WakaTime API to `wakatime_daily` table; GitHub heatmap-style chart in dashboard
+- **CV pdf.yml fixes**: added `npm install --no-save html-to-docx`; replaced broken automerge label step with `gh pr merge --squash --auto --delete-branch`
+
+### New Supabase tables (run migrations 004-007 on existing DB, or schema.sql on fresh install)
+
+- `opensource_contributions` — open source PR tracking
+- `blog_read_events` — scroll depth events with unique index on (slug, depth, ip_hash)
+- `wakatime_daily` — one row per calendar day of WakaTime coding activity
+- `blog_read_funnel()` — RPC function aggregating scroll-depth into a per-post funnel
+
+### New GitHub Actions workflows
+
+- `wakatime-sync.yml` — daily 01:00 UTC + manual; requires `WAKATIME_API_KEY` GitHub Actions secret
+- `vault-expiry-check.yml` — daily 09:00 UTC + manual
+
+### Pending production setup (to do before new session)
+
+1. Export `applications` table as CSV from Supabase (if running fresh schema.sql)
+2. Run `sql/migrations/004_add_opensource_contributions.sql` through `007_add_blog_read_funnel_function.sql` in Supabase SQL Editor
+3. Add `WAKATIME_API_KEY` GitHub Actions secret (from wakatime.com/settings/account — NOT Vercel)
+4. Install WakaTime plugin in VS Code and JetBrains (tracks all coding time, not just AI)

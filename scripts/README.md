@@ -1,4 +1,25 @@
-# Scripts
+# scripts/
+
+Python daemons, CV generation scripts and utility scripts.
+
+## Overview
+
+| Script | Language | Description |
+| --- | --- | --- |
+| `generate-role-cvs.js` | Node.js | Assembles 6 role-specific CV HTML files from `cv.html` sections |
+| `generate-pdfs.js` | Node.js | Puppeteer: renders all CV HTML files to PDF |
+| `generate-docx.js` | Node.js | html-to-docx: converts all CV HTML files to DOCX |
+| `watch-cvs.js` | Node.js | File-watcher: re-runs role CV generation on `cv.html` change |
+| `job-scraper.py` | Python | Multi-source job scraper (Playwright + REST APIs), writes to Supabase |
+| `wakatime-sync.py` | Python | Fetches WakaTime daily stats and writes to `wakatime_daily` in Supabase |
+| `mac-daemon.py` | Python | MacBook battery daemon — writes to Upstash Redis every 30s |
+| `gpc-daemon.py` | Python | Windows Gaming PC daemon — CPU, GPU usage and IGDB game art → Redis |
+| `lenovo-daemon.py` | Python | Windows Lenovo laptop battery daemon — writes to Upstash Redis |
+| `ps5-daemon.py` | Python | Legacy PS5 polling script (superseded by Cloudflare Worker) |
+| `spotify-auth.mjs` | Node.js | One-time Spotify OAuth helper to obtain refresh token |
+| `requirements.txt` | — | Python dependencies for all daemons |
+
+---
 
 ## mac-daemon.py
 
@@ -32,7 +53,7 @@ python3 scripts/mac-daemon.py
 
 You will see output like:
 
-```
+```text
 Mac daemon started. Writing battery status every 30s. Press Ctrl+C to stop.
 [14:32:01] battery=78% charging=True -> 200
 ```
@@ -116,3 +137,27 @@ of going blank.
 - No elevated privileges required
 - CPU usage rounds to 0.0% in Activity Monitor
 - Safe to stop any time with `Ctrl+C` or `launchctl unload`
+
+---
+
+## wakatime-sync.py
+
+Fetches the last 7 days of WakaTime coding activity from the WakaTime API and upserts
+one row per day into the `wakatime_daily` Supabase table. Run daily via the
+`wakatime-sync.yml` GitHub Actions workflow.
+
+### Required environment variables
+
+| Variable | Where to get it |
+| --- | --- |
+| `WAKATIME_API_KEY` | wakatime.com/settings/account → API Key — GitHub Actions secret only, not Vercel |
+| `SUPABASE_URL` | Supabase project settings → API |
+| `SUPABASE_ANON_KEY` | Supabase project settings → API |
+
+---
+
+## lenovo-daemon.py
+
+Windows daemon that writes Lenovo laptop battery state to Upstash Redis. Same pattern as
+`mac-daemon.py` but runs on Windows via Task Scheduler or NSSM. Kept for future use if
+the Lenovo laptop needs to appear on the live status grid.

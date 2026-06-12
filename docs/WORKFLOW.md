@@ -131,6 +131,7 @@ Current variables (see `.env.example` for full list):
 | `UPSTASH_REDIS_REST_URL` | Rate limiting for contact form |
 | `UPSTASH_REDIS_REST_TOKEN` | Rate limiting for contact form |
 | `AUTH_SECONDARY_PIN` | Master PIN for Diary, Notes and Vault (bcrypt hash stored in DB overrides this) |
+| `WAKATIME_API_KEY` | WakaTime API key — GitHub Actions secret only, not Vercel (sync runs in CI, dashboard reads Supabase) |
 
 ---
 

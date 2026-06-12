@@ -9,6 +9,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- sql/ folder with schema.sql (full DROP+CREATE for fresh installs) and migrations/001-007 (incremental, safe to re-run); replaces root supabase-schema.sql
+- sql/README.md and sql/migrations/README.md explaining when to run each file and the fresh-install guide
+- Per-folder README files in sql/, sql/migrations/, docs/, app/, app/api/, app/dashboard/, lib/, data/, components/, workers/, hooks/, types/, public/, public/resume/; scripts/README.md updated to add wakatime-sync.py and remove deleted scripts
+- Root README.md updated to phaemos/dotfiles style: CI badges for all 5 workflows (CI, CV PDF, Job Scraper, WakaTime Sync, Vault Expiry), Quick navigation anchors, Dashboard section, CV system section, full repository structure tree, GitHub Actions workflows table
+- WAKATIME_API_KEY added to .env.example with explanation that it is a GitHub Actions secret only (not Vercel)
+
+### Changed
+
+- DOCUMENTATION.md moved from repo root to docs/DOCUMENTATION.md
+- docs/DASHBOARD.md: added rows for /dashboard/opensource, /dashboard/blog-analytics and /dashboard/coding; updated Supabase schema reference from supabase-schema.sql to sql/schema.sql
+- docs/WORKFLOW.md: added WAKATIME_API_KEY to environment variables table
+- docs/verification.md: added new dashboard pages verification section (opensource, blog-analytics, coding, scroll events, wakatime sync)
+- .gitignore: updated session-logs/ entry to docs/session-logs/ to match new location; removed /docs/cv-redesign-ideas.md entry (file deleted)
+
+### Removed
+
+- scripts/build-role-cvs.js (superseded by generate-role-cvs.js)
+- scripts/fix-docx.py (one-off script, never wired to CI)
+- public/resume/fix_cv.py (temporary HTML cleanup script, wrong directory)
+- supabase-schema.sql at repo root (replaced by sql/schema.sql)
+- docs/cv-redesign-ideas.md (fully implemented)
+
 - /links page: new Support section at the bottom with Patreon and Buy Me a Coffee links
 - /links page: GitLab and Codeberg profile links added under Professional, each with platform brand colours
 - README: GitLab and Codeberg profile badges added alongside the existing GitHub badge
