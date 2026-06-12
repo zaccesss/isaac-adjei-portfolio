@@ -12,6 +12,7 @@ import { getPostBySlug, getPublishedPosts, getAdjacentPosts, getSeriesPosts, SER
 import { projects } from "@/data/projects"
 import { Badge } from "@/components/ui/badge"
 import ReadingProgress from "@/components/shared/ReadingProgress"
+import ScrollDepthTracker from "@/components/blog/ScrollDepthTracker"
 import CodeBlock from "@/components/shared/CodeBlock"
 import TableOfContents, { type TocHeading } from "@/components/shared/TableOfContents"
 import BlogReactions from "@/components/shared/BlogReactions"
@@ -288,6 +289,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
       <ReadingProgress />
+      {post.published && <ScrollDepthTracker slug={slug} />}
     <div className="container max-w-2xl py-24 xl:max-w-5xl">
       {/* Back link */}
       <Link

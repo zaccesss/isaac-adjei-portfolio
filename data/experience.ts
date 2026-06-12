@@ -15,6 +15,23 @@ export interface Experience {
 }
 
 export const experiences: Experience[] = [
+  // PAL Leader — uncomment when role begins in September 2026
+  // {
+  //   id: "pal-leader",
+  //   role: "PAL Leader - Electronics and Programming",
+  //   company: "Aston University, Learning Services",
+  //   location: "Birmingham, UK",
+  //   type: "work" as const,
+  //   startDate: "Sep 2026",
+  //   endDate: "Present",
+  //   description: "Peer-Assisted Learning Leader supporting first-year Electronic Engineering and Computer Science students with programming fundamentals and course content.",
+  //   achievements: [
+  //     "Facilitate weekly PAL sessions helping students understand core programming concepts in Python",
+  //     "Prepare session materials and exercises aligned with the module curriculum",
+  //     "Support peer learning in a collaborative, low-pressure environment",
+  //     "Develop communication, leadership and mentoring skills through structured sessions",
+  //   ],
+  // },
   {
     id: "aston-student-rep",
     role: "Student Representative",

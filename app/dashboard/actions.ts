@@ -1033,3 +1033,151 @@ export async function toggleVaultLocked(id: string, locked: boolean) {
   await supabase.from("vault").update({ locked }).eq("id", id)
   revalidatePath("/dashboard/vault")
 }
+
+// ─── Open Source Contributions ────────────────────────────────────────────────
+
+export type OpenSourceContribution = {
+  id: string
+  repo: string
+  pr_title: string
+  pr_url: string | null
+  pr_number: number | null
+  status: "draft" | "open" | "merged" | "closed"
+  language: string | null
+  notes: string | null
+  submitted_at: string
+  created_at: string
+  updated_at: string
+}
+
+export async function getOpenSourceContributions(): Promise<OpenSourceContribution[]> {
+  // I order by submitted_at descending so the most recent contributions appear first.
+  const { data } = await supabase
+    .from("opensource_contributions")
+    .select("*")
+    .order("submitted_at", { ascending: false })
+  return (data ?? []) as OpenSourceContribution[]
+}
+
+export async function addOpenSourceContribution(input: {
+  repo: string
+  pr_title: string
+  pr_url?: string | null
+  pr_number?: number | null
+  status: string
+  language?: string | null
+  notes?: string | null
+  submitted_at: string
+}) {
+  if (
+    !validStr(input.repo) ||
+    !validStr(input.pr_title) ||
+    !optStr(input.pr_url) ||
+    !optNum(input.pr_number, 1, 999_999) ||
+    !validStr(input.status) ||
+    !optStr(input.language) ||
+    !optStr(input.notes, MAX_LONG_TEXT) ||
+    !validStr(input.submitted_at)
+  ) return INVALID
+  const { data } = await supabase
+    .from("opensource_contributions")
+    .insert(input)
+    .select()
+    .single()
+  void logActivity("opensource.create", input.pr_title)
+  revalidatePath("/dashboard/opensource")
+  return data as OpenSourceContribution
+}
+
+export async function updateOpenSourceContribution(
+  id: string,
+  patch: Partial<{
+    repo: string
+    pr_title: string
+    pr_url: string | null
+    pr_number: number | null
+    status: string
+    language: string | null
+    notes: string | null
+    submitted_at: string
+  }>,
+) {
+  if (!validId(id)) return INVALID
+  // I only validate fields that are present in the patch.
+  if (patch.repo !== undefined && !validStr(patch.repo)) return INVALID
+  if (patch.pr_title !== undefined && !validStr(patch.pr_title)) return INVALID
+  if (patch.pr_url !== undefined && !optStr(patch.pr_url)) return INVALID
+  if (patch.pr_number !== undefined && !optNum(patch.pr_number, 1, 999_999)) return INVALID
+  if (patch.status !== undefined && !validStr(patch.status)) return INVALID
+  if (patch.language !== undefined && !optStr(patch.language)) return INVALID
+  if (patch.notes !== undefined && !optStr(patch.notes, MAX_LONG_TEXT)) return INVALID
+  if (patch.submitted_at !== undefined && !validStr(patch.submitted_at)) return INVALID
+  await supabase
+    .from("opensource_contributions")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id)
+  void logActivity("opensource.update", id)
+  revalidatePath("/dashboard/opensource")
+}
+
+export async function deleteOpenSourceContribution(id: string) {
+  if (!validId(id)) return INVALID
+  await supabase.from("opensource_contributions").delete().eq("id", id)
+  void logActivity("opensource.delete", id)
+  revalidatePath("/dashboard/opensource")
+}
+
+export async function bulkDeleteOpenSourceContributions(ids: string[]) {
+  // I validate each ID individually before sending the bulk delete.
+  if (!ids.length || ids.some((id) => !validId(id))) return INVALID
+  await supabase.from("opensource_contributions").delete().in("id", ids)
+  void logActivity("opensource.bulk_delete", `${ids.length} rows`)
+  revalidatePath("/dashboard/opensource")
+}
+
+// ─── Blog Read Funnel ────────────────────────────────────────────────────────
+
+// I describe one row returned by getBlogReadFunnel so the dashboard page is
+// fully typed without importing from Supabase-generated types.
+export type BlogReadFunnelRow = {
+  slug: string
+  // I return the count of unique ip_hash values that reached each depth threshold.
+  reached_25: number
+  reached_50: number
+  reached_75: number
+  reached_100: number
+  // I derive a simple completion rate from reached_100 / reached_25.
+  completion_rate: number | null
+}
+
+export async function getBlogReadFunnel(): Promise<BlogReadFunnelRow[]> {
+  // I aggregate event counts per slug and depth from blog_read_events so the
+  // dashboard shows a funnel without having to query 4 separate tables.
+  const { data, error } = await supabase.rpc("blog_read_funnel")
+  if (error || !data) return []
+  return data as BlogReadFunnelRow[]
+}
+
+// ─── WakaTime Heatmap ────────────────────────────────────────────────────────
+
+// I describe one row from wakatime_daily so the dashboard is fully typed.
+export type WakatimeDayRow = {
+  date: string
+  total_seconds: number
+  languages: { name: string; total_seconds: number }[]
+  projects: { name: string; total_seconds: number }[]
+  editors: { name: string; total_seconds: number }[]
+}
+
+export async function getWakatimeHeatmap(): Promise<WakatimeDayRow[]> {
+  // I fetch the last 365 days so the heatmap always shows a full year.
+  const since = new Date()
+  since.setDate(since.getDate() - 364)
+  const { data, error } = await supabase
+    .from("wakatime_daily")
+    .select("date, total_seconds, languages, projects, editors")
+    .gte("date", since.toISOString().slice(0, 10))
+    .order("date", { ascending: true })
+  if (error || !data) return []
+  return data as WakatimeDayRow[]
+}

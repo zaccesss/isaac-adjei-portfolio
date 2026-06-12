@@ -1,6 +1,11 @@
 name: Regenerate CV PDF
 
 on:
+  # I trigger automatically whenever the main CV HTML is pushed so the
+  # committed artefacts never fall out of sync with the source file.
+  push:
+    paths:
+      - "public/resume/cv.html"
   workflow_dispatch:
 
 jobs:
@@ -71,13 +76,19 @@ jobs:
           });
           "
 
+      - name: Generate role CVs
+        # I regenerate all six role-specific CV variants after the main CV is
+        # updated so they stay in sync with any new content or structural changes.
+        run: node scripts/generate-role-cvs.js
+
       - name: Create artefact PR
         env:
           GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_PAT }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/resume/Isaac_Adjei_CV.pdf public/resume/Isaac_Adjei_CV.docx
+          git add public/resume/Isaac_Adjei_CV.pdf public/resume/Isaac_Adjei_CV.docx \
+                  public/resume/cv-*.pdf public/resume/cv-*.docx public/resume/cv-*.html
           if git diff --staged --quiet; then
             echo "CV artefacts are already up to date."
             exit 0
