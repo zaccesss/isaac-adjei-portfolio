@@ -11,17 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      # I call the Next.js API route rather than running the TypeScript directly
-      # so the check runs against the production Supabase instance and uses the
-      # same code path as the live dashboard.
-      - name: Call vault expiry check endpoint
-        run: |
-          HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "https://isaacadjei.me/api/dashboard/vault-expiry-check")
-          echo "HTTP status: $HTTP_CODE"
-          echo "Response body:"
-          cat response.json
-          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
-            exit 1
-          fi
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Run vault expiry check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: node scripts/vault-expiry-check.js
