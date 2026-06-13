@@ -103,11 +103,11 @@ jobs:
           git switch -c "$branch"
           git commit -m "chore: regenerate CV PDF and DOCX from cv.html"
           git push -u origin "$branch"
-          # I create the PR and immediately enable squash auto-merge so it lands
-          # on main as soon as CI passes, with no manual intervention needed.
           gh pr create \
             --base main \
             --head "$branch" \
             --title "chore: regenerate CV download artefacts" \
             --body "Automatically regenerates the committed CV PDF and DOCX after cv.html changed on main."
-          gh pr merge "$branch" --squash --delete-branch --auto
+          # I wait for CI checks to pass before merging so branch protection is satisfied.
+          gh pr checks "$branch" --watch --interval 10
+          gh pr merge "$branch" --squash --delete-branch
