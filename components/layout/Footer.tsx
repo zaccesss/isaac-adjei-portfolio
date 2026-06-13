@@ -24,6 +24,8 @@ export default function Footer() {
           <span aria-hidden="true">·</span>
           <Link href="/colophon" className="hover:text-foreground transition-colors">Colophon</Link>
           <span aria-hidden="true">·</span>
+          <Link href="/consumed" className="hover:text-foreground transition-colors">Consumed</Link>
+          <span aria-hidden="true">·</span>
           <Link href="/changelog" className="hover:text-foreground transition-colors">Changelog</Link>
         </div>
 
