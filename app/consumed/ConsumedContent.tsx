@@ -619,11 +619,13 @@ function SpotifyNowPlaying() {
     : data.lastPlayed
     ? { track: data.lastPlayed.track, artist: data.lastPlayed.artist, albumArt: data.lastPlayed.albumArt }
     : null
-  const label = data.playing ? "Live on Spotify" : data.paused ? "Paused" : displayTrack ? "Last Played" : "Nothing playing"
+  const label = data.playing ? "Live on Spotify" : data.paused ? "Paused" : "Last Played"
+
+  if (!displayTrack) return null
 
   return (
     <div className="w-full max-w-sm">
-      <div className={cn("rounded-xl border border-border/60 bg-card p-4 space-y-3", !hasTrack && "opacity-60")}>
+      <div className={cn("rounded-xl border border-border/60 bg-card p-4 space-y-3", data.paused && "opacity-70")}>
         <div className="flex items-center gap-2">
           <span className={cn("text-[10px] font-semibold uppercase tracking-widest", data.playing ? "text-green-500" : "text-muted-foreground")}>
             {label}
@@ -699,8 +701,7 @@ export default function ConsumedContent() {
       <div className="space-y-4 max-w-2xl">
         <h1 className="text-4xl font-bold tracking-tight">Consumed</h1>
         <p className="text-lg text-muted-foreground leading-relaxed">
-          Everything I have watched, listened to and read so far this year. Videos, podcasts, books and music.
-          More will be added as the year goes on. See what I am up to right now on my{" "}
+          Everything I have watched, listened to and read so far this year. Videos, podcasts, books, music, resources and more. More content will be added as the year goes on. See what I am up to right now on my{" "}
           <Link href="/now" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
             Now page
           </Link>
