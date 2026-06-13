@@ -16,6 +16,12 @@ jobs:
       # same code path as the live dashboard.
       - name: Call vault expiry check endpoint
         run: |
-          curl -sf \
+          HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "https://isaacadjei.me/api/dashboard/vault-expiry-check"
+            "https://isaacadjei.me/api/dashboard/vault-expiry-check")
+          echo "HTTP status: $HTTP_CODE"
+          echo "Response body:"
+          cat response.json
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            exit 1
+          fi
