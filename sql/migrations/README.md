@@ -15,7 +15,8 @@ All files use `IF NOT EXISTS`, `CREATE OR REPLACE`, or `DO` blocks so they are s
 | 005 | `005_add_blog_read_events.sql` | blog_read_events table + unique index with RLS | Both |
 | 006 | `006_add_wakatime_daily.sql` | wakatime_daily table with RLS | Both |
 | 007 | `007_add_blog_read_funnel_function.sql` | blog_read_funnel() RPC function (requires migration 005) | Both |
+| 008 | `008_add_inventory_url.sql` | url column on inventory_items table | Both |
 
 ## Run order
 
-Paste each file into the Supabase **SQL Editor** and execute in order 001 → 007. Skip any that are already applied.
+Paste each file into the Supabase **SQL Editor** and execute in order 001 → 008. Skip any that are already applied.
