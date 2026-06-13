@@ -108,4 +108,4 @@ jobs:
             --head "$branch" \
             --title "chore: regenerate CV download artefacts" \
             --body "Automatically regenerates the committed CV PDF and DOCX after cv.html changed on main."
-          gh pr merge "$branch" --squash --delete-branch
+          gh pr merge "$branch" --squash --delete-branch --auto
