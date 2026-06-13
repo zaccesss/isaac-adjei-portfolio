@@ -19,7 +19,6 @@ updates:
         update-types:
           - "version-update:semver-major"
       - dependency-name: "esbuild"
-        reason: "Bundled inside wrangler's nested node_modules; CVEs are dev-time only and do not apply to Vercel production deployments"
 
   - package-ecosystem: "npm"
     directory: "/workers/ps5-presence"
@@ -40,7 +39,6 @@ updates:
         update-types:
           - "version-update:semver-major"
       - dependency-name: "esbuild"
-        reason: "Bundled inside wrangler's nested node_modules; CVEs are dev-time only and do not apply to Cloudflare Worker deployments"
 
   - package-ecosystem: "github-actions"
     directory: "/"
