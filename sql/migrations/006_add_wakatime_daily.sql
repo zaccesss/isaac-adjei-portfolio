@@ -16,4 +16,5 @@ create table if not exists wakatime_daily (
 
 alter table wakatime_daily enable row level security;
 
+drop policy if exists "allow all" on wakatime_daily;
 create policy "allow all" on wakatime_daily for all using (true);
