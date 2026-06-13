@@ -191,8 +191,10 @@ export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
   const totalOsSeconds = topOs.reduce((acc, [, s]) => acc + s, 0)
 
   const langPieData = topLangs.map(([name, value]) => ({ name, value }))
+  const projPieData = topProjs.map(([name, value]) => ({ name, value }))
   const editPieData = topEdits.map(([name, value]) => ({ name, value }))
   const osPieData = topOs.map(([name, value]) => ({ name, value }))
+  const totalProjSeconds = topProjs.reduce((acc, [, s]) => acc + s, 0)
   const weekdayData = WEEKDAY_LABELS.map((day, i) => ({ day, seconds: weekdayMap[i] }))
 
   return (
@@ -321,49 +323,34 @@ export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
         )}
       </div>
 
-      {/* Projects + Weekdays */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="border border-border rounded-lg p-4 bg-card">
-          <h2 className="text-sm font-semibold mb-3">Projects</h2>
-          {topProjs.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No data yet.</p>
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              {topProjs.map(([name, secs]) => (
-                <div key={name} className="flex justify-between text-xs">
-                  <span className="text-muted-foreground truncate">{name}</span>
-                  <span className="tabular-nums shrink-0 ml-2">{formatHours(secs)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+      {/* Projects donut */}
+      <DonutPanel title="Projects" data={projPieData} total={totalProjSeconds} />
 
-        <div className="border border-border rounded-lg p-4 bg-card">
-          <h2 className="text-sm font-semibold mb-3">Weekdays</h2>
-          {activeDays === 0 ? (
-            <p className="text-xs text-muted-foreground">No data yet.</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={weekdayData} barSize={18}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis
-                  dataKey="day"
-                  tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis hide />
-                <Tooltip
-                  formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]}
-                  contentStyle={{ fontSize: "11px" }}
-                  cursor={{ fill: "hsl(var(--muted))" }}
-                />
-                <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
+      {/* Weekdays bar */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <h2 className="text-sm font-semibold mb-3">Weekdays</h2>
+        {activeDays === 0 ? (
+          <p className="text-xs text-muted-foreground">No data yet.</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart data={weekdayData} barSize={18}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis
+                dataKey="day"
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis hide />
+              <Tooltip
+                formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]}
+                contentStyle={{ fontSize: "11px" }}
+                cursor={{ fill: "hsl(var(--muted))" }}
+              />
+              <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   )

@@ -349,10 +349,16 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
 
       {/* I only show charts when there are at least 2 data points - a single bar chart is meaningless */}
       {chartData.length >= 2 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">Assessment marks</p>
-            <AssessmentBarChart data={chartData} />
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Assessment marks</p>
+              <AssessmentBarChart data={chartData} />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Grade distribution</p>
+              <ModuleGradePieChart marks={chartData.map((d) => d.mark)} />
+            </div>
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1">Progress trend</p>
