@@ -201,7 +201,8 @@ sql/
     ├── 004_add_opensource_contributions.sql  Open source contributions table
     ├── 005_add_blog_read_events.sql  Blog scroll-depth events table + unique index
     ├── 006_add_wakatime_daily.sql    WakaTime daily coding activity table
-    └── 007_add_blog_read_funnel_function.sql blog_read_funnel() RPC function
+    ├── 007_add_blog_read_funnel_function.sql blog_read_funnel() RPC function
+    └── 008_add_inventory_url.sql    inventory_items.url column
 
 types/                                TypeScript type definitions
 workers/
