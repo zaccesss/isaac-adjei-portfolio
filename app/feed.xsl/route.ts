@@ -17,47 +17,56 @@ export function GET() {
         <link rel="icon" type="image/png" href="/images/avatar.png" />
         <style>
           *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+          :root {
+            --bg: #09090b; --fg: #e4e4e7; --muted: #71717a; --subtle: #52525b;
+            --border: #27272a; --card: #18181b; --card-border: #3f3f46;
+            --heading: #fafafa; --link: #3b82f6;
+          }
+          @media (prefers-color-scheme: light) {
+            :root {
+              --bg: #ffffff; --fg: #18181b; --muted: #71717a; --subtle: #a1a1aa;
+              --border: #e4e4e7; --card: #f4f4f5; --card-border: #d4d4d8;
+              --heading: #09090b; --link: #2563eb;
+            }
+          }
           body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #09090b;
-            color: #e4e4e7;
+            background: var(--bg);
+            color: var(--fg);
             line-height: 1.6;
             padding: 2rem 1rem;
           }
           .container { max-width: 720px; margin: 0 auto; }
-          .header { border-bottom: 1px solid #27272a; padding-bottom: 2rem; margin-bottom: 2rem; }
+          .header { border-bottom: 1px solid var(--border); padding-bottom: 2rem; margin-bottom: 2rem; }
           .header-top { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-          .avatar { width: 48px; height: 48px; border-radius: 50%; border: 1px solid #3f3f46; }
-          .site-name { font-size: 1.25rem; font-weight: 700; color: #fafafa; }
-          .site-desc { font-size: 0.875rem; color: #71717a; margin-top: 0.25rem; }
+          .avatar { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--card-border); }
+          .site-name { font-size: 1.25rem; font-weight: 700; color: var(--heading); }
+          .site-desc { font-size: 0.875rem; color: var(--muted); margin-top: 0.25rem; }
           .subscribe-box {
             display: inline-flex; align-items: center; gap: 0.5rem;
-            background: #18181b; border: 1px solid #3f3f46;
+            background: var(--card); border: 1px solid var(--card-border);
             border-radius: 0.5rem; padding: 0.75rem 1rem;
-            font-size: 0.8125rem; color: #a1a1aa; margin-top: 1rem;
+            font-size: 0.8125rem; color: var(--muted); margin-top: 1rem;
           }
-          .subscribe-box a { color: #3b82f6; text-decoration: none; }
+          .subscribe-box a { color: var(--link); text-decoration: none; }
           .subscribe-box a:hover { text-decoration: underline; }
           .rss-icon { color: #f97316; font-size: 1rem; }
           .posts { display: flex; flex-direction: column; gap: 0; }
-          .post {
-            border-bottom: 1px solid #27272a;
-            padding: 1.5rem 0;
-          }
+          .post { border-bottom: 1px solid var(--border); padding: 1.5rem 0; }
           .post:last-child { border-bottom: none; }
-          .post-title { font-size: 1rem; font-weight: 600; color: #fafafa; margin-bottom: 0.375rem; }
+          .post-title { font-size: 1rem; font-weight: 600; color: var(--heading); margin-bottom: 0.375rem; }
           .post-title a { color: inherit; text-decoration: none; }
-          .post-title a:hover { color: #3b82f6; }
-          .post-desc { font-size: 0.875rem; color: #71717a; margin-bottom: 0.5rem; line-height: 1.5; }
-          .post-meta { display: flex; align-items: center; gap: 1rem; font-size: 0.75rem; color: #52525b; font-family: monospace; }
+          .post-title a:hover { color: var(--link); }
+          .post-desc { font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem; line-height: 1.5; }
+          .post-meta { display: flex; align-items: center; gap: 1rem; font-size: 0.75rem; color: var(--subtle); font-family: monospace; }
           .tags { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-top: 0.5rem; }
           .tag {
-            font-size: 0.6875rem; color: #71717a;
-            border: 1px solid #3f3f46; border-radius: 9999px;
+            font-size: 0.6875rem; color: var(--muted);
+            border: 1px solid var(--card-border); border-radius: 9999px;
             padding: 0.125rem 0.625rem;
           }
-          .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #27272a; font-size: 0.75rem; color: #52525b; }
-          .footer a { color: #3b82f6; text-decoration: none; }
+          .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--subtle); }
+          .footer a { color: var(--link); text-decoration: none; }
         </style>
       </head>
       <body>
