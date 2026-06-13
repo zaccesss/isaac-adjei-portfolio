@@ -4,6 +4,8 @@ on:
   # I trigger automatically whenever the main CV HTML is pushed so the
   # committed artefacts never fall out of sync with the source file.
   push:
+    branches:
+      - main
     paths:
       - "public/resume/cv.html"
   workflow_dispatch:
