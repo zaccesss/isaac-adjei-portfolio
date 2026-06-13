@@ -14,7 +14,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
   })
 }
 
-export const REACTION_TYPES = ["thumbsup", "fire", "lightbulb", "heart"] as const
+export const REACTION_TYPES = ["thumbsup", "fire", "lightbulb", "heart", "thinking", "surprised"] as const
 export type ReactionType = (typeof REACTION_TYPES)[number]
 
 function reactionKey(slug: string, type: ReactionType) {
@@ -29,17 +29,18 @@ export async function GET(req: NextRequest) {
 
   if (!redis) {
     return NextResponse.json(
-      { thumbsup: 0, fire: 0, lightbulb: 0, heart: 0 },
+      { thumbsup: 0, fire: 0, lightbulb: 0, heart: 0, thinking: 0, surprised: 0 },
       { headers: { "Cache-Control": "no-store" } }
     )
   }
 
-  // I fetch all four counts in a single pipeline to keep it fast
-  const [thumbsup, fire, lightbulb, heart] = await redis.mget<number[]>(
+  const [thumbsup, fire, lightbulb, heart, thinking, surprised] = await redis.mget<number[]>(
     reactionKey(slug, "thumbsup"),
     reactionKey(slug, "fire"),
     reactionKey(slug, "lightbulb"),
-    reactionKey(slug, "heart")
+    reactionKey(slug, "heart"),
+    reactionKey(slug, "thinking"),
+    reactionKey(slug, "surprised")
   )
 
   return NextResponse.json(
@@ -48,6 +49,8 @@ export async function GET(req: NextRequest) {
       fire:      fire      ?? 0,
       lightbulb: lightbulb ?? 0,
       heart:     heart     ?? 0,
+      thinking:  thinking  ?? 0,
+      surprised: surprised ?? 0,
     },
     { headers: { "Cache-Control": "no-store" } }
   )
@@ -70,9 +73,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ count: 0 }, { headers: { "Cache-Control": "no-store" } })
     }
 
-    const newCount = await redis.incr(reactionKey(slug, type as ReactionType))
+    const action = (body as { action?: string }).action ?? "react"
+    let newCount: number
+    if (action === "unreact") {
+      const current = (await redis.get<number>(reactionKey(slug, type as ReactionType))) ?? 0
+      newCount = current > 0 ? await redis.decr(reactionKey(slug, type as ReactionType)) : 0
+    } else {
+      newCount = await redis.incr(reactionKey(slug, type as ReactionType))
+    }
     return NextResponse.json(
-      { count: newCount },
+      { count: Math.max(0, newCount) },
       { headers: { "Cache-Control": "no-store" } }
     )
   } catch {

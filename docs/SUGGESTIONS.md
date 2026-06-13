@@ -1,12 +1,12 @@
 ---
 name: suggestions
-description: "Deferred feature ideas - not yet implemented"
+description: "Future feature ideas and enhancements — not yet implemented"
 metadata:
   type: project
-  updated: 2026-05-29
+  updated: 2026-06-14
 ---
 
-# Future Features
+# Future Additions and Suggestions
 
 ## When Back at Uni (Requires GPC Access)
 
@@ -32,37 +32,53 @@ To add more games: add the exe name to `KNOWN_GAMES` in `scripts/gpc-daemon.py`.
 
 ---
 
-## Deferred - Implement Next Session
+## Dashboard Enhancements
 
-**Blog post comments (giscus)**
+**Blog post cover images**
+Add a `cover_image` field to each post's data in `data/blog.ts`. Show it as a full-width hero image at the top of the post, and use it as the `og:image` meta tag so shared links on Twitter/LinkedIn show a preview card instead of a blank. Images can be hosted in `public/blog/` or on a CDN. Also show a thumbnail on the blog listing page to make posts more scannable.
 
-Lets visitors comment and react on individual blog posts without needing a separate account system. Each post maps to a GitHub Discussion thread automatically by URL.
+**Custom emoji reactions on blog posts**
+Let visitors react with any emoji, not just the 6 presets. Add an emoji picker button at the end of the reaction row — clicking opens a native emoji picker or a grid of popular emojis. Store each reaction type as a separate Redis key (`reactions:{slug}:{emoji}`). Display all reactions with non-zero counts dynamically. The preset 6 stay pinned; custom ones appear after.
 
-**How it works with a private main repo (recommended approach):**
-1. Create a new empty public repo: `zaccesss/portfolio-discussions` — no code, no SQL, nothing sensitive
-2. Enable GitHub Discussions on that repo (Settings → Features → Discussions)
-3. Go to giscus.app, point it at `zaccesss/portfolio-discussions`, choose "pathname" mapping, copy the config
-4. Add `<Giscus>` component to `app/blog/[slug]/page.tsx` — renders below the post content
-5. Visitors authenticate via GitHub OAuth to comment; threads appear in the public Discussions repo
+**Reading tracker (Notion)**
+Connect to a Notion database with columns: Title, Author, Status (Reading / Want to Read / Finished), Cover URL, Rating, Notes. Show a "Currently Reading" widget on the dashboard home, and a full reading list page with filters. The Notion API key already has a slot in `.env.example`.
 
-The main repo stays private. The discussions repo is empty except for GitHub Discussion threads created automatically when someone first comments on a post. No database, no spam filtering needed beyond GitHub's built-in abuse detection.
+**Application timeline / deadline view**
+Gantt-style calendar for the applications page showing deadlines, opening dates and applied dates on a horizontal timeline. Particularly useful in Sep-Dec peak cycle when 20+ deadlines land in the same month. Built entirely from existing `applications` table data.
 
-**Why not Supabase-backed comments instead:** requires building spam/rate-limit protection, a moderation UI in the dashboard, and an auth strategy for anonymous visitors — significant overhead for uncertain engagement.
+**Network / contacts tracker**
+Track people met at career fairs, coffee chats, LinkedIn connections. Fields: name, company, role, how we met, last contact date, notes. Dashboard page with a "follow up" queue for contacts not reached in 30+ days. Separate Supabase table — no external API needed.
 
-**When to implement:** once the blog has regular readers. Low traffic = low comment volume = not worth the UI clutter of an empty comment section.
+**Interview prep tracker**
+Per-application interview notes and question banks. When an application moves to "Telephone Interview" or beyond, a prep section unlocks: add questions asked, model answers, feedback notes. Export as PDF before the next round.
 
-**CV Automation - LinkedIn Sync**
-Auto-update LinkedIn profile fields via the LinkedIn API when the main CV is regenerated. Profile, skills and experience sections are the obvious targets. Requires LinkedIn developer app setup and OAuth flow.
+**Salary and offer comparison**
+When status = "Offer Received", unlock a salary card: base, bonus, benefits, location cost-of-living adjustment. Side-by-side comparison view when multiple offers exist. Entirely in the existing applications table (add salary columns or use the notes field).
+
+**GitHub contribution heatmap**
+Pull commit activity from the GitHub API (already have `GH_PAT`) and display a GitHub-style heatmap alongside the WakaTime heatmap on the coding page. Two data sources, one unified coding activity view.
+
+**Daily coding summary push notification**
+At midnight, a cron checks if today's WakaTime total exceeded the daily average. If yes, send a Discord DM or notification: "Great day — 4h 20m coded, above your 2h 30m average." Uses existing WakaTime data, no new dependencies.
 
 ---
 
-## Mindblowing Ideas - For Later
+## Mindblowing Ideas
 
 **AI CV Tailoring**
-Feed a job description into the dashboard and have Claude rewrite the profile section of the role-specific CV to match the language and priorities of that specific posting. Output a one-click download. The role configs already exist - this just adds an LLM pass on top.
-
-**Automated Weekly Digest**
-Every Monday morning, a cron pulls the previous week's application activity, new jobs scraped, GitHub commits, blog posts published and Discord presence data. Claude writes a one-paragraph personal summary. It posts to Discord and optionally to the newsletter.
+Feed a job description into the dashboard and have Claude rewrite the profile section of the role-specific CV to match the language and priorities of that specific posting. Output a one-click download. The role configs already exist — this just adds an LLM pass on top. Could also score how well your CV matches the JD before and after.
 
 **Smart Job Matching Score**
-For each scraped job, run a quick embedding similarity check against the current CVs using OpenAI or Claude embeddings. Score each role 0-100 for fit. Surface the highest-scoring roles first in the dashboard. Turns the job board into a ranked feed.
+For each scraped job, run a quick embedding similarity check against the current CVs. Score each role 0-100 for fit. Surface the highest-scoring roles first in the dashboard. Turns the job board into a ranked personalised feed instead of a raw list of 500 roles.
+
+**Browser extension: one-click job save**
+A Chrome/Firefox extension that adds a "Save to dashboard" button on any job posting page (LinkedIn, Glassdoor, company career sites). One click pre-fills the application form with company, role, URL and deadline extracted from the page. No manual data entry.
+
+**Post-internship advisor mode**
+After landing an internship, flip a switch that publishes anonymised stats (application count, interview rate, offer rate, timeline) as a public page at `isaacadjei.me/internship-journey`. Lets you advise others without exposing which specific companies rejected you. The data is already tracked — just needs a public-facing view.
+
+**CV Automation - LinkedIn Sync**
+Auto-update LinkedIn profile fields via the LinkedIn API when the main CV is regenerated. Profile, skills and experience sections are the obvious targets. Requires LinkedIn developer app setup and OAuth flow. Difficult to implement — LinkedIn's API is heavily restricted for personal use.
+
+**Automated Weekly Digest**
+Already partially built (weekly digest email exists). Extend it: every Monday morning pull the previous week's application activity, new jobs scraped, coding hours, blog posts published. Claude writes a one-paragraph personal summary included in the digest.

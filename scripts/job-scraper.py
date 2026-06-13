@@ -112,6 +112,14 @@ TECH_KEYWORDS = [
 # running each other's scrapers.
 SCRAPER_MODE = os.environ.get("SCRAPER_MODE", "all")  # "api" | "browser" | "all"
 
+# Hard wall-clock budget so the script exits cleanly before GitHub Actions kills it.
+# api job has 25 min timeout → 22 min budget. browser job has 20 min → 17 min budget.
+_BUDGET_SECONDS = 22 * 60 if SCRAPER_MODE == "api" else 17 * 60
+_RUN_START = time.time()
+
+def _over_budget() -> bool:
+    return time.time() - _RUN_START > _BUDGET_SECONDS
+
 # I accumulate one row per source so main() can write a summary table at the end.
 _source_stats: list[dict] = []
 
@@ -2554,11 +2562,6 @@ def main():
 
     # I only run cleanup functions in the api/all job so the browser job does
     # not compete with the api job to delete and refresh rows in parallel.
-    if SCRAPER_MODE in ("api", "all"):
-        # I delete rows not seen in 30 days at the start of each run.
-        # Only manually-added rows (status != "scraped") are preserved.
-        delete_stale_entries()
-
     # I load existing keys after the optional stale delete so the set reflects
     # current DB state regardless of which mode is running.
     existing_keys = load_existing_keys()
@@ -2592,9 +2595,10 @@ def main():
         print("\n--- Greenhouse ---")
         gh_total = 0
         for slug, name in GREENHOUSE_COMPANIES:
+            if _over_budget():
+                print("  [budget] skipping remaining Greenhouse companies")
+                break
             n = scrape_greenhouse(slug, name, existing_keys)
-            # I only print companies that actually yielded new rows so the log
-            # stays readable.
             if n:
                 print(f"  {name}: {n}")
             gh_total += n
@@ -2604,6 +2608,9 @@ def main():
         print("\n--- Lever ---")
         lv_total = 0
         for slug, name in LEVER_COMPANIES:
+            if _over_budget():
+                print("  [budget] skipping remaining Lever companies")
+                break
             n = scrape_lever(slug, name, existing_keys)
             if n:
                 print(f"  {name}: {n}")
@@ -2614,6 +2621,9 @@ def main():
         print("\n--- Ashby ---")
         ab_total = 0
         for slug, name in ASHBY_COMPANIES:
+            if _over_budget():
+                print("  [budget] skipping remaining Ashby companies")
+                break
             n = scrape_ashby(slug, name, existing_keys)
             if n:
                 print(f"  {name}: {n}")
@@ -2624,6 +2634,9 @@ def main():
         print("\n--- SmartRecruiters ---")
         sr_total = 0
         for company_id, name in SMARTRECRUITERS_COMPANIES:
+            if _over_budget():
+                print("  [budget] skipping remaining SmartRecruiters companies")
+                break
             n = scrape_smartrecruiters(company_id, name, existing_keys)
             if n:
                 print(f"  {name}: {n}")
@@ -2631,77 +2644,84 @@ def main():
         total += sr_total
         _record_stat("SmartRecruiters", sr_total)
 
-        # I wrap Apple and Microsoft in try/except at the call site because
-        # their APIs return empty bodies or 404s intermittently - an uncaught
-        # exception would abort the rest of the run.
-        print("\n--- Apple Careers ---")
-        try:
-            n = scrape_apple(existing_keys)
-            total += n
-            _record_stat("Apple Careers", n)
-        except Exception as e:
-            print(f"  Error Apple: {e}")
-            _record_stat("Apple Careers", 0, str(e))
-
-        print("\n--- Microsoft Careers ---")
-        try:
-            n = scrape_microsoft(existing_keys)
-            total += n
-            _record_stat("Microsoft Careers", n)
-        except Exception as e:
-            print(f"  Error Microsoft: {e}")
-            _record_stat("Microsoft Careers", 0, str(e))
-
-        print("\n--- Amazon Jobs ---")
-        try:
-            n = scrape_amazon(existing_keys)
-            total += n
-            _record_stat("Amazon Jobs", n)
-        except Exception as e:
-            print(f"  Error Amazon: {e}")
-            _record_stat("Amazon Jobs", 0, str(e))
-
-        print("\n--- Workday (NVIDIA / Intel / Morgan Stanley) ---")
-        wd_total = 0
-        for subdomain, wdnum, tenant, site_id, name in WORKDAY_COMPANIES:
+        if not _over_budget():
+            print("\n--- Apple Careers ---")
             try:
-                n = scrape_workday(subdomain, wdnum, tenant, site_id, name, existing_keys)
-                wd_total += n
+                n = scrape_apple(existing_keys)
+                total += n
+                _record_stat("Apple Careers", n)
             except Exception as e:
-                print(f"  Error {name} Workday: {e}")
-        total += wd_total
-        _record_stat("Workday", wd_total)
+                print(f"  Error Apple: {e}")
+                _record_stat("Apple Careers", 0, str(e))
 
-        print("\n--- Reed ---")
-        n = scrape_reed(existing_keys)
-        total += n
-        _record_stat("Reed", n)
+        if not _over_budget():
+            print("\n--- Microsoft Careers ---")
+            try:
+                n = scrape_microsoft(existing_keys)
+                total += n
+                _record_stat("Microsoft Careers", n)
+            except Exception as e:
+                print(f"  Error Microsoft: {e}")
+                _record_stat("Microsoft Careers", 0, str(e))
 
-        print("\n--- Adzuna ---")
-        n = scrape_adzuna(existing_keys)
-        total += n
-        _record_stat("Adzuna", n)
+        if not _over_budget():
+            print("\n--- Amazon Jobs ---")
+            try:
+                n = scrape_amazon(existing_keys)
+                total += n
+                _record_stat("Amazon Jobs", n)
+            except Exception as e:
+                print(f"  Error Amazon: {e}")
+                _record_stat("Amazon Jobs", 0, str(e))
 
-        print("\n--- Jooble ---")
-        n = scrape_jooble(existing_keys)
-        total += n
-        _record_stat("Jooble", n)
+        if not _over_budget():
+            print("\n--- Workday (NVIDIA / Intel / Morgan Stanley) ---")
+            wd_total = 0
+            for subdomain, wdnum, tenant, site_id, name in WORKDAY_COMPANIES:
+                if _over_budget():
+                    break
+                try:
+                    n = scrape_workday(subdomain, wdnum, tenant, site_id, name, existing_keys)
+                    wd_total += n
+                except Exception as e:
+                    print(f"  Error {name} Workday: {e}")
+            total += wd_total
+            _record_stat("Workday", wd_total)
 
-        print("\n--- Arbeitnow ---")
-        n = scrape_arbeitnow(existing_keys)
-        total += n
-        _record_stat("Arbeitnow", n)
+        if not _over_budget():
+            print("\n--- Reed ---")
+            n = scrape_reed(existing_keys)
+            total += n
+            _record_stat("Reed", n)
 
-        print("\n--- Jobicy ---")
-        n = scrape_jobicy(existing_keys)
-        total += n
-        _record_stat("Jobicy", n)
+        if not _over_budget():
+            print("\n--- Adzuna ---")
+            n = scrape_adzuna(existing_keys)
+            total += n
+            _record_stat("Adzuna", n)
 
-        # I run Remotive last because it is a dedicated full-time job source
-        # (not an internship source) and only feeds the Jobs tab.
-        n = scrape_remotive(existing_keys)
-        total += n
-        _record_stat("Remotive", n)
+        if not _over_budget():
+            print("\n--- Jooble ---")
+            n = scrape_jooble(existing_keys)
+            total += n
+            _record_stat("Jooble", n)
+
+        if not _over_budget():
+            print("\n--- Arbeitnow ---")
+            n = scrape_arbeitnow(existing_keys)
+            total += n
+            _record_stat("Arbeitnow", n)
+
+        if not _over_budget():
+            print("\n--- Jobicy ---")
+            n = scrape_jobicy(existing_keys)
+            total += n
+            _record_stat("Jobicy", n)
+
+        if not _over_budget():
+            n = scrape_remotive(existing_keys)
+            total += n
+            _record_stat("Remotive", n)
 
         # I refresh timestamps for all entries seen this run without overwriting
         # any user-set fields - this is what keeps jobs alive past the 30-day

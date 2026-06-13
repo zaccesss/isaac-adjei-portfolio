@@ -9,7 +9,7 @@ export default function GiscusComments() {
   const repoId = process.env.NEXT_PUBLIC_GISCUS_REPO_ID
   const categoryId = process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID
 
-  if (process.env.NEXT_PUBLIC_GISCUS_ENABLED !== "true" || !repoId || !categoryId) return null
+  if (process.env.NEXT_PUBLIC_GISCUS_ENABLED?.toLowerCase() !== "true" || !repoId || !categoryId) return null
 
   return (
     <Giscus

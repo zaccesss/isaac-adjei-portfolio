@@ -1,50 +1,35 @@
 "use client"
 
-// Reaction bar shown at the bottom of each blog post.
-// I fetch the current counts on mount and optimistically update the UI on click
-// so it feels instant. localStorage tracks which reactions the user has already
-// left so repeat clicks don't spam the counter.
-
 import { useEffect, useState } from "react"
-import { ThumbsUp, Flame, Lightbulb, Heart } from "lucide-react"
 
-type ReactionType = "thumbsup" | "fire" | "lightbulb" | "heart"
+type ReactionType = "thumbsup" | "fire" | "lightbulb" | "heart" | "thinking" | "surprised"
 
-const REACTIONS: { type: ReactionType; icon: React.ElementType; label: string }[] = [
-  { type: "thumbsup",  icon: ThumbsUp,  label: "Good read"  },
-  { type: "fire",      icon: Flame,     label: "Insightful" },
-  { type: "lightbulb", icon: Lightbulb, label: "Learnt something" },
-  { type: "heart",     icon: Heart,     label: "Love this"  },
+const REACTIONS: { type: ReactionType; emoji: string; label: string }[] = [
+  { type: "thumbsup",  emoji: "👍", label: "Good read"          },
+  { type: "heart",     emoji: "❤️", label: "Love this"          },
+  { type: "fire",      emoji: "🔥", label: "Insightful"         },
+  { type: "lightbulb", emoji: "💡", label: "Learnt something"   },
+  { type: "thinking",  emoji: "🤔", label: "Thought-provoking"  },
+  { type: "surprised", emoji: "😮", label: "Surprised me"       },
 ]
 
-// I store reaction state in localStorage under this key so I can grey out
-// reactions the user has already left without requiring a login.
-function storageKey(slug: string) {
-  return `reactions:${slug}`
-}
+type Counts = Record<ReactionType, number>
+
+function storageKey(slug: string) { return `reactions:${slug}` }
 
 function getReacted(slug: string): Set<ReactionType> {
   try {
     const raw = localStorage.getItem(storageKey(slug))
-    if (!raw) return new Set()
-    return new Set(JSON.parse(raw) as ReactionType[])
-  } catch {
-    return new Set()
-  }
+    return raw ? new Set(JSON.parse(raw) as ReactionType[]) : new Set()
+  } catch { return new Set() }
 }
 
-function markReacted(slug: string, type: ReactionType) {
-  try {
-    const reacted = getReacted(slug)
-    reacted.add(type)
-    localStorage.setItem(storageKey(slug), JSON.stringify([...reacted]))
-  } catch {}
+function saveReacted(slug: string, reacted: Set<ReactionType>) {
+  try { localStorage.setItem(storageKey(slug), JSON.stringify([...reacted])) } catch {}
 }
-
-type Counts = Record<ReactionType, number>
 
 export default function BlogReactions({ slug }: { slug: string }) {
-  const [counts, setCounts] = useState<Counts>({ thumbsup: 0, fire: 0, lightbulb: 0, heart: 0 })
+  const [counts, setCounts] = useState<Counts>({ thumbsup: 0, fire: 0, lightbulb: 0, heart: 0, thinking: 0, surprised: 0 })
   const [reacted, setReacted] = useState<Set<ReactionType>>(new Set())
   const [loading, setLoading] = useState(true)
 
@@ -52,33 +37,36 @@ export default function BlogReactions({ slug }: { slug: string }) {
     setTimeout(() => setReacted(getReacted(slug)), 0)
     fetch(`/api/blog-reactions?slug=${encodeURIComponent(slug)}`)
       .then((r) => r.json())
-      .then((data: Counts) => {
-        setCounts(data)
-        setLoading(false)
-      })
+      .then((data: Counts) => { setCounts(data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [slug])
 
-  async function handleReact(type: ReactionType) {
-    if (reacted.has(type)) return
+  async function handleToggle(type: ReactionType) {
+    const already = reacted.has(type)
+    const action = already ? "unreact" : "react"
 
-    // I update the UI immediately so there's no delay
-    setCounts((prev) => ({ ...prev, [type]: prev[type] + 1 }))
-    setReacted((prev) => new Set([...prev, type]))
-    markReacted(slug, type)
+    // Optimistic update
+    setCounts((prev) => ({ ...prev, [type]: Math.max(0, prev[type] + (already ? -1 : 1)) }))
+    setReacted((prev) => {
+      const next = new Set(prev)
+      already ? next.delete(type) : next.add(type)
+      saveReacted(slug, next)
+      return next
+    })
 
     try {
       await fetch("/api/blog-reactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, type }),
+        body: JSON.stringify({ slug, type, action }),
       })
     } catch {
-      // I roll back the optimistic update if the request fails
-      setCounts((prev) => ({ ...prev, [type]: Math.max(0, prev[type] - 1) }))
+      // Roll back optimistic update on failure
+      setCounts((prev) => ({ ...prev, [type]: Math.max(0, prev[type] + (already ? 1 : -1)) }))
       setReacted((prev) => {
         const next = new Set(prev)
-        next.delete(type)
+        already ? next.add(type) : next.delete(type)
+        saveReacted(slug, next)
         return next
       })
     }
@@ -90,24 +78,23 @@ export default function BlogReactions({ slug }: { slug: string }) {
         React to this post
       </p>
       <div className="flex flex-wrap gap-2">
-        {REACTIONS.map(({ type, icon: Icon, label }) => {
+        {REACTIONS.map(({ type, emoji, label }) => {
           const hasReacted = reacted.has(type)
           return (
             <button
               key={type}
-              onClick={() => handleReact(type)}
-              disabled={hasReacted}
+              onClick={() => handleToggle(type)}
               title={label}
               className={`
                 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm
-                transition-all select-none
+                transition-all select-none cursor-pointer
                 ${hasReacted
-                  ? "border-primary/40 bg-primary/10 text-primary cursor-default"
-                  : "border-border/60 bg-muted/20 text-muted-foreground hover:border-primary/40 hover:text-foreground cursor-pointer"
+                  ? "border-primary/40 bg-primary/10 text-primary scale-105"
+                  : "border-border/60 bg-muted/20 text-muted-foreground hover:border-primary/40 hover:text-foreground hover:scale-105"
                 }
               `}
             >
-              <Icon className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-base leading-none">{emoji}</span>
               <span className={`font-mono text-xs tabular-nums ${loading ? "opacity-0" : "opacity-100"} transition-opacity`}>
                 {counts[type]}
               </span>

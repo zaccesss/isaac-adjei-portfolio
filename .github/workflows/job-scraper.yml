@@ -2,8 +2,8 @@ name: Job Scraper
 
 on:
   schedule:
-    # I run every 3 days at midnight UTC — daily is unnecessary outside peak cycle (Aug-Sep).
-    - cron: "0 0 */3 * *"
+    # Runs every 2 days at midnight UTC. Manual trigger also available from Settings.
+    - cron: "0 0 */2 * *"
   workflow_dispatch:
 
 # I cancel any in-progress run when a new one is triggered so two runs never
@@ -17,7 +17,7 @@ jobs:
   # Playwright takes to install and warm up in the browser job.
   api-sources:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     env:
       # I set SCRAPER_MODE so main() skips The Trackr in this job.
       SCRAPER_MODE: api
@@ -61,7 +61,7 @@ jobs:
     # which breaks playwright install-deps. Switch back to ubuntu-latest once
     # Playwright >= 1.47 lands in requirements.txt.
     runs-on: ubuntu-22.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       # I set SCRAPER_MODE so main() runs only The Trackr in this job.
       SCRAPER_MODE: browser

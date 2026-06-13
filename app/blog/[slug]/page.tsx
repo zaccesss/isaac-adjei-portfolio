@@ -457,16 +457,10 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             </div>
           )}
 
-          {/* Reactions */}
-          {post.published && (
-            <div className="mt-12 pt-6 border-t border-border/40">
+          {/* Reactions + Comments — both gated by NEXT_PUBLIC_GISCUS_ENABLED */}
+          {post.published && process.env.NEXT_PUBLIC_GISCUS_ENABLED?.toLowerCase() === "true" && (
+            <div className="mt-12 pt-6 border-t border-border/40 space-y-8">
               <BlogReactions slug={slug} />
-            </div>
-          )}
-
-          {/* Comments */}
-          {post.published && (
-            <div className="mt-8 pt-6 border-t border-border/40">
               <GiscusComments />
             </div>
           )}

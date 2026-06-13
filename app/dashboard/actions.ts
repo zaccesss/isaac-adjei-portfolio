@@ -14,11 +14,8 @@ import { revalidatePath } from "next/cache"
 //     created_at timestamptz NOT NULL DEFAULT now()
 //   );
 async function logActivity(action: string, detail?: string) {
-  try {
-    await supabase.from("activity_log").insert({ action, detail: detail ?? null })
-  } catch {
-    // non-fatal - logging failure should never break the parent action
-  }
+  const { error } = await supabase.from("activity_log").insert({ action, detail: detail ?? null })
+  if (error) console.error("[activity_log]", error.message, error.details)
 }
 
 // Input validation helpers. I use runtime checks rather than a schema library to avoid
