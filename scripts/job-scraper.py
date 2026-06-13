@@ -1,16 +1,23 @@
 """
-Job Scraper - runs via GitHub Actions once per day at midnight UTC.
+Job Scraper - runs via GitHub Actions every 3 days at midnight UTC.
 
 Sources:
   - The Trackr (Playwright - JS rendered, best UK internship aggregator)
-  - Greenhouse JSON API  (30+ companies)
-  - Lever JSON API       (10+ companies)
-  - Ashby Next.js embed  (10+ companies)
+  - Greenhouse JSON API  (50+ companies)
+  - Lever JSON API       (5+ companies)
+  - Ashby REST API       (30+ companies)
+  - Amazon Jobs JSON API (custom scraper)
+  - Reed, Adzuna, Jooble, Remotive, Arbeitnow, Jobicy (job board APIs)
   - Gradcracker, RateMyPlacement, TargetJobs, BrightNetwork (BeautifulSoup)
 
 Only student-facing roles are saved: internships, placements, spring/insight
 weeks, graduate schemes, apprenticeships. Full-time permanent roles are
 skipped unless they come from a priority company and contain a keyword.
+
+Field enrichment: cv_required defaults True for all scraped roles;
+sponsors_visa and cover_letter_required are detected from job descriptions
+where the ATS returns them (Greenhouse content field, Ashby descriptionPlain).
+Opening dates and deadlines are populated where the ATS exposes them.
 
 Deduplicates by URL when present, falls back to company+role.
 """
@@ -526,6 +533,53 @@ def infer_type(title: str, default: str = "Internship") -> str:
 
 # ─── URL CHECKS AND LOCATION ENRICHMENT ─────────────────────────────────────
 
+def detect_sponsors_visa(text: str) -> "bool | None":
+    """Scan job description text for visa sponsorship signals.
+
+    Returns True if the company explicitly sponsors, False if they state they
+    cannot/do not, or None when the description is silent on the topic.
+    """
+    if not text:
+        return None
+    t = text.lower()
+    no_signals = [
+        "cannot sponsor", "unable to sponsor", "not able to sponsor",
+        "do not offer visa", "no visa sponsorship", "sponsorship is not available",
+        "cannot provide visa", "right to work in the uk",
+        "right to work in the united kingdom",
+        "you must have the right to work",
+        "must have the right to work",
+        "eligible to work in the uk",
+        "eligible to work in the united kingdom",
+        "must be eligible to work",
+        "must have existing right",
+        "will not sponsor", "won't sponsor", "won't be able to provide sponsorship",
+        "does not provide sponsorship", "not currently able to sponsor",
+        "cannot support a visa", "unable to provide visa",
+    ]
+    for s in no_signals:
+        if s in t:
+            return False
+    yes_signals = [
+        "visa sponsorship is available", "we sponsor visas",
+        "visa sponsorship available", "we provide visa sponsorship",
+        "tier 2 visa", "skilled worker visa sponsorship",
+        "can sponsor your visa", "sponsorship is available",
+        "we are able to sponsor",
+    ]
+    for s in yes_signals:
+        if s in t:
+            return True
+    return None
+
+
+def detect_cover_letter_required(text: str) -> "bool | None":
+    """Return True if the description explicitly mentions a cover letter."""
+    if not text:
+        return None
+    return True if "cover letter" in text.lower() else None
+
+
 def is_url_alive(url: str) -> bool:
     """Return False only if the URL definitively 404s or 410s (gone for good).
 
@@ -538,6 +592,11 @@ def is_url_alive(url: str) -> bool:
     try:
         resp = requests.head(url, headers=HEADERS, timeout=8,
                              allow_redirects=True)
+        # Some servers don't support HEAD and return 405 — fall back to GET.
+        if resp.status_code == 405:
+            resp = requests.get(url, headers=HEADERS, timeout=10,
+                                allow_redirects=True, stream=True)
+            resp.close()
         return resp.status_code not in (404, 410)
     except Exception:
         return True  # network issue - assume alive
@@ -564,6 +623,21 @@ def fetch_greenhouse_location(slug: str, job_id: int) -> str:
     except Exception:
         pass
     return ""
+
+
+def _parse_greenhouse_date(dt_str: "str | None") -> "str | None":
+    """Convert a Greenhouse ISO timestamp to a plain YYYY-MM-DD string."""
+    if not dt_str:
+        return None
+    try:
+        return dt_str[:10]  # "2026-01-15T08:12:57-04:00" → "2026-01-15"
+    except Exception:
+        return None
+
+
+def _strip_html(html: str) -> str:
+    """Remove HTML tags to get plain text for description scanning."""
+    return re.sub(r"<[^>]+>", " ", html or "")
 
 
 def fetch_lever_details(slug: str, posting_id: str) -> dict:
@@ -668,14 +742,18 @@ def insert_job(job: dict, existing_keys: set) -> bool:
         "last_scraped_at": datetime.utcnow().isoformat(),
         "sponsors_visa": job.get("sponsors_visa", None),
         "category":     detect_category(job["company"], job["role"]),
+        # Almost every scraped role requires a CV; I default True and let the
+        # user update the rare exceptions manually.
+        "cv_required":            True,
+        # Detected from job description text where the ATS returns it.
+        "cover_letter_required":  job.get("cover_letter_required", None),
     }
 
     try:
-        # I use insert (not upsert) because existing entries are handled above
-        # via the in-memory key check. If two scrapers somehow find the same URL
-        # in one run the second insert will fail gracefully - the first already
-        # added it to existing_keys so this branch is not reached in practice.
-        supabase.table("applications").insert(record).execute()
+        # I use upsert with ignore_duplicates so that if the pre-load SELECT
+        # returned 0 rows (e.g. a transient RLS issue), the DB-level unique
+        # constraint on url silently skips duplicates rather than raising 23505.
+        supabase.table("applications").upsert(record, ignore_duplicates=True).execute()
         # I add the key to the in-memory set immediately so subsequent
         # duplicates within the same run are caught without another DB query.
         existing_keys.add(key)
@@ -944,24 +1022,38 @@ def scrape_greenhouse(
                 for d in (job.get("departments") or [])
             ]
 
+            # I extract dates and description from the listing response
+            # (content=true already includes these - no extra API call needed).
+            description_text = _strip_html(job.get("content", ""))
+            opening_date = _parse_greenhouse_date(job.get("first_published"))
+            deadline = _parse_greenhouse_date(job.get("application_deadline"))
+
             if is_relevant(title, company_name, location, dept_names):
                 if insert_job({
-                    "company":  company_name,
-                    "role":     title,
-                    "type":     infer_type(title),
-                    "url":      job_url,
-                    "location": location,
-                    "source":   "Greenhouse",
+                    "company":              company_name,
+                    "role":                 title,
+                    "type":                 infer_type(title),
+                    "url":                  job_url,
+                    "location":             location,
+                    "source":               "Greenhouse",
+                    "opening_date":         opening_date,
+                    "deadline":             deadline,
+                    "sponsors_visa":        detect_sponsors_visa(description_text),
+                    "cover_letter_required": detect_cover_letter_required(description_text),
                 }, existing_keys):
                     count += 1
             elif is_relevant_job(title, company_name, location):
                 if insert_job({
-                    "company":  company_name,
-                    "role":     title,
-                    "type":     "Full-time Job",
-                    "url":      job_url,
-                    "location": location,
-                    "source":   "Greenhouse",
+                    "company":              company_name,
+                    "role":                 title,
+                    "type":                 "Full-time Job",
+                    "url":                  job_url,
+                    "location":             location,
+                    "source":               "Greenhouse",
+                    "opening_date":         opening_date,
+                    "deadline":             deadline,
+                    "sponsors_visa":        detect_sponsors_visa(description_text),
+                    "cover_letter_required": detect_cover_letter_required(description_text),
                 }, existing_keys):
                     count += 1
 
@@ -1055,24 +1147,34 @@ def scrape_ashby(
             title = job.get("title", "")
             location = job.get("location", "")
             job_url = job.get("jobUrl") or job.get("applyUrl", "")
+            # Ashby returns the full plain-text description and publish date
+            # in the listing response - no extra API call needed.
+            description_text = job.get("descriptionPlain", "")
+            opening_date = (job.get("publishedAt") or "")[:10] or None
             if is_relevant(title, company_name, location):
                 if insert_job({
-                    "company":  company_name,
-                    "role":     title,
-                    "type":     infer_type(title),
-                    "url":      job_url,
-                    "location": location,
-                    "source":   "Ashby",
+                    "company":               company_name,
+                    "role":                  title,
+                    "type":                  infer_type(title),
+                    "url":                   job_url,
+                    "location":              location,
+                    "source":                "Ashby",
+                    "opening_date":          opening_date,
+                    "sponsors_visa":         detect_sponsors_visa(description_text),
+                    "cover_letter_required": detect_cover_letter_required(description_text),
                 }, existing_keys):
                     count += 1
             elif is_relevant_job(title, company_name, location):
                 if insert_job({
-                    "company":  company_name,
-                    "role":     title,
-                    "type":     "Full-time Job",
-                    "url":      job_url,
-                    "location": location,
-                    "source":   "Ashby",
+                    "company":               company_name,
+                    "role":                  title,
+                    "type":                  "Full-time Job",
+                    "url":                   job_url,
+                    "location":              location,
+                    "source":                "Ashby",
+                    "opening_date":          opening_date,
+                    "sponsors_visa":         detect_sponsors_visa(description_text),
+                    "cover_letter_required": detect_cover_letter_required(description_text),
                 }, existing_keys):
                     count += 1
         # I sleep 0.6 s between slugs to stay well under Ashby's rate limit.
@@ -1152,6 +1254,7 @@ def scrape_smartrecruiters(
 # Companies that migrated away from Greenhouse return 404 for every request
 # and are not guessed - wrong slugs never match their new ATS.
 GREENHOUSE_COMPANIES = [
+    # API companies
     ("cloudflare",    "Cloudflare"),
     ("stripe",        "Stripe"),
     ("figma",         "Figma"),
@@ -1179,35 +1282,74 @@ GREENHOUSE_COMPANIES = [
     ("collibra",      "Collibra"),
     ("cockroachlabs", "CockroachDB"),
     ("atlassian",     "Atlassian"),
+    # Confirmed working slugs added after live API validation
+    ("mongodb",       "MongoDB"),
+    ("elastic",       "Elastic"),
+    ("canonical",     "Canonical"),
+    ("jetbrains",     "JetBrains"),
+    ("airbnb",        "Airbnb"),
+    ("reddit",        "Reddit"),
+    ("lyft",          "Lyft"),
+    ("brex",          "Brex"),
+    ("okta",          "Okta"),
+    ("newrelic",      "New Relic"),
+    ("jfrog",         "JFrog"),
+    ("scaleai",       "Scale AI"),
+    ("worldquant",    "WorldQuant"),
+    ("graphcore",     "Graphcore"),
+    ("monzo",         "Monzo"),
+    ("airtable",      "Airtable"),
+    ("lattice",       "Lattice"),
+    ("carta",         "Carta"),
+    ("skyscanner",    "Skyscanner"),
+    ("winton",        "Winton"),
+    ("spacex",        "SpaceX"),
 ]
 
-# I keep only the three Lever slugs confirmed to return HTTP 200.
-# The other 24 slugs returned 404 across 10 consecutive runs.
+# Lever slugs confirmed to return HTTP 200 with real listings.
 LEVER_COMPANIES = [
     ("palantir",     "Palantir"),
     ("wealthsimple", "Wealthsimple"),
     ("cloudinary",   "Cloudinary"),
+    ("spotify",      "Spotify"),
 ]
 
-# (ashby_slug, display_name)
+# (ashby_slug, display_name) — confirmed against live API.
 ASHBY_COMPANIES = [
-    ("linear",       "Linear"),
-    ("perplexityai", "Perplexity AI"),
-    ("cursor",       "Cursor"),
-    ("vercel",       "Vercel"),
-    ("railway",      "Railway"),
-    ("loom",         "Loom"),
-    ("iter",         "Iter"),
-    ("mistralai",    "Mistral AI"),
-    ("huggingface",  "Hugging Face"),
-    ("supabase",     "Supabase"),
-    ("neon",         "Neon"),
-    ("turso",        "Turso"),
-    ("planetscale",  "PlanetScale"),
-    ("openai",       "OpenAI"),
-    ("deepmind",     "Google DeepMind"),
-    ("waymo",        "Waymo"),
-    ("anyscale",     "Anyscale"),
+    ("linear",          "Linear"),
+    ("perplexityai",    "Perplexity AI"),
+    ("cursor",          "Cursor"),
+    ("vercel",          "Vercel"),
+    ("railway",         "Railway"),
+    ("loom",            "Loom"),
+    ("iter",            "Iter"),
+    ("mistralai",       "Mistral AI"),
+    ("huggingface",     "Hugging Face"),
+    ("supabase",        "Supabase"),
+    ("neon",            "Neon"),
+    ("turso",           "Turso"),
+    ("planetscale",     "PlanetScale"),
+    ("openai",          "OpenAI"),
+    ("deepmind",        "Google DeepMind"),
+    ("waymo",           "Waymo"),
+    ("anyscale",        "Anyscale"),
+    # Expanded - all confirmed against live API (June 2026)
+    ("notion",          "Notion"),
+    ("replit",          "Replit"),
+    ("benchling",       "Benchling"),
+    ("snowflake",       "Snowflake"),
+    ("confluent",       "Confluent"),
+    ("plaid",           "Plaid"),
+    ("sentry",          "Sentry"),
+    ("posthog",         "PostHog"),
+    ("resend",          "Resend"),
+    ("deliveroo",       "Deliveroo"),
+    ("redis",           "Redis"),
+    ("thought-machine", "Thought Machine"),
+    ("cohere",          "Cohere"),
+    ("ultra",           "Ultra"),
+    # Wayve is also on Greenhouse (118 jobs) but Ashby has description/dates.
+    ("wayve",           "Wayve"),
 ]
 
 # I use SmartRecruiters for large UK employers that are not on Greenhouse or
@@ -1367,6 +1509,181 @@ def scrape_microsoft(existing_keys: set) -> int:
             print(f"  Error Microsoft p{page}: {e}")
             break
     print(f"  Added {count} from Microsoft Careers")
+    return count
+
+
+# ─── AMAZON JOBS JSON API ─────────────────────────────────────────────────────
+
+def scrape_amazon(existing_keys: set) -> int:
+    """Scrape Amazon UK internships via their public JSON search API.
+
+    Amazon hosts their own careers site at amazon.jobs which exposes a
+    /en/search.json endpoint - no API key required.
+    """
+    print("\nScraping Amazon Jobs (UK)...")
+    count = 0
+    offset = 0
+    while offset <= 200:
+        try:
+            resp = requests.get(
+                "https://www.amazon.jobs/en/search.json",
+                params={
+                    "base_query": "intern",
+                    "loc_query":  "United Kingdom",
+                    "result_limit": 10,
+                    "sort": "relevant",
+                    "offset": offset,
+                },
+                headers={**HEADERS, "Accept": "application/json"},
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                print(f"  Amazon: HTTP {resp.status_code}")
+                break
+            data = resp.json()
+            jobs = data.get("jobs", [])
+            if not jobs:
+                break
+            for job in jobs:
+                title = job.get("title", "")
+                country = job.get("country_code", "")
+                city = job.get("city", "")
+                location = f"{city}, {country}" if city else country
+                # I normalise the country code - Amazon uses ISO-3 codes.
+                if country not in ("GBR", "IRL"):
+                    continue
+                job_path = job.get("job_path", "")
+                job_url = f"https://www.amazon.jobs{job_path}" if job_path else ""
+                description_text = job.get("description", "")
+                posted_raw = job.get("posted_date", "")
+                # Amazon returns e.g. "January 15, 2026" — convert to ISO.
+                opening_date = None
+                if posted_raw:
+                    try:
+                        opening_date = datetime.strptime(
+                            posted_raw, "%B %d, %Y"
+                        ).strftime("%Y-%m-%d")
+                    except Exception:
+                        pass
+                if is_relevant(title, "Amazon", location):
+                    if insert_job({
+                        "company":               "Amazon",
+                        "role":                  title,
+                        "type":                  infer_type(title),
+                        "url":                   job_url,
+                        "location":              location,
+                        "source":                "Amazon Jobs",
+                        "opening_date":          opening_date,
+                        "sponsors_visa":         detect_sponsors_visa(description_text),
+                        "cover_letter_required": detect_cover_letter_required(description_text),
+                    }, existing_keys):
+                        count += 1
+            total_hits = data.get("hits", 0)
+            if offset + 10 >= total_hits:
+                break
+            offset += 10
+            time.sleep(0.5)
+        except Exception as e:
+            print(f"  Error Amazon offset={offset}: {e}")
+            break
+    print(f"  Added {count} from Amazon Jobs")
+    return count
+
+
+# ─── WORKDAY API (NVIDIA, Intel, and other Workday-hosted companies) ─────────
+
+# Confirmed Workday configurations: (subdomain, wdnum, tenant, site_id, display_name)
+# Validated against live API - POST to /wday/cxs/{tenant}/{site_id}/jobs.
+# ARM, Goldman, JPMorgan, Qualcomm, BAE, Rolls-Royce use Workday but require
+# session cookies or proprietary auth - scrape via The Trackr (Playwright) instead.
+WORKDAY_COMPANIES = [
+    ("nvidia", "5", "nvidia", "NVIDIAExternalCareerSite", "NVIDIA"),
+    ("intel",  "1", "intel",  "External",                 "Intel"),
+    ("ms",     "5", "ms",     "External",                 "Morgan Stanley"),
+]
+
+
+def scrape_workday(
+    subdomain: str, wdnum: str, tenant: str, site_id: str,
+    company_name: str, existing_keys: set
+) -> int:
+    """Scrape a Workday-hosted career site via their internal CXS API.
+
+    Workday requires a POST request with JSON body - a plain GET returns 404.
+    I page through all results and filter by UK location after retrieval.
+    """
+    url = (
+        f"https://{subdomain}.wd{wdnum}.myworkdayjobs.com"
+        f"/wday/cxs/{tenant}/{site_id}/jobs"
+    )
+    print(f"\nScraping {company_name} Workday...")
+    count = 0
+    offset = 0
+    total = None
+    while total is None or offset < total:
+        try:
+            resp = requests.post(
+                url,
+                json={"limit": 20, "offset": offset, "searchText": "intern"},
+                headers={**HEADERS, "Content-Type": "application/json"},
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                print(f"  {company_name} Workday: HTTP {resp.status_code}")
+                break
+            data = resp.json()
+            if total is None:
+                total = data.get("total", 0)
+            jobs = data.get("jobPostings", [])
+            if not jobs:
+                break
+            for job in jobs:
+                title = job.get("title", "")
+                # Workday location is in 'locationsText' or the first bulletField.
+                location_text = job.get("locationsText", "") or ""
+                if not location_text:
+                    for bf in job.get("bulletFields", []):
+                        if bf:
+                            location_text = bf
+                            break
+                # I pre-filter non-UK roles to avoid HEAD-checking hundreds of
+                # US job URLs. is_relevant does a second check inside.
+                is_priority = any(p in company_name.lower() for p in PRIORITY_COMPANIES)
+                if location_text and not is_location_ok(location_text, is_priority):
+                    continue
+                ext_url = job.get("externalPath", "")
+                job_url = (
+                    f"https://{subdomain}.wd{wdnum}.myworkdayjobs.com"
+                    f"/en-US/{site_id}/job{ext_url}"
+                ) if ext_url else ""
+                if is_relevant(title, company_name, location_text):
+                    if insert_job({
+                        "company":  company_name,
+                        "role":     title,
+                        "type":     infer_type(title),
+                        "url":      job_url,
+                        "location": location_text,
+                        "source":   "Workday",
+                    }, existing_keys):
+                        count += 1
+                elif is_relevant_job(title, company_name, location_text):
+                    if insert_job({
+                        "company":  company_name,
+                        "role":     title,
+                        "type":     "Full-time Job",
+                        "url":      job_url,
+                        "location": location_text,
+                        "source":   "Workday",
+                    }, existing_keys):
+                        count += 1
+            offset += len(jobs)
+            time.sleep(0.5)
+            if len(jobs) < 20:
+                break
+        except Exception as e:
+            print(f"  Error {company_name} Workday offset={offset}: {e}")
+            break
+    print(f"  Added {count} from {company_name} Workday")
     return count
 
 
@@ -1928,6 +2245,26 @@ def main():
         except Exception as e:
             print(f"  Error Microsoft: {e}")
             _record_stat("Microsoft Careers", 0, str(e))
+
+        print("\n--- Amazon Jobs ---")
+        try:
+            n = scrape_amazon(existing_keys)
+            total += n
+            _record_stat("Amazon Jobs", n)
+        except Exception as e:
+            print(f"  Error Amazon: {e}")
+            _record_stat("Amazon Jobs", 0, str(e))
+
+        print("\n--- Workday (NVIDIA / Intel / Morgan Stanley) ---")
+        wd_total = 0
+        for subdomain, wdnum, tenant, site_id, name in WORKDAY_COMPANIES:
+            try:
+                n = scrape_workday(subdomain, wdnum, tenant, site_id, name, existing_keys)
+                wd_total += n
+            except Exception as e:
+                print(f"  Error {name} Workday: {e}")
+        total += wd_total
+        _record_stat("Workday", wd_total)
 
         print("\n--- Reed ---")
         n = scrape_reed(existing_keys)

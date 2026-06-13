@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useMemo } from "react"
+import { useState, useTransition, useMemo, Fragment } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { createInventoryItem, updateInventoryItem, deleteInventoryItem } from "@/app/dashboard/actions"
@@ -30,6 +30,40 @@ const emptyForm = {
   name: "", category: "", quantity: 1,
   description: "", purchase_date: "", price_paid: "",
   serial_number: "", notes: "", warranty_expiry: "", url: "",
+}
+
+type SpecRow = { key: string; value: string }
+
+function parseSpecs(description: string): SpecRow[] | null {
+  const lines = description.trim().split("\n").filter(Boolean)
+  if (lines.length === 0) return null
+  const pairs = lines.map((l) => {
+    const idx = l.indexOf(":")
+    if (idx === -1) return null
+    return { key: l.slice(0, idx).trim(), value: l.slice(idx + 1).trim() }
+  })
+  if (pairs.filter(Boolean).length < lines.length / 2) return null
+  return pairs.filter(Boolean) as SpecRow[]
+}
+
+function SpecsDisplay({ description, maxRows = 4 }: { description: string; maxRows?: number }) {
+  const specs = parseSpecs(description)
+  if (specs) {
+    return (
+      <div className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
+        {specs.slice(0, maxRows).map(({ key, value }) => (
+          <Fragment key={key}>
+            <span className="text-muted-foreground/60 whitespace-nowrap">{key}</span>
+            <span className="text-muted-foreground truncate">{value}</span>
+          </Fragment>
+        ))}
+        {specs.length > maxRows && (
+          <span className="text-muted-foreground/40 col-span-2 text-[10px]">+{specs.length - maxRows} more</span>
+        )}
+      </div>
+    )
+  }
+  return <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">{description}</p>
 }
 
 function ItemForm({ initial, category, allCategories, onSave, onCancel }: {
@@ -77,7 +111,17 @@ function ItemForm({ initial, category, allCategories, onSave, onCancel }: {
           <Input value={form.price_paid} onChange={(e) => set("price_paid", e.target.value)} placeholder="e.g. £1,299" />
         </div>
       </div>
-      <Input value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Description (optional)" />
+      <div className="flex flex-col gap-1">
+        <label className="text-xs text-muted-foreground">Specs / description</label>
+        <Textarea
+          value={form.description}
+          onChange={(e) => set("description", e.target.value)}
+          rows={4}
+          placeholder={"Product Type: Laptop\nCPU: Apple M5\nRAM: 24GB\nStorage: 512GB SSD"}
+          className="font-mono text-xs leading-relaxed"
+        />
+        <p className="text-[10px] text-muted-foreground/50">One spec per line in Key: Value format for table display</p>
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Purchase date</label>
@@ -112,9 +156,7 @@ function ItemCard({ item, categorySlug, onEdit, onDelete }: {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-base leading-snug truncate">{item.name}</p>
-            {item.description && (
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">{item.description}</p>
-            )}
+            {item.description && <SpecsDisplay description={item.description} />}
           </div>
           <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             {item.url && (

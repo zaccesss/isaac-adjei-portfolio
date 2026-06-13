@@ -72,7 +72,8 @@ export function classLabel(mark: number | null): string {
 export function markColour(mark: number | null): string {
   if (mark == null) return "text-muted-foreground"
   if (mark >= 80) return "text-green-600 dark:text-green-400"
-  if (mark >= 60) return "text-amber-600 dark:text-amber-400"
+  if (mark >= 60) return "text-blue-600 dark:text-blue-400"
+  if (mark >= 40) return "text-amber-600 dark:text-amber-400"
   return "text-red-600 dark:text-red-400"
 }
 

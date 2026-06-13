@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ChevronLeft, ChevronDown, Plus, Trash2, Edit2, AlertTriangle } from "lucide-react"
-import { AssessmentBarChart, ProgressLineChart } from "../ModuleCharts"
+import { AssessmentBarChart, ProgressLineChart, ModuleGradePieChart } from "../ModuleCharts"
 import { calcMark, classLabel, markColour, classBadge, StatsBar, type Assessment, type Module } from "../ModulesClient"
 
 // I map year slugs to integer values so the AddModuleForm can write the correct year to the DB
@@ -579,12 +579,17 @@ export default function ModulesYearClient({
       )}
 
       {moduleMarks.length >= 2 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">All module marks</p>
-            <AssessmentBarChart data={moduleMarks} />
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Module marks</p>
+              <AssessmentBarChart data={moduleMarks} tall />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Grade distribution</p>
+              <ModuleGradePieChart marks={moduleMarks.map((m) => m.mark)} />
+            </div>
           </div>
-          {/* I only render the trend chart when there are enough assessment data points to be useful */}
           {allMarks.length >= 2 && (
             <div>
               <p className="text-xs text-muted-foreground mb-1">Assessment progress trend</p>
