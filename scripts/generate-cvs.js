@@ -215,7 +215,7 @@ function generateCV(role) {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Isaac Adjei - ${role.charAt(0).toUpperCase() + role.slice(1)} CV</title>
+<title>Isaac (Zac) Adjei - ${role.charAt(0).toUpperCase() + role.slice(1)} CV</title>
 ${CSS_STYLES}
 </head>
 <body>
@@ -254,7 +254,7 @@ function generateMainCV() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Isaac Adjei - CV</title>
+<title>Isaac (Zac) Adjei - CV</title>
 ${CSS_STYLES}
 </head>
 <body>

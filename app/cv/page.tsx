@@ -57,7 +57,7 @@ export default function CVPage() {
                   HTML
                 </a>
               </Button>
-              <ShareButton title="Isaac Adjei - CV" />
+              <ShareButton title="Isaac (Zac) Adjei - CV" />
             </div>
           </div>
         </div>
@@ -69,7 +69,7 @@ export default function CVPage() {
           <iframe
             src="/resume/cv.html"
             className="w-full h-[800px] md:h-[1000px]"
-            title="Isaac Adjei CV"
+            title="Isaac (Zac) Adjei CV"
           />
         </div>
 

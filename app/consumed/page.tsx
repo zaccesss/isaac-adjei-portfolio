@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import ConsumedContent from "./ConsumedContent"
 
@@ -13,5 +14,9 @@ export const metadata: Metadata = {
 }
 
 export default function ConsumedPage() {
-  return <ConsumedContent />
+  return (
+    <Suspense>
+      <ConsumedContent />
+    </Suspense>
+  )
 }
