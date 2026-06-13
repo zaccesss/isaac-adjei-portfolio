@@ -106,32 +106,60 @@ function ItemCard({ item, categorySlug, onEdit, onDelete }: {
   onDelete: (id: string) => void
 }) {
   return (
-    <Link href={`/dashboard/inventory/${categorySlug}/${item.id}`} className="block">
-      <div className="border border-border rounded-lg p-4 bg-card flex flex-col gap-2 hover:shadow-sm transition-shadow">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <p className="font-medium text-sm truncate">{item.name}</p>
-            {item.description && <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>}
+    <Link href={`/dashboard/inventory/${categorySlug}/${item.id}`} className="block group">
+      <div className="border border-border rounded-xl p-5 bg-card flex flex-col gap-3 hover:shadow-md hover:border-border/80 transition-all">
+        {/* Title row */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-base leading-snug truncate">{item.name}</p>
+            {item.description && (
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">{item.description}</p>
+            )}
           </div>
-          <div className="flex gap-1 shrink-0">
+          <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             {item.url && (
               <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
-                aria-label="Product page" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
+                aria-label="Product page" className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground">
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
             )}
-            <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(item) }} aria-label="Edit" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></button>
-            <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(item.id) }} aria-label="Delete" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+            <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(item) }} aria-label="Edit"
+              className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground">
+              <Edit2 className="h-3.5 w-3.5" />
+            </button>
+            <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(item.id) }} aria-label="Delete"
+              className="p-1.5 rounded-md hover:bg-muted text-destructive/60 hover:text-destructive">
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mt-0.5">
-          {item.quantity > 1 && <span className="bg-muted px-2 py-0.5 rounded-full">x{item.quantity}</span>}
-          {item.price_paid && <span><span className="text-muted-foreground/60">Paid</span> {item.price_paid}</span>}
-          {item.purchase_date && <span><span className="text-muted-foreground/60">Bought</span> {new Date(item.purchase_date).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</span>}
-          {item.warranty_expiry && <span><span className="text-muted-foreground/60">Warranty</span> {new Date(item.warranty_expiry).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</span>}
-          {item.serial_number && <span className="font-mono"><span className="not-italic text-muted-foreground/60 font-sans">S/N</span> {item.serial_number}</span>}
+
+        {/* Metadata chips */}
+        <div className="flex flex-wrap gap-2 text-xs">
+          {item.quantity > 1 && (
+            <span className="bg-muted text-muted-foreground px-2 py-0.5 rounded-full">x{item.quantity}</span>
+          )}
+          {item.price_paid && (
+            <span className="bg-muted text-foreground px-2 py-0.5 rounded-full font-medium">{item.price_paid}</span>
+          )}
+          {item.purchase_date && (
+            <span className="text-muted-foreground">
+              Bought {new Date(item.purchase_date).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}
+            </span>
+          )}
+          {item.warranty_expiry && (
+            <span className="text-muted-foreground">
+              Warranty {new Date(item.warranty_expiry).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}
+            </span>
+          )}
         </div>
-        {item.notes && <p className="text-xs text-muted-foreground/80 border-t border-border/40 pt-1.5 mt-0.5 italic">{item.notes}</p>}
+
+        {/* Serial number */}
+        {item.serial_number && (
+          <p className="font-mono text-xs text-muted-foreground/70 border-t border-border/40 pt-2.5">
+            S/N {item.serial_number}
+          </p>
+        )}
       </div>
     </Link>
   )
