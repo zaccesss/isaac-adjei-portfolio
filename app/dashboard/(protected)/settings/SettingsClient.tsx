@@ -77,16 +77,18 @@ export default function SettingsClient() {
   const [wakatimeLoading, setWakatimeLoading] = useState(false)
   const [wakatimeMessage, setWakatimeMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
+  const [cvStatus, setCvStatus] = useState<WorkflowStatus | null>(null)
+  const [cvStatusLoading, setCvStatusLoading] = useState(false)
+  const [cvLoading, setCvLoading] = useState(false)
+  const [cvMessage, setCvMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
+  const [weeklyDigestStatus, setWeeklyDigestStatus] = useState<{ sentAt: string | null; status: "success" | "failure" | "unknown" } | null>(null)
+  const [discordDigestStatus, setDiscordDigestStatus] = useState<{ sentAt: string | null; status: "success" | "failure" | "unknown" } | null>(null)
   const [digestLoading, setDigestLoading] = useState(false)
   const [digestMessage, setDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
   const [discordDigestLoading, setDiscordDigestLoading] = useState(false)
   const [discordDigestMessage, setDiscordDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
-
-  const [cvStatus, setCvStatus] = useState<WorkflowStatus | null>(null)
-  const [cvStatusLoading, setCvStatusLoading] = useState(false)
-  const [cvLoading, setCvLoading] = useState(false)
-  const [cvMessage, setCvMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
   useEffect(() => {
     async function loadStatuses() {
@@ -94,10 +96,11 @@ export default function SettingsClient() {
       setWakatimeStatusLoading(true)
       setCvStatusLoading(true)
 
-      const [scraperRes, wakatimeRes, cvRes] = await Promise.allSettled([
+      const [scraperRes, wakatimeRes, cvRes, digestRes] = await Promise.allSettled([
         fetch("/api/dashboard/scraper-status"),
         fetch("/api/dashboard/workflow-status?workflow=wakatime-sync.yml"),
         fetch("/api/dashboard/workflow-status?workflow=cv-pdf.yml"),
+        fetch("/api/dashboard/digest-status"),
       ])
 
       if (scraperRes.status === "fulfilled" && scraperRes.value.ok) {
@@ -111,6 +114,14 @@ export default function SettingsClient() {
       if (cvRes.status === "fulfilled" && cvRes.value.ok) {
         const data = await cvRes.value.json() as WorkflowStatus
         setCvStatus(data)
+      }
+      if (digestRes.status === "fulfilled" && digestRes.value.ok) {
+        const data = await digestRes.value.json() as {
+          weekly: { sentAt: string | null; status: "success" | "failure" | "unknown" }
+          discord: { sentAt: string | null; status: "success" | "failure" | "unknown" }
+        }
+        setWeeklyDigestStatus(data.weekly)
+        setDiscordDigestStatus(data.discord)
       }
 
       setScraperLoading(false)
@@ -469,68 +480,6 @@ export default function SettingsClient() {
         </div>
       </section>
 
-      {/* Weekly Digest */}
-      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
-        <div className="flex items-center gap-2">
-          <Mail className="h-4 w-4 text-muted-foreground" />
-          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Weekly Digest</h2>
-        </div>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium">Send test now</span>
-            <p className="text-xs text-muted-foreground">Trigger the weekly digest email immediately</p>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void handleTriggerDigest()}
-              disabled={digestLoading}
-              className="flex items-center gap-1.5"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${digestLoading ? "animate-spin" : ""}`} />
-              {digestLoading ? "Sending..." : "Send test"}
-            </Button>
-            {digestMessage && (
-              <span className={`text-xs ${digestMessage.ok ? "text-green-600" : "text-destructive"}`}>
-                {digestMessage.text}
-              </span>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Discord Digest */}
-      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Discord Digest</h2>
-        </div>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium">Send now</span>
-            <p className="text-xs text-muted-foreground">Send today&apos;s dashboard summary to Discord immediately</p>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void handleTriggerDiscordDigest()}
-              disabled={discordDigestLoading}
-              className="flex items-center gap-1.5"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${discordDigestLoading ? "animate-spin" : ""}`} />
-              {discordDigestLoading ? "Sending..." : "Send now"}
-            </Button>
-            {discordDigestMessage && (
-              <span className={`text-xs ${discordDigestMessage.ok ? "text-green-600" : "text-destructive"}`}>
-                {discordDigestMessage.text}
-              </span>
-            )}
-          </div>
-        </div>
-      </section>
-
       {/* CV Generation */}
       <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
         <div className="flex items-center gap-2">
@@ -566,6 +515,74 @@ export default function SettingsClient() {
             {cvMessage && (
               <span className={`text-xs ${cvMessage.ok ? "text-green-600" : "text-destructive"}`}>
                 {cvMessage.text}
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Weekly Digest */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Weekly Digest</h2>
+        </div>
+        {weeklyDigestStatus && weeklyDigestStatus.sentAt && (
+          <StatusBadge status={weeklyDigestStatus.status} lastRun={weeklyDigestStatus.sentAt} />
+        )}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium">Send test now</span>
+            <p className="text-xs text-muted-foreground">Trigger the weekly digest email immediately</p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleTriggerDigest()}
+              disabled={digestLoading}
+              className="flex items-center gap-1.5"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${digestLoading ? "animate-spin" : ""}`} />
+              {digestLoading ? "Sending..." : "Send test"}
+            </Button>
+            {digestMessage && (
+              <span className={`text-xs ${digestMessage.ok ? "text-green-600" : "text-destructive"}`}>
+                {digestMessage.text}
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Discord Digest */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Discord Digest</h2>
+        </div>
+        {discordDigestStatus && discordDigestStatus.sentAt && (
+          <StatusBadge status={discordDigestStatus.status} lastRun={discordDigestStatus.sentAt} />
+        )}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium">Send now</span>
+            <p className="text-xs text-muted-foreground">Send today&apos;s dashboard summary to Discord immediately</p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleTriggerDiscordDigest()}
+              disabled={discordDigestLoading}
+              className="flex items-center gap-1.5"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${discordDigestLoading ? "animate-spin" : ""}`} />
+              {discordDigestLoading ? "Sending..." : "Send now"}
+            </Button>
+            {discordDigestMessage && (
+              <span className={`text-xs ${discordDigestMessage.ok ? "text-green-600" : "text-destructive"}`}>
+                {discordDigestMessage.text}
               </span>
             )}
           </div>

@@ -34,13 +34,22 @@ To add more games: add the exe name to `KNOWN_GAMES` in `scripts/gpc-daemon.py`.
 
 ## Deferred - Implement Next Session
 
-**Discussions page**
-A page where visitors can leave comments or reactions on blog posts and projects. Two approaches:
+**Blog post comments (giscus)**
 
-- giscus: uses GitHub Discussions as the backend, free, no database needed, maps each post to a Discussion thread by URL. Add `<Giscus>` component to blog post and project pages.
-- Supabase-backed comments: full control over moderation and schema. Requires an auth strategy for commenters.
+Lets visitors comment and react on individual blog posts without needing a separate account system. Each post maps to a GitHub Discussion thread automatically by URL.
 
-giscus is the lower-effort path and keeps everything in GitHub. Either approach lets people interact without a dedicated account system.
+**How it works with a private main repo (recommended approach):**
+1. Create a new empty public repo: `zaccesss/portfolio-discussions` — no code, no SQL, nothing sensitive
+2. Enable GitHub Discussions on that repo (Settings → Features → Discussions)
+3. Go to giscus.app, point it at `zaccesss/portfolio-discussions`, choose "pathname" mapping, copy the config
+4. Add `<Giscus>` component to `app/blog/[slug]/page.tsx` — renders below the post content
+5. Visitors authenticate via GitHub OAuth to comment; threads appear in the public Discussions repo
+
+The main repo stays private. The discussions repo is empty except for GitHub Discussion threads created automatically when someone first comments on a post. No database, no spam filtering needed beyond GitHub's built-in abuse detection.
+
+**Why not Supabase-backed comments instead:** requires building spam/rate-limit protection, a moderation UI in the dashboard, and an auth strategy for anonymous visitors — significant overhead for uncertain engagement.
+
+**When to implement:** once the blog has regular readers. Low traffic = low comment volume = not worth the UI clutter of an empty comment section.
 
 **CV Automation - LinkedIn Sync**
 Auto-update LinkedIn profile fields via the LinkedIn API when the main CV is regenerated. Profile, skills and experience sections are the obvious targets. Requires LinkedIn developer app setup and OAuth flow.

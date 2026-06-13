@@ -24,18 +24,18 @@ export const ROUTES = {
   allPages: "/all-pages",
 } as const
 
-// The label + href for each item shown in the nav bar
+// The label + href for each item shown in the nav bar.
+// Lab, Notes and Now are removed from the primary nav — discoverable via /all-pages and the command menu.
 export const NAV_LINKS = [
   { label: "About", href: ROUTES.about },
-  { label: "Projects", href: ROUTES.projects },
   { label: "Experience", href: ROUTES.experience },
+  { label: "Projects", href: ROUTES.projects },
   { label: "Skills", href: ROUTES.skills },
   { label: "Blog", href: ROUTES.blog },
-  { label: "Notes", href: ROUTES.notes },
-  { label: "Now", href: ROUTES.now },
-  { label: "Lab", href: ROUTES.lab },
+  { label: "Newsletter", href: ROUTES.newsletter },
   { label: "Contact", href: ROUTES.contact },
   { label: "Links", href: ROUTES.links },
+  { label: "More", href: ROUTES.allPages },
 ] as const
 
 // The canonical site URL - reads from an env variable in production, falls back to the live host
