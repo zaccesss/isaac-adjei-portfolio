@@ -4,6 +4,8 @@ on:
   # I trigger automatically whenever the main CV HTML is pushed so the
   # committed artefacts never fall out of sync with the source file.
   push:
+    branches:
+      - main
     paths:
       - "public/resume/cv.html"
   workflow_dispatch:
@@ -108,4 +110,4 @@ jobs:
             --head "$branch" \
             --title "chore: regenerate CV download artefacts" \
             --body "Automatically regenerates the committed CV PDF and DOCX after cv.html changed on main."
-          gh pr merge "$branch" --squash --delete-branch
+          gh pr merge "$branch" --squash --delete-branch --auto
