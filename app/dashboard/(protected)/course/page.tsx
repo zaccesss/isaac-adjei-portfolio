@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase"
-import { cookies } from "next/headers"
 import CourseWrapper from "./CourseWrapper"
 
 export const dynamic = "force-dynamic"
@@ -25,22 +24,15 @@ const DEFAULT_CONFIG = {
 }
 
 export default async function CoursePage() {
-  // I check the PIN cookie server-side so sensitive course data never reaches the browser unauthenticated
-  const cookieStore = await cookies()
-  const pinVerified = cookieStore.get("dashboard_pin_verified")?.value === "1"
-
-  const [{ data: modules }, { data: config }] = pinVerified
-    ? await Promise.all([
-        supabase.from("course_modules").select("*").order("order_index"),
-        supabase.from("config").select("value").eq("key", "course_data").single(),
-      ])
-    : [{ data: null }, { data: null }]
+  const [{ data: modules }, { data: config }] = await Promise.all([
+    supabase.from("course_modules").select("*").order("order_index"),
+    supabase.from("config").select("value").eq("key", "course_data").single(),
+  ])
 
   const courseConfig = { ...DEFAULT_CONFIG, ...(config?.value as Record<string, unknown> ?? {}) }
 
   return (
     <CourseWrapper
-      pinVerified={pinVerified}
       modules={modules ?? []}
       config={courseConfig}
     />

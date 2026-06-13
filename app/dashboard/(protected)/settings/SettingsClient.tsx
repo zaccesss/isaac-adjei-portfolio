@@ -19,6 +19,11 @@ type ScraperStatus = {
   hasToken: boolean
 }
 
+type WorkflowStatus = {
+  lastRun: string | null
+  status: "success" | "failure" | "unknown"
+}
+
 function relativeTime(isoString: string): string {
   const diff = Date.now() - new Date(isoString).getTime()
   const minutes = Math.floor(diff / 60000)
@@ -30,56 +35,89 @@ function relativeTime(isoString: string): string {
   return `${days} day${days !== 1 ? "s" : ""} ago`
 }
 
+function StatusBadge({ status, lastRun }: { status: "success" | "failure" | "unknown"; lastRun: string | null }) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-1.5">
+        {status === "success" ? (
+          <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+        ) : status === "failure" ? (
+          <XCircle className="h-4 w-4 text-destructive shrink-0" />
+        ) : (
+          <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+        )}
+        <span className="text-sm capitalize">{status}</span>
+      </div>
+      {lastRun ? (
+        <span className="text-xs text-muted-foreground">Last run: {relativeTime(lastRun)}</span>
+      ) : (
+        <span className="text-xs text-muted-foreground">No runs recorded</span>
+      )}
+    </div>
+  )
+}
+
 export default function SettingsClient() {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
 
-  // PIN section state
   const [currentPin, setCurrentPin] = useState("")
   const [newPin, setNewPin] = useState("")
   const [confirmPin, setConfirmPin] = useState("")
   const [pinMessage, setPinMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [pinLoading, setPinLoading] = useState(false)
 
-  // Scraper section state
   const [scraperStatus, setScraperStatus] = useState<ScraperStatus | null>(null)
   const [scraperLoading, setScraperLoading] = useState(false)
   const [triggerLoading, setTriggerLoading] = useState(false)
   const [triggerMessage, setTriggerMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
-  // Weekly digest section state
-  const [digestLoading, setDigestLoading] = useState(false)
-  const [digestMessage, setDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
-
-  // Discord digest section state
-  const [discordDigestLoading, setDiscordDigestLoading] = useState(false)
-  const [discordDigestMessage, setDiscordDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
-
-  // CV generation section state
-  const [cvLoading, setCvLoading] = useState(false)
-  const [cvMessage, setCvMessage] = useState<{ text: string; ok: boolean } | null>(null)
-
-  // WakaTime sync section state
+  const [wakatimeStatus, setWakatimeStatus] = useState<WorkflowStatus | null>(null)
+  const [wakatimeStatusLoading, setWakatimeStatusLoading] = useState(false)
   const [wakatimeLoading, setWakatimeLoading] = useState(false)
   const [wakatimeMessage, setWakatimeMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
-  // I fetch scraper status once on mount so the settings page shows live data
+  const [digestLoading, setDigestLoading] = useState(false)
+  const [digestMessage, setDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
+  const [discordDigestLoading, setDiscordDigestLoading] = useState(false)
+  const [discordDigestMessage, setDiscordDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
+  const [cvStatus, setCvStatus] = useState<WorkflowStatus | null>(null)
+  const [cvStatusLoading, setCvStatusLoading] = useState(false)
+  const [cvLoading, setCvLoading] = useState(false)
+  const [cvMessage, setCvMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
   useEffect(() => {
-    async function loadStatus() {
+    async function loadStatuses() {
       setScraperLoading(true)
-      try {
-        const res = await fetch("/api/dashboard/scraper-status")
-        if (res.ok) {
-          const data = await res.json() as ScraperStatus
-          setScraperStatus(data)
-        }
-      } catch {
-        // Silent fail - the section will just show no data
-      } finally {
-        setScraperLoading(false)
+      setWakatimeStatusLoading(true)
+      setCvStatusLoading(true)
+
+      const [scraperRes, wakatimeRes, cvRes] = await Promise.allSettled([
+        fetch("/api/dashboard/scraper-status"),
+        fetch("/api/dashboard/workflow-status?workflow=wakatime-sync.yml"),
+        fetch("/api/dashboard/workflow-status?workflow=cv-pdf.yml"),
+      ])
+
+      if (scraperRes.status === "fulfilled" && scraperRes.value.ok) {
+        const data = await scraperRes.value.json() as ScraperStatus
+        setScraperStatus(data)
       }
+      if (wakatimeRes.status === "fulfilled" && wakatimeRes.value.ok) {
+        const data = await wakatimeRes.value.json() as WorkflowStatus
+        setWakatimeStatus(data)
+      }
+      if (cvRes.status === "fulfilled" && cvRes.value.ok) {
+        const data = await cvRes.value.json() as WorkflowStatus
+        setCvStatus(data)
+      }
+
+      setScraperLoading(false)
+      setWakatimeStatusLoading(false)
+      setCvStatusLoading(false)
     }
-    void loadStatus()
+    void loadStatuses()
   }, [])
 
   async function handleChangePin() {
@@ -126,8 +164,6 @@ export default function SettingsClient() {
     setTriggerMessage(null)
     try {
       const res = await fetch("/api/dashboard/trigger-scraper", { method: "POST" })
-      // I read the body regardless of status so I can surface the specific
-      // error message returned by the route rather than a generic fallback.
       const data = await res.json().catch(() => ({})) as { ok?: boolean; error?: string }
       if (res.ok) {
         setTriggerMessage({ text: "Scraper triggered successfully.", ok: true })
@@ -138,6 +174,24 @@ export default function SettingsClient() {
       setTriggerMessage({ text: "Something went wrong.", ok: false })
     } finally {
       setTriggerLoading(false)
+    }
+  }
+
+  async function handleTriggerWakatime() {
+    setWakatimeLoading(true)
+    setWakatimeMessage(null)
+    try {
+      const res = await fetch("/api/dashboard/trigger-wakatime", { method: "POST" })
+      const data = await res.json().catch(() => ({})) as { ok?: boolean; error?: string }
+      if (res.ok) {
+        setWakatimeMessage({ text: "WakaTime sync triggered. Data will appear in the coding heatmap shortly.", ok: true })
+      } else {
+        setWakatimeMessage({ text: data.error ?? "Failed to trigger WakaTime sync.", ok: false })
+      }
+    } catch {
+      setWakatimeMessage({ text: "Something went wrong.", ok: false })
+    } finally {
+      setWakatimeLoading(false)
     }
   }
 
@@ -177,24 +231,6 @@ export default function SettingsClient() {
     }
   }
 
-  async function handleTriggerWakatime() {
-    setWakatimeLoading(true)
-    setWakatimeMessage(null)
-    try {
-      const res = await fetch("/api/dashboard/trigger-wakatime", { method: "POST" })
-      const data = await res.json().catch(() => ({})) as { ok?: boolean; error?: string }
-      if (res.ok) {
-        setWakatimeMessage({ text: "WakaTime sync triggered. Data will appear in the coding heatmap shortly.", ok: true })
-      } else {
-        setWakatimeMessage({ text: data.error ?? "Failed to trigger WakaTime sync.", ok: false })
-      }
-    } catch {
-      setWakatimeMessage({ text: "Something went wrong.", ok: false })
-    } finally {
-      setWakatimeLoading(false)
-    }
-  }
-
   async function handleTriggerDiscordDigest() {
     setDiscordDigestLoading(true)
     setDiscordDigestMessage(null)
@@ -228,7 +264,7 @@ export default function SettingsClient() {
         <p className="text-muted-foreground text-sm">Manage security and dashboard preferences.</p>
       </div>
 
-      {/* Security section */}
+      {/* Security */}
       <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
         <div className="flex items-center gap-2">
           <Shield className="h-4 w-4 text-muted-foreground" />
@@ -298,7 +334,62 @@ export default function SettingsClient() {
         </div>
       </section>
 
-      {/* Job scraper section */}
+      {/* Session */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Session</h2>
+        </div>
+        <div className="flex flex-col gap-2 text-sm">
+          <div className="flex items-center justify-between py-1 border-b border-border/50">
+            <span className="text-muted-foreground">Inactivity timeout</span>
+            <span className="font-medium">1 hour</span>
+          </div>
+          <div className="flex items-center justify-between py-1">
+            <span className="text-muted-foreground">PIN-protected pages</span>
+            <span className="font-medium">Modules, Diary, Notes and Vault</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Preferences */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <Palette className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Preferences</h2>
+        </div>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2">
+              {theme === "dark" ? (
+                <Moon className="h-4 w-4 text-muted-foreground shrink-0" />
+              ) : (
+                <Sun className="h-4 w-4 text-muted-foreground shrink-0" />
+              )}
+              <span className="text-sm font-medium">Appearance</span>
+            </div>
+            <p className="text-xs text-muted-foreground pl-6">Toggle between light and dark mode</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const next = theme === "dark" ? "light" : "dark"
+              setTheme(next)
+              void setConfig("theme_preference", next)
+            }}
+            className="flex items-center gap-2"
+          >
+            <div className="relative h-4 w-4 shrink-0">
+              <Sun className="h-3.5 w-3.5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 absolute inset-0" />
+              <Moon className="h-3.5 w-3.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 absolute inset-0" />
+            </div>
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </Button>
+        </div>
+      </section>
+
+      {/* Job Scraper */}
       <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
         <div className="flex items-center gap-2">
           <Cpu className="h-4 w-4 text-muted-foreground" />
@@ -311,27 +402,7 @@ export default function SettingsClient() {
 
         {!scraperLoading && scraperStatus && (
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2">
-                {scraperStatus.status === "success" ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-                ) : scraperStatus.status === "failure" ? (
-                  <XCircle className="h-4 w-4 text-destructive shrink-0" />
-                ) : (
-                  <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-                )}
-                <span className="text-sm capitalize">{scraperStatus.status}</span>
-              </div>
-              {scraperStatus.lastRun && (
-                <span className="text-xs text-muted-foreground">
-                  Last run: {relativeTime(scraperStatus.lastRun)}
-                </span>
-              )}
-              {!scraperStatus.lastRun && (
-                <span className="text-xs text-muted-foreground">No runs recorded</span>
-              )}
-            </div>
-
+            <StatusBadge status={scraperStatus.status} lastRun={scraperStatus.lastRun} />
             {scraperStatus.hasToken ? (
               <div className="flex items-center gap-3 flex-wrap">
                 <Button
@@ -359,64 +430,46 @@ export default function SettingsClient() {
         )}
       </section>
 
-      {/* Session section */}
+      {/* WakaTime Sync */}
       <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Session</h2>
+          <Activity className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">WakaTime Sync</h2>
         </div>
-        <div className="flex flex-col gap-2 text-sm">
-          <div className="flex items-center justify-between py-1 border-b border-border/50">
-            <span className="text-muted-foreground">Inactivity timeout</span>
-            <span className="font-medium">1 hour</span>
-          </div>
-          <div className="flex items-center justify-between py-1">
-            <span className="text-muted-foreground">PIN-protected pages</span>
-            <span className="font-medium">Course, Modules, Diary, Notes and Vault</span>
-          </div>
-        </div>
-      </section>
 
-      {/* Preferences section */}
-      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
-        <div className="flex items-center gap-2">
-          <Palette className="h-4 w-4 text-muted-foreground" />
-          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Preferences</h2>
+        {wakatimeStatusLoading && (
+          <p className="text-sm text-muted-foreground">Loading status...</p>
+        )}
+        {!wakatimeStatusLoading && wakatimeStatus && (
+          <StatusBadge status={wakatimeStatus.status} lastRun={wakatimeStatus.lastRun} />
+        )}
+
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm font-medium">Sync coding activity</span>
+          <p className="text-xs text-muted-foreground">
+            Triggers the wakatime-sync.yml workflow — pulls the last 7 days of coding data into the heatmap
+          </p>
         </div>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-2">
-              {theme === "dark" ? (
-                <Moon className="h-4 w-4 text-muted-foreground shrink-0" />
-              ) : (
-                <Sun className="h-4 w-4 text-muted-foreground shrink-0" />
-              )}
-              <span className="text-sm font-medium">Appearance</span>
-            </div>
-            <p className="text-xs text-muted-foreground pl-6">Toggle between light and dark mode</p>
-          </div>
-          {/* I use the same icon transition pattern as ThemeToggle.tsx in the public site */}
+        <div className="flex items-center gap-3 flex-wrap">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              const next = theme === "dark" ? "light" : "dark"
-              setTheme(next)
-              // I also persist to Supabase so the preference is restored on other browsers and devices
-              void setConfig("theme_preference", next)
-            }}
-            className="flex items-center gap-2"
+            onClick={() => void handleTriggerWakatime()}
+            disabled={wakatimeLoading}
+            className="flex items-center gap-1.5"
           >
-            <div className="relative h-4 w-4 shrink-0">
-              <Sun className="h-3.5 w-3.5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 absolute inset-0" />
-              <Moon className="h-3.5 w-3.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 absolute inset-0" />
-            </div>
-            {theme === "dark" ? "Light mode" : "Dark mode"}
+            <RefreshCw className={`h-3.5 w-3.5 ${wakatimeLoading ? "animate-spin" : ""}`} />
+            {wakatimeLoading ? "Triggering..." : "Sync now"}
           </Button>
+          {wakatimeMessage && (
+            <span className={`text-xs ${wakatimeMessage.ok ? "text-green-600" : "text-destructive"}`}>
+              {wakatimeMessage.text}
+            </span>
+          )}
         </div>
       </section>
 
-      {/* Weekly digest section */}
+      {/* Weekly Digest */}
       <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
         <div className="flex items-center gap-2">
           <Mail className="h-4 w-4 text-muted-foreground" />
@@ -447,73 +500,7 @@ export default function SettingsClient() {
         </div>
       </section>
 
-      {/* CV generation section */}
-      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
-        <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 text-muted-foreground" />
-          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">CV Generation</h2>
-        </div>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium">Regenerate all CVs</span>
-            <p className="text-xs text-muted-foreground">
-              Triggers the cv-pdf.yml workflow — rebuilds all 7 role PDFs and DOCX files from the HTML source
-            </p>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void handleTriggerCv()}
-              disabled={cvLoading}
-              className="flex items-center gap-1.5"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${cvLoading ? "animate-spin" : ""}`} />
-              {cvLoading ? "Triggering..." : "Regenerate"}
-            </Button>
-            {cvMessage && (
-              <span className={`text-xs ${cvMessage.ok ? "text-green-600" : "text-destructive"}`}>
-                {cvMessage.text}
-              </span>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* WakaTime sync section */}
-      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
-        <div className="flex items-center gap-2">
-          <Activity className="h-4 w-4 text-muted-foreground" />
-          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">WakaTime Sync</h2>
-        </div>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium">Sync coding activity</span>
-            <p className="text-xs text-muted-foreground">
-              Triggers the wakatime-sync.yml workflow — pulls the last 7 days of coding data into the heatmap
-            </p>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void handleTriggerWakatime()}
-              disabled={wakatimeLoading}
-              className="flex items-center gap-1.5"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${wakatimeLoading ? "animate-spin" : ""}`} />
-              {wakatimeLoading ? "Triggering..." : "Sync now"}
-            </Button>
-            {wakatimeMessage && (
-              <span className={`text-xs ${wakatimeMessage.ok ? "text-green-600" : "text-destructive"}`}>
-                {wakatimeMessage.text}
-              </span>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Discord digest section */}
+      {/* Discord Digest */}
       <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-muted-foreground" />
@@ -538,6 +525,47 @@ export default function SettingsClient() {
             {discordDigestMessage && (
               <span className={`text-xs ${discordDigestMessage.ok ? "text-green-600" : "text-destructive"}`}>
                 {discordDigestMessage.text}
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* CV Generation */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">CV Generation</h2>
+        </div>
+
+        {cvStatusLoading && (
+          <p className="text-sm text-muted-foreground">Loading status...</p>
+        )}
+        {!cvStatusLoading && cvStatus && (
+          <StatusBadge status={cvStatus.status} lastRun={cvStatus.lastRun} />
+        )}
+
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium">Regenerate all CVs</span>
+            <p className="text-xs text-muted-foreground">
+              Triggers the cv-pdf.yml workflow — rebuilds all 7 role PDFs and DOCX files from the HTML source
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleTriggerCv()}
+              disabled={cvLoading}
+              className="flex items-center gap-1.5"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${cvLoading ? "animate-spin" : ""}`} />
+              {cvLoading ? "Triggering..." : "Regenerate"}
+            </Button>
+            {cvMessage && (
+              <span className={`text-xs ${cvMessage.ok ? "text-green-600" : "text-destructive"}`}>
+                {cvMessage.text}
               </span>
             )}
           </div>

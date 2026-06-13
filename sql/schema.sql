@@ -292,12 +292,13 @@ create unique index blog_read_events_unique
   on blog_read_events (slug, depth, ip_hash);
 
 create table wakatime_daily (
-  id            uuid primary key default gen_random_uuid(),
-  date          date not null unique,
-  total_seconds integer not null default 0,
-  languages     jsonb default '[]',
-  projects      jsonb default '[]',
-  editors       jsonb default '[]'
+  id                uuid primary key default gen_random_uuid(),
+  date              date not null unique,
+  total_seconds     integer not null default 0,
+  languages         jsonb default '[]',
+  projects          jsonb default '[]',
+  editors           jsonb default '[]',
+  operating_systems jsonb default '[]'
 );
 
 

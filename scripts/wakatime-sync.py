@@ -69,12 +69,18 @@ def build_row(day: dict) -> dict | None:
         key=lambda x: x["total_seconds"],
         reverse=True,
     )[:10]
+    operating_systems = sorted(
+        [{"name": o["name"], "total_seconds": o["total_seconds"]} for o in day.get("operating_systems", [])],
+        key=lambda x: x["total_seconds"],
+        reverse=True,
+    )[:5]
     return {
         "date": day_date,
         "total_seconds": int(total_seconds),
         "languages": languages,
         "projects": projects,
         "editors": editors,
+        "operating_systems": operating_systems,
     }
 
 
