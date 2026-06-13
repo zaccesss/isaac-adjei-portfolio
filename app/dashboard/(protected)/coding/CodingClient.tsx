@@ -114,7 +114,7 @@ function DonutPanel({
             ))}
           </Pie>
           <Tooltip
-            formatter={(v: number) => [formatHours(v), ""]}
+            formatter={(v) => [typeof v === "number" ? formatHours(v) : v, ""]}
             contentStyle={{ fontSize: "11px" }}
           />
         </PieChart>
@@ -355,7 +355,7 @@ export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
                 />
                 <YAxis hide />
                 <Tooltip
-                  formatter={(v: number) => [formatHours(v), "Time"]}
+                  formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]}
                   contentStyle={{ fontSize: "11px" }}
                   cursor={{ fill: "hsl(var(--muted))" }}
                 />
