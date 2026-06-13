@@ -1,12 +1,19 @@
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import { sendDiscordDigest } from "@/lib/send-discord-digest"
+import { supabase } from "@/lib/supabase"
 
 export async function POST() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
 
   const result = await sendDiscordDigest()
+
+  void supabase.from("config").upsert(
+    { key: "last_discord_digest", value: { sentAt: new Date().toISOString(), status: result.ok ? "success" : "failure" } },
+    { onConflict: "key" }
+  )
+
   return NextResponse.json(result, {
     status: result.ok ? 200 : 500,
     headers: { "Cache-Control": "no-store" },
