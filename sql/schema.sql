@@ -917,7 +917,7 @@ insert into config (key, value) values
 
 
 -- ============================================================
--- A.17 NEW TABLES — open source, blog analytics and WakaTime
+-- A.17 NEW TABLES - open source, blog analytics and WakaTime
 -- I add these three tables for features built in June 2026:
 -- open source contributions tracker, blog scroll-depth events
 -- and daily WakaTime coding activity sync.
@@ -976,7 +976,7 @@ create policy "allow all" on wakatime_daily           for all using (true);
 
 
 -- ============================================================
--- A.18 RPC FUNCTION — blog_read_funnel
+-- A.18 RPC FUNCTION - blog_read_funnel
 -- I create a stable SQL function that aggregates scroll-depth
 -- events into a per-post reading funnel.
 -- Run: included in fresh schema and also in migration 007.

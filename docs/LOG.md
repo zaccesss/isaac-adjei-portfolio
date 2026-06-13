@@ -4,6 +4,79 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-06-13 (feat/cv-refresh)
+
+Branch: `feat/cv-refresh`
+
+### Job scraper fix
+
+- `browser-sources` job runner changed from `ubuntu-latest` to `ubuntu-22.04` to fix
+  Playwright `libasound2` installation failure on Ubuntu 24.04 (Noble)
+
+### Blog enrichment
+
+All 34 posts (20 published, 14 draft) enriched with references sections (6-13 items),
+inline `[text](url)` links throughout body text and plain-English definitions.
+Proteus vs KiCad ordering corrected; Art of Electronics URL fixed to Amazon UK.
+New open-source-contributing post published live (2026-06-13).
+
+### Blog renderer
+
+- `spotify` ContentBlock type and renderer (episode iframe, lazy loading, optional caption)
+- `renderInline()` function for `[text](url)` markdown in p/ul/ol blocks
+- External links: new tab with noopener; internal: in-tab
+
+### Dashboard Settings
+
+- CV Generation "Regenerate" button added (fires cv-pdf.yml)
+- WakaTime Sync "Sync now" button added (fires wakatime-sync.yml)
+- New API routes: `/api/dashboard/trigger-cv` and `/api/dashboard/trigger-wakatime`
+
+### Docs
+
+- CHANGELOG.md, app/changelog/page.tsx, docs/verification.md, app/api/README.md updated
+
+---
+
+## 2026-06-13 (feat/job-scraper-fixes)
+
+Branch: `feat/job-scraper-fixes`
+
+### Blog overhaul
+
+All changes in `data/blog.ts`.
+
+- Date-gated publishing: `getPublishedPosts()` now filters by `p.published && p.date <= today`; posts with future dates are hidden from the listing but accessible at their direct URL
+- Set all 10 scheduled draft posts to `published: true` so direct URLs are accessible for preview; date gate keeps them off the listing
+- Expanded `uart-bare-metal` and `rtos-fundamentals` with deeper content (interrupt-driven receive, ring buffer ISR, baud rate accuracy, FreeRTOS heap schemes, task notifications, tickless idle)
+- Added 5 new draft posts: `interrupt-driven-embedded-design`, `real-time-web-data`, `reading-datasheets`, `international-student-engineering-uk`, `javascript-event-loop`, `my-development-setup-2026`, `phaemos-engineering-decisions`, `eleven-things-learning-to-code`, `on-being-uncomfortable`
+- Added 3 more posts: `writing-for-engineers`, `python-type-annotations`, `competitive-programming-start`; total scheduled drafts: 13
+- Added references (ol-links) to every post that lacked them; changed types for several posts (article, notes, journal); added Jake Archibald event loop video embed to `javascript-event-loop`
+- Fixed false MacBook M3 claim in dev setup post; content now verified against the /uses page
+- Replaced all em dashes and en dashes with hyphens across the entire codebase
+
+### Inventory URL field
+
+- `app/dashboard/(protected)/inventory/InventoryCategoryClient.tsx`: added `url: string | null` to `Item` type; URL input in `ItemForm`; external link icon button on `ItemCard` when `url` is set; `handleAdd` and edit dialog include `url`
+- `app/dashboard/actions.ts`: `createInventoryItem` and `updateInventoryItem` types updated to include `url`
+- `sql/migrations/008_add_inventory_url.sql`: `ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS url TEXT`
+
+### README
+
+- Removed bottom `<div align="center">` badge links and capsule-render wave animation; last line is now plain "Built by [Isaac Adjei](https://isaacadjei.me)"
+- Restored Frontend/Backend/Infrastructure icon grid tables that were accidentally removed
+
+### Session logs
+
+- Moved from repo root `session-logs/` to `docs/session-logs/` (matches gitignore entry `docs/session-logs/`)
+
+### Docs updates
+
+- `docs/DASHBOARD.md`: added inventory URL field section; updated Supabase schema reference
+- `docs/verification.md`: added inventory URL check; added blog date-gate section
+
+---
+
 ## 2026-06-05 (feat/dotfiles-project)
 
 Branch: `feat/dotfiles-project`
@@ -169,7 +242,7 @@ GET /api/userProfile/v2/internal/users/{id}/basicPresences?type=primary&platform
 
 **Problem 4: IGDB cover art not appearing (PS5 card showing PSN promo image)**
 
-Root cause identified in session 4: the IGDB games API request was missing `Content-Type: text/plain`. IGDB's Apicalypse query format requires this header for the body to be parsed. Without it the API returns no results silently. Also the `catch {}` block was completely silent — added `console.log` so Cloudflare Worker logs show what happened.
+Root cause identified in session 4: the IGDB games API request was missing `Content-Type: text/plain`. IGDB's Apicalypse query format requires this header for the body to be parsed. Without it the API returns no results silently. Also the `catch {}` block was completely silent - added `console.log` so Cloudflare Worker logs show what happened.
 
 Fix: added `"Content-Type": "text/plain"` header to the IGDB `/v4/games` request, added logging throughout `fetchIgdbCover`, expanded `IGDB_NAME_MAP` to cover GTA Online and GTA V/VI short names.
 
@@ -199,7 +272,7 @@ The `ps5:last-known` key stores the last known state even when the PS5 is offlin
 
 ### GPC daemon Windows NSSM setup (to do when back at uni)
 
-The GPC daemon needs these env vars in NSSM — set them all in ONE call:
+The GPC daemon needs these env vars in NSSM - set them all in ONE call:
 ```powershell
 nssm set gpc-daemon AppEnvironmentExtra UPSTASH_REDIS_REST_URL=https://... UPSTASH_REDIS_REST_TOKEN=... IGDB_CLIENT_ID=... IGDB_CLIENT_SECRET=...
 nssm restart gpc-daemon

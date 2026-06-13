@@ -1,7 +1,7 @@
 -- 005_add_blog_read_events.sql
 -- Creates the blog_read_events table for recording scroll-depth events from
 -- blog post readers. The unique index makes upserts idempotent per visitor per post.
--- Safe to run on existing databases — CREATE TABLE IF NOT EXISTS.
+-- Safe to run on existing databases - CREATE TABLE IF NOT EXISTS.
 -- Run: paste into Supabase SQL Editor and execute.
 
 

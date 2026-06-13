@@ -57,7 +57,10 @@ jobs:
   # I run The Trackr (Playwright) in a separate job so the browser install
   # does not delay the faster API job. The two jobs run in parallel.
   browser-sources:
-    runs-on: ubuntu-latest
+    # ubuntu-22.04 avoids the libasound2 package removal in Ubuntu 24.04 (Noble)
+    # which breaks playwright install-deps. Switch back to ubuntu-latest once
+    # Playwright >= 1.47 lands in requirements.txt.
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     env:
       # I set SCRAPER_MODE so main() runs only The Trackr in this job.

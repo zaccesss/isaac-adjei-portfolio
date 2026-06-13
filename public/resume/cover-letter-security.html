@@ -3,53 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cover Letter - security</title>
+    <title>Cover Letter - Cybersecurity</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: "Calibri", "Arial", sans-serif;
+            font-family: 'Inter', system-ui, Arial, sans-serif;
             font-size: 11pt;
-            line-height: 1.4;
+            line-height: 1.5;
             color: #000;
             max-width: 210mm;
             margin: 20mm auto;
             padding: 0 15mm;
         }
-        .header {
-            margin-bottom: 20pt;
-        }
-        .name {
-            font-size: 16pt;
-            font-weight: bold;
-            margin-bottom: 4pt;
-        }
-        .contact {
-            font-size: 10pt;
-            color: #333;
-        }
-        .date {
-            margin: 20pt 0;
-        }
-        .recipient {
-            margin-bottom: 20pt;
-        }
-        .salutation {
-            margin-bottom: 12pt;
-        }
-        .paragraph {
-            margin-bottom: 12pt;
-            text-align: justify;
-        }
-        .closing {
-            margin-top: 20pt;
-        }
-        .signature {
-            margin-top: 30pt;
-            font-weight: bold;
-        }
-        .placeholder {
-            background-color: #fff3cd;
-            padding: 0 4pt;
-            font-weight: 500;
+        .header { margin-bottom: 20pt; }
+        .name { font-size: 18pt; font-weight: bold; margin-bottom: 6pt; font-variant: small-caps; letter-spacing: 0.5px; }
+        .contact { font-size: 10pt; color: #111; }
+        .contact a { color: #1a5cc8; text-decoration: underline; }
+        .contact-icon { vertical-align: middle; margin-right: 2px; }
+        .contact-sep { color: #888; margin: 0 6px; }
+        .date { margin: 20pt 0; }
+        .recipient { margin-bottom: 20pt; }
+        .salutation { margin-bottom: 12pt; }
+        .paragraph { margin-bottom: 12pt; text-align: justify; }
+        .closing { margin-top: 20pt; }
+        .signature { margin-top: 30pt; font-weight: bold; }
+        .placeholder { padding: 0 4pt; font-weight: 500; }
+        @media screen {
+            .placeholder { background-color: #fff3cd; }
         }
         @media print {
             .placeholder { background-color: transparent; border-bottom: 1px dashed #999; }
@@ -59,15 +40,18 @@
 <body>
     <div class="header">
         <div class="name">Isaac Adjei</div>
-        <div class="contact">
-            Birmingham, UK | 07404959677 | careers@isaacadjei.me | isaacadjei.me<br>
-            LinkedIn: linkedin.com/in/isaacadjei | GitHub: github.com/zaccesss
+                <div class="contact">
+            <nobr><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="contact-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:contact@isaacadjei.me">contact@isaacadjei.me</a></nobr>
+            <span class="contact-sep">|</span>
+            <nobr><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="contact-icon"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><a href="https://www.isaacadjei.me">www.isaacadjei.me</a></nobr>
+            <span class="contact-sep">|</span>
+            <nobr><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="#000000" class="contact-icon"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg><a href="https://linkedin.com/in/isaacadjei">linkedin.com/in/isaacadjei</a></nobr>
+            <span class="contact-sep">|</span>
+            <nobr><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="#000000" class="contact-icon"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg><a href="https://github.com/zaccesss">github.com/zaccesss</a></nobr>
         </div>
     </div>
 
-    <div class="date">
-        <span class="placeholder">[Date]</span>
-    </div>
+    <div class="date"><span class="placeholder">[Date]</span></div>
 
     <div class="recipient">
         <span class="placeholder">[Hiring Manager Name/Recruitment Team]</span><br>
@@ -80,32 +64,26 @@
     </div>
 
     <div class="paragraph">
-        I am writing to express my strong interest in the <span class="placeholder">[Role Title]</span> position at <span class="placeholder">[Company Name]</span>. As an Electronic Engineering and Computer Science student at Aston University (Predicted First Class) and Top 40 Finalist in the Black Heritage Undergraduate of the Year Award 2026, I have built production-grade systems spanning embedded IoT platforms, full-stack web applications and hardware design.
+        I am writing to apply for the <span class="placeholder">[Role Title]</span> position at <span class="placeholder">[Company Name]</span>. As an Electronic Engineering and Computer Science student at Aston University (Predicted First Class) and Top 40 Finalist in the Black Heritage Undergraduate of the Year Award 2026, I design security into systems from the first line: not as a bolt-on after functionality is working, but as a constraint that shapes every architectural decision.
     </div>
 
     <div class="paragraph">
-        My academic foundation is complemented by hands-on project experience. I developed PHAEMOS - an end-to-end IoT predictive maintenance platform with ESP32 nodes posting telemetry to a FastAPI backend with sub-200ms response times and ML-powered anomaly detection. I also built AstonCV - a full-stack CV database with 12+ security controls including JWT authentication and RBAC. These projects demanded skills in React, Node.js, Python, embedded C++ and cloud infrastructure. I am particularly drawn to <span class="placeholder">[Company Name]</span> because of <span class="placeholder">[specific reason - company mission/project/technology]</span> and I am excited about the opportunity to contribute to <span class="placeholder">[specific area/project]</span>.
+        My most security-intensive project is AstonCV, a full-stack CV and application management system deployed live on Aston University servers, built from scratch in PHP 8.2 with MySQL. I implemented 12+ security controls without relying on any security framework: JWT-based authentication with asymmetric keys, role-based access control separating student and admin permissions, CSRF token validation on every state-changing request, brute-force lockout with exponential backoff after five failed attempts, bcrypt hashing for all credentials, mPDF generation sandboxed to prevent path traversal, prepared statements throughout and Content Security Policy, X-Frame-Options and Referrer-Policy headers enforced on every response. The threat model informed every feature decision; I wrote it before I wrote the first route handler. In my personal portfolio dashboard I layer defence in depth across a different stack: a NextAuth GitHub OAuth gate, a PIN lock cookie (httpOnly, SameSite=Strict, bcrypt hash in Supabase) for the most sensitive sections, per-IP rate limiting on public API routes via Upstash Redis, CSRF-equivalent protections on server actions, Gitleaks secret scanning on every push and security headers managed through Cloudflare. I am drawn to <span class="placeholder">[Company Name]</span> because of <span class="placeholder">[specific reason]</span> and I am keen to contribute to <span class="placeholder">[specific security challenge or product area]</span>.
     </div>
 
     <div class="paragraph">
-        What sets me apart is my ability to bridge hardware and software. I have designed and built a two-stage audio amplifier from simulation through PCB layout to bench testing, and created a 4x4x4 NeoPixel LED cube with non-blocking state machine architecture. My experience includes virtual work placements with British Airways (engineering operations) and Yunex Traffic (smart mobility systems) plus hands-on technical internships. I approach every task with a problem-solving mindset and attention to detail using Git for version control and agile methodologies.
+        Security thinking applies differently across the stack but the core question is always the same: what does an attacker gain if this assumption is wrong? I apply that question to auth flows, input validation boundaries, secret management and third-party integrations alike. I also have experience working with IoT attack surfaces: PHAEMOS exposes authenticated FastAPI endpoints to ESP32 nodes, and I designed the JWT validation and anomaly detection alerting to be robust against malformed payloads and replay attempts. My hardware background adds a further layer of perspective: I understand how physical access, firmware update paths and UART debug interfaces create attack surfaces that software-only engineers often overlook.
     </div>
 
     <div class="paragraph">
-        I am eager to bring my technical skills, enthusiasm for learning and collaborative spirit to <span class="placeholder">[Company Name]</span>. I would welcome the opportunity to discuss how my background in EECS and passion for technology can contribute to your team's success.
+        I am looking for a team that takes security seriously from the design stage. <span class="placeholder">[Company Name]</span>'s work on <span class="placeholder">[specific security challenge or area]</span> is exactly the kind of environment where I want to develop my skills, and I would bring both the technical depth and the defensive instincts the role requires.
     </div>
 
     <div class="paragraph">
-        Thank you for considering my application. I look forward to the possibility of speaking with you further about this exciting opportunity.
+        Thank you for considering my application. I would welcome a conversation about how I can contribute to <span class="placeholder">[Company Name]</span>'s security engineering work.
     </div>
 
-    <div class="closing">
-        Yours sincerely,
-    </div>
-
-    <div class="signature">
-        Isaac Adjei
-    </div>
+    <div class="closing">Yours sincerely,</div>
+    <div class="signature">Isaac Adjei</div>
 </body>
 </html>
-

@@ -15,6 +15,11 @@ const FILES = [
     html: `cv-${r}.html`,
     pdf: `cv-${r}.pdf`,
   })),
+  // I also generate PDFs for all 7 cover letters so they can be downloaded from /cv.
+  ...["software", "embedded", "devops", "data", "quant", "security", "general"].map((r) => ({
+    html: `cover-letter-${r}.html`,
+    pdf: `cover-letter-${r}.pdf`,
+  })),
 ]
 
 async function generatePdfs() {

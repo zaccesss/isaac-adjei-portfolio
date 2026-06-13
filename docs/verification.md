@@ -123,7 +123,7 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 - [ ] `/dashboard/vault` - PIN gate, entries list, CRUD work; 3-dot menu has Hide/Lock options
 - [ ] `/dashboard/streaks` - Cards show, 90-day heatmap renders, activity line chart renders, check-in works
 - [ ] `/dashboard/habits` - Habit tracker loads, add/delete works, check-in works
-- [ ] `/dashboard/settings` - PIN change, theme toggle, scraper trigger, test digest button and Discord digest button all work
+- [ ] `/dashboard/settings` - PIN change, theme toggle, scraper trigger, CV generation trigger, WakaTime sync trigger, test digest button and Discord digest button all work
 - [ ] `/dashboard/course` - Course module list loads
 - [ ] `/dashboard/modules` - Module overview loads
 - [ ] `/dashboard/modules/[year]` - Year-filtered module pages load
@@ -132,6 +132,7 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 - [ ] `/dashboard/inventory` - List loads, CRUD works; category pages with >50 items show prev/next pagination controls
 - [ ] `/dashboard/inventory/[category]` - Category pages load; pagination shows "1-50 of N items" when over limit
 - [ ] `/dashboard/inventory/[category]/[id]` - Detail page loads with all fields; back navigation works; edit and delete buttons work
+- [ ] Inventory URL field - on any inventory item, set the URL field; an external link icon appears top-right of the card; clicking it opens the product page in a new tab
 
 ---
 
@@ -188,6 +189,29 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 - [ ] No console errors on any public page
 - [ ] No console errors on any dashboard page
 - [ ] No hydration warnings in the browser console on any page
+
+---
+
+## Blog publishing and date gate
+
+- [ ] Blog listing (`/blog`) - only posts with `published: true` AND `date <= today` appear; future-dated posts are hidden from the listing even when `published: true`
+- [ ] Blog post direct URL - a post with `published: true` and a future date is accessible at `/blog/[slug]` even though it does not appear in the listing
+- [ ] Blog post 404 - a post with `published: false` returns a 404 at its direct URL
+
+---
+
+## Settings workflow triggers
+
+- [ ] Settings > CV Generation > "Regenerate" button - dispatches cv-pdf.yml via GitHub Actions; success message confirms trigger; PDFs and DOCX files updated in repo after workflow completes
+- [ ] Settings > WakaTime Sync > "Sync now" button - dispatches wakatime-sync.yml via GitHub Actions; success message confirms trigger; coding heatmap populates after workflow completes
+
+---
+
+## Blog rendering
+
+- [ ] Blog post with inline links - open any post that has `[text](url)` in its content; confirm links render as underlined clickable text; external URLs open in new tab; internal URLs navigate in-tab
+- [ ] Blog post with Spotify embed - if a post has a spotify ContentBlock, iframe renders at 152px height with rounded border; optional figcaption appears below
+- [ ] Open-source-contributing post - `/blog/open-source-contributing` loads, published: true, date 2026-06-13; appears in /blog listing; 14 min read time shown
 
 ---
 

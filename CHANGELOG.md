@@ -14,14 +14,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Per-folder README files in sql/, sql/migrations/, docs/, app/, app/api/, app/dashboard/, lib/, data/, components/, workers/, hooks/, types/, public/, public/resume/; scripts/README.md updated to add wakatime-sync.py and remove deleted scripts
 - Root README.md updated to phaemos/dotfiles style: CI badges for all 5 workflows (CI, CV PDF, Job Scraper, WakaTime Sync, Vault Expiry), Quick navigation anchors, Dashboard section, CV system section, full repository structure tree, GitHub Actions workflows table
 - WAKATIME_API_KEY added to .env.example with explanation that it is a GitHub Actions secret only (not Vercel)
+- Dashboard Me page: "View CV" link added next to social links, opens /cv in a new tab
+- Cover letter PDFs added to generate-pdfs.js so all 7 cover letters are rendered to PDF alongside the CVs
+- /links page: new Support section at the bottom with Patreon and Buy Me a Coffee links
+- /links page: GitLab and Codeberg profile links added under Professional, each with platform brand colours
+- README: GitLab and Codeberg profile badges added alongside the existing GitHub badge
+- dotfiles project added to /projects: full detail page with overview, 8 highlights, tech stack and 2-image gallery (welcome banner and cmds output); covers 59 numbered topic files, cross-platform alias consistency, accessibility colour scheme, 3-platform git mirroring, nvm lazy-load and Starship integration
+- /uses Terminal and shell section: dotfiles entry with cross-platform environment detail and Starship entry with shared config explanation
+- Skills page Core Tools: Starship added with Simple Icons CDN icon
+- Project detail page: inline code rendering via backtick syntax so command names render as styled `code` elements rather than plain text
+- 14 new blog posts scheduled to publish automatically from June through September 2026 across article, notes, journal and research types; all posts include references, external links and mixed content types (prose, code, video embeds, reference lists)
+- New blog post "How to Contribute to Open Source: A Practical Guide" published live (2026-06-13) with 14-minute read time covering issue discovery, forking, git workflow, PR etiquette, code review and post-merge steps
+- Spotify embed support in blog renderer: new spotify ContentBlock type with episode iframe, loading lazy and optional figcaption
+- Inline link rendering in blog renderer: [text](url) markdown syntax in p, ul and ol blocks now renders as clickable links; external URLs open in new tab with noopener noreferrer; internal links use Next.js routing
+- All 34 blog posts (20 published, 14 draft) enriched with references sections (6-13 items each), inline links for tools and projects mentioned by name, and plain-English definitions before technical deep dives
+- Dashboard Settings: CV generation trigger button - fires cv-pdf.yml workflow via GitHub Actions dispatch; WakaTime sync trigger button - fires wakatime-sync.yml workflow on demand
 
 ### Changed
 
+- Job scraper browser-sources job runner changed from ubuntu-latest (24.04) to ubuntu-22.04 to fix Playwright libasound2 installation failure on Noble
 - DOCUMENTATION.md moved from repo root to docs/DOCUMENTATION.md
 - docs/DASHBOARD.md: added rows for /dashboard/opensource, /dashboard/blog-analytics and /dashboard/coding; updated Supabase schema reference from supabase-schema.sql to sql/schema.sql
 - docs/WORKFLOW.md: added WAKATIME_API_KEY to environment variables table
 - docs/verification.md: added new dashboard pages verification section (opensource, blog-analytics, coding, scroll events, wakatime sync)
 - .gitignore: updated session-logs/ entry to docs/session-logs/ to match new location; removed /docs/cv-redesign-ideas.md entry (file deleted)
+- Main CV font updated from Cambria/Georgia serif to Inter (Google Fonts) via @import in cv.html; all role CVs inherit this via generate-role-cvs.js
+- All 7 cover letters rewritten with full project list (portfolio dashboard, PHAEMOS, AstonCV, avr-zac, NeoPixel LED cube, two-stage amplifier, git-unlocked, dotfiles, zacess.com, CNC control, CAD portfolio), per-role project ordering, CI/CD automation and bespoke closing paragraphs per role
+- generate-pdfs.js updated to also generate cover-letter-*.pdf for all 7 roles
 
 ### Removed
 
@@ -30,14 +49,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - public/resume/fix_cv.py (temporary HTML cleanup script, wrong directory)
 - supabase-schema.sql at repo root (replaced by sql/schema.sql)
 - docs/cv-redesign-ideas.md (fully implemented)
-
-- /links page: new Support section at the bottom with Patreon and Buy Me a Coffee links
-- /links page: GitLab and Codeberg profile links added under Professional, each with platform brand colours
-- README: GitLab and Codeberg profile badges added alongside the existing GitHub badge
-- dotfiles project added to /projects: full detail page with overview, 8 highlights, tech stack and 2-image gallery (welcome banner and cmds output); covers 59 numbered topic files, cross-platform alias consistency, accessibility colour scheme, 3-platform git mirroring, nvm lazy-load and Starship integration
-- /uses Terminal and shell section: dotfiles entry with cross-platform environment detail and Starship entry with shared config explanation
-- Skills page Core Tools: Starship added with Simple Icons CDN icon
-- Project detail page: inline code rendering via backtick syntax so command names render as styled `code` elements rather than plain text
 
 ---
 

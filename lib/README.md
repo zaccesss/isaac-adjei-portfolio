@@ -10,7 +10,7 @@ Shared server and client utilities. Imported across `app/`, `components/` and `s
 | `utils.ts` | `cn()` class-name helper (clsx + tailwind-merge) and other shared utilities |
 | `constants.ts` | Site URL, navigation items and other shared constants |
 | `animations.ts` | Framer Motion animation variants reused across page and section components |
-| `pin.ts` | Dashboard PIN lock — stores and validates a hashed PIN in a cookie |
+| `pin.ts` | Dashboard PIN lock - stores and validates a hashed PIN in a cookie |
 | `vault-expiry-check.ts` | Logic to query vault items nearing or past expiry; called by the vault-expiry-check workflow |
 | `send-discord-digest.ts` | Sends a formatted embed to a Discord webhook channel |
 | `send-weekly-digest.ts` | Builds and sends the weekly summary email via Sendgrid |

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Edit2, Package, ChevronLeft, ChevronRight } from "lucide-react"
+import { Plus, Trash2, Edit2, Package, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { dashboardPage } from "@/lib/animations"
 
@@ -23,12 +23,13 @@ type Item = {
   serial_number: string | null
   notes: string | null
   warranty_expiry: string | null
+  url: string | null
 }
 
 const emptyForm = {
   name: "", category: "", quantity: 1,
   description: "", purchase_date: "", price_paid: "",
-  serial_number: "", notes: "", warranty_expiry: "",
+  serial_number: "", notes: "", warranty_expiry: "", url: "",
 }
 
 function ItemForm({ initial, category, allCategories, onSave, onCancel }: {
@@ -88,6 +89,7 @@ function ItemForm({ initial, category, allCategories, onSave, onCancel }: {
         </div>
       </div>
       <Input value={form.serial_number} onChange={(e) => set("serial_number", e.target.value)} placeholder="Serial / model number (optional)" />
+      <Input value={form.url} onChange={(e) => set("url", e.target.value)} placeholder="Product URL (optional)" type="url" />
       <Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={2} placeholder="Notes (optional)" />
       <div className="flex gap-2 justify-end pt-2">
         <Button variant="ghost" onClick={onCancel}>Cancel</Button>
@@ -112,17 +114,24 @@ function ItemCard({ item, categorySlug, onEdit, onDelete }: {
             {item.description && <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>}
           </div>
           <div className="flex gap-1 shrink-0">
+            {item.url && (
+              <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+                aria-label="Product page" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            )}
             <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(item) }} aria-label="Edit" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></button>
             <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(item.id) }} aria-label="Delete" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mt-0.5">
           {item.quantity > 1 && <span className="bg-muted px-2 py-0.5 rounded-full">x{item.quantity}</span>}
-          {item.price_paid && <span>{item.price_paid}</span>}
-          {item.warranty_expiry && <span>Warranty: {new Date(item.warranty_expiry).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</span>}
-          {item.serial_number && <span className="font-mono">{item.serial_number}</span>}
+          {item.price_paid && <span><span className="text-muted-foreground/60">Paid</span> {item.price_paid}</span>}
+          {item.purchase_date && <span><span className="text-muted-foreground/60">Bought</span> {new Date(item.purchase_date).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</span>}
+          {item.warranty_expiry && <span><span className="text-muted-foreground/60">Warranty</span> {new Date(item.warranty_expiry).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}</span>}
+          {item.serial_number && <span className="font-mono"><span className="not-italic text-muted-foreground/60 font-sans">S/N</span> {item.serial_number}</span>}
         </div>
-        {item.notes && <p className="text-xs text-muted-foreground border-t border-border/50 pt-1">{item.notes}</p>}
+        {item.notes && <p className="text-xs text-muted-foreground/80 border-t border-border/40 pt-1.5 mt-0.5 italic">{item.notes}</p>}
       </div>
     </Link>
   )
@@ -166,6 +175,7 @@ export default function InventoryCategoryClient({
       serial_number: data.serial_number || null,
       notes: data.notes || null,
       warranty_expiry: data.warranty_expiry || null,
+      url: data.url || null,
     }
     setItems((prev) => [...prev, optimistic])
     setAddOpen(false)
@@ -283,6 +293,7 @@ export default function InventoryCategoryClient({
                 serial_number: editItem.serial_number ?? "",
                 notes: editItem.notes ?? "",
                 warranty_expiry: editItem.warranty_expiry ?? "",
+                url: editItem.url ?? "",
               }}
               category={category}
               allCategories={categories}

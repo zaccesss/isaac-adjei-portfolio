@@ -33,6 +33,7 @@ const releases: ChangeEntry[] = [
     version: "Unreleased",
     date: "2026-06-03",
     added: [
+      "CV updated to Inter font; all 7 cover letters rewritten with full project list (portfolio dashboard, PHAEMOS, AstonCV and hardware projects), CI/CD automation and per-role bespoke content",
       "/links page: new Support section at the bottom with Patreon and Buy Me a Coffee links",
       "/links page: GitLab and Codeberg profile links added under Professional, each with platform brand colours",
       "README: GitLab and Codeberg profile badges added alongside the existing GitHub badge",
@@ -40,6 +41,11 @@ const releases: ChangeEntry[] = [
       "/uses Terminal and shell section: dotfiles entry with cross-platform environment detail and Starship entry with shared config explanation",
       "Skills page Core Tools: Starship added with Simple Icons CDN icon",
       "Project detail page: inline code rendering via backtick syntax so command names render as styled code elements rather than plain text",
+      "14 new blog posts in the pipeline across article, notes, journal and research types; all posts include references, external links and mixed content — publishing automatically from June through September 2026",
+      "New blog post: How to Contribute to Open Source — A Practical Guide; published live 2026-06-13",
+      "Blog renderer: Spotify episode embeds and inline [text](url) link rendering in paragraph and list blocks",
+      "All 34 blog posts enriched with references sections, inline links for tools and projects, and plain-English definitions before technical sections",
+      "Dashboard Settings: CV generation and WakaTime sync trigger buttons added alongside the existing job scraper trigger",
     ],
   },
   {

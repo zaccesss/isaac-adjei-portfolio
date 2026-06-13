@@ -161,7 +161,7 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 
 ---
 
-## Session log — 2026-06-12
+## Session log - 2026-06-12
 
 ### Features built
 
@@ -174,19 +174,40 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 
 ### New Supabase tables (run migrations 004-007 on existing DB, or schema.sql on fresh install)
 
-- `opensource_contributions` — open source PR tracking
-- `blog_read_events` — scroll depth events with unique index on (slug, depth, ip_hash)
-- `wakatime_daily` — one row per calendar day of WakaTime coding activity
-- `blog_read_funnel()` — RPC function aggregating scroll-depth into a per-post funnel
+- `opensource_contributions` - open source PR tracking
+- `blog_read_events` - scroll depth events with unique index on (slug, depth, ip_hash)
+- `wakatime_daily` - one row per calendar day of WakaTime coding activity
+- `blog_read_funnel()` - RPC function aggregating scroll-depth into a per-post funnel
 
 ### New GitHub Actions workflows
 
-- `wakatime-sync.yml` — daily 01:00 UTC + manual; requires `WAKATIME_API_KEY` GitHub Actions secret
-- `vault-expiry-check.yml` — daily 09:00 UTC + manual
+- `wakatime-sync.yml` - daily 01:00 UTC + manual; requires `WAKATIME_API_KEY` GitHub Actions secret
+- `vault-expiry-check.yml` - daily 09:00 UTC + manual
 
-### Pending production setup (to do before new session)
+### Pending production setup (from 2026-06-12 session)
 
 1. Export `applications` table as CSV from Supabase (if running fresh schema.sql)
 2. Run `sql/migrations/004_add_opensource_contributions.sql` through `007_add_blog_read_funnel_function.sql` in Supabase SQL Editor
-3. Add `WAKATIME_API_KEY` GitHub Actions secret (from wakatime.com/settings/account — NOT Vercel)
-4. Install WakaTime plugin in VS Code and JetBrains (tracks all coding time, not just AI)
+3. Run `sql/migrations/008_add_inventory_url.sql` - adds `url TEXT` column to `inventory_items`
+4. Add `WAKATIME_API_KEY` GitHub Actions secret (from wakatime.com/settings/account - NOT Vercel)
+5. Install WakaTime plugin in VS Code and JetBrains (free plan is fine - daily sync accumulates in Supabase regardless of WakaTime dashboard history limit)
+
+---
+
+## Session log - 2026-06-13
+
+### Features built
+
+- **Inventory URL field** (`InventoryCategoryClient.tsx`, `actions.ts`): added `url` field to inventory items; external link icon on card when set; SQL migration 008 creates the column
+- **Blog overhaul** (`data/blog.ts`): date-gated publishing via `p.date <= today` in `getPublishedPosts()`; 13 scheduled draft posts with varied types (article, notes, journal); references added to every post; false MacBook M3 claim removed; dev setup post rewritten from verified /uses page data; 3 new posts added (writing-for-engineers, python-type-annotations, competitive-programming-start)
+- **Session logs moved** from repo root `session-logs/` to `docs/session-logs/` (matches gitignore entry)
+- **Em/en dashes removed** across entire codebase (Python sweep via str.replace)
+- **README restored** - Frontend/Backend/Infrastructure icon grid tables that were accidentally removed are back
+
+### New SQL migration
+
+- `sql/migrations/008_add_inventory_url.sql` - `ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS url TEXT`
+
+### WakaTime setup note
+
+Free WakaTime plan (1-week dashboard history) is sufficient. The wakatime-sync GitHub Action syncs daily totals to Supabase; once in Supabase, data is stored indefinitely. Install plugins in VS Code and JetBrains only (2 installs; one JetBrains plugin covers IntelliJ, PyCharm and CLion). Do not install the Mac app - editor plugins give better per-file/language tracking.
