@@ -91,10 +91,10 @@ Category grouping note: the Supabase column has `DEFAULT 'Software Engineering'`
 
 ## Job scraper
 
-- GitHub Actions cron: daily at midnight UTC (`.github/workflows/job-scraper.yml`)
+- GitHub Actions cron: every 3 days at midnight UTC (`.github/workflows/job-scraper.yml`)
 - Manual trigger: Settings > "Run Now" via `POST /api/dashboard/trigger-scraper`
-- Secrets needed in GitHub repo: `SUPABASE_URL`, `SUPABASE_ANON_KEY` (use `eyJ...` JWT format, not `sb_publishable_`), `REED_API_KEY`, `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, `JOOBLE_API_KEY`, `DISCORD_WEBHOOK_URL`
-- Sources: The Trackr (Playwright), Greenhouse API, Lever API, Ashby, Gradcracker, RateMyPlacement, TargetJobs, Adzuna, Jooble, Arbeitnow, Jobicy, Reed
+- Secrets needed in GitHub repo: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (use `eyJ...` JWT format, not `sb_publishable_`), `REED_API_KEY`, `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, `JOOBLE_API_KEY`, `DISCORD_WEBHOOK_URL`, `GH_PAT`, `WAKATIME_API_KEY`
+- Sources: The Trackr, Google Careers, Meta Careers, ARM Careers, Goldman Sachs, JPMorgan Careers (all Playwright); Greenhouse, Lever, Ashby, SmartRecruiters, Apple, Microsoft, Amazon, Workday (REST APIs); Reed, Adzuna, Jooble, Arbeitnow, Jobicy, Remotive (job boards)
 - Student-role filter: only saves internships, placements, spring weeks and graduate schemes; seniors/leads/staff/internal filtered out
 - Adzuna URL resolution: `_resolve_url()` follows redirect_url tracking links to the direct company ATS page
 - Data lifecycle: `last_scraped_at` refreshed on each run; entries not seen for 30 days are deleted; user-set statuses are never overwritten
@@ -149,7 +149,7 @@ Category grouping note: the Supabase column has `DEFAULT 'Software Engineering'`
 
 ## Supabase schema
 
-Full schema in `sql/schema.sql`. Run on a fresh project to create all tables from scratch. For existing databases, run the individual migration files in `sql/migrations/` (001-007) in order. See [sql/README.md](../sql/README.md) for the fresh-install guide.
+Full schema in `sql/schema.sql`. Run on a fresh project to create all tables from scratch. For existing databases, run the individual migration files in `sql/migrations/` (001-008) in order. See [sql/README.md](../sql/README.md) for the fresh-install guide.
 
 Key applications columns added in migrations (all in Section B):
 
