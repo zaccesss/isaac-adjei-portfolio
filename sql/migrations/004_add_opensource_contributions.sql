@@ -1,7 +1,7 @@
 -- 004_add_opensource_contributions.sql
 -- Creates the opensource_contributions table for tracking merged PRs
 -- submitted to external repos.
--- Safe to run on existing databases — CREATE TABLE IF NOT EXISTS.
+-- Safe to run on existing databases - CREATE TABLE IF NOT EXISTS.
 -- Run: paste into Supabase SQL Editor and execute.
 
 

@@ -1,7 +1,7 @@
 -- 007_add_blog_read_funnel_function.sql
 -- Creates the blog_read_funnel() RPC function that aggregates scroll-depth
 -- events into a per-post reading funnel. Requires migration 005 to have run first.
--- Safe to re-run — CREATE OR REPLACE.
+-- Safe to re-run - CREATE OR REPLACE.
 -- Run: paste into Supabase SQL Editor and execute.
 
 

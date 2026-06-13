@@ -47,7 +47,7 @@ export default function ScrollDepthTracker({ slug }: { slug: string }) {
             if (entry.isIntersecting && !reported.current.has(depth)) {
               reported.current.add(depth)
               // I use sendBeacon when available so the request is not cancelled by
-              // rapid navigation — it queues even if the page is closing.
+              // rapid navigation - it queues even if the page is closing.
               const payload = JSON.stringify({ slug, depth })
               if (navigator.sendBeacon) {
                 navigator.sendBeacon(
@@ -82,6 +82,6 @@ export default function ScrollDepthTracker({ slug }: { slug: string }) {
     }
   }, [slug])
 
-  // I render nothing — the tracker is purely behavioural.
+  // I render nothing - the tracker is purely behavioural.
   return null
 }

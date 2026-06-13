@@ -86,7 +86,7 @@ if not UPSTASH_URL or not UPSTASH_TOKEN:
 DEVICE = socket.gethostname()
 
 # =============================================================================
-# Tier 1 — Hardcoded known games
+# Tier 1 - Hardcoded known games
 # I check this first: fastest path, no API calls, guaranteed correct results.
 # Add new games here as "Display Name": "executable.exe"
 # =============================================================================
@@ -130,13 +130,13 @@ FALLBACK_IMAGES = {
 }
 
 # =============================================================================
-# Tier 3 & 4 — Local manifest paths (Windows standard locations)
+# Tier 3 & 4 - Local manifest paths (Windows standard locations)
 # =============================================================================
 _EPIC_MANIFESTS_DIR = r"C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests"
 _EA_INSTALL_DIR     = r"C:\ProgramData\EA Desktop\InstallData"
 
 # =============================================================================
-# Tier 5 — Process blocklist for fuzzy detection
+# Tier 5 - Process blocklist for fuzzy detection
 # I skip these names so common non-game processes never trigger IGDB searches.
 # =============================================================================
 _NON_GAME_BLOCKLIST = {
@@ -316,7 +316,7 @@ def get_game_image(game_name: str, source: str | None = None, external_id: str |
 
 
 # =============================================================================
-# Tier 1 — KNOWN_GAMES detection
+# Tier 1 - KNOWN_GAMES detection
 # =============================================================================
 
 def _get_running_exes() -> set[str]:
@@ -335,7 +335,7 @@ def _detect_known(running: set[str]) -> str | None:
 
 
 # =============================================================================
-# Tier 2 — Steam Web API
+# Tier 2 - Steam Web API
 # I call GetPlayerSummaries which returns gameid + gameextrainfo when the user
 # is in-game. This covers 100% of Steam games with zero local file access.
 # =============================================================================
@@ -369,7 +369,7 @@ def _detect_steam() -> tuple[str | None, str | None]:
 
 
 # =============================================================================
-# Tier 3 — Epic Games local manifests
+# Tier 3 - Epic Games local manifests
 # Each installed Epic game has a .item JSON file with DisplayName and
 # LaunchExecutable. I cross-reference the exe against running processes.
 # I cache the manifest scan and refresh every 5 minutes.
@@ -422,7 +422,7 @@ def _detect_epic(running: set[str]) -> tuple[str | None, str | None]:
 
 
 # =============================================================================
-# Tier 4 — EA App local manifests
+# Tier 4 - EA App local manifests
 # EA Desktop stores an installerdata.xml per game under InstallData.
 # I parse the display name and launcher exe from each XML file.
 # =============================================================================
@@ -485,7 +485,7 @@ def _detect_ea(running: set[str]) -> str | None:
 
 
 # =============================================================================
-# Tier 5 — Process name -> IGDB fuzzy search
+# Tier 5 - Process name -> IGDB fuzzy search
 # For anything not caught above, I clean the exe name and search IGDB.
 # I use difflib similarity to filter false positives (threshold 0.65).
 # Misses are cached for 5 minutes so we don't spam IGDB every 30s.

@@ -1,6 +1,6 @@
 # app/dashboard/
 
-Private dashboard — requires a valid NextAuth session (GitHub OAuth). All protected pages live under `(protected)/`.
+Private dashboard - requires a valid NextAuth session (GitHub OAuth). All protected pages live under `(protected)/`.
 
 ## Key files
 

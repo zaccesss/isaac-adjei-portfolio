@@ -80,10 +80,10 @@ def build_row(day: dict) -> dict | None:
 
 def main() -> None:
     if not WAKATIME_API_KEY:
-        print("WAKATIME_API_KEY not set — skipping sync", file=sys.stderr)
+        print("WAKATIME_API_KEY not set - skipping sync", file=sys.stderr)
         sys.exit(0)
     if not SUPABASE_URL or not SUPABASE_KEY:
-        print("Supabase credentials not set — skipping sync", file=sys.stderr)
+        print("Supabase credentials not set - skipping sync", file=sys.stderr)
         sys.exit(1)
 
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -97,7 +97,7 @@ def main() -> None:
 
     rows = [r for day in data if (r := build_row(day)) is not None]
     if not rows:
-        print("No rows to upsert — nothing to do")
+        print("No rows to upsert - nothing to do")
         return
 
     # I upsert on the date column so re-runs are safe and idempotent.

@@ -45,9 +45,9 @@ Private section at `/dashboard` - not linked from public nav, sitemap or command
 | `/dashboard/streaks` | 90-day heatmap; per-streak activity line chart; check-in |
 | `/dashboard/habits` | Habit tracker with frequency (daily/weekly) and check-in logging |
 | `/dashboard/settings` | PIN change, theme toggle, scraper trigger, weekly digest test, Discord digest trigger |
-| `/dashboard/opensource` | Open source contributions tracker — add, edit and delete merged PRs submitted to external repos |
-| `/dashboard/blog-analytics` | Blog read funnel — scroll depth stats per post (25/50/75/100% reached) |
-| `/dashboard/coding` | WakaTime heatmap — daily coding activity from the wakatime-sync GitHub Actions workflow |
+| `/dashboard/opensource` | Open source contributions tracker - add, edit and delete merged PRs submitted to external repos |
+| `/dashboard/blog-analytics` | Blog read funnel - scroll depth stats per post (25/50/75/100% reached) |
+| `/dashboard/coding` | WakaTime heatmap - daily coding activity from the wakatime-sync GitHub Actions workflow |
 
 ---
 
@@ -149,14 +149,19 @@ Category grouping note: the Supabase column has `DEFAULT 'Software Engineering'`
 
 ## Supabase schema
 
-Full schema in `sql/schema.sql`. Run on a fresh project to create all tables from scratch. For existing databases, run the individual migration files in `sql/migrations/` (001–007) in order. See [sql/README.md](../sql/README.md) for the fresh-install guide.
+Full schema in `sql/schema.sql`. Run on a fresh project to create all tables from scratch. For existing databases, run the individual migration files in `sql/migrations/` (001-007) in order. See [sql/README.md](../sql/README.md) for the fresh-install guide.
 
 Key applications columns added in migrations (all in Section B):
 
 - `opening_date`, `last_year_opening`, `housing_location`, `cv_required`, `cover_letter_required`, `written_answers`, `category` (B.8 - added 2026-05-21)
 - `last_scraped_at`, `sponsors_visa` (B.9 - added 2026-05-28)
 
+Inventory URL field (added in migration 008):
+
+- `inventory_items.url` - TEXT nullable; set per item; renders as an external link icon on the inventory card; opened in a new tab when clicked
+
 Vault expiry fields (already present from initial schema):
+
 - `vault_entries.key_expiry` - DATE type, populated by the API key entry form
 - `vault_entries.card_expiry` - TEXT type, MM/YY format, populated by the card entry form
 - `inventory_items.warranty_expiry` - DATE type, populated by the inventory entry form

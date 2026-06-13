@@ -19,6 +19,28 @@ import BlogReactions from "@/components/shared/BlogReactions"
 import SeriesBanner from "@/components/shared/SeriesBanner"
 import ShareButton from "@/components/shared/ShareButton"
 
+function renderInline(text: string): React.ReactNode {
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g)
+  if (parts.length === 1) return text
+  return parts.map((part, i) => {
+    const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+    if (match) {
+      const isExternal = match[2].startsWith("http")
+      return (
+        <a
+          key={i}
+          href={match[2]}
+          {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          className="underline underline-offset-2 decoration-primary/50 hover:decoration-primary transition-colors"
+        >
+          {match[1]}
+        </a>
+      )
+    }
+    return part
+  })
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -74,7 +96,7 @@ function renderBlock(block: ContentBlock, i: number, headingIds?: Map<number, st
     case "p":
       return (
         <p key={i} className={`text-base leading-relaxed ${afterAcknowledgements ? "text-primary/90" : "text-foreground/90"}`}>
-          {block.text}
+          {renderInline(block.text)}
         </p>
       )
     case "h2":
@@ -101,7 +123,7 @@ function renderBlock(block: ContentBlock, i: number, headingIds?: Map<number, st
           {block.items.map((item, j) => (
             <li key={j} className="flex gap-2 text-base text-foreground/90">
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-              <span>{item}</span>
+              <span>{renderInline(item)}</span>
             </li>
           ))}
         </ul>
@@ -114,7 +136,7 @@ function renderBlock(block: ContentBlock, i: number, headingIds?: Map<number, st
               <span className="shrink-0 font-mono text-sm text-primary">
                 {String(j + 1).padStart(2, "0")}.
               </span>
-              <span>{item}</span>
+              <span>{renderInline(item)}</span>
             </li>
           ))}
         </ol>
@@ -185,6 +207,23 @@ function renderBlock(block: ContentBlock, i: number, headingIds?: Map<number, st
               className="absolute inset-0 w-full h-full"
             />
           </div>
+          {block.description && (
+            <figcaption className="text-xs text-center text-muted-foreground italic">
+              {block.description}
+            </figcaption>
+          )}
+        </figure>
+      )
+    case "spotify":
+      return (
+        <figure key={i} className="space-y-2 my-4">
+          <iframe
+            src={`https://open.spotify.com/embed/episode/${block.episodeId}`}
+            title={block.title}
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            className="w-full h-[152px] rounded-lg border border-border/60"
+          />
           {block.description && (
             <figcaption className="text-xs text-center text-muted-foreground italic">
               {block.description}

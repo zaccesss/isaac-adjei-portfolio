@@ -1,4 +1,4 @@
-# Isaac Adjei — Portfolio
+# Isaac Adjei - Portfolio
 
 [![CI](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/ci.yml)
 [![CV PDF](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/cv-pdf.yml/badge.svg)](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/cv-pdf.yml)
@@ -10,7 +10,7 @@
 
 Personal portfolio at [isaacadjei.me](https://isaacadjei.me). Built with Next.js 16 App Router, TypeScript and Tailwind CSS. Server-rendered where possible, client components only where interactivity requires it. Includes a private dashboard with 20+ live integrations, a job scraper pipeline, blog analytics, WakaTime heatmap, and a full CV system with automated PDF/DOCX generation. Deployed on Vercel with Cloudflare DNS.
 
-> For full technical reference — API routes, environment variables, deployment notes — see [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md).
+> For full technical reference - API routes, environment variables, deployment notes - see [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md).
 > For dashboard routes and Supabase schema see [docs/DASHBOARD.md](docs/DASHBOARD.md).
 
 ---
@@ -93,7 +93,7 @@ SQL for the Supabase database lives in `sql/schema.sql` (fresh install) and `sql
 ├── workflows/
 │   ├── ci.yml                        Lint and build check on every PR
 │   ├── cv-pdf.yml                    Regenerate CV PDF/DOCX on cv.html push
-│   ├── job-scraper.yml               Daily job scraper (Mon–Fri, 07:00 UTC)
+│   ├── job-scraper.yml               Daily job scraper (Mon-Fri, 07:00 UTC)
 │   ├── wakatime-sync.yml             Daily WakaTime coding activity sync
 │   ├── vault-expiry-check.yml        Daily vault item expiry check and Discord alert
 │   ├── generate-cvs.yml              Manual CV regeneration trigger
@@ -278,7 +278,7 @@ Most pages work without environment variables. The live status cards (Spotify, M
 | --- | --- | --- |
 | `ci.yml` | Every PR and push | Lint + Next.js build check |
 | `cv-pdf.yml` | Push to `public/resume/cv.html` | Regenerate all CV PDFs and DOCX, create auto-merge PR |
-| `job-scraper.yml` | Daily 07:00 UTC (Mon–Fri) + manual | Scrape jobs from Gradcracker, Handshake, Workable and REST APIs |
+| `job-scraper.yml` | Daily 07:00 UTC (Mon-Fri) + manual | Scrape jobs from Gradcracker, Handshake, Workable and REST APIs |
 | `wakatime-sync.yml` | Daily 01:00 UTC + manual | Sync WakaTime coding stats to `wakatime_daily` in Supabase |
 | `vault-expiry-check.yml` | Daily 09:00 UTC + manual | Check vault item expiry, send Discord alert if any are near or past |
 | `generate-cvs.yml` | Manual | Regenerate role CVs without changing cv.html |
@@ -287,16 +287,4 @@ Most pages work without environment variables. The live status cards (Spotify, M
 
 ---
 
-<div align="center">
-
 Built by [Isaac Adjei](https://isaacadjei.me)
-
-[![isaacadjei.me](https://img.shields.io/badge/isaacadjei.me-000000?style=for-the-badge)](https://isaacadjei.me)
-[![zacess.com](https://img.shields.io/badge/zacess.com-000000?style=for-the-badge)](https://zacess.com)
-[![GitHub](https://img.shields.io/badge/github-zaccesss-181717?style=for-the-badge&logo=github)](https://github.com/zaccesss)
-[![GitLab](https://img.shields.io/badge/gitlab-zaccesss-FC6D26?style=for-the-badge&logo=gitlab&logoColor=white)](https://gitlab.com/zaccesss)
-[![Codeberg](https://img.shields.io/badge/codeberg-zaccesss-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/zaccesss)
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=80&section=footer" alt="footer" />
-
-</div>

@@ -1,6 +1,6 @@
 # components/
 
-Shared React components. Organised by concern — import from the most specific subdirectory.
+Shared React components. Organised by concern - import from the most specific subdirectory.
 
 ## Subdirectories
 
@@ -15,4 +15,4 @@ Shared React components. Organised by concern — import from the most specific 
 | `providers/` | React context providers (theme, session) |
 | `sections/` | Homepage sections: hero, live status grid, social links |
 | `shared/` | Cross-page reusable components: breadcrumbs, badges, section wrappers |
-| `ui/` | shadcn/ui primitives (button, card, dialog, etc.) — auto-generated, do not edit by hand |
+| `ui/` | shadcn/ui primitives (button, card, dialog, etc.) - auto-generated, do not edit by hand |

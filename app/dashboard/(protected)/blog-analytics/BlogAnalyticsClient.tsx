@@ -83,7 +83,7 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
         <div className="border border-border rounded-lg p-4 bg-card">
           <p className="text-xs text-muted-foreground">Avg completion</p>
           <p className="text-2xl font-bold mt-1">
-            {avgCompletion !== null ? `${avgCompletion}%` : "—"}
+            {avgCompletion !== null ? `${avgCompletion}%` : "-"}
           </p>
         </div>
       </div>
@@ -146,7 +146,7 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
                   <td className="px-3 py-2 tabular-nums">
                     {row.completion_rate !== null
                       ? `${Math.round(row.completion_rate * 100)}%`
-                      : "—"}
+                      : "-"}
                   </td>
                   {/* I draw four stacked bars that shrink proportionally to visualise drop-off */}
                   <td className="px-3 py-2 min-w-[160px]">

@@ -22,8 +22,8 @@ function formatHours(seconds: number) {
 function intensity(seconds: number): 0 | 1 | 2 | 3 | 4 {
   if (seconds === 0) return 0
   if (seconds < 1800) return 1    // < 30 min
-  if (seconds < 7200) return 2    // 30 min – 2 hr
-  if (seconds < 14400) return 3   // 2 – 4 hr
+  if (seconds < 7200) return 2    // 30 min - 2 hr
+  if (seconds < 14400) return 3   // 2 - 4 hr
   return 4                        // 4 hr+
 }
 
@@ -173,7 +173,7 @@ export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
         {/* Tooltip */}
         {tooltip && (
           <div className="mt-2 text-xs text-muted-foreground">
-            {tooltip.date} — {tooltip.seconds > 0 ? formatHours(tooltip.seconds) : "no data"}
+            {tooltip.date} - {tooltip.seconds > 0 ? formatHours(tooltip.seconds) : "no data"}
           </div>
         )}
 
