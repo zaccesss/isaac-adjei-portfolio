@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic"
 
 const SITE_URL = "https://www.isaacadjei.me"
 
-function buildXml(posts: ReturnType<typeof getPublishedPosts>) {
+function buildXml(posts: ReturnType<typeof getPublishedPosts>, includeStylesheet = true) {
   const items = posts
     .map((post) => {
       const url = `${SITE_URL}/blog/${post.slug}`
@@ -31,7 +31,7 @@ ${categories}
     .join("")
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="/feed.xsl"?>
+${includeStylesheet ? '<?xml-stylesheet type="text/xsl" href="/feed.xsl"?>\n' : ''}
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Isaac Adjei</title>
@@ -180,9 +180,9 @@ export function GET(request: Request) {
   // I serve plain XML when ?raw is requested - the old syntax-highlighted HTML viewer
   // ran too many regex passes over the full XML string and exceeded Cloudflare's CPU limit.
   if (forceRaw) {
-    return new Response(buildXml(posts), {
+    return new Response(buildXml(posts, false), {
       headers: {
-        "Content-Type": "application/rss+xml; charset=utf-8",
+        "Content-Type": "text/xml; charset=utf-8",
         "Cache-Control": "public, max-age=3600",
       },
     })
