@@ -18,6 +18,11 @@ docs/session-logs/
 
 # misc
 .DS_Store
+
+# python
+__pycache__/
+*.pyc
+*.pyo
 Thumbs.db
 
 # env / secrets - never commit these
