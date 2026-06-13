@@ -12,7 +12,19 @@ function formatAction(action: string): string {
     "note.create": "Created note",
     "note.delete": "Deleted note",
     "application.create": "Added application",
+    "application.update": "Updated application",
     "application.delete": "Deleted application",
+    "vault.create": "Added vault entry",
+    "vault.delete": "Removed vault entry",
+    "wishlist.create": "Added to wishlist",
+    "wishlist.delete": "Removed from wishlist",
+    "inventory.create": "Added inventory item",
+    "inventory.delete": "Removed inventory item",
+    "streak.checkin": "Streak check-in",
+    "opensource.create": "Added open source contribution",
+    "opensource.update": "Updated contribution",
+    "opensource.delete": "Removed contribution",
+    "opensource.bulk_delete": "Bulk deleted contributions",
   }
   return labels[action] ?? action
 }

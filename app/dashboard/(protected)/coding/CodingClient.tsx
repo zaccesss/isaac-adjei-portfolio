@@ -2,13 +2,27 @@
 
 import { useMemo, useState } from "react"
 import { Code2 } from "lucide-react"
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+} from "recharts"
 import type { WakatimeDayRow } from "@/app/dashboard/actions"
-
-// I build the full 52-week × 7-day grid from a sparse array of rows, so days
-// with no data show as empty cells rather than being absent from the grid.
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+// AI assistant tools that should never appear in the editors chart
+const AI_EDITORS = new Set([
+  "Claude Code", "Codex", "OpenAI", "Cursor", "GitHub Copilot", "Codeium",
+  "Tabnine", "Amazon Q", "Gemini", "Cody", "Continue",
+])
+
+const CHART_COLORS = [
+  "hsl(var(--primary))",
+  "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6",
+  "#06b6d4", "#f97316", "#ec4899", "#14b8a6",
+]
 
 function formatHours(seconds: number) {
   const h = Math.floor(seconds / 3600)
@@ -18,13 +32,12 @@ function formatHours(seconds: number) {
   return `${h}h ${m}m`
 }
 
-// I map total daily seconds to one of five intensity levels for the heatmap cells.
 function intensity(seconds: number): 0 | 1 | 2 | 3 | 4 {
   if (seconds === 0) return 0
-  if (seconds < 1800) return 1    // < 30 min
-  if (seconds < 7200) return 2    // 30 min - 2 hr
-  if (seconds < 14400) return 3   // 2 - 4 hr
-  return 4                        // 4 hr+
+  if (seconds < 1800) return 1
+  if (seconds < 7200) return 2
+  if (seconds < 14400) return 3
+  return 4
 }
 
 const INTENSITY_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
@@ -35,26 +48,17 @@ const INTENSITY_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
   4: "bg-green-800 dark:bg-green-300",
 }
 
-type GridCell = {
-  date: string        // YYYY-MM-DD
-  seconds: number
-  level: 0 | 1 | 2 | 3 | 4
-}
+type GridCell = { date: string; seconds: number; level: 0 | 1 | 2 | 3 | 4 }
 
-// I build a 52-week grid anchored to today so the most recent column is always
-// on the right, regardless of when the data starts.
 function buildGrid(rows: WakatimeDayRow[]): GridCell[][] {
   const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
-
   const today = new Date()
-  // I find the Sunday that starts the week containing today.
   const startOfLastWeek = new Date(today)
   startOfLastWeek.setDate(today.getDate() - today.getDay() + 7 - 52 * 7)
   startOfLastWeek.setHours(0, 0, 0, 0)
 
   const weeks: GridCell[][] = []
   const cursor = new Date(startOfLastWeek)
-
   for (let w = 0; w < 52; w++) {
     const week: GridCell[] = []
     for (let d = 0; d < 7; d++) {
@@ -68,46 +72,131 @@ function buildGrid(rows: WakatimeDayRow[]): GridCell[][] {
   return weeks
 }
 
-// I return the month label for a week column, or null if this week doesn't
-// start a new month (so labels only appear once per month).
 function monthLabel(week: GridCell[]): string | null {
   const firstDay = new Date(week[0].date)
-  // I show the label on the week that contains the 1st of the month.
   if (firstDay.getDate() <= 7) return MONTHS[firstDay.getMonth()]
   return null
 }
 
+function DonutPanel({
+  title,
+  data,
+  total,
+}: {
+  title: string
+  data: { name: string; value: number }[]
+  total: number
+}) {
+  if (data.length === 0) {
+    return (
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <h2 className="text-sm font-semibold mb-2">{title}</h2>
+        <p className="text-xs text-muted-foreground">No data yet.</p>
+      </div>
+    )
+  }
+  return (
+    <div className="border border-border rounded-lg p-4 bg-card">
+      <h2 className="text-sm font-semibold mb-2">{title}</h2>
+      <ResponsiveContainer width="100%" height={150}>
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={40}
+            outerRadius={60}
+            dataKey="value"
+            paddingAngle={2}
+          >
+            {data.map((_, i) => (
+              <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(v) => [typeof v === "number" ? formatHours(v) : v, ""]}
+            contentStyle={{ fontSize: "11px" }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="flex flex-col gap-1 mt-1">
+        {data.map((item, i) => (
+          <div key={item.name} className="flex items-center justify-between text-xs gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span
+                className="h-2 w-2 rounded-full shrink-0"
+                style={{ background: CHART_COLORS[i % CHART_COLORS.length] }}
+              />
+              <span className="text-muted-foreground truncate">{item.name}</span>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0 tabular-nums">
+              <span>{formatHours(item.value)}</span>
+              <span className="text-muted-foreground">
+                {total > 0 ? `${Math.round((item.value / total) * 100)}%` : ""}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
   const [tooltip, setTooltip] = useState<{ date: string; seconds: number } | null>(null)
-
   const grid = useMemo(() => buildGrid(rows), [rows])
 
-  // I compute summary stats from the raw rows array.
   const totalSecondsYear = rows.reduce((acc, r) => acc + r.total_seconds, 0)
-
-  // I calculate this week's total from the last 7 grid cells.
   const lastWeek = grid[grid.length - 1] ?? []
   const totalSecondsWeek = lastWeek.reduce((acc, c) => acc + c.seconds, 0)
+  const activeDays = rows.filter((r) => r.total_seconds > 0).length
+  const avgSeconds = activeDays > 0 ? Math.floor(totalSecondsYear / activeDays) : 0
 
-  // I aggregate all language/project rows across the year for the top-lists.
+  const mostActiveRow = rows.reduce<WakatimeDayRow | null>(
+    (best, r) => (!best || r.total_seconds > best.total_seconds ? r : best),
+    null
+  )
+  const mostActiveLabel = mostActiveRow && mostActiveRow.total_seconds > 0
+    ? new Date(mostActiveRow.date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
+    : "—"
+
   const langMap = new Map<string, number>()
   const projMap = new Map<string, number>()
   const editMap = new Map<string, number>()
+  const osMap = new Map<string, number>()
+  const weekdayMap = [0, 0, 0, 0, 0, 0, 0]
+
   for (const row of rows) {
     for (const l of row.languages ?? []) langMap.set(l.name, (langMap.get(l.name) ?? 0) + l.total_seconds)
     for (const p of row.projects ?? []) projMap.set(p.name, (projMap.get(p.name) ?? 0) + p.total_seconds)
-    for (const e of row.editors ?? []) editMap.set(e.name, (editMap.get(e.name) ?? 0) + e.total_seconds)
+    for (const e of row.editors ?? []) {
+      if (AI_EDITORS.has(e.name)) continue
+      editMap.set(e.name, (editMap.get(e.name) ?? 0) + e.total_seconds)
+    }
+    for (const o of row.operating_systems ?? []) osMap.set(o.name, (osMap.get(o.name) ?? 0) + o.total_seconds)
+    if (row.total_seconds > 0) {
+      // JS getDay: 0=Sun, map to Mon-Sun index
+      const dow = new Date(row.date + "T00:00:00").getDay()
+      const idx = dow === 0 ? 6 : dow - 1
+      weekdayMap[idx] += row.total_seconds
+    }
   }
 
   const topLangs = [...langMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
   const topProjs = [...projMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
   const topEdits = [...editMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
-  const maxLangSeconds = topLangs[0]?.[1] ?? 1
+  const topOs = [...osMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
+  const totalLangSeconds = topLangs.reduce((acc, [, s]) => acc + s, 0)
+  const totalEditSeconds = topEdits.reduce((acc, [, s]) => acc + s, 0)
+  const totalOsSeconds = topOs.reduce((acc, [, s]) => acc + s, 0)
+
+  const langPieData = topLangs.map(([name, value]) => ({ name, value }))
+  const editPieData = topEdits.map(([name, value]) => ({ name, value }))
+  const osPieData = topOs.map(([name, value]) => ({ name, value }))
+  const weekdayData = WEEKDAY_LABELS.map((day, i) => ({ day, seconds: weekdayMap[i] }))
 
   return (
     <div className="flex flex-col gap-6">
-
-      {/* Header */}
       <div className="flex items-center gap-3">
         <Code2 className="h-6 w-6 text-muted-foreground" />
         <div>
@@ -119,7 +208,7 @@ export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="border border-border rounded-lg p-4 bg-card">
           <p className="text-xs text-muted-foreground">This year</p>
           <p className="text-2xl font-bold mt-1">{formatHours(totalSecondsYear)}</p>
@@ -130,14 +219,21 @@ export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
         </div>
         <div className="border border-border rounded-lg p-4 bg-card">
           <p className="text-xs text-muted-foreground">Active days</p>
-          <p className="text-2xl font-bold mt-1">{rows.filter((r) => r.total_seconds > 0).length}</p>
+          <p className="text-2xl font-bold mt-1">{activeDays}</p>
+        </div>
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <p className="text-xs text-muted-foreground">Daily average</p>
+          <p className="text-2xl font-bold mt-1">{formatHours(avgSeconds)}</p>
+        </div>
+        <div className="border border-border rounded-lg p-4 bg-card sm:col-span-1 col-span-2">
+          <p className="text-xs text-muted-foreground">Most active day</p>
+          <p className="text-lg font-bold mt-1 leading-tight">{mostActiveLabel}</p>
         </div>
       </div>
 
       {/* Heatmap */}
       <div className="border border-border rounded-lg p-4 bg-card overflow-x-auto">
         <div className="flex gap-1 mb-1">
-          {/* I leave a gap column for the day labels */}
           <div className="w-6 shrink-0" />
           {grid.map((week, wi) => (
             <div key={wi} className="w-3 shrink-0 text-[9px] text-muted-foreground text-center">
@@ -146,7 +242,6 @@ export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
           ))}
         </div>
         <div className="flex gap-1">
-          {/* Day-of-week labels */}
           <div className="flex flex-col gap-1 w-6 shrink-0">
             {DAYS.map((d, i) => (
               <div key={d} className={`h-3 text-[9px] text-muted-foreground leading-3 ${i % 2 === 0 ? "opacity-0" : ""}`}>
@@ -154,7 +249,6 @@ export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
               </div>
             ))}
           </div>
-          {/* Grid columns */}
           {grid.map((week, wi) => (
             <div key={wi} className="flex flex-col gap-1">
               {week.map((cell) => (
@@ -169,15 +263,11 @@ export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
             </div>
           ))}
         </div>
-
-        {/* Tooltip */}
         {tooltip && (
           <div className="mt-2 text-xs text-muted-foreground">
-            {tooltip.date} - {tooltip.seconds > 0 ? formatHours(tooltip.seconds) : "no data"}
+            {tooltip.date} — {tooltip.seconds > 0 ? formatHours(tooltip.seconds) : "no data"}
           </div>
         )}
-
-        {/* Legend */}
         <div className="flex items-center gap-1.5 mt-3">
           <span className="text-xs text-muted-foreground">Less</span>
           {([0, 1, 2, 3, 4] as const).map((lvl) => (
@@ -187,66 +277,92 @@ export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
         </div>
       </div>
 
-      {/* Bottom panels */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Languages — horizontal bars */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <h2 className="text-sm font-semibold mb-3">Languages</h2>
+        {topLangs.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No data yet.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {topLangs.map(([name, secs], i) => (
+              <div key={name} className="flex items-center gap-2">
+                <span className="text-xs w-24 truncate text-muted-foreground">{name}</span>
+                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${Math.round((secs / (totalLangSeconds || 1)) * 100)}%`,
+                      background: CHART_COLORS[i % CHART_COLORS.length],
+                    }}
+                  />
+                </div>
+                <span className="text-xs tabular-nums text-muted-foreground w-14 text-right">
+                  {formatHours(secs)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
-        {/* Top languages */}
-        <div className="border border-border rounded-lg p-4 bg-card md:col-span-2">
-          <h2 className="text-sm font-semibold mb-3">Languages</h2>
-          {topLangs.length === 0 ? (
+      {/* Donut charts row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <DonutPanel title="Languages" data={langPieData} total={totalLangSeconds} />
+        <DonutPanel title="Editors" data={editPieData} total={totalEditSeconds} />
+        {osPieData.length > 0 ? (
+          <DonutPanel title="Operating Systems" data={osPieData} total={totalOsSeconds} />
+        ) : (
+          <div className="border border-border rounded-lg p-4 bg-card">
+            <h2 className="text-sm font-semibold mb-2">Operating Systems</h2>
+            <p className="text-xs text-muted-foreground">
+              Data will appear after the next WakaTime sync.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Projects + Weekdays */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <h2 className="text-sm font-semibold mb-3">Projects</h2>
+          {topProjs.length === 0 ? (
             <p className="text-xs text-muted-foreground">No data yet.</p>
           ) : (
-            <div className="flex flex-col gap-2">
-              {topLangs.map(([name, secs]) => (
-                <div key={name} className="flex items-center gap-2">
-                  <span className="text-xs w-24 truncate text-muted-foreground">{name}</span>
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full"
-                      style={{ width: `${Math.round((secs / maxLangSeconds) * 100)}%` }}
-                    />
-                  </div>
-                  <span className="text-xs tabular-nums text-muted-foreground w-14 text-right">
-                    {formatHours(secs)}
-                  </span>
+            <div className="flex flex-col gap-1.5">
+              {topProjs.map(([name, secs]) => (
+                <div key={name} className="flex justify-between text-xs">
+                  <span className="text-muted-foreground truncate">{name}</span>
+                  <span className="tabular-nums shrink-0 ml-2">{formatHours(secs)}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Top editors + projects stacked */}
-        <div className="flex flex-col gap-4">
-          <div className="border border-border rounded-lg p-4 bg-card">
-            <h2 className="text-sm font-semibold mb-3">Editors</h2>
-            {topEdits.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No data yet.</p>
-            ) : (
-              <div className="flex flex-col gap-1.5">
-                {topEdits.map(([name, secs]) => (
-                  <div key={name} className="flex justify-between text-xs">
-                    <span className="text-muted-foreground truncate">{name}</span>
-                    <span className="tabular-nums shrink-0 ml-2">{formatHours(secs)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="border border-border rounded-lg p-4 bg-card">
-            <h2 className="text-sm font-semibold mb-3">Projects</h2>
-            {topProjs.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No data yet.</p>
-            ) : (
-              <div className="flex flex-col gap-1.5">
-                {topProjs.map(([name, secs]) => (
-                  <div key={name} className="flex justify-between text-xs">
-                    <span className="text-muted-foreground truncate">{name}</span>
-                    <span className="tabular-nums shrink-0 ml-2">{formatHours(secs)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <h2 className="text-sm font-semibold mb-3">Weekdays</h2>
+          {activeDays === 0 ? (
+            <p className="text-xs text-muted-foreground">No data yet.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart data={weekdayData} barSize={18}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis hide />
+                <Tooltip
+                  formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]}
+                  contentStyle={{ fontSize: "11px" }}
+                  cursor={{ fill: "hsl(var(--muted))" }}
+                />
+                <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
     </div>
