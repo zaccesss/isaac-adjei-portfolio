@@ -59,7 +59,7 @@ const SANS_SERIF_ROLES = new Set(['software', 'embedded', 'devops', 'quant']);
 // I inject this style block before </head> in tech role CVs to override the
 // main CV's Cambria/Georgia font without touching public/resume/cv.html.
 const FONT_OVERRIDE_CSS = `<style>
-  /* Role CV font override — modern sans-serif for tech roles */
+  /* Role CV font override - modern sans-serif for tech roles */
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   body, * {
     font-family: 'Inter', system-ui, Arial, sans-serif !important;
@@ -115,20 +115,17 @@ function getEntryKey(entryHtml, priorityKeys) {
 }
 
 function reorderEntryBlock(sectionHtml, entryClass, priority) {
-  // I split on the opening tag of each entry to isolate the blocks.
   const marker = `<div class="${entryClass}">`;
-  const parts = sectionHtml.split(marker);
-  // I return early when there are no entries to avoid mutating empty sections.
+  // Strip HTML comments before splitting so commented-out entries (e.g. the PAL Leader
+  // placeholder) are not treated as real entries during reordering.
+  const stripped = sectionHtml.replace(/<!--[\s\S]*?-->/g, '');
+  const parts = stripped.split(marker);
   if (parts.length < 2) return sectionHtml;
-  // parts[0] is the section preamble (comment + section div + section title).
-  // I re-attach the marker to every subsequent part to rebuild full entries.
   const preamble = parts[0];
   const entries = parts.slice(1).map(p => marker + p);
   const sorted = [...entries].sort((a, b) => {
-    // I find the first priority key that appears anywhere in each entry.
     const idxA = priority.indexOf(getEntryKey(a, priority) ?? '');
     const idxB = priority.indexOf(getEntryKey(b, priority) ?? '');
-    // I push unrecognised entries to the end rather than dropping them.
     return (idxA === -1 ? priority.length : idxA)
          - (idxB === -1 ? priority.length : idxB);
   });
@@ -156,12 +153,12 @@ function extractSection(html, startMarker, endMarker) {
 function createRoleCV(roleConfig, roleId) {
   // I extract each named section from the main CV using comment markers.
   let header = extractSection(mainCV, '<!doctype', '<!-- PROFILE -->');
-  const education = extractSection(mainCV, '<!-- EDUCATION -->', '<!-- SKILLS -->');
-  const skills = extractSection(mainCV, '<!-- SKILLS -->', '<!-- PROJECTS -->');
+  const education = extractSection(mainCV, '<!-- EDUCATION -->', '<!-- TECHNICAL SKILLS -->');
+  const skills = extractSection(mainCV, '<!-- TECHNICAL SKILLS -->', '<!-- PROJECTS -->');
   const projects = extractSection(mainCV, '<!-- PROJECTS -->', '<!-- EXPERIENCE -->');
   const experience = extractSection(mainCV, '<!-- EXPERIENCE -->', '<!-- VOLUNTEERING -->');
-  const volunteering = extractSection(mainCV, '<!-- VOLUNTEERING -->', '<!-- LANGUAGES -->');
-  const languages = extractSection(mainCV, '<!-- LANGUAGES -->', '<script>');
+  const volunteering = extractSection(mainCV, '<!-- VOLUNTEERING -->', '<!-- SPOKEN LANGUAGES -->');
+  const languages = extractSection(mainCV, '<!-- SPOKEN LANGUAGES -->', '<script>');
 
   // I strip any inline scripts that sneak in through the header extraction.
   header = header.split('<script>')[0];

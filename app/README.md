@@ -6,13 +6,13 @@ Next.js 16 App Router. Every folder here is either a route segment or a route gr
 
 | Directory | Type | Description |
 | --- | --- | --- |
-| `(public)/` | Route group | Public-facing pages — no auth required |
+| `(public)/` | Route group | Public-facing pages - no auth required |
 | `api/` | API routes | Server-side endpoints (REST + Next.js route handlers) |
 | `dashboard/` | Route group | Private dashboard (GitHub OAuth via NextAuth) |
 
 ## Public routes
 
-`about`, `blog`, `changelog`, `colophon`, `consumed`, `cv`, `experience`, `lab`, `links`, `newsletter`, `notes`, `now`, `projects`, `skills`, `uses` — all live under `(public)/`.
+`about`, `blog`, `changelog`, `colophon`, `consumed`, `cv`, `experience`, `lab`, `links`, `newsletter`, `notes`, `now`, `projects`, `skills`, `uses` - all live under `(public)/`.
 
 The homepage (`page.tsx`) is at the `app/` root.
 

@@ -149,6 +149,9 @@ export default function MeClient({ profile: initial }: { profile: Profile }) {
             {profile.location ? ` · ${profile.location}` : ""}
           </p>
           <div className="flex items-center gap-3 mt-1">
+            <a href="/cv" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs">
+              <ExternalLink className="h-3.5 w-3.5" />View CV
+            </a>
             {profile.github && (
               <a href={`https://github.com/${profile.github}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs">
                 <Github className="h-3.5 w-3.5" />{profile.github}

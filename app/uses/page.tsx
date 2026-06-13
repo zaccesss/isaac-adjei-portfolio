@@ -150,7 +150,7 @@ const sections: Array<{
       {
         name: "Bash / zsh",
         icon: `${DEV}/bash/bash-original.svg`,
-        detail: "Shell of choice on the MacBook and any Linux environment. zsh on macOS, bash on Linux — both load the same dotfiles topic structure so the experience is identical.",
+        detail: "Shell of choice on the MacBook and any Linux environment. zsh on macOS, bash on Linux - both load the same dotfiles topic structure so the experience is identical.",
       },
       {
         name: "NSSM",

@@ -44,24 +44,37 @@ export function AssessmentBarChart({ data }: { data: AssessmentPoint[] }) {
 }
 
 export function ProgressLineChart({ data }: { data: AssessmentPoint[] }) {
-  // I map to a sequential index rather than using the name on the x-axis so the trend reads left-to-right over time
-  const points = data.filter((d) => d.mark != null).map((d, i) => ({ ...d, index: i + 1 }))
-  // I require at least two points because a single point cannot show a trend
+  const points = data.filter((d) => d.mark != null).map((d) => ({
+    ...d,
+    shortName: d.name.length > 12 ? d.name.slice(0, 11) + "…" : d.name,
+  }))
   if (points.length < 2) return null
 
   return (
-    <div className="h-40 w-full">
+    <div className="h-44 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={points} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+        <LineChart data={points} margin={{ top: 4, right: 8, left: -20, bottom: 24 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
-          <XAxis dataKey="index" tick={{ fontSize: 10 }} tickLine={false} />
+          <XAxis
+            dataKey="shortName"
+            tick={{ fontSize: 9 }}
+            tickLine={false}
+            angle={-30}
+            textAnchor="end"
+            interval={0}
+          />
           <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} tickLine={false} />
           <Tooltip
             formatter={(v) => [`${v}%`, "Mark"]}
+            labelFormatter={(label) => {
+              const p = points.find((x) => x.shortName === label)
+              return p?.name ?? label
+            }}
             contentStyle={{ fontSize: 12, borderRadius: 8 }}
           />
           <ReferenceLine y={80} stroke="#22c55e" strokeDasharray="4 4" strokeOpacity={0.6} />
-          <Line type="monotone" dataKey="mark" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
+          <ReferenceLine y={60} stroke="#f59e0b" strokeDasharray="4 4" strokeOpacity={0.6} />
+          <Line type="monotone" dataKey="mark" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>

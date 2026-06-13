@@ -16,6 +16,7 @@ export type ContentBlock =
   | { type: "quote"; text: string; source?: string }
   | { type: "image"; src: string; alt: string; caption?: string }
   | { type: "video"; youtubeId: string; title: string; description?: string }
+  | { type: "spotify"; episodeId: string; title: string; description?: string }
   | { type: "divider" }
 
 // A single blog post - slug is used for the URL, readingTime is shown on the card
@@ -180,7 +181,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "I am a Student Representative at Aston Students Union, a Student Member of the IET and active in the Aston Ghana Society, Computing Society and Gaming Society. In 2026 I was named a Top 40 Finalist for the Black Heritage Undergraduate of the Year Award, run by TargetJobs and Sky. I completed the Cancer Research UK 10 Days of 5K Challenge, running more than 50 kilometres to raise funds for cancer research. I also completed a student judging role for the targetjobs National Graduate Recruitment Awards.",
+        text: "I am a Student Representative at Aston Students Union, a Student Member of the [IET](https://www.theiet.org) and active in the Aston Ghana Society, Computing Society and Gaming Society. In 2026 I was named a Top 40 Finalist for the Black Heritage Undergraduate of the Year Award, run by TargetJobs and Sky. I completed the Cancer Research UK 10 Days of 5K Challenge, running more than 50 kilometres to raise funds for cancer research. I also completed a student judging role for the targetjobs National Graduate Recruitment Awards.",
       },
       {
         type: "h2",
@@ -192,7 +193,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "On the technical side: I have designed and built a two-stage audio amplifier as a PCB from scratch, a 4x4x4 NeoPixel LED Cube with adaptive brightness, a full-stack predictive maintenance platform called Phaemos (ongoing), an open-source Git course with over 200 files and Zaccess, an ongoing accessibility tool that uses OCR and text-to-speech to convert lecture slides into readable notes. I work across bare-metal C for microcontrollers, full-stack web with Next.js and Python-based machine learning.",
+        text: "On the technical side: I have designed and built a [two-stage audio amplifier](/blog/two-stage-audio-amplifier) as a PCB from scratch, a 4x4x4 [NeoPixel LED Cube](/projects/led-cube) with adaptive brightness, a full-stack predictive maintenance platform called [Phaemos](/projects/phaemos) (ongoing), an open-source Git course with over 200 files and Zaccess, an ongoing accessibility tool that uses OCR and text-to-speech to convert lecture slides into readable notes. I work across bare-metal C for microcontrollers, full-stack web with Next.js and Python-based machine learning.",
       },
       {
         type: "p",
@@ -236,7 +237,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "This report describes the design, simulation, testing and implementation of a two-stage audio amplifier capable of accepting an audio input signal from a mobile phone and amplifying it to drive an external speaker. The amplifier was optimised for use with an iPhone 14 Pro Max, with a design input level of 0.872 Vpp at volume step 15 of 16, corresponding to 70% of the maximum measured output at 440 Hz. The target output is 3 Vpp across an 8 ohm speaker load. The system operates from either a 12 V DC power adapter or a 9 V PP3 battery, with an on/off switch and green LED indicator.",
+        text: "This report describes the design, simulation, testing and implementation of a two-stage audio amplifier (see also the [project page](/projects/audio-amplifier)) capable of accepting an audio input signal from a mobile phone and amplifying it to drive an external speaker. The amplifier was optimised for use with an iPhone 14 Pro Max, with a design input level of 0.872 Vpp at volume step 15 of 16, corresponding to 70% of the maximum measured output at 440 Hz. The target output is 3 Vpp across an 8 ohm speaker load. The system operates from either a 12 V DC power adapter or a 9 V PP3 battery, with an on/off switch and green LED indicator.",
       },
       {
         type: "p",
@@ -402,7 +403,7 @@ export const posts: BlogPost[] = [
       },
       {
         type: "p",
-        text: "The printed circuit board was designed in Proteus PCB Layout with overall dimensions of 65 mm x 40 mm. Component placement followed the principle of signal flow from left to right, with the audio input jack socket J1 on the left edge, the power supply terminal block on the top right edge and the speaker output on the bottom right edge. Signal tracks were routed at 0.762 mm and power supply tracks at 1.016 mm. A copper pour was applied to the bottom layer to form a continuous ground plane, reducing ground return impedance and improving electromagnetic compatibility.",
+        text: "The printed circuit board was designed in [Proteus](https://www.labcenter.com) PCB Layout with overall dimensions of 65 mm x 40 mm. Component placement followed the principle of signal flow from left to right, with the audio input jack socket J1 on the left edge, the power supply terminal block on the top right edge and the speaker output on the bottom right edge. Signal tracks were routed at 0.762 mm and power supply tracks at 1.016 mm. A copper pour was applied to the bottom layer to form a continuous ground plane, reducing ground return impedance and improving electromagnetic compatibility.",
       },
       {
         type: "image",
@@ -539,13 +540,13 @@ export const posts: BlogPost[] = [
         items: [
           { text: "Texas Instruments, TL071 JFET-Input Operational Amplifiers, SLOS080L, 2014.", url: "https://www.ti.com/lit/ds/symlink/tl071.pdf" },
           { text: "Texas Instruments, OPA551 High-Voltage High-Current Operational Amplifier, SBOS100A, 2004.", url: "https://www.ti.com/lit/ds/symlink/opa551.pdf" },
-          { text: "N. Storey, Electronics: A Systems Approach, 6th ed. Harlow: Pearson, 2017." },
-          { text: "P. Horowitz and W. Hill, The Art of Electronics, 3rd ed. Cambridge University Press, 2015." },
-          { text: "P. Scherz and S. Monk, Practical Electronics for Inventors, 4th ed. McGraw-Hill, 2016." },
+          { text: "N. Storey, Electronics: A Systems Approach, 6th ed. Harlow: Pearson, 2017.", url: "https://www.pearson.com/en-gb/subject-catalog/p/electronics-a-systems-approach/P200000004958" },
+          { text: "P. Horowitz and W. Hill, The Art of Electronics, 3rd ed. Cambridge University Press, 2015.", url: "https://www.amazon.co.uk/Art-Electronics-Paul-Horowitz/dp/0521809266" },
+          { text: "P. Scherz and S. Monk, Practical Electronics for Inventors, 4th ed. McGraw-Hill, 2016.", url: "https://www.amazon.co.uk/Practical-Electronics-Inventors-Fourth-Scherz/dp/1259587541" },
           { text: "H. Zumbahlen, Ed., Linear Circuit Design Handbook. Newnes/Elsevier, 2008.", url: "https://www.analog.com/en/resources/technical-books/linear-circuit-design-handbook.html" },
           { text: "Texas Instruments, Handbook of Operational Amplifier Applications, SBOA092B, 2016.", url: "https://www.ti.com/lit/an/sboa092b/sboa092b.pdf" },
-          { text: "Texas Instruments, A Single-Supply Op-Amp Circuit Collection, SLOA058, 2000." },
-          { text: "R. Mancini, Ed., Op Amps for Everyone, SLOD006B, Texas Instruments, 2002." },
+          { text: "Texas Instruments, A Single-Supply Op-Amp Circuit Collection, SLOA058, 2000.", url: "https://www.ti.com/lit/an/sloa058/sloa058.pdf" },
+          { text: "R. Mancini, Ed., Op Amps for Everyone, SLOD006B, Texas Instruments, 2002.", url: "https://www.ti.com/lit/an/slod006b/slod006b.pdf" },
           { text: "Texas Instruments, Audio Amplifier Design, SLOA030, 1999.", url: "https://www.ti.com/lit/an/sloa030/sloa030.pdf" },
           { text: "O. Bishop, Electronics, 3rd ed. Newnes/Elsevier, 2003." },
           { text: "K. Brindley, Starting Electronics, 4th ed. Newnes/Elsevier, 2011." },
@@ -570,11 +571,11 @@ export const posts: BlogPost[] = [
     content: [
       {
         type: "p",
-        text: "Most embedded tutorials start with a framework. Arduino, HAL, CubeMX. They abstract away the hardware so you can get an LED blinking in five minutes without understanding a single register. That is fine for prototyping. It is not fine for learning.",
+        text: "Bare-metal programming means writing code that runs directly on the microcontroller hardware with no operating system between your code and the chip. Every register access, every timing decision and every peripheral configuration is yours to write explicitly. Most embedded tutorials hide this behind a framework.",
       },
       {
         type: "p",
-        text: "This project was a deliberate choice to do the opposite. I wanted to write directly to hardware registers on an ATmega644P microcontroller with no library in between. To understand not just what the code does but what the silicon does when the code runs.",
+        text: "Arduino, HAL and CubeMX abstract away the hardware so you can get an LED blinking in five minutes without understanding a single register. That is fine for prototyping. It is not fine for learning. This project was a deliberate choice to do the opposite: write directly to hardware registers on an ATmega644P microcontroller with no library in between. To understand not just what the code does but what the silicon does when the code runs. The full source is in the [avr-zac](https://github.com/zaccesss/avr-zac) repository.",
       },
       {
         type: "h2",
@@ -721,6 +722,21 @@ srandom(ADC);`,
         type: "p",
         text: "This project is still ongoing. The nine-mode state machine documented here is the current milestone. Future sessions will add UART transmission, ADC reception and more advanced timing patterns. I will update this post as the project progresses.",
       },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "ATmega644P datasheet - Microchip Technology (the primary reference for all register configuration in this project)", url: "https://www.microchip.com/en-us/product/atmega644p" },
+          { text: "avr-zac repository - full source code for the nine-mode state machine project", url: "https://github.com/zaccesss/avr-zac" },
+          { text: "AVR-GCC documentation - compiler documentation for the AVR toolchain", url: "https://gcc.gnu.org/wiki/avr-gcc" },
+          { text: "Wikipedia: AVR microcontrollers - architecture overview and history", url: "https://en.wikipedia.org/wiki/AVR_microcontrollers" },
+          { text: "Microchip Studio - the official IDE for AVR and SAM microcontrollers (formerly Atmel Studio)", url: "https://www.microchip.com/en-us/tools-resources/develop/microchip-studio" },
+          { text: "AVR-libc reference manual - standard C library for AVR devices", url: "https://www.nongnu.org/avr-libc/user-manual/index.html" },
+        ],
+      },
     ],
   },
 
@@ -745,7 +761,11 @@ srandom(ADC);`,
       },
       {
         type: "p",
-        text: "The NeoPixel LED Cube started as a university assignment and turned into something I am genuinely proud of. 64 individually addressable WS2812B LEDs, hand-soldered into a 4x4x4 matrix, controlled by an Arduino Uno with adaptive brightness and physical button controls. No pre-made cube kit. Built from scratch.",
+        text: "A WS2812B is an addressable RGB LED: each one contains a tiny built-in controller chip that lets you set its colour independently using a single data wire. You chain them together and send a 24-bit colour value for each LED in sequence. The chip handles the rest.",
+      },
+      {
+        type: "p",
+        text: "The [NeoPixel LED Cube](/projects/led-cube) started as a university assignment and turned into something I am genuinely proud of. 64 individually addressable WS2812B LEDs, hand-soldered into a 4x4x4 matrix, controlled by an [Arduino](https://www.arduino.cc) Uno with adaptive brightness and physical button controls. No pre-made cube kit. Built from scratch.",
       },
       {
         type: "h2",
@@ -772,7 +792,7 @@ srandom(ADC);`,
       },
       {
         type: "p",
-        text: "Power budgeting was one of the most important design decisions. Each WS2812B LED draws up to 60 mA at full white brightness. With 64 LEDs that is potentially 3.84 A. Running all LEDs at full white would require a substantial power supply and would generate significant heat. The solution was to cap brightness in software and never display full white on all LEDs simultaneously. In practice the cube draws well under 2 A during normal operation.",
+        text: "Power budgeting was one of the most important design decisions. Each WS2812B LED draws up to 60 mA at full white brightness. With 64 LEDs that is potentially 3.84 A. Running all LEDs at full white would require a substantial power supply and would generate significant heat. The solution was to cap brightness in software using the [Adafruit NeoPixel library](https://learn.adafruit.com/adafruit-neopixel-uberguide) and never display full white on all LEDs simultaneously. In practice the cube draws well under 2 A during normal operation.",
       },
       {
         type: "h2",
@@ -852,6 +872,21 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
         type: "p",
         text: "The WS2812B protocol is unforgiving of timing. The data signal uses specific high and low pulse widths measured in hundreds of nanoseconds. On an Arduino running at 16MHz this works reliably, but any interrupt that disrupts the timing mid-frame corrupts the entire frame. Disabling interrupts during LED updates was necessary for stable output.",
       },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "WS2812B datasheet - LED and driver integrated light source (WorldSemi)", url: "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" },
+          { text: "Adafruit NeoPixel Uberguide - comprehensive guide to wiring, power and programming NeoPixels", url: "https://learn.adafruit.com/adafruit-neopixel-uberguide" },
+          { text: "Arduino Reference - language and library documentation", url: "https://www.arduino.cc/reference/en/" },
+          { text: "Wikipedia: LED cube - background on LED matrix displays", url: "https://en.wikipedia.org/wiki/LED_cube" },
+          { text: "NeoPixel LED Cube - project page on this site", url: "/projects/led-cube" },
+          { text: "Adafruit NeoPixel library - GitHub repository and API reference", url: "https://github.com/adafruit/Adafruit_NeoPixel" },
+        ],
+      },
     ],
   },
 
@@ -870,7 +905,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     content: [
       {
         type: "p",
-        text: "Phaemos is a smart maintenance platform I am actively building. The name comes from Ancient Greek roots meaning an ordered system that reveals. The tagline is: reveal before failure. That is exactly what it does: collects real-time sensor data from hardware nodes, scores every reading with a machine learning model and raises alerts before a fault becomes visible to the naked eye.",
+        text: "[Phaemos](/projects/phaemos) is a smart maintenance platform I am actively building. The name comes from Ancient Greek roots meaning an ordered system that reveals. The tagline is: reveal before failure. That is exactly what it does: collects real-time sensor data from hardware nodes, scores every reading with a machine learning model and raises alerts before a fault becomes visible to the naked eye.",
       },
       {
         type: "h2",
@@ -906,7 +941,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "The backend is a FastAPI application in Python 3.11, backed by PostgreSQL 15 and Redis. On every incoming telemetry POST it: validates the device API key, stores the reading, evaluates all alert rules for that device, scores the reading through the ML model, updates the device status and last-seen timestamp and returns a 200 response. The target is under 200ms end to end.",
+        text: "The backend is a [FastAPI](https://fastapi.tiangolo.com) application in Python 3.11, backed by PostgreSQL 15 and Redis. On every incoming telemetry POST it: validates the device API key, stores the reading, evaluates all alert rules for that device, scores the reading through the ML model, updates the device status and last-seen timestamp and returns a 200 response. The target is under 200ms end to end.",
       },
       {
         type: "p",
@@ -938,7 +973,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "The full stack runs with Docker Compose locally and deploys to Vercel (frontend) and Render (backend and database). The CHANGELOG tracks every version: what was added, what changed, what security issue was addressed. The most recent unreleased version added GitHub Actions CI (backend linting and frontend type-checking), gitleaks secret scanning, Dependabot for automated dependency updates and a biweekly workflow that opens a security issue automatically if npm audit reports production vulnerabilities.",
+        text: "The full stack runs with Docker Compose locally and deploys to [Vercel](https://vercel.com) (frontend) and Render (backend and database). The CHANGELOG tracks every version: what was added, what changed, what security issue was addressed. The most recent unreleased version added GitHub Actions CI (backend linting and frontend type-checking), gitleaks secret scanning, Dependabot for automated dependency updates and a biweekly workflow that opens a security issue automatically if npm audit reports production vulnerabilities.",
       },
       {
         type: "h2",
@@ -956,6 +991,22 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
         type: "quote",
         text: "The most expensive sensor is the one you did not install before the machine failed.",
         source: "Predictive maintenance principle",
+      },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "Phaemos project page - full hardware and software overview", url: "/projects/phaemos" },
+          { text: "FastAPI documentation - the Python framework powering the Phaemos backend", url: "https://fastapi.tiangolo.com" },
+          { text: "scikit-learn: IsolationForest - API reference and algorithm details", url: "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.IsolationForest.html" },
+          { text: "MQTT specification - the messaging protocol designed for IoT sensor networks", url: "https://mqtt.org/mqtt-specification/" },
+          { text: "Wikipedia: Predictive maintenance - background, methods and industry applications", url: "https://en.wikipedia.org/wiki/Predictive_maintenance" },
+          { text: "FreeRTOS - the RTOS kernel used on the STM32 vibration node", url: "https://www.freertos.org" },
+          { text: "Wikipedia: Isolation forest - explanation of the anomaly detection algorithm", url: "https://en.wikipedia.org/wiki/Isolation_forest" },
+        ],
       },
     ],
   },
@@ -979,7 +1030,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "git-unlocked is my attempt to fix that. It is a free, open-source Git and version control course covering everything from absolute zero to professional-level knowledge. 217 files. 12 sections. MIT licensed. No paywall.",
+        text: "[git-unlocked](https://github.com/zaccesss/git-unlocked) is my attempt to fix that. It is a free, open-source Git and version control course covering everything from absolute zero to professional-level knowledge. 217 files. 12 sections. MIT licensed. No paywall.",
       },
       {
         type: "h2",
@@ -1036,7 +1087,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       {
         type: "ul",
         items: [
-          "A GitHub Pages site at zaccesss.github.io/git-unlocked",
+          "A GitHub Pages site at [zaccesss.github.io/git-unlocked](https://zaccesss.github.io/git-unlocked)",
           "Interactive HTML quiz pages with instant answer checking",
           "Animated SVG diagrams for key Git concepts",
           "Accessibility review",
@@ -1046,6 +1097,20 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
         type: "quote",
         text: "If you understand Git, you understand collaboration. That is worth teaching properly.",
         source: "My reason for starting this project",
+      },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "git-unlocked repository - the full course, MIT licensed and free", url: "https://github.com/zaccesss/git-unlocked" },
+          { text: "GitHub Docs - official documentation for GitHub features, workflows and CLI", url: "https://docs.github.com" },
+          { text: "Pro Git - Scott Chacon and Ben Straub (free online) - the most complete Git reference available", url: "https://git-scm.com/book/en/v2" },
+          { text: "Open Source Guides - how to contribute to and maintain open source projects", url: "https://opensource.guide" },
+          { text: "Conventional Commits specification - a lightweight commit message convention for structured changelogs", url: "https://www.conventionalcommits.org" },
+        ],
       },
     ],
   },
@@ -1064,7 +1129,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     content: [
       {
         type: "p",
-        text: "In October 2025 I completed the British Airways Engineering Virtual Experience on Forage. It was a structured simulation of real maintenance and supply-chain operations, and it gave me a genuinely different perspective on what engineering looks like at scale.",
+        text: "In October 2025 I completed the [British Airways](https://www.britishairways.com) Engineering Virtual Experience on [Forage](https://www.theforage.com). It was a structured simulation of real maintenance and supply-chain operations, and it gave me a genuinely different perspective on what engineering looks like at scale.",
       },
       {
         type: "h2",
@@ -1129,6 +1194,19 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
         type: "p",
         text: "As an Electronic Engineering and Computer Science student, this was a useful reminder that the discipline of engineering applies across domains. Careful documentation, systematic fault diagnosis and deep understanding of failure modes are the same skills regardless of whether you are debugging a microcontroller or planning a C-check.",
       },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "British Airways - official website", url: "https://www.britishairways.com" },
+          { text: "Forage - virtual work experience platform where the BA programme was hosted", url: "https://www.theforage.com" },
+          { text: "Wikipedia: Airbus A320 family - background on the aircraft type covered in the programme", url: "https://en.wikipedia.org/wiki/Airbus_A320_family" },
+          { text: "Wikipedia: Maintenance, repair and overhaul (MRO) - industry context for aviation maintenance operations", url: "https://en.wikipedia.org/wiki/Maintenance,_repair_and_overhaul" },
+        ],
+      },
     ],
   },
 
@@ -1146,7 +1224,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     content: [
       {
         type: "p",
-        text: "In August 2025 I completed Yunex Traffic's Smart Mobility and Environmental Sustainability virtual work experience via Springpod. Yunex Traffic is one of the largest providers of intelligent transport systems in the world. The programme explored how digital technology improves urban air quality and traffic efficiency.",
+        text: "In August 2025 I completed [Yunex Traffic](https://www.yunextraffic.com)'s Smart Mobility and Environmental Sustainability virtual work experience via Springpod. Yunex Traffic is one of the largest providers of [intelligent transport systems](https://en.wikipedia.org/wiki/Intelligent_transportation_system) in the world. The programme explored how digital technology improves urban air quality and traffic efficiency.",
       },
       {
         type: "h2",
@@ -1212,6 +1290,19 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
         type: "p",
         text: "This programme confirmed my interest in IoT at scale: systems where sensors, connectivity, real-time data processing and measurable real-world outcomes are all connected in a continuous feedback loop. That is the kind of engineering I want to build.",
       },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "Yunex Traffic - official website for the intelligent transport systems provider", url: "https://www.yunextraffic.com" },
+          { text: "Wikipedia: Intelligent transportation system - overview of ITS technologies and applications", url: "https://en.wikipedia.org/wiki/Intelligent_transportation_system" },
+          { text: "IET - Institution of Engineering and Technology", url: "https://www.theiet.org" },
+          { text: "Springpod - the virtual work experience platform used for this programme", url: "https://www.springpod.com" },
+        ],
+      },
     ],
   },
 
@@ -1247,7 +1338,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
         type: "ol",
         items: [
           "Phase 1 - Maths primer: probability, statistics, distributions and variation",
-          "Phase 2 - Python primer: syntax, data structures, functions and flow control",
+          "Phase 2 - [Python](https://www.python.org) primer: syntax, data structures, functions and flow control",
           "Phase 3 - Descriptive analytics: summarising data, estimators, outliers and correlation",
           "Phase 4 - Predictive analytics: machine learning, classification, decision trees and support vector machines",
           "Phase 5 - Prescriptive analytics: linear programming, integer programming and optimisation",
@@ -1289,6 +1380,20 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
         type: "p",
         text: "The capstone task is a production optimisation problem: determine the optimal weekly production mix of two medical devices given constraints on labour, materials and capacity. This requires everything from the course: probability to quantify uncertainty, statistics to describe historical data, Python to run the calculations and linear programming to find the optimal decision.",
       },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "Wikipedia: Business analytics - overview, methods and applications", url: "https://en.wikipedia.org/wiki/Business_analytics" },
+          { text: "pandas documentation - the primary Python data analysis library", url: "https://pandas.pydata.org/docs/" },
+          { text: "Kaggle - datasets and notebooks for applied data science practice", url: "https://www.kaggle.com" },
+          { text: "Google Data Analytics Certificate on Coursera - structured data analytics curriculum", url: "https://www.coursera.org/professional-certificates/google-data-analytics" },
+          { text: "scikit-learn documentation - machine learning tools used in the predictive analytics phase", url: "https://scikit-learn.org/stable/" },
+        ],
+      },
     ],
   },
 
@@ -1306,7 +1411,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     content: [
       {
         type: "p",
-        text: "For a while my portfolio was a terminal-style single-page HTML file at zacess.com. It worked, it was fun and I was genuinely proud of it at the time. Looking back, it was mostly vibe-coded: I built it by piecing together things I had found online without deeply understanding what I was doing. It loaded fast, looked interesting and told you almost nothing about my actual work. No project pages. No blog. No way to see anything beyond a blinking cursor and a few hardcoded text responses.",
+        text: "For a while my portfolio was a terminal-style single-page HTML file at zacess.com. It worked, it was fun and I was genuinely proud of it at the time. Looking back, it was mostly vibe-coded: I built it by piecing together things I had found online without deeply understanding what I was doing. It loaded fast, looked interesting and told you almost nothing about my actual work. No project pages. No blog. No way to see anything beyond a blinking cursor and a few hardcoded text responses. The current version lives at [isaacadjei.me](https://www.isaacadjei.me).",
       },
       {
         type: "image",
@@ -1337,13 +1442,13 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
           "shadcn/ui: unstyled, accessible base components (buttons, separators, cards) that I style with Tailwind rather than fighting someone else's design system",
           "Geist Sans and Geist Mono: Vercel's typefaces, used for body text and monospace labels respectively",
           "Lucide React: icon library, lightweight and consistent",
-          "Vercel: deployment platform with automatic deploys on every push to main",
+          "[Vercel](https://vercel.com): deployment platform with automatic deploys on every push to main",
           "Cloudflare: DNS provider routing isaacadjei.me",
           "GitHub Actions: CI pipeline running lint and build checks on every pull request",
           "Resend: API for the contact form email delivery",
           "Beehiiv: newsletter subscription management",
           "Cloudflare Turnstile: CAPTCHA on the contact form, privacy-respecting alternative to reCAPTCHA",
-          "Upstash Redis: serverless rate limiting on the contact form API route",
+          "[Upstash](https://upstash.com) Redis: serverless rate limiting on the contact form API route",
           "Google Analytics 4: traffic analytics via Next.js Script with afterInteractive strategy",
         ],
       },
@@ -1361,7 +1466,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "I had already used Next.js on Phaemos and the zacess.com terminal site, so the learning curve was not the reason to choose it. The reason was that it was genuinely the right tool for what I wanted to build.",
+        text: "I had already used Next.js on [Phaemos](/projects/phaemos) and the zacess.com terminal site, so the learning curve was not the reason to choose it. The reason was that it was genuinely the right tool for what I wanted to build.",
       },
       {
         type: "h2",
@@ -1381,7 +1486,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "I had used traditional CSS on AstonCV (pure custom CSS, no frameworks) and Tailwind on Phaemos. The comparison is instructive. With traditional CSS, naming things is genuinely hard. What do you call the container that wraps the project card header? How do you avoid naming collisions as the stylesheet grows? BEM helps but adds verbosity.",
+        text: "I had used traditional CSS on [AstonCV](/projects/astoncv) (pure custom CSS, no frameworks) and Tailwind on Phaemos. The comparison is instructive. With traditional CSS, naming things is genuinely hard. What do you call the container that wraps the project card header? How do you avoid naming collisions as the stylesheet grows? BEM helps but adds verbosity.",
       },
       {
         type: "p",
@@ -1421,7 +1526,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "The site deploys automatically on every push to the main branch via Vercel's GitHub integration. The main branch has branch protection: every change must go through a pull request and pass the Lint and Build GitHub Actions check before merging. This means broken code never reaches production.",
+        text: "The site deploys automatically on every push to the main branch via [Vercel](https://vercel.com)'s GitHub integration. The main branch has branch protection: every change must go through a pull request and pass the Lint and Build GitHub Actions check before merging. This means broken code never reaches production.",
       },
       {
         type: "p",
@@ -1485,7 +1590,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "The system works through a set of Python daemons. The MacBook daemon runs via launchd on macOS and writes battery percentage, charging state, timezone and weather data to an Upstash Redis key every 30 seconds with a 600-second TTL. If the daemon stops running the key expires and the card shows the last-known state. The Lenovo and Gaming PC daemons run as Windows services via NSSM and report battery, CPU and GPU usage. The Gaming PC daemon uses pynvml to read NVIDIA GPU utilisation directly.",
+        text: "The system works through a set of Python daemons. The MacBook daemon runs via launchd on macOS and writes battery percentage, charging state, timezone and weather data to an [Upstash](https://upstash.com) Redis key every 30 seconds with a 600-second TTL. If the daemon stops running the key expires and the card shows the last-known state. The Lenovo and Gaming PC daemons run as Windows services via NSSM and report battery, CPU and GPU usage. The Gaming PC daemon uses pynvml to read NVIDIA GPU utilisation directly.",
       },
       {
         type: "p",
@@ -1493,7 +1598,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "Discord presence comes from the Lanyard API, which reads my Discord Rich Presence in real time. When I am coding in VS Code, PreMiD is active or a game is running, the widget shows it. The Lanyard WebSocket connection means updates appear within seconds. The PS5 card uses a Cloudflare Worker that polls the PlayStation Network API every 60 seconds using an NPSSO session token stored in Cloudflare secrets, writing the result to the same Redis instance.",
+        text: "Discord presence comes from the Lanyard API, which reads my Discord Rich Presence in real time. When I am coding in VS Code, PreMiD is active or a game is running, the widget shows it. The Lanyard WebSocket connection means updates appear within seconds. The PS5 card uses a [Cloudflare Worker](https://workers.cloudflare.com) that polls the PlayStation Network API every 60 seconds using an NPSSO session token stored in Cloudflare secrets, writing the result to the same Redis instance.",
       },
       {
         type: "h2",
@@ -1509,7 +1614,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "I chose Supabase (hosted PostgreSQL) for the dashboard data layer. The alternative was a flat file store, which would have been simpler but would not support the query patterns I needed: filtering applications by status, sorting by date, searching across all inventory items. PostgreSQL gives me a proper relational model with indexes where they matter.",
+        text: "I chose [Supabase](https://supabase.com) (hosted PostgreSQL) for the dashboard data layer. The alternative was a flat file store, which would have been simpler but would not support the query patterns I needed: filtering applications by status, sorting by date, searching across all inventory items. PostgreSQL gives me a proper relational model with indexes where they matter.",
       },
       {
         type: "p",
@@ -1573,7 +1678,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "AstonCV is a CV database where anyone can browse and search student CVs publicly, register an account, manage their own CV once logged in and download any CV as a professionally formatted PDF. The site is deployed live on Aston University's internal Apache server and accessible via a custom Cloudflare domain redirect at astoncv.zacess.com.",
+        text: "[AstonCV](/projects/astoncv) is a CV database where anyone can browse and search student CVs publicly, register an account, manage their own CV once logged in and download any CV as a professionally formatted PDF. The site is deployed live on Aston University's internal Apache server and accessible via a custom Cloudflare domain redirect at astoncv.zacess.com.",
       },
       {
         type: "image",
@@ -1591,7 +1696,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "I had used Next.js on Phaemos and this portfolio. Those projects gave me the framework experience. AstonCV was an opportunity to work at a lower level and understand what is actually happening when a form submits, a session is validated or a query hits the database.",
+        text: "I had used Next.js on [Phaemos](/projects/phaemos) and this portfolio. Those projects gave me the framework experience. AstonCV was an opportunity to work at a lower level and understand what is actually happening when a form submits, a session is validated or a query hits the database.",
       },
       {
         type: "h2",
@@ -1698,6 +1803,21 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
         text: "When the constraint is no frameworks, every feature you add teaches you something a framework would have hidden.",
         source: "Something I understood about halfway through the build",
       },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "AstonCV project page", url: "/projects/astoncv" },
+          { text: "PHP 8 documentation - official language reference", url: "https://www.php.net/manual/en/" },
+          { text: "MySQL 8 documentation - official reference for the database used in AstonCV", url: "https://dev.mysql.com/doc/" },
+          { text: "mPDF library - PHP library for generating PDF files from HTML", url: "https://mpdf.github.io" },
+          { text: "OWASP PHP Security Cheat Sheet - security best practices for PHP web applications", url: "https://cheatsheetseries.owasp.org/cheatsheets/PHP_Security_Cheat_Sheet.html" },
+          { text: "Wikipedia: SQL injection - attack vector defended against in AstonCV with prepared statements", url: "https://en.wikipedia.org/wiki/SQL_injection" },
+        ],
+      },
     ],
   },
 
@@ -1734,7 +1854,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "I study Electronic Engineering and Computer Science, which means I do not have the option of staying on one side. I have spent semesters writing bare metal C on a custom PCB and semesters building full-stack web applications with TypeScript and React. The crossover has changed how I think about software in ways that are hard to explain but easy to demonstrate.",
+        text: "I study Electronic Engineering and Computer Science, which means I do not have the option of staying on one side. I have spent semesters writing bare metal C on a custom PCB and semesters building full-stack web applications with [TypeScript](https://www.typescriptlang.org) and [React](https://react.dev). The crossover has changed how I think about software in ways that are hard to explain but easy to demonstrate.",
       },
       {
         type: "h2",
@@ -1793,6 +1913,21 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
         type: "p",
         text: "The castles are real. The foundations matter. Know what yours are built on.",
       },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "PHAEMOS project - the predictive maintenance platform referenced in this article", url: "/projects/phaemos" },
+          { text: "avr-zac repository - bare-metal AVR programming referenced in this article", url: "https://github.com/zaccesss/avr-zac" },
+          { text: "Embedded.fm podcast - long-running podcast on embedded engineering, career and hardware", url: "https://embedded.fm" },
+          { text: "The Hardware/Software Interface - Coursera course (University of Washington)", url: "https://www.coursera.org/learn/hardware-software-interface" },
+          { text: "Wikipedia: Computer architecture - overview of the abstractions between hardware and software", url: "https://en.wikipedia.org/wiki/Computer_architecture" },
+          { text: "Computer Systems: A Programmer's Perspective - Bryant and O'Hallaron - the best single book on how software meets hardware", url: "https://csapp.cs.cmu.edu/" },
+        ],
+      },
     ],
   },
 
@@ -1819,7 +1954,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       {
         type: "ol-links",
         items: [
-          { text: "The Art of Electronics - Horowitz and Hill (3rd ed.) - the definitive electronics reference. Dense but readable. Buy it.", url: "https://www.cambridge.org/gb/academic/subjects/physics/electronics-and-optoelectronics/art-electronics-3rd-edition" },
+          { text: "The Art of Electronics - Horowitz and Hill (3rd ed.) - the definitive electronics reference. Dense but readable. Buy it.", url: "https://www.amazon.co.uk/Art-Electronics-Paul-Horowitz/dp/0521809266" },
           { text: "Microchip AVR datasheets - reading a real datasheet is the best embedded systems education available. Free.", url: "https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega644P-Datasheet.pdf" },
           { text: "FreeRTOS: Mastering the FreeRTOS Real Time Kernel - the official FreeRTOS book. Free PDF, genuinely good.", url: "https://www.freertos.org/Documentation/RTOS_book.html" },
           { text: "Making Embedded Systems - Elecia White - practical and well-written. Better than most university courses on the topic.", url: "https://www.oreilly.com/library/view/making-embedded-systems/9781449308889/" },
@@ -1947,7 +2082,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     content: [
       {
         type: "p",
-        text: "Consumer IoT devices are everywhere and most of them are insecure by design. In 2022 there were over 14 billion connected IoT devices globally, a number that will exceed 25 billion by 2030 according to Statista. Each of those devices is a potential entry point. The security research community has documented the same categories of vulnerability repeatedly for a decade. The problems persist not because they are hard to fix but because market incentives do not reward fixing them.",
+        text: "The Internet of Things (IoT) refers to the billions of physical devices connected to the internet: smart speakers, thermostats, security cameras, industrial sensors and medical monitors, all sending and receiving data without direct human interaction. Consumer IoT devices are everywhere and most of them are insecure by design. In 2022 there were over 14 billion connected IoT devices globally, a number that will exceed 25 billion by 2030 according to Statista. Each of those devices is a potential entry point. The security research community has documented the same categories of vulnerability repeatedly for a decade. The problems persist not because they are hard to fix but because market incentives do not reward fixing them.",
       },
       {
         type: "p",
@@ -1963,7 +2098,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "The vulnerability is trivially discoverable. Shodan, a search engine that indexes internet-connected devices, returns results for default credentials with simple queries. Researchers at Symantec found in 2019 that 98% of IoT traffic was unencrypted and that the most attacked device types were routers and IP cameras, both categories notorious for unchanged default credentials. The fix is not technically difficult: force credential change at first boot, generate a unique random password per unit or use device-specific secrets derived from hardware identifiers. The reason it does not happen is that it adds friction to unboxing, which affects return rates.",
+        text: "The vulnerability is trivially discoverable. [Shodan](https://www.shodan.io), a search engine that indexes internet-connected devices, returns results for default credentials with simple queries. Researchers at Symantec found in 2019 that 98% of IoT traffic was unencrypted and that the most attacked device types were routers and IP cameras, both categories notorious for unchanged default credentials. The fix is not technically difficult: force credential change at first boot, generate a unique random password per unit or use device-specific secrets derived from hardware identifiers. The reason it does not happen is that it adds friction to unboxing, which affects return rates.",
       },
       {
         type: "h2",
@@ -2031,7 +2166,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
       },
       {
         type: "p",
-        text: "The OWASP IoT Top 10 (2018 edition) provides a complementary checklist of the most critical vulnerability categories: weak passwords, insecure network services, insecure ecosystem interfaces, lack of secure update mechanism, use of insecure or outdated components, insufficient privacy protection, insecure data transfer and storage, lack of device management, insecure default settings and lack of physical hardening.",
+        text: "The [OWASP](https://owasp.org) IoT Top 10 (2018 edition) provides a complementary checklist of the most critical vulnerability categories: weak passwords, insecure network services, insecure ecosystem interfaces, lack of secure update mechanism, use of insecure or outdated components, insufficient privacy protection, insecure data transfer and storage, lack of device management, insecure default settings and lack of physical hardening.",
       },
       {
         type: "h2",
@@ -2041,7 +2176,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
         type: "ul",
         items: [
           "Force unique credentials at first boot with a minimum entropy requirement - no shared defaults across units",
-          "Encrypt all communications: TLS 1.2 or higher for HTTP and MQTT, DTLS for constrained devices using CoAP",
+          "Encrypt all communications: TLS 1.2 or higher for HTTP and [MQTT](https://mqtt.org), DTLS for constrained devices using CoAP",
           "Sign all firmware images with an asymmetric key pair, verify the signature before applying any update",
           "Implement a secure boot chain: the bootloader verifies the firmware hash before execution",
           "Add rollback protection: a monotonic counter in OTP memory prevents downgrades to known-vulnerable versions",
@@ -2065,12 +2200,16 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
         type: "ol-links",
         items: [
           { text: "Krebs on Security: KrebsOnSecurity Hit With Record DDoS (Mirai, 2016)", url: "https://krebsonsecurity.com/2016/09/krebsonsecurity-hit-with-record-ddos/" },
+          { text: "Wikipedia: Mirai (malware) - the botnet that exploited default credentials on IoT devices", url: "https://en.wikipedia.org/wiki/Mirai_(malware)" },
+          { text: "OWASP IoT Top 10 - the standard vulnerability checklist for connected devices", url: "https://owasp.org/www-project-internet-of-things/" },
+          { text: "NIST Cybersecurity for IoT Program - guidance, frameworks and research", url: "https://www.nist.gov/programs-projects/nist-cybersecurity-iot-program" },
+          { text: "Wikipedia: Internet of things - Security section covering attack surfaces and regulatory response", url: "https://en.wikipedia.org/wiki/Internet_of_things#Security" },
+          { text: "Shodan - the search engine for internet-connected devices", url: "https://www.shodan.io" },
           { text: "Cloudflare DDoS coverage and incident analysis", url: "https://blog.cloudflare.com/tag/ddos/" },
           { text: "JSOF Research: Ripple20 - 19 Zero-Day Vulnerabilities (2020)", url: "https://www.jsof-tech.com/disclosures/ripple20/" },
           { text: "Vanhoef, M. & Piessens, F.: Key Reinstallation Attacks (KRACK) - ACM CCS 2017", url: "https://papers.mathyvanhoef.com/ccs2017.pdf" },
           { text: "NVD: CVE-2021-28372 Kalay Platform vulnerability", url: "https://nvd.nist.gov/vuln/detail/CVE-2021-28372" },
           { text: "ETSI EN 303 645: Cyber Security for Consumer IoT baseline requirements", url: "https://www.etsi.org/committee/1372-cyber" },
-          { text: "OWASP IoT Top 10 (2018 edition)", url: "https://owasp.org/www-project-internet-of-things/" },
           { text: "UK Product Security and Telecommunications Infrastructure Act 2022", url: "https://www.legislation.gov.uk/ukpga/2022/46/contents" },
           { text: "Armis Security Research", url: "https://www.armis.com/research/" },
         ],
@@ -2258,7 +2397,7 @@ void i2c_scan(void) {
       },
       {
         type: "p",
-        text: "Use SPI when throughput matters. Streaming data from a display, logging to an SD card or reading a high-speed ADC all demand the bandwidth SPI provides. Use I2C when you have several low-bandwidth configuration or sensor devices and pin count is a constraint. A typical node in a Phaemos sensor board uses I2C for the BME280 environmental sensor and the DS3231 RTC (three devices, two wires total) and SPI for the W25Q flash memory (high-speed writes, full-duplex).",
+        text: "Use SPI when throughput matters. Streaming data from a display, logging to an SD card or reading a high-speed ADC all demand the bandwidth SPI provides. Use I2C when you have several low-bandwidth configuration or sensor devices and pin count is a constraint. A typical node in a [Phaemos](/projects/phaemos) sensor board uses I2C for the BME280 environmental sensor and the DS3231 RTC (three devices, two wires total) and SPI for the W25Q flash memory (high-speed writes, full-duplex).",
       },
       {
         type: "p",
@@ -2277,10 +2416,13 @@ void i2c_scan(void) {
         type: "ol-links",
         items: [
           { text: "NXP I2C-bus specification and user manual UM10204 Rev 7.0 (2021)", url: "https://www.nxp.com/docs/en/user-guide/UM10204.pdf" },
+          { text: "Wikipedia: Serial Peripheral Interface (SPI) - protocol overview, timing diagrams and variants", url: "https://en.wikipedia.org/wiki/Serial_Peripheral_Interface" },
+          { text: "Wikipedia: I2C - protocol history, addressing and electrical characteristics", url: "https://en.wikipedia.org/wiki/I%C2%B2C" },
+          { text: "SparkFun: Serial Peripheral Interface (SPI) tutorial", url: "https://learn.sparkfun.com/tutorials/serial-peripheral-interface-spi" },
+          { text: "SparkFun: I2C tutorial - wiring, pull-ups and addressing", url: "https://learn.sparkfun.com/tutorials/i2c" },
           { text: "AVR151: Setup and Use of the SPI - Microchip application note", url: "https://ww1.microchip.com/downloads/en/AppNotes/Atmel-2585-Setup-and-Use-of-the-SPI_ApplicationNote_AVR151.pdf" },
           { text: "AVR315: Using the TWI Module as I2C Master - Microchip application note", url: "https://ww1.microchip.com/downloads/en/AppNotes/doc2564.pdf" },
           { text: "Analog Devices tutorials and application notes - I2C and SPI reference material", url: "https://www.analog.com/en/resources/technical-articles.html" },
-          { text: "ST application notes for STM32 I2C peripherals", url: "https://www.st.com/en/microcontrollers-microprocessors/stm32-32-bit-arm-cortex-mcus.html" },
           { text: "ATmega644P datasheet - USART and SPI sections", url: "https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega644P-Datasheet.pdf" },
         ],
       },
@@ -2296,8 +2438,8 @@ void i2c_scan(void) {
     description:
       "How to set up UART on an AVR microcontroller using bare metal C, configure baud rate registers, transmit and receive bytes and debug embedded systems over a serial monitor.",
     tags: ["UART", "Embedded", "AVR", "C", "Serial"],
-    readingTime: 8,
-    published: false,
+    readingTime: 13,
+    published: true,
     content: [
       {
         type: "p",
@@ -2413,6 +2555,79 @@ int main(void) {
         ],
       },
       {
+        type: "h2",
+        text: "Interrupt-Driven Receive",
+      },
+      {
+        type: "p",
+        text: "Polling for received bytes blocks the CPU. If your main loop is doing anything meaningful, polling is impractical above 9600 baud because you will miss bytes while the CPU is busy. The alternative is the receive complete interrupt: UART fires USART_RX_vect when a byte arrives. The ISR copies it into a ring buffer. The main loop reads from the buffer independently. The UART hardware and your application code run concurrently.",
+      },
+      {
+        type: "code",
+        lang: "c",
+        text: `#define RX_BUF_SIZE 64
+
+volatile uint8_t rx_buf[RX_BUF_SIZE];
+volatile uint8_t rx_head = 0, rx_tail = 0;
+
+// I enable the receive complete interrupt in uart_init:
+//   UCSR0B |= (1 << RXCIE0);
+//   sei();
+
+ISR(USART0_RX_vect) {
+    uint8_t next = (rx_head + 1) % RX_BUF_SIZE;
+    if (next != rx_tail) {          // only store if not full
+        rx_buf[rx_head] = UDR0;
+        rx_head = next;
+    }
+    // If full: byte is silently dropped. For robust systems,
+    // set a flag and handle the overflow in the main loop.
+}
+
+uint8_t uart_rx_available(void) {
+    return rx_head != rx_tail;
+}
+
+uint8_t uart_rx_read(void) {
+    while (!uart_rx_available());   // block until data arrives
+    uint8_t b = rx_buf[rx_tail];
+    rx_tail = (rx_tail + 1) % RX_BUF_SIZE;
+    return b;
+}`,
+      },
+      {
+        type: "h2",
+        text: "Baud Rate Accuracy and Double Speed Mode",
+      },
+      {
+        type: "p",
+        text: "Standard mode divides the clock by 16 per baud period. Double speed mode (U2X = 1 in UCSR0A) divides by 8, which gives a finer baud rate resolution at high clock frequencies. The formula becomes: UBRR = (F_CPU / (8 * BAUD)) - 1. At 20 MHz and 115200 baud, normal mode gives UBRR = 10 with 1.4% error. Double speed mode gives UBRR = 20 with 1.4% error too in this case, but at other clock/baud combinations U2X significantly reduces the error. The ATmega datasheet has a comparison table for both modes.",
+      },
+      {
+        type: "p",
+        text: "UART tolerates approximately ±2-3% baud rate error in practice. Beyond that, the receiver samples at the wrong point within a bit period, causing occasional bit errors that accumulate over a multi-byte frame. If you are getting intermittent corrupted data at higher baud rates, recalculate your UBRR value and check the actual error percentage in the datasheet table. Changing the crystal frequency is often the cleanest fix.",
+      },
+      {
+        type: "h2",
+        text: "Debugging with an Oscilloscope",
+      },
+      {
+        type: "p",
+        text: "When UART is completely silent or producing garbage, an oscilloscope is the right tool. Connect the probe to the TX pin and send a known byte. A correctly functioning UART at 9600 baud will show a pulse approximately 104 microseconds wide for each bit period. Count the bits: start bit (low), then 8 data bits, then stop bit (high). If the pulse widths look wrong, the baud rate register is incorrect or F_CPU does not match the actual clock. If you see nothing at all, the TX pin may not be the correct pin or the UART peripheral clock is not enabled.",
+      },
+      {
+        type: "p",
+        text: "A logic analyser is even more useful because it can decode UART frames automatically. Most sub-£20 logic analysers support UART decoding in [PulseView](https://sigrok.org/wiki/PulseView) or similar software. Set the baud rate, capture the TX line during transmission and the decoded bytes appear in the interface. This makes it immediately obvious if you are sending the right bytes but with a baud rate mismatch, or if the data itself is wrong.",
+      },
+      {
+        type: "h2",
+        text: "UART in the avr-zac Project",
+      },
+      {
+        type: "p",
+        text: "The [avr-zac](https://github.com/zaccesss/avr-zac) LED controller uses UART for a debugging interface: a command-line style protocol where you can send single-character commands over the serial monitor to jump to any of the nine display modes, adjust brightness parameters and query the current state. This is entirely enabled by the printf-over-UART setup described above. During development it eliminated most of the guess-and-check cycle that bare-metal embedded debugging otherwise requires. The ability to print 'mode=4 brightness=187' to the terminal and have it appear in real time is worth the two hours of UART setup.",
+      },
+      {
         type: "quote",
         text: "The serial monitor is the oscilloscope of firmware development.",
         source: "Embedded engineering maxim",
@@ -2425,8 +2640,12 @@ int main(void) {
         type: "ol-links",
         items: [
           { text: "ATmega644P datasheet - Section 19: USART0/1 (Microchip Technology)", url: "https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega644P-Datasheet.pdf" },
+          { text: "Wikipedia: Universal asynchronous receiver-transmitter (UART) - protocol overview and history", url: "https://en.wikipedia.org/wiki/Universal_asynchronous_receiver-transmitter" },
+          { text: "Wikipedia: Baud - definition and relationship to bit rate", url: "https://en.wikipedia.org/wiki/Baud" },
           { text: "AVR306: Using the AVR UART in C - Microchip application note", url: "https://ww1.microchip.com/downloads/en/AppNotes/doc1451.pdf" },
           { text: "AVR-libc reference manual: Standard IO facilities and fdev_setup_stream", url: "https://www.nongnu.org/avr-libc/user-manual/group__avr__stdio.html" },
+          { text: "PulseView / sigrok - open-source logic analyser software for decoding UART frames", url: "https://sigrok.org/wiki/PulseView" },
+          { text: "avr-zac repository - the project where UART debugging is used in practice", url: "https://github.com/zaccesss/avr-zac" },
           { text: "FTDI: USB to Serial Converter application notes", url: "https://ftdichip.com/document/application-notes/" },
         ],
       },
@@ -2442,8 +2661,8 @@ int main(void) {
     description:
       "A practical introduction to real-time operating systems: what a task scheduler does, why timing guarantees matter in embedded systems and how FreeRTOS implements preemptive multitasking on a microcontroller.",
     tags: ["RTOS", "FreeRTOS", "Embedded", "C", "Scheduling"],
-    readingTime: 10,
-    published: false,
+    readingTime: 15,
+    published: true,
     content: [
       {
         type: "p",
@@ -2454,12 +2673,16 @@ int main(void) {
         text: "An RTOS is not a full operating system in the Linux sense. It does not manage a filesystem, run processes with virtual memory or handle arbitrary user applications. It does one thing: schedule tasks on a single processor in a way that gives each task predictable timing guarantees. That predictability is what real-time means in RTOS - not fast, but guaranteed to meet deadlines.",
       },
       {
+        type: "p",
+        text: "A real-time operating system (RTOS) is software that guarantees a computer will respond to events within a fixed time limit. Unlike a general-purpose OS like Windows or Linux, which optimises for average performance, an RTOS optimises for predictability: it can guarantee that a specific task will start within a defined deadline, even when many other tasks are running simultaneously.",
+      },
+      {
         type: "h2",
         text: "Tasks and the Scheduler",
       },
       {
         type: "p",
-        text: "In FreeRTOS (the most widely used open-source RTOS), a task is a function with its own stack and execution state. Each task has a priority from 0 (lowest) to configMAX_PRIORITIES-1 (highest). The scheduler runs the highest-priority task that is ready to execute. If a higher-priority task becomes ready while a lower-priority task is running, the scheduler preempts the running task immediately and switches to the higher-priority one. This is preemptive multitasking.",
+        text: "In [FreeRTOS](https://www.freertos.org) (the most widely used open-source RTOS), a task is a function with its own stack and execution state. Each task has a priority from 0 (lowest) to configMAX_PRIORITIES-1 (highest). The scheduler runs the highest-priority task that is ready to execute. If a higher-priority task becomes ready while a lower-priority task is running, the scheduler preempts the running task immediately and switches to the higher-priority one. This is preemptive multitasking.",
       },
       {
         type: "p",
@@ -2539,6 +2762,72 @@ int main(void) {
         text: "Each FreeRTOS task has a dedicated stack allocated from the FreeRTOS heap at task creation. Stack overflow is silent by default: if a task overflows its stack, it corrupts adjacent memory and the system behaves unpredictably. FreeRTOS provides a stack overflow hook (vApplicationStackOverflowHook) and a watermark measurement function (uxTaskGetStackHighWaterMark) to detect and debug stack usage. A common practice is to set the stack size generously during development, measure the watermark and reduce it to the minimum safe value before release.",
       },
       {
+        type: "h2",
+        text: "FreeRTOS Memory Management",
+      },
+      {
+        type: "p",
+        text: "FreeRTOS provides five heap implementations (heap_1.c through heap_5.c), each with different trade-offs. heap_1 never frees memory - suitable for systems that create all tasks at startup and never delete them; it is deterministic and has no fragmentation. heap_2 allows freeing but does not coalesce adjacent free blocks, leading to fragmentation over time. heap_4 coalesces adjacent free blocks and is the most commonly used scheme for general-purpose applications. heap_5 extends heap_4 to support non-contiguous memory regions, which matters on microcontrollers with separate fast SRAM banks.",
+      },
+      {
+        type: "p",
+        text: "Dynamic allocation inside tasks (malloc, new) is risky in RTOS systems for two reasons: it is not thread-safe by default, and heap fragmentation can cause allocation failures at unpredictable times. The safest approach for production embedded code is to allocate all memory statically at startup using static task creation (xTaskCreateStatic) and static queue buffers, and use heap_1 which never fragments. This trades flexibility for determinism - a good trade in safety-critical applications.",
+      },
+      {
+        type: "h2",
+        text: "Task Notifications: A Lighter Alternative to Semaphores",
+      },
+      {
+        type: "p",
+        text: "FreeRTOS task notifications (introduced in FreeRTOS 8.2) are a faster, lower-memory alternative to binary semaphores and event groups for many common signalling patterns. Each task has a 32-bit notification value. An ISR or another task can set bits in this value, increment it or write directly to it. The notified task can block waiting for specific bits to be set.",
+      },
+      {
+        type: "code",
+        lang: "c",
+        text: `// I use task notification instead of a binary semaphore - less overhead,
+// no separate semaphore object to allocate or manage.
+
+TaskHandle_t sensor_task_handle;
+
+void dma_complete_isr(void) {
+    BaseType_t higher_priority_woken = pdFALSE;
+    vTaskNotifyGiveFromISR(sensor_task_handle, &higher_priority_woken);
+    portYIELD_FROM_ISR(higher_priority_woken);
+}
+
+void sensor_task(void *pvParameters) {
+    for (;;) {
+        // I block here until the DMA ISR gives the notification
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        process_dma_buffer();
+    }
+}`,
+      },
+      {
+        type: "h2",
+        text: "Tickless Idle and Power Saving",
+      },
+      {
+        type: "p",
+        text: "The FreeRTOS tick interrupt fires 1000 times per second by default, even when all tasks are blocked and nothing useful is happening. This costs power. The tickless idle mode suppresses the tick interrupt when the scheduler knows all tasks will remain blocked for N ticks, programs a hardware timer to wake up before the soonest expiry and puts the processor into a low-power sleep state. On STM32 this can reduce current consumption from milliamps to microamps during idle periods.",
+      },
+      {
+        type: "p",
+        text: "Enabling tickless idle requires setting configUSE_TICKLESS_IDLE to 1 in FreeRTOSConfig.h and providing a portSUPPRESS_TICKS_AND_SLEEP implementation (or using the one provided for your specific hardware). The implementation must handle the timer programming, sleep entry and wake-up accounting so the RTOS clock remains accurate after waking.",
+      },
+      {
+        type: "h2",
+        text: "When Not to Use an RTOS",
+      },
+      {
+        type: "p",
+        text: "An RTOS adds overhead: the scheduler, context switch mechanism, stack for each task and the FreeRTOS kernel itself typically add 5-10 KB of flash and a few hundred bytes of RAM on a Cortex-M device. For a microcontroller with 32 KB flash and 2 KB RAM - an ATmega328P, for instance - this is a significant fraction of available resources. For simple systems with one or two periodic tasks and no concurrency requirements, a bare super-loop with well-structured timer interrupts is often the better choice.",
+      },
+      {
+        type: "p",
+        text: "The decision rule I use: if the system has three or more concurrent concerns with different timing requirements, if blocking one operation should not block unrelated operations, or if any operation involves waiting for external events (network, sensor, user input) while other work continues - an RTOS is worth the overhead. If the system does one thing repeatedly with a predictable cycle, bare-metal is simpler and will always be simpler.",
+      },
+      {
         type: "quote",
         text: "An RTOS does not make your system faster. It makes your system predictable.",
         source: "Embedded systems engineering principle",
@@ -2548,13 +2837,23 @@ int main(void) {
         text: "References",
       },
       {
+        type: "video",
+        youtubeId: "Qe_4PAamBO4",
+        title: "Operating Systems - Computerphile",
+        description: "A clear overview of how operating systems manage processes, scheduling and concurrency: the foundational concepts behind every RTOS.",
+      },
+      {
         type: "ol-links",
         items: [
           { text: "FreeRTOS: Mastering the FreeRTOS Real Time Kernel (free PDF)", url: "https://www.freertos.org/Documentation/RTOS_book.html" },
+          { text: "FreeRTOS official documentation and API reference", url: "https://www.freertos.org/Documentation/RTOS_book.html" },
           { text: "Mars Pathfinder priority inversion bug - Glenn Reeves, JPL (1997)", url: "https://www.rapitasystems.com/blog/what-really-happened-software-mars-pathfinder-spacecraft" },
           { text: "Buttazzo, G.: Hard Real-Time Computing Systems (Springer, 3rd ed.)", url: "https://link.springer.com/book/10.1007/978-1-4614-0676-1" },
           { text: "Joseph Yiu: The Definitive Guide to ARM Cortex-M3 and Cortex-M4 Processors", url: "https://www.sciencedirect.com/book/9780124080829/the-definitive-guide-to-arm-cortex-m3-and-cortex-m4-processors" },
+          { text: "Wikipedia: Real-time operating system - background and classification", url: "https://en.wikipedia.org/wiki/Real-time_operating_system" },
+          { text: "POSIX.1b real-time extensions (IEEE Std 1003.1b)", url: "https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap02.html" },
           { text: "FreeRTOS stack overflow detection and checking", url: "https://www.freertos.org/Stacks-and-stack-overflow-checking.html" },
+          { text: "Making Embedded Systems - Elecia White - chapter on RTOS and task design", url: "https://www.oreilly.com/library/view/making-embedded-systems/9781449308889/" },
         ],
       },
     ],
@@ -2683,6 +2982,9 @@ int main(void) {
         type: "ol-links",
         items: [
           { text: "The Children's Eye Cancer Trust: Retinoblastoma - epidemiology and treatment overview", url: "https://www.chect.org.uk/about-retinoblastoma/" },
+          { text: "Wikipedia: Visual prosthesis (bionic eye) - overview of retinal and cortical implant technology", url: "https://en.wikipedia.org/wiki/Visual_prosthesis" },
+          { text: "Wikipedia: Retinal prosthesis - technical background on epiretinal and subretinal devices", url: "https://en.wikipedia.org/wiki/Retinal_prosthesis" },
+          { text: "NIH National Eye Institute: Vision restoration research", url: "https://www.nei.nih.gov" },
           { text: "Shields et al.: Intra-arterial chemotherapy for retinoblastoma globe salvage - search on PubMed", url: "https://pubmed.ncbi.nlm.nih.gov/?term=shields+intra-arterial+chemotherapy+retinoblastoma+globe+salvage" },
           { text: "Humayun et al.: International trial of Second Sight Argus II visual prosthesis - search on PubMed", url: "https://pubmed.ncbi.nlm.nih.gov/?term=humayun+argus+second+sight+visual+prosthesis+international+trial" },
           { text: "Palanker et al.: Photovoltaic restoration of central vision in AMD - PRIMA trial (Nature Medicine 2020) - search on PubMed", url: "https://pubmed.ncbi.nlm.nih.gov/?term=palanker+photovoltaic+restoration+central+vision+AMD+prima" },
@@ -2708,7 +3010,7 @@ int main(void) {
     content: [
       {
         type: "p",
-        text: "TypeScript is not just JavaScript with types sprinkled on top. Used well, it changes how you design code and catches entire categories of bugs before they reach production. Used poorly, it becomes a type annotation layer that everyone works around with any and type assertions. The difference is in which features you reach for and when.",
+        text: "[TypeScript](https://www.typescriptlang.org) is not just JavaScript with types sprinkled on top. Used well, it changes how you design code and catches entire categories of bugs before they reach production. Used poorly, it becomes a type annotation layer that everyone works around with any and type assertions. The difference is in which features you reach for and when.",
       },
       {
         type: "p",
@@ -2875,10 +3177,13 @@ function area(s: Shape): number {
       {
         type: "ol-links",
         items: [
-          { text: "TypeScript Handbook - official documentation", url: "https://www.typescriptlang.org/docs/handbook/intro.html" },
+          { text: "TypeScript official documentation and language reference", url: "https://www.typescriptlang.org/docs/" },
+          { text: "TypeScript Handbook - the primary guide to TypeScript features", url: "https://www.typescriptlang.org/docs/handbook/intro.html" },
           { text: "TypeScript 4.9 release notes: the satisfies operator", url: "https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html" },
-          { text: "Matt Pocock: Total TypeScript - advanced TypeScript patterns", url: "https://www.totaltypescript.com/" },
+          { text: "Zod - TypeScript-first schema validation library", url: "https://zod.dev" },
+          { text: "Matt Pocock: Total TypeScript - advanced TypeScript patterns in depth", url: "https://www.totaltypescript.com/" },
           { text: "TypeScript Deep Dive - Basarat Ali Syed (free online)", url: "https://basarat.gitbook.io/typescript/" },
+          { text: "MDN: TypeScript in Svelte - introductory TypeScript in a framework context", url: "https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/Svelte_TypeScript" },
         ],
       },
     ],
@@ -2893,8 +3198,8 @@ function area(s: Shape): number {
     description:
       "How Direct Memory Access works on microcontrollers, why it matters for high-throughput embedded systems and how to configure a DMA transfer on an STM32 without relying on HAL.",
     tags: ["DMA", "STM32", "Embedded", "C", "Performance"],
-    readingTime: 9,
-    published: false,
+    readingTime: 12,
+    published: true,
     content: [
       {
         type: "p",
@@ -2911,6 +3216,10 @@ function area(s: Shape): number {
       {
         type: "p",
         text: "The performance difference is substantial. Receiving 1024 bytes over SPI in software requires 1024 load-from-SPI-DR operations, 1024 store-to-buffer operations and 1024 loop iterations: roughly 3072 instructions. DMA moves the same 1024 bytes with the CPU executing essentially zero instructions for the transfer itself. On a system running at 72 MHz, this is the difference between occupying the CPU for 43 microseconds and releasing it entirely.",
+      },
+      {
+        type: "p",
+        text: "Direct Memory Access (DMA) is a feature built into most modern microcontrollers that lets hardware peripherals transfer data directly to or from RAM without involving the CPU in each byte transfer. Think of it as a dedicated delivery driver for data: you tell it where to pick up (source address), where to drop off (destination address) and how many items to move (transfer count), then it does the work while the CPU handles something else entirely.",
       },
       {
         type: "h2",
@@ -2956,9 +3265,74 @@ void usart1_dma_rx_init(uint8_t *buf, uint16_t len) {
         text: "On Cortex-M7 devices (STM32H7 and STM32F7 series) the CPU has data cache. DMA accesses main memory directly, bypassing the cache. If the CPU has cached a region of memory that DMA is writing to, the CPU reads stale data from cache rather than the fresh DMA-written values. The solution is to either place DMA buffers in non-cacheable memory regions (using the MPU or linker script DTCM allocation) or to explicitly invalidate the cache region before reading DMA-written data. Failing to handle this is one of the most common bugs when porting DMA code from Cortex-M4 to Cortex-M7 devices.",
       },
       {
+        type: "h2",
+        text: "Half-Transfer Interrupt for Double Buffering",
+      },
+      {
+        type: "p",
+        text: "Circular DMA with a single buffer creates a race: if the main loop processes bytes too slowly, the DMA controller will overwrite the start of the buffer before the main loop has finished reading it. The solution is double buffering with the half-transfer interrupt. Set up DMA in circular mode with a buffer twice the size you actually need. DMA fires two interrupts: half-transfer complete (HT) when it reaches the midpoint, and transfer complete (TC) when it wraps around. While DMA is writing the second half, your ISR or main loop processes the first half. When DMA writes the first half again, you process the second half. The two halves never conflict.",
+      },
+      {
+        type: "code",
+        lang: "c",
+        text: `// I use a double buffer with half-transfer and transfer-complete interrupts
+#define BUF_SIZE 512  // 256 samples per half
+
+uint16_t adc_buf[BUF_SIZE];
+volatile uint8_t half_ready = 0;  // 0 = first half ready, 1 = second half ready
+
+void DMA1_Channel1_IRQHandler(void) {
+    if (DMA1->ISR & DMA_ISR_HTIF1) {
+        DMA1->IFCR = DMA_IFCR_CHTIF1;
+        half_ready = 0;  // first half is ready to process
+    }
+    if (DMA1->ISR & DMA_ISR_TCIF1) {
+        DMA1->IFCR = DMA_IFCR_CTCIF1;
+        half_ready = 1;  // second half is ready
+    }
+}
+
+// In main loop:
+if (half_ready == 0) {
+    process_samples(adc_buf, BUF_SIZE / 2);          // first half
+} else {
+    process_samples(adc_buf + BUF_SIZE / 2, BUF_SIZE / 2);  // second half
+}`,
+      },
+      {
+        type: "h2",
+        text: "Common Pitfalls",
+      },
+      {
+        type: "ul",
+        items: [
+          "Forgetting to enable the DMA request on the peripheral side - for USART, USART_CR3_DMAR must be set; DMA alone does nothing without the peripheral triggering it",
+          "Using the wrong DMA channel - channel-to-peripheral mappings are fixed in hardware and device-specific; the reference manual is the only reliable source",
+          "Not enabling the DMA clock - RCC->AHBENR |= RCC_AHBENR_DMA1EN is easy to forget",
+          "Cache coherency on Cortex-M7 - placing DMA buffers in cacheable SRAM without invalidating cache before reads; use __attribute__((section('.dma_buf'))) and configure MPU accordingly",
+          "Transfer size mismatch - if the peripheral sends 16-bit values and you configure DMA for 8-bit transfers, every value is silently truncated; DMA_CCR_PSIZE and DMA_CCR_MSIZE must match the peripheral register width",
+        ],
+      },
+      {
         type: "quote",
         text: "DMA moves the data. The CPU moves the product.",
         source: "Embedded systems engineering principle",
+      },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "STM32F4 reference manual (RM0090) - chapters 9 and 10 cover DMA1, DMA2 and their channel/stream mappings", url: "https://www.st.com/resource/en/reference_manual/rm0090-stm32f405415-stm32f407417-stm32f427437-and-stm32f429439-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" },
+          { text: "ARM Application Note 321: ARM Cortex-M Programming Guide to Memory Barrier Instructions", url: "https://developer.arm.com/documentation/dai0321/latest" },
+          { text: "Making Embedded Systems - Elecia White - chapter 6 covers DMA and memory-mapped peripherals", url: "https://www.oreilly.com/library/view/making-embedded-systems/9781449308889/" },
+          { text: "Wikipedia: Direct memory access - overview of DMA architecture", url: "https://en.wikipedia.org/wiki/Direct_memory_access" },
+          { text: "Compiler Explorer (Godbolt) - useful for seeing how the compiler handles DMA buffer declarations", url: "https://godbolt.org/" },
+          { text: "sigrok and PulseView - open-source logic analyser for verifying DMA timing", url: "https://sigrok.org/wiki/PulseView" },
+          { text: "STM32 DMA application notes - AN4031 (ST Microelectronics)", url: "https://www.st.com/resource/en/application_note/an4031-using-the-stm32f2-stm32f4-and-stm32f7-series-dma-controller-stmicroelectronics.pdf" },
+        ],
       },
     ],
   },
@@ -3005,7 +3379,7 @@ void usart1_dma_rx_init(uint8_t *buf, uint16_t len) {
       },
       {
         type: "p",
-        text: "A modern FPGA contains three main types of resources. Logic elements (called LUTs - look-up tables - in most architectures) are small configurable truth tables that implement any boolean function of their inputs. Flip-flops store state. Block RAMs are fixed hard memories typically 18 Kbit or 36 Kbit in size, used for FIFOs, lookup tables and local storage. Higher-end FPGAs also contain DSP blocks (hardware multiplier-adder units), clock management tiles and, on devices like the Xilinx Zynq, hardened ARM processor cores alongside the programmable fabric.",
+        text: "A modern FPGA contains three main types of resources. Logic elements (called LUTs - look-up tables - in most architectures) are small configurable truth tables that implement any boolean function of their inputs. Flip-flops store state. Block RAMs are fixed hard memories typically 18 Kbit or 36 Kbit in size, used for FIFOs, lookup tables and local storage. Higher-end FPGAs also contain DSP blocks (hardware multiplier-adder units), clock management tiles and, on devices like the [Xilinx](https://www.xilinx.com) Zynq, hardened [ARM](https://developer.arm.com) processor cores alongside the programmable fabric.",
       },
       {
         type: "p",
@@ -3127,7 +3501,7 @@ end architecture rtl;`,
       },
       {
         type: "p",
-        text: "The two major FPGA vendors are AMD (formerly Xilinx) and Intel (formerly Altera). Both provide free development environments: Vivado (AMD, download from amd.com) and Quartus Prime Lite (Intel, download from intel.com). Both are large downloads - 50-80 GB - but the free tiers cover a wide range of entry-level devices. For a beginner board, the Basys 3 (Digilent, Xilinx Artix-7) is the most widely used in university courses. The iCEstick (Lattice iCE40) is a cheaper alternative that works with the fully open-source IceStorm toolchain (Yosys synthesiser plus nextpnr place-and-route), which is easier to understand than Vivado or Quartus. The Nand2Tetris course at nand2tetris.org builds a complete computer from logic gates up and gives you the conceptual foundation that makes VHDL make sense before you write a single line of it.",
+        text: "The two major FPGA vendors are AMD (formerly Xilinx) and Intel (formerly Altera). Both provide free development environments: [Vivado](https://www.xilinx.com/products/design-tools/vivado.html) (AMD, download from amd.com) and Quartus Prime Lite (Intel, download from intel.com). Both are large downloads - 50-80 GB - but the free tiers cover a wide range of entry-level devices. For a beginner board, the Basys 3 (Digilent, Xilinx Artix-7) is the most widely used in university courses. The iCEstick (Lattice iCE40) is a cheaper alternative that works with the fully open-source IceStorm toolchain (Yosys synthesiser plus nextpnr place-and-route), which is easier to understand than Vivado or Quartus. The Nand2Tetris course at nand2tetris.org builds a complete computer from logic gates up and gives you the conceptual foundation that makes VHDL make sense before you write a single line of it.",
       },
       {
         type: "quote",
@@ -3141,13 +3515,1871 @@ end architecture rtl;`,
       {
         type: "ol-links",
         items: [
+          { text: "Wikipedia: Field-programmable gate array - architecture, history and applications", url: "https://en.wikipedia.org/wiki/Field-programmable_gate_array" },
+          { text: "Wikipedia: VHDL - hardware description language overview and standard history", url: "https://en.wikipedia.org/wiki/VHDL" },
           { text: "AMD Vivado Design Suite - free download for Xilinx/AMD FPGAs", url: "https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html" },
           { text: "Intel Quartus Prime Lite - free download for Intel FPGAs", url: "https://www.intel.com/content/www/us/en/products/details/fpga/development-tools/quartus-prime/resource.html" },
           { text: "Digilent Basys 3 - most widely used FPGA learning board (Xilinx Artix-7)", url: "https://digilent.com/reference/programmable-logic/basys-3/start" },
           { text: "Lattice iCEstick - low-cost iCE40 FPGA with open-source toolchain", url: "https://www.latticesemi.com/icestick" },
           { text: "IceStorm/YosysHQ open-source FPGA toolchain (Yosys + nextpnr)", url: "https://github.com/YosysHQ/icestorm" },
+          { text: "VHDL reference manual (UCI) - quick syntax reference", url: "https://www.ics.uci.edu/~jmoorkan/vhdlref/" },
           { text: "Nand2Tetris - build a computer from logic gates to OS, free", url: "https://www.nand2tetris.org/" },
+          { text: "nandgame.com - interactive logic gate puzzles that build intuition before writing VHDL", url: "https://nandgame.com" },
           { text: "VHDL Language Reference Manual (IEEE Std 1076-2019)", url: "https://standards.ieee.org/ieee/VHDL/7537/" },
+        ],
+      },
+    ],
+  },
+
+  // ── INTERRUPT-DRIVEN DESIGN ───────────────────────────────────────────────────
+  {
+    slug: "interrupt-driven-embedded-design",
+    title: "Interrupt-Driven Design: Writing Non-Blocking Firmware for Microcontrollers",
+    date: "2026-07-15",
+    type: "blog",
+    description:
+      "Why polling loops kill embedded systems and how to replace them with interrupt service routines. Covers ISR setup, volatile variables, debounce, critical sections and the rules that separate good embedded firmware from bad.",
+    tags: ["Embedded", "C", "Microcontroller", "Hardware", "Firmware"],
+    readingTime: 9,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "Most beginner embedded tutorials use a polling loop. Check the button, check the sensor, check the flag, repeat. It works when you have one thing to check and nothing else to do. The moment you add a second responsibility, the loop breaks down. While you are waiting for one thing, you miss another.",
+      },
+      {
+        type: "p",
+        text: "Interrupt-driven design solves this. Instead of asking the hardware if something happened, you tell the hardware to notify you when it does. Your main loop stays free. The interrupt fires only when it needs to. This is not just an optimisation. For real-time systems it is often a requirement.",
+      },
+      {
+        type: "h2",
+        text: "What an Interrupt Actually Is",
+      },
+      {
+        type: "p",
+        text: "An interrupt is a hardware signal that pauses the current execution context and jumps to a predefined function called an Interrupt Service Routine, or ISR. When the ISR returns, execution resumes exactly where it left off. The CPU saves and restores the relevant registers automatically. From the perspective of the main loop, the interrupt happened between two instructions.",
+      },
+      {
+        type: "p",
+        text: "Every microcontroller has an interrupt vector table: a fixed block of memory at the start of flash that maps each interrupt source to an address. When an interrupt fires, the CPU looks up that table and jumps to the correct handler. On AVR devices, you define an ISR with the ISR() macro from avr-libc. On STM32 you use HAL_NVIC_EnableIRQ() and write a handler with the exact name the linker expects.",
+      },
+      {
+        type: "h2",
+        text: "The volatile Keyword",
+      },
+      {
+        type: "p",
+        text: "Any variable shared between an ISR and the main loop must be declared volatile. Without it, the compiler assumes the variable cannot change between two reads in the main loop and caches it in a register. When the ISR updates the variable in memory, the main loop never sees the new value. volatile forces the compiler to re-read the variable from memory every time it is accessed.",
+      },
+      {
+        type: "code",
+        lang: "c",
+        text: `volatile uint8_t mode = 0;  // shared between ISR and main loop
+
+ISR(INT0_vect) {
+    mode = (mode + 1) % 9;
+}
+
+int main(void) {
+    // ...
+    while (1) {
+        switch (mode) {  // always reads from memory, not a register
+            case 0: run_chase(); break;
+            case 1: run_blink_all(); break;
+            // ...
+        }
+    }
+}`,
+      },
+      {
+        type: "h2",
+        text: "Button Debounce in an ISR",
+      },
+      {
+        type: "p",
+        text: "Mechanical buttons bounce: the contacts make and break several times in the first millisecond after a press. Without debounce, a single button press registers as multiple interrupts. The simplest software fix is a short delay inside the ISR, which works for low-frequency button presses but is not appropriate for latency-sensitive interrupt handlers.",
+      },
+      {
+        type: "p",
+        text: "A better approach is a state-machine debounce in the main loop with a timer interrupt setting a flag. The ISR stays short and fast; the debounce logic runs in the main thread with full access to blocking operations. The choice depends on your system: if you care about response time more than absolute precision, the delay in the ISR is acceptable. If you are building a real-time controller, keep ISRs short.",
+      },
+      {
+        type: "h2",
+        text: "Critical Sections",
+      },
+      {
+        type: "p",
+        text: "A critical section is a block of code that must not be interrupted mid-way. If the main loop reads a 16-bit variable in two byte-wide operations and the ISR updates that variable between those two reads, the main loop sees a corrupted value. This is called a data race.",
+      },
+      {
+        type: "p",
+        text: "On AVR, you protect a critical section by disabling interrupts with cli() before the read and re-enabling with sei() after. On ARM Cortex-M, you use __disable_irq() and __enable_irq() or the LDREX/STREX exclusive access instructions for lock-free patterns. The guiding rule: keep critical sections as short as possible and never block inside one.",
+      },
+      {
+        type: "h2",
+        text: "What ISRs Should Not Do",
+      },
+      {
+        type: "ul",
+        items: [
+          "Call malloc or any function that uses dynamic memory - it is not re-entrant",
+          "Block or delay - the ISR must return quickly so other interrupts can fire",
+          "Print over UART directly - use a ring buffer instead and drain it from the main loop",
+          "Perform floating-point arithmetic on cores without hardware FPU - it is slow and may corrupt FPU state",
+          "Access hardware peripherals that require multi-step initialisation",
+        ],
+      },
+      {
+        type: "h2",
+        text: "A Practical Example: UART Receive Buffer",
+      },
+      {
+        type: "p",
+        text: "A common pattern is a ring buffer populated by a UART receive interrupt. Each byte that arrives fires the ISR, which writes the byte into the buffer and advances the write pointer. The main loop reads from the buffer and advances the read pointer independently. This decouples the hardware event rate from the processing rate: the ISR is fast, the main loop can be slow, and no bytes are lost as long as the buffer does not fill.",
+      },
+      {
+        type: "code",
+        lang: "c",
+        text: `#define BUF_SIZE 64
+volatile uint8_t rx_buf[BUF_SIZE];
+volatile uint8_t rx_head = 0, rx_tail = 0;
+
+ISR(USART0_RX_vect) {
+    uint8_t next = (rx_head + 1) % BUF_SIZE;
+    if (next != rx_tail) {      // only write if buffer is not full
+        rx_buf[rx_head] = UDR0;
+        rx_head = next;
+    }
+}
+
+uint8_t uart_read(void) {
+    while (rx_head == rx_tail);  // block until a byte arrives
+    uint8_t b = rx_buf[rx_tail];
+    rx_tail = (rx_tail + 1) % BUF_SIZE;
+    return b;
+}`,
+      },
+      {
+        type: "h2",
+        text: "Interrupt Priority and Nesting on ARM Cortex-M",
+      },
+      {
+        type: "p",
+        text: "On AVR, interrupts are non-nested by default - a lower-priority interrupt cannot interrupt a higher-priority one without explicitly re-enabling interrupts inside the ISR. ARM Cortex-M is different. The NVIC (Nested Vectored Interrupt Controller) supports true hardware preemption: a higher-priority interrupt can interrupt a lower-priority ISR mid-execution. Priority is configurable per interrupt, with lower numerical values meaning higher priority.",
+      },
+      {
+        type: "p",
+        text: "Priority grouping matters. On STM32 devices with 4 priority bits, NVIC_SetPriorityGrouping(3) gives you 4 preemption priority levels and 4 subpriority levels. Subpriority only matters when two interrupts of the same preemption priority fire simultaneously - the one with lower subpriority number runs first. If you have a time-critical ISR (say, a UART byte receive) and a less critical one (say, a timer overcount), set the UART ISR to preemption priority 0 and the timer ISR to priority 3. The UART ISR will always interrupt the timer ISR, but not the reverse.",
+      },
+      {
+        type: "code",
+        lang: "c",
+        text: `// NVIC priority setup on STM32 - I set this before enabling any interrupts
+NVIC_SetPriorityGrouping(3);   // 4 preemption levels, 4 sub-levels
+
+// High priority: UART receive - must not be delayed by anything
+NVIC_SetPriority(USART1_IRQn, NVIC_EncodePriority(3, 0, 0));
+NVIC_EnableIRQ(USART1_IRQn);
+
+// Low priority: SysTick-based housekeeping
+NVIC_SetPriority(TIM2_IRQn, NVIC_EncodePriority(3, 3, 0));
+NVIC_EnableIRQ(TIM2_IRQn);`,
+      },
+      {
+        type: "h2",
+        text: "Applying This in Practice",
+      },
+      {
+        type: "p",
+        text: "In the [avr-zac](https://github.com/zaccesss/avr-zac) project I used INT0 for the mode button with a 50ms debounce delay in the ISR. For a production system I would move the debounce to a timer-based state machine and keep the ISR to a single volatile increment. The principle translates directly to STM32 via HAL GPIO interrupt callbacks and to ESP32 via gpio_isr_handler_add(). The hardware details change but the design pattern does not.",
+      },
+      {
+        type: "p",
+        text: "When something seems broken in an interrupt-driven system, the diagnostic checklist is: check that the interrupt is enabled in both the peripheral and NVIC, check that the vector name in the handler exactly matches what the linker expects (a typo results in the default_handler running instead, often resetting the device), and check that volatile is on every shared variable. Most interrupt bugs are one of these three.",
+      },
+      {
+        type: "video",
+        youtubeId: "F6Ipn7gCOsY",
+        title: "How do interrupts work? - Ben Eater",
+        description: "Ben Eater's clear, low-level explanation of how interrupts work in hardware, covering the interrupt vector, context switching and how the CPU responds to an interrupt signal.",
+      },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "ARM Cortex-M3 Technical Reference Manual - section 8 covers the NVIC", url: "https://developer.arm.com/documentation/ddi0337/latest" },
+          { text: "Wikipedia: Interrupt - hardware and software interrupt overview", url: "https://en.wikipedia.org/wiki/Interrupt" },
+          { text: "Microchip AVR Instruction Set Manual - ISRs, RETI and sei/cli behaviour", url: "https://ww1.microchip.com/downloads/en/DeviceDoc/AVR-InstructionSet-Manual-DS40002198.pdf" },
+          { text: "Making Embedded Systems - Elecia White - chapter 4: interrupts and their interaction with the main loop", url: "https://www.oreilly.com/library/view/making-embedded-systems/9781449308889/" },
+          { text: "Phillip Johnston: Better Embedded System Software - interrupt design patterns", url: "https://embeddedartistry.com/blog/2017/07/26/better-embedded-system-software-chapter-5-interrupts/" },
+          { text: "avr-zac project - the ATmega644P project referenced in this post", url: "https://github.com/zaccesss/avr-zac" },
+          { text: "Microchip AVR Interrupt Handling application note (AVR004)", url: "https://ww1.microchip.com/downloads/en/AppNotes/doc1493.pdf" },
+        ],
+      },
+    ],
+  },
+
+  // ── REAL-TIME WEB DATA ────────────────────────────────────────────────────────
+  {
+    slug: "real-time-web-data",
+    title: "Real-Time Data on the Web: WebSockets, SSE and Long Polling Compared",
+    date: "2026-07-20",
+    type: "blog",
+    description:
+      "When to use WebSockets, Server-Sent Events or long polling for real-time data in a web application. A practical comparison covering latency, connection overhead, firewall behaviour and implementation complexity.",
+    tags: ["WebSockets", "JavaScript", "Next.js", "Full-Stack", "API"],
+    readingTime: 11,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "Real-time data on the web means updates appear in the browser within milliseconds of happening on the server, without the user having to refresh the page. Think of a live sports score, a chat message or a sensor reading updating in front of you. Making this work requires the server to push data to the browser proactively, rather than waiting for the browser to ask for it.",
+      },
+      {
+        type: "p",
+        text: "Every real-time feature on the web reduces to the same question: how does new data get from the server to the browser without the browser asking for it? There are three standard answers: long polling, Server-Sent Events and WebSockets. They each make different trade-offs and the right choice depends on your specific constraints.",
+      },
+      {
+        type: "h2",
+        text: "Long Polling",
+      },
+      {
+        type: "p",
+        text: "Long polling works over standard HTTP. The browser sends a request, the server holds it open until it has new data, then responds. The browser immediately sends another request. It looks like a real-time connection but it is really a sequence of requests with minimal delay between them.",
+      },
+      {
+        type: "p",
+        text: "The advantage is simplicity: it works everywhere HTTP works, requires no special server support and passes through every proxy and firewall without issue. The disadvantage is overhead: each response requires a new request, which means repeated HTTP handshakes and headers. For high-frequency updates (more than a few per second) this overhead becomes significant.",
+      },
+      {
+        type: "h2",
+        text: "Server-Sent Events",
+      },
+      {
+        type: "p",
+        text: "Server-Sent Events (SSE) is a one-directional streaming protocol over HTTP. The server sends a stream of text/event-stream data; the browser reads it via the EventSource API. The connection stays open. New data is pushed to the browser without a new request.",
+      },
+      {
+        type: "p",
+        text: "SSE is the right choice when data flows server-to-client only: live logs, notification feeds, stock prices, sensor telemetry dashboards. The protocol is simple, reconnects automatically on disconnect and works through most proxies. The limitation is directionality: if you need the client to also send data over the same connection, SSE is the wrong tool.",
+      },
+      {
+        type: "code",
+        lang: "typescript",
+        text: `// Next.js App Router route handler for SSE
+export async function GET() {
+  const stream = new ReadableStream({
+    start(controller) {
+      const send = (data: object) => {
+        controller.enqueue(\`data: \${JSON.stringify(data)}\\n\\n\`)
+      }
+      const interval = setInterval(() => {
+        send({ time: Date.now(), value: Math.random() })
+      }, 1000)
+      return () => clearInterval(interval)
+    },
+  })
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  })
+}`,
+      },
+      {
+        type: "h2",
+        text: "WebSockets",
+      },
+      {
+        type: "p",
+        text: "WebSockets provide a full-duplex persistent connection between browser and server. Either side can send data at any time. The initial HTTP handshake upgrades the connection to the WebSocket protocol; after that, frames are sent with minimal overhead. This makes WebSockets the right choice for chat applications, collaborative editing, multiplayer games and any feature where the browser also needs to send frequent messages.",
+      },
+      {
+        type: "p",
+        text: "The trade-off is complexity. WebSocket connections must be managed on the server side: connection pools, heartbeats, reconnection logic, horizontal scaling across multiple servers. In a serverless environment like Vercel, persistent WebSocket connections require a separate service such as Ably or Pusher because serverless functions terminate after each response.",
+      },
+      {
+        type: "h2",
+        text: "What I Use on This Portfolio",
+      },
+      {
+        type: "p",
+        text: "The live status cards on the homepage (Spotify, PS5, Discord) use periodic polling rather than WebSockets or SSE. The status changes slowly enough (every few seconds) that the overhead of a persistent connection is not justified. Each card fetches from a Next.js API route that reads from [Upstash](https://upstash.com) Redis, which is kept fresh by a [Cloudflare Worker](https://workers.cloudflare.com) polling the relevant APIs. The result is eventual consistency with a lag of a few seconds, which is acceptable for presence data.",
+      },
+      {
+        type: "p",
+        text: "For truly real-time sensor dashboards like the [Phaemos](/projects/phaemos) frontend, SSE makes more sense. The sensor node posts telemetry to the [FastAPI](https://fastapi.tiangolo.com) backend every 5 seconds; the Next.js dashboard could subscribe to an SSE stream from the backend rather than polling an API route every 5 seconds. The trade-off is that SSE requires a persistent server connection, which is straightforward on a dedicated server but requires additional routing on serverless infrastructure.",
+      },
+      {
+        type: "h2",
+        text: "SSE Reconnection and Event IDs",
+      },
+      {
+        type: "p",
+        text: "One underused feature of SSE is built-in reconnection. If the connection drops, the browser automatically reconnects after a configurable retry interval. If the server sends an `id:` field with each event, the browser sends a `Last-Event-ID` header on reconnect. A well-implemented SSE server can use this to resume from where the client left off - useful for log streaming where you do not want to re-send the entire history.",
+      },
+      {
+        type: "code",
+        lang: "typescript",
+        text: `// SSE with event IDs and retry interval - client automatically reconnects
+export async function GET() {
+  let eventId = 0
+  const stream = new ReadableStream({
+    start(controller) {
+      const send = (data: object) => {
+        controller.enqueue(\`id: \${eventId++}\\nretry: 3000\\ndata: \${JSON.stringify(data)}\\n\\n\`)
+      }
+      const interval = setInterval(() => send({ time: Date.now() }), 1000)
+      return () => clearInterval(interval)
+    },
+  })
+  return new Response(stream, {
+    headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+  })
+}
+
+// Client-side - browser handles reconnection automatically
+const source = new EventSource("/api/stream")
+source.onmessage = (e) => console.log(JSON.parse(e.data))
+source.onerror = () => console.log("reconnecting...")`,
+      },
+      {
+        type: "h2",
+        text: "WebSocket Heartbeats and Connection Management",
+      },
+      {
+        type: "p",
+        text: "WebSocket connections can silently die. A load balancer or NAT gateway may drop an idle connection without sending a close frame. The browser and server both believe the connection is alive; neither side gets an error until they try to send something. The standard mitigation is a ping-pong heartbeat: the server sends a ping frame every 30 seconds, and the client responds with a pong. If three consecutive pings go unanswered, the server closes the connection and the client reconnects.",
+      },
+      {
+        type: "p",
+        text: "Browser WebSocket does not expose the ping/pong API directly - you implement application-level heartbeats with a JSON message. For a managed WebSocket service like Ably or Pusher, heartbeats are handled for you. For a self-managed server using the `ws` library in Node.js, `ws` handles the protocol-level ping/pong automatically if you call `ws.ping()` on the server side.",
+      },
+      {
+        type: "h2",
+        text: "Practical Latency Comparison",
+      },
+      {
+        type: "ul",
+        items: [
+          "Long polling: 50-150ms latency at low load (dominated by HTTP round-trip and server hold time); degrades quickly under load as server connection pools fill",
+          "SSE: 5-30ms latency from server push to browser receipt; the persistent TCP connection removes the handshake overhead of polling",
+          "WebSockets: 1-10ms message delivery latency once the connection is established; suboptimal for infrequent messages due to the connection management overhead",
+          "Serverless note: SSE works on [Vercel](https://vercel.com) and [Cloudflare Workers](https://workers.cloudflare.com) with streaming responses; WebSockets require Durable Objects (Cloudflare) or a dedicated service",
+        ],
+      },
+      {
+        type: "video",
+        youtubeId: "xMnkRJ6sOZE",
+        title: "WebSockets in 100 Seconds - Fireship",
+        description: "A fast, accurate overview of the WebSocket protocol: what it is, how the handshake works and when to use it over HTTP alternatives.",
+      },
+      {
+        type: "h2",
+        text: "Summary: When to Use Which",
+      },
+      {
+        type: "ul",
+        items: [
+          "Long polling: simple server, low update frequency, data flows both ways, need to work through restrictive proxies",
+          "SSE: server-to-client only, moderate update frequency, want browser reconnection for free, serverless compatible with streaming support",
+          "WebSockets: bidirectional real-time communication, high-frequency updates, chat or collaborative features, dedicated server or managed service",
+        ],
+      },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "MDN: Server-Sent Events - EventSource API reference", url: "https://developer.mozilla.org/en-US/docs/Web/API/EventSource" },
+          { text: "MDN: WebSocket API - including the Sec-WebSocket-Protocol handshake", url: "https://developer.mozilla.org/en-US/docs/Web/API/WebSocket" },
+          { text: "RFC 6455 - The WebSocket Protocol (IETF)", url: "https://datatracker.ietf.org/doc/html/rfc6455" },
+          { text: "High Performance Browser Networking - Grigorik - chapter 16 (SSE) and chapter 17 (WebSocket)", url: "https://hpbn.co/server-sent-events-sse/" },
+          { text: "Vercel AI SDK streaming documentation - how streaming responses work on edge runtimes", url: "https://sdk.vercel.ai/docs/ai-sdk-ui/streaming" },
+          { text: "MDN: Server-Sent Events - Using server-sent events", url: "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events" },
+          { text: "Wikipedia: WebSocket - protocol overview and use cases", url: "https://en.wikipedia.org/wiki/WebSocket" },
+        ],
+      },
+    ],
+  },
+
+  // ── READING DATASHEETS ────────────────────────────────────────────────────────
+  {
+    slug: "reading-datasheets",
+    title: "Reading Datasheets: The Skill Nobody Teaches You",
+    date: "2026-08-10",
+    type: "notes",
+    description:
+      "Datasheets are dense, inconsistently structured and written for engineers who already know the terminology. Here is how to navigate them, find what you actually need and use them to debug hardware problems.",
+    tags: ["Embedded", "Hardware", "Microcontroller", "Learning", "Electronics"],
+    readingTime: 10,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "The first time you open a datasheet it is overwhelming. Hundreds of pages. Tables of register descriptions. Timing diagrams. Electrical characteristics in a dozen conditions. Most beginners close it and look for a tutorial instead. That works until there is no tutorial.",
+      },
+      {
+        type: "p",
+        text: "A datasheet is the authoritative reference for a component. Everything it is capable of, every register it has, every timing constraint it requires is in there. Learning to navigate one quickly is one of the most practical skills an embedded engineer can have. It also gives you independence: you can work with any component, not just the ones that have been well-documented by the community.",
+      },
+      {
+        type: "h2",
+        text: "Start with the Description and Block Diagram",
+      },
+      {
+        type: "p",
+        text: "The first few pages of any datasheet describe what the component is, what it is designed to do and how its internal blocks connect. Read this before anything else. The block diagram tells you which internal subsystems exist and how they relate. This builds the mental model you need to interpret the rest of the document.",
+      },
+      {
+        type: "p",
+        text: "For a microcontroller like the ATmega644P, the block diagram shows the CPU core, flash and SRAM, the USART, SPI and I2C peripherals, the ADC, the timers and the I/O ports, and how they all connect to the internal bus. Once you understand the block diagram, you know which chapter to look in for any feature.",
+      },
+      {
+        type: "h2",
+        text: "Pin Configuration and Electrical Characteristics",
+      },
+      {
+        type: "p",
+        text: "Before connecting anything, check the absolute maximum ratings. Exceeding these permanently damages the component. Then check the recommended operating conditions: supply voltage range, input voltage levels (Vih and Vil for logic high and low), output current limits. These are not suggestions.",
+      },
+      {
+        type: "p",
+        text: "A common mistake is connecting a 5V signal to a 3.3V input without checking the datasheet. Many 3.3V devices are not 5V-tolerant. The datasheet will either explicitly state 5V-tolerant on the relevant pins or list a maximum input voltage of VCC + 0.3V, which for a 3.3V device means 3.6V maximum. Exceeding this permanently damages the pin.",
+      },
+      {
+        type: "h2",
+        text: "Register Descriptions",
+      },
+      {
+        type: "p",
+        text: "Peripherals are configured through registers: memory-mapped locations that control hardware behaviour. A datasheet describes each register with a table showing bit positions, bit names, reset values and a description of what each bit does. Learning to read these tables is the core skill.",
+      },
+      {
+        type: "p",
+        text: "For the ATmega644P UART, the UCSR0A register contains the RXC0 bit (receive complete flag) at bit 7 and the TXC0 bit (transmit complete flag) at bit 6. UCSR0B controls RXCIE0 (receive complete interrupt enable), TXCIE0 (transmit complete interrupt enable), RXEN0 (receiver enable) and TXEN0 (transmitter enable). UCSR0C controls the frame format: data bits, parity, stop bits. UBRR0 sets the baud rate. The formula for UBRR0 is in the datasheet with example values for common baud rates at common clock frequencies.",
+      },
+      {
+        type: "h2",
+        text: "Timing Diagrams",
+      },
+      {
+        type: "p",
+        text: "Timing diagrams show the required sequence and timing of signals for a peripheral to work correctly. For I2C, the diagram shows the START condition (SDA falling while SCL is high), the data bit timing (SDA stable while SCL is high, transitions when SCL is low), and the STOP condition (SDA rising while SCL is high). If your I2C is unreliable, the timing diagram tells you what to measure on an oscilloscope to find the fault.",
+      },
+      {
+        type: "h2",
+        text: "How I Use Datasheets in Practice",
+      },
+      {
+        type: "p",
+        text: "I keep the PDF open with bookmarks on the pin diagram, the register summary and the section I am currently working on. The register summary is often the most useful page in a microcontroller datasheet: it lists every register in the device with its address and bit layout. Use Ctrl+F to search for register names and bit names. For sensor datasheets, the register map and the I2C address table are where I spend most of my time.",
+      },
+      {
+        type: "h2",
+        text: "Errata Sheets and Silicon Revisions",
+      },
+      {
+        type: "p",
+        text: "Datasheets document intended behaviour. Errata sheets document the bugs. Every major microcontroller family has an errata document listing silicon bugs that were discovered after tape-out. These are not the same as the datasheet and are often not linked prominently. For STM32, search ST's site for your exact part number followed by 'errata'. For AVR, Microchip maintains errata in a separate document from the datasheet.",
+      },
+      {
+        type: "p",
+        text: "A specific example: the STM32F103 has an errata noting that USART baud rate registers must be written in a specific order, and that certain DMA configurations on the USB peripheral require a software workaround. If you are debugging a peripheral that should work according to the datasheet but does not, the errata is the second place to look after re-reading the register description.",
+      },
+      {
+        type: "h2",
+        text: "Reading a Register Description: A Worked Example",
+      },
+      {
+        type: "p",
+        text: "Take the ATmega644P UCSR0A register. The datasheet shows a table with 8 rows, one per bit. Reading bit 7 (RXC0): 'USART Receive Complete. This flag bit is set when there are unread data in the receive buffer and cleared when the receive buffer is empty. If the receiver is disabled, the receive buffer will be flushed and consequently the RXC0 bit will become zero. The RXC0 flag can be used to generate a receive complete interrupt (see description of the RXCIE0 bit).' That single sentence tells you: it is a status flag, not a control bit; it is read-only in that sense; it clears automatically when you read UDR0; and it connects to an interrupt enable bit elsewhere.",
+      },
+      {
+        type: "code",
+        lang: "c",
+        text: `// Reading a register with bitfield macros - from the ATmega644P datasheet
+// UCSR0A register breakdown:
+// Bit 7 - RXC0:  Receive Complete (1 = data available)
+// Bit 6 - TXC0:  Transmit Complete
+// Bit 5 - UDRE0: Data Register Empty (1 = ready to send)
+// Bit 4 - FE0:   Frame Error
+// Bit 3 - DOR0:  Data Overrun
+// Bit 2 - UPE0:  Parity Error
+// Bit 1 - U2X0:  Double Speed mode
+// Bit 0 - MPCM0: Multi-processor mode
+
+uint8_t uart_read_blocking(void) {
+    while (!(UCSR0A & (1 << RXC0)));  // wait for receive complete
+    if (UCSR0A & (1 << FE0)) { /* handle frame error */ }
+    if (UCSR0A & (1 << DOR0)) { /* handle overrun */ }
+    return UDR0;
+}`,
+      },
+      {
+        type: "quote",
+        text: "The datasheet is always right. If the hardware does not match your expectation, re-read the datasheet.",
+        source: "A lesson from debugging an I2C sensor at 2am",
+      },
+      {
+        type: "p",
+        text: "The ability to read a datasheet means you can work with any component that has documentation. Most components have documentation. This skill scales.",
+      },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "Microchip ATmega644P datasheet - a real datasheet to practise on; register descriptions start at section 14", url: "https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega644P-Datasheet.pdf" },
+          { text: "STM32F4 reference manual (RM0090) - a large but well-structured ARM Cortex-M4 reference", url: "https://www.st.com/resource/en/reference_manual/rm0090-stm32f405415-stm32f407417-stm32f427437-and-stm32f429439-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" },
+          { text: "NXP I2C specification UM10204 - the canonical I2C protocol reference; short and worth reading cover to cover", url: "https://www.nxp.com/docs/en/user-guide/UM10204.pdf" },
+          { text: "The Art of Electronics - Horowitz and Hill - chapter 1 covers passive components and their real-world behaviour as described in datasheets", url: "https://www.amazon.co.uk/Art-Electronics-Paul-Horowitz/dp/0521809266" },
+          { text: "Making Embedded Systems - Elecia White - chapter 2 covers hardware/software boundaries and datasheet-driven development", url: "https://www.oreilly.com/library/view/making-embedded-systems/9781449308889/" },
+          { text: "sigrok / PulseView - open-source logic analyser for validating signal timing from datasheets", url: "https://sigrok.org/wiki/PulseView" },
+          { text: "Wikipedia: Datasheet - structure and conventions", url: "https://en.wikipedia.org/wiki/Datasheet" },
+        ],
+      },
+    ],
+  },
+
+  // ── INTERNATIONAL STUDENT ENGINEERING ─────────────────────────────────────────
+  {
+    slug: "international-student-engineering-uk",
+    title: "Navigating UK Engineering as an International Student: What No One Tells You",
+    date: "2026-08-20",
+    type: "journal",
+    description:
+      "The practical and personal side of studying Electronic Engineering and Computer Science in the UK as an international student: the paperwork, the culture shock, the academic differences and what actually helped.",
+    tags: ["Personal", "Career", "University", "International", "Engineering"],
+    readingTime: 10,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "When people ask what it is like to be an international student studying engineering in the UK, the answers they expect are about the weather or the accent. The real answers are about the UCAS system, the visa rules, the difference between A-level and BTEC pathways, the assumptions baked into the academic culture and the specific ways that being from another country makes an already hard thing harder.",
+      },
+      {
+        type: "p",
+        text: "I moved to the UK in April 2022 from Ghana. I arrived with a General Arts background, no formal technical foundation and a strong desire to study engineering. That combination does not fit neatly into the UK system. What follows is what I learned from navigating it.",
+      },
+      {
+        type: "h2",
+        text: "The Academic Entry Routes",
+      },
+      {
+        type: "p",
+        text: "UK universities expect A-levels or equivalent. If you came through a different system - IB, WAEC, BGSE, a vocational qualification or a foreign degree - you will spend a lot of time translating your qualifications into terms the admissions system understands. The NARIC (now UK ENIC) service does formal equivalency checks but it is a slow and sometimes expensive process.",
+      },
+      {
+        type: "p",
+        text: "For engineering specifically, the critical subjects are maths and physics. If your prior education did not give you A-level Maths and Physics, you need to find a route that does: a foundation year, an access course, a BTEC or an international entry programme. I took the BTEC route at Stanmore College. It was not my first choice but it turned out to be an excellent preparation for the engineering degree.",
+      },
+      {
+        type: "h2",
+        text: "The Visa and Immigration Layer",
+      },
+      {
+        type: "p",
+        text: "As an international student on a [Student visa](https://www.gov.uk/student-visa), you are working within a set of rules that domestic students do not have to think about. Your visa is tied to your institution and your course. Changing course, deferring entry or transferring institutions all have immigration implications. You need to understand the rules, not just for yourself but because advisors at universities sometimes give incorrect information. [UKCISA](https://www.ukcisa.org.uk) is the most reliable independent source for guidance on all of this.",
+      },
+      {
+        type: "p",
+        text: "Work rights under a Student visa are limited: typically 20 hours per week during term time, full-time during official holidays. This matters for supporting yourself financially. Many international students rely on families or scholarships in ways domestic students do not, which creates a different kind of pressure when things do not go according to plan.",
+      },
+      {
+        type: "h2",
+        text: "The Academic Culture Gap",
+      },
+      {
+        type: "p",
+        text: "UK engineering education at university level is not rote learning. You are expected to read papers, form arguments, question assumptions and demonstrate understanding rather than recall. The examination style is different: problem-solving under time pressure, not reproducing memorised content. If your prior education was heavily exam-and-recall based, this is an adjustment.",
+      },
+      {
+        type: "p",
+        text: "Group work is also culturally different. In some educational systems, collaboration is discouraged or treated as cheating. In UK universities, group projects are assessed components where your individual contribution matters but so does your ability to work with people you did not choose. This is not obvious until you are in the middle of a group project that is going badly.",
+      },
+      {
+        type: "h2",
+        text: "What Actually Helped",
+      },
+      {
+        type: "ul",
+        items: [
+          "Building relationships with lab technicians and support staff early - they know things that are not in the handbook",
+          "Being honest with academic staff about your background rather than pretending gaps do not exist",
+          "Joining societies: the Ghana Society, the Computing Society and the [IET](https://www.theiet.org) gave me communities where I was not the only one navigating a double transition",
+          "Using office hours systematically, not just when stuck - it builds relationships and gives early feedback",
+          "Building a portfolio of projects from year one rather than waiting until the final year",
+          "Applying for every award and recognition you are eligible for - visibility matters and most students do not apply",
+        ],
+      },
+      {
+        type: "h2",
+        text: "The Graduate Job Market and Visa Reality",
+      },
+      {
+        type: "p",
+        text: "UK employers can only sponsor international graduates under the Skilled Worker visa if they are approved sponsors and if the role meets the salary threshold and skill level requirements. The list of licensed sponsors is published by the Home Office. Before applying anywhere, check it. This filters out a significant fraction of UK employers - particularly smaller companies and startups that have never needed to sponsor before and are not willing to go through the process.",
+      },
+      {
+        type: "p",
+        text: "The Graduate visa gives you two years after graduation (three if you hold a PhD) to work in the UK without sponsorship. This is valuable time. Use it strategically: build demonstrable skills during those two years so that when you need sponsorship, you are a candidate that employers are willing to go through the process for. Companies do not sponsor out of charity - they do it because the alternative is not hiring the person they want.",
+      },
+      {
+        type: "p",
+        text: "Something that surprised me: many large engineering employers - defence contractors, semiconductor companies, some graduate schemes - require UK security clearance. Security clearance for certain roles requires UK residency for a minimum number of years and sometimes citizenship. This closes off a category of roles entirely for most international graduates, at least in the short term. It is not advertised prominently in job listings. Read the requirements carefully before investing time in an application.",
+      },
+      {
+        type: "h2",
+        text: "For Whoever Is in the Middle of This",
+      },
+      {
+        type: "p",
+        text: "If you are an international student studying engineering in the UK right now, I want to say this directly: the difficulty is real and it is not a sign that you do not belong here. The system was not designed with you in mind. That creates real friction that your domestic classmates do not face. It is also survivable, and the combination of skills you build navigating it - adaptability, self-direction, cultural translation - is genuinely valuable in engineering careers.",
+      },
+      {
+        type: "p",
+        text: "The qualifications you get are the same. The degree classification is the same. And the story you carry into interviews is one that most interviewers have never heard before. Use it.",
+      },
+      {
+        type: "h2",
+        text: "Useful Resources",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "UKCISA - UK Council for International Student Affairs - the most reliable source for visa and immigration guidance", url: "https://www.ukcisa.org.uk" },
+          { text: "UK Visas and Immigration - Student visa official guidance", url: "https://www.gov.uk/student-visa" },
+          { text: "Graduate visa - official eligibility and application guide", url: "https://www.gov.uk/graduate-visa" },
+          { text: "Skilled Worker visa - sponsor licence requirements and application process", url: "https://www.gov.uk/skilled-worker-visa" },
+          { text: "UCAS - undergraduate application deadlines and entry requirements", url: "https://www.ucas.com" },
+          { text: "Engineering UK - annual report on the UK engineering sector and graduate demand", url: "https://www.engineeringuk.com" },
+          { text: "IET - Institution of Engineering and Technology - professional membership body", url: "https://www.theiet.org" },
+          { text: "UK Home Office: register of licensed sponsors - check before applying for a role", url: "https://www.gov.uk/government/publications/register-of-licensed-sponsors-workers" },
+        ],
+      },
+    ],
+  },
+
+  // ── DRAFT: JAVASCRIPT EVENT LOOP ─────────────────────────────────────────────
+  {
+    slug: "javascript-event-loop",
+    title: "JavaScript's Event Loop Without the Metaphors",
+    date: "2026-06-22",
+    type: "article",
+    description:
+      "Most explanations of the JavaScript event loop use hand-wavy analogies. This one explains the actual mechanism: the call stack, the task queue, the microtask queue and why the order matters for real code.",
+    tags: ["JavaScript", "TypeScript", "Web", "Async", "Full-Stack"],
+    readingTime: 10,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "JavaScript is single-threaded. There is one call stack. One thing runs at a time. And yet web applications handle button clicks while fetching data, animate the UI while processing responses and run timers while doing everything else. The mechanism that makes this possible is the event loop. Most explanations reach for analogies - a restaurant, a to-do list, a queue at the post office. I want to explain what is actually happening in the runtime instead.",
+      },
+      {
+        type: "h2",
+        text: "The Call Stack",
+      },
+      {
+        type: "p",
+        text: "The call stack is a LIFO data structure that tracks which function is currently executing and which functions called it. When you call a function, a stack frame is pushed containing the function's local variables and the return address. When the function returns, the frame is popped. If the stack is empty, no JavaScript is executing.",
+      },
+      {
+        type: "p",
+        text: "Stack overflow errors happen when recursion is too deep - each recursive call pushes a new frame, and eventually the engine runs out of stack space. The error message 'Maximum call stack size exceeded' is the runtime telling you the call stack is full.",
+      },
+      {
+        type: "h2",
+        text: "The Task Queue (Macrotask Queue)",
+      },
+      {
+        type: "p",
+        text: "Callbacks from setTimeout, setInterval, I/O events and UI events are not run immediately. They are added to the task queue (also called the macrotask queue or callback queue). The event loop checks this queue only when the call stack is empty. This is why setTimeout(fn, 0) does not run fn immediately - it runs fn after the current synchronous code finishes and the stack empties.",
+      },
+      {
+        type: "code",
+        lang: "javascript",
+        text: `console.log("1")          // runs first - synchronous
+
+setTimeout(() => {
+  console.log("2")          // runs last - task queue, waits for stack to empty
+}, 0)
+
+console.log("3")          // runs second - still synchronous
+
+// Output: 1, 3, 2`,
+      },
+      {
+        type: "h2",
+        text: "The Microtask Queue",
+      },
+      {
+        type: "p",
+        text: "Promises and queueMicrotask() use a separate queue: the microtask queue. The critical difference from the task queue is priority. After every task completes and before the event loop picks the next task from the task queue, it drains the entire microtask queue. All pending microtasks run before any pending macrotask.",
+      },
+      {
+        type: "code",
+        lang: "javascript",
+        text: `console.log("1")          // synchronous
+
+setTimeout(() => console.log("2"), 0)  // task queue
+
+Promise.resolve()
+  .then(() => console.log("3"))        // microtask queue
+  .then(() => console.log("4"))        // another microtask
+
+console.log("5")          // synchronous
+
+// Output: 1, 5, 3, 4, 2
+// Microtasks (3, 4) run before the macrotask (2)`,
+      },
+      {
+        type: "p",
+        text: "This ordering has real consequences. If you generate an infinite chain of microtasks (each .then() schedules another), the event loop never gets to process macrotasks. The page freezes even though no single function is blocking - the microtask queue never empties.",
+      },
+      {
+        type: "h2",
+        text: "async/await Is Promise Syntax",
+      },
+      {
+        type: "p",
+        text: "async/await is syntactic sugar over Promises. An async function returns a Promise. The await keyword pauses execution of the async function and schedules the rest of it as a microtask once the awaited Promise resolves. It does not block the call stack - the JavaScript engine continues executing other code while the async function is paused.",
+      },
+      {
+        type: "code",
+        lang: "javascript",
+        text: `async function fetchUser(id) {
+  console.log("A")                    // synchronous
+  const user = await getUser(id)      // pauses here; rest is a microtask
+  console.log("B")                    // runs after getUser resolves
+  return user
+}
+
+fetchUser(1)
+console.log("C")                      // runs before "B"
+
+// Output: A, C, B
+// "C" runs because await suspends the async function, freeing the stack`,
+      },
+      {
+        type: "h2",
+        text: "requestAnimationFrame Is Neither",
+      },
+      {
+        type: "p",
+        text: "requestAnimationFrame callbacks run after the current task and all microtasks, but before the browser renders the next frame. They sit in their own queue, separate from both the task queue and the microtask queue. The practical implication: if you update the DOM inside a rAF callback, the browser will paint those changes in the same frame. If you update the DOM from a setTimeout callback, the paint may or may not happen in the same frame depending on timing.",
+      },
+      {
+        type: "h2",
+        text: "The Event Loop Tick",
+      },
+      {
+        type: "p",
+        text: "One complete pass through the event loop - called a tick - follows this sequence: (1) run the oldest task from the task queue, (2) drain the entire microtask queue, (3) run any scheduled rAF callbacks, (4) let the browser render if needed, (5) repeat. This is the actual algorithm. Understanding it explains why Promises resolve before setTimeout callbacks, why long synchronous code freezes animations and why queueMicrotask() should be used sparingly.",
+      },
+      {
+        type: "h2",
+        text: "Why This Matters in Practice",
+      },
+      {
+        type: "ul",
+        items: [
+          "State updates in React are batched and applied as microtasks - calling setState multiple times in one event handler causes one re-render, not multiple",
+          "Long synchronous computations (image processing, large sorts) block both the UI and I/O - move them to a Web Worker if they take more than a few milliseconds",
+          "Promise.all fires all promises in parallel and waits for all to resolve - but they still run on the same thread, so they are concurrent in scheduling but not parallel in execution",
+          "Unhandled promise rejections are caught by the 'unhandledrejection' window event, which fires from the microtask queue - before any macrotask that follows",
+          "Node.js has process.nextTick(), which runs even before the microtask queue - it is a third priority level that predates the standardised queueMicrotask() API",
+        ],
+      },
+      {
+        type: "h2",
+        text: "Watch: The Event Loop Explained",
+      },
+      {
+        type: "video",
+        youtubeId: "cCOL7MC4Pl0",
+        title: "In The Loop - Jake Archibald (JSConf Asia 2018)",
+        description: "The best visual explanation of the JavaScript event loop, task queue, microtask queue and requestAnimationFrame. 35 minutes - worth every minute.",
+      },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "HTML Living Standard - event loop processing model (WHATWG)", url: "https://html.spec.whatwg.org/multipage/webappapis.html#event-loops" },
+          { text: "MDN: Concurrency model and the event loop", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Event_loop" },
+          { text: "Jake Archibald: Tasks, microtasks, queues and schedules (2015)", url: "https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/" },
+          { text: "MDN: queueMicrotask() reference", url: "https://developer.mozilla.org/en-US/docs/Web/API/Window/queueMicrotask" },
+          { text: "Node.js event loop documentation - includes process.nextTick() and libuv phases", url: "https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick" },
+          { text: "MDN: Using microtasks in JavaScript with queueMicrotask()", url: "https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide" },
+        ],
+      },
+    ],
+  },
+
+  // ── DRAFT: MY DEVELOPMENT SETUP ──────────────────────────────────────────────
+  {
+    slug: "my-development-setup-2026",
+    title: "My Development Setup in 2026: Everything I Use to Build, Learn and Ship",
+    date: "2026-06-29",
+    type: "article",
+    description:
+      "A full tour of my hardware, editor configuration, terminal setup, dotfiles and the tools I reach for when building embedded systems and web applications. What I use, why I use it and what I changed my mind about.",
+    tags: ["Tools", "Productivity", "Terminal", "Setup", "Dotfiles"],
+    readingTime: 14,
+    published: true,
+    content: [
+  {
+    type: "p",
+    text: "Every developer has opinions about their setup. Mine has changed significantly over the past two years - from a Windows-only workflow to a split across three machines, with the right tool for each context. This is what I actually use, verified against what is documented on the /uses page of this site, with notes on what I tried and abandoned.",
+  },
+  {
+    type: "h2",
+    text: "Hardware",
+  },
+  {
+    type: "p",
+    text: "I run three machines with distinct purposes. The main development and gaming machine (ZACCESS-GPC) is a custom Windows desktop with an NVIDIA GeForce RTX 4060 and an Intel CPU. This is where embedded tooling lives: STM32CubeIDE, ST-Link utilities, Proteus for circuit simulation and the GPC daemon that handles game presence detection for the portfolio dashboard. STM32CubeIDE and most manufacturer programming tools are Windows-first and either do not exist on macOS or are awkward enough to make the jump not worth it.",
+  },
+  {
+    type: "p",
+    text: "For portable development and anything Unix-native I use a MacBook (ZACCESS-MBK). The split is practical: web development, scripting, Next.js, Python and command-line work all run better in a Unix environment. The Mac runs a launchd-managed Python daemon (mac-daemon.py) that writes battery level, charging state, timezone and weather to Redis every 30 seconds for the live status widget on the portfolio site. The Lenovo laptop (ZACCESS-LNV) is a secondary Windows machine with its own daemon doing the same for battery and charging state.",
+  },
+  {
+    type: "p",
+    text: "The three-machine setup sounds complicated but in practice it works because the [dotfiles](https://github.com/zaccesss/dotfiles) are cross-platform. Shell aliases, tool configuration and git hooks are identical across all three. Switching machines is switching keyboards, not relearning muscle memory.",
+  },
+  {
+    type: "h2",
+    text: "Terminal and Shell",
+  },
+  {
+    type: "p",
+    text: "My prompt is [Starship](https://starship.rs) - a cross-shell Rust-based prompt configured once in ~/.config/starship.toml and working identically on macOS (zsh), Linux (bash) and Windows (PowerShell 7). It shows git branch and status, active language version and the exit code of the last command. Loaded last in the dotfiles at topic file 59, so all aliases and environment variables are already in place before the prompt hooks in.",
+  },
+  {
+    type: "p",
+    text: "On macOS and Linux I use zsh/bash with a custom shell configuration rather than Oh My Zsh. Oh My Zsh adds startup time and features I do not use. The .zshrc does: nvm lazy-loading (so Node does not slow down every shell open), path management, aliases and a small set of functions. On Windows I use PowerShell 7, primarily for NSSM service management, setting up Python virtual environments and running builds.",
+  },
+  {
+    type: "p",
+    text: "The dotfiles repository covers 59 numbered topic files loaded in order - from git aliases and navigation shortcuts through to Docker, Kubernetes, cloud platforms and 30+ language toolchains. Every alias has the same name on all three platforms. The colour scheme was chosen deliberately: I lost sight in my right eye at age two, and colour does the depth-cue job that binocular vision usually handles. Cyan, magenta, green and yellow were chosen for contrast and tested under deuteranopia and protanopia simulations.",
+  },
+  {
+    type: "h2",
+    text: "Editors",
+  },
+  {
+    type: "p",
+    text: "VS Code is my primary editor for web and TypeScript work. The TypeScript language server integration is significantly better than what I had in Vim, and the debug adapter protocol means the same debugger interface works for TypeScript, Python and C without switching tools. Key extensions: ESLint, Prettier, Tailwind IntelliSense, GitLens, Error Lens and the Cortex-Debug extension for STM32 work.",
+  },
+  {
+    type: "p",
+    text: "For projects that benefit from vendor tooling I switch to JetBrains: IntelliJ IDEA for Java coursework, PyCharm for the Phaemos FastAPI backend and system daemons, CLion for C/C++ embedded development. The refactoring support in IntelliJ and the database tooling in DataGrip are still better than VS Code for complex codebases. I switch based on what the project needs rather than picking one permanently.",
+  },
+  {
+    type: "ul",
+    items: [
+      "Font: JetBrains Mono - monospace with ligatures; arrow and comparison operator ligatures are useful in TypeScript",
+      "Version control view: VS Code source control panel for side-by-side diffs; git command line for everything else",
+      "Linting: ESLint on pre-commit via a git hook; was annoying when I set it up, would not remove it now",
+      "I use git add -p (patch mode) for staging individual hunks rather than entire files - makes commit messages easier to write accurately",
+    ],
+  },
+  {
+    type: "h2",
+    text: "Hardware Lab",
+  },
+  {
+    type: "p",
+    text: "For embedded work I use an oscilloscope, a logic analyser and a bench power supply alongside the microcontroller boards. The oscilloscope is essential for verifying signal timing, debugging UART and SPI communication and measuring ADC input waveforms on the ATmega644P and ESP32. A cheap USB logic analyser with [PulseView](https://sigrok.org/wiki/PulseView) captures and decodes protocol traces when the oscilloscope alone is not enough.",
+  },
+  {
+    type: "p",
+    text: "[Proteus](https://www.labcenter.com) is my primary PCB design and simulation tool. I used it for the [two-stage audio amplifier](/blog/two-stage-audio-amplifier) PCB in my EE coursework - designing the schematic, running the simulation and laying out the board all within the same environment before committing to fabrication. The built-in circuit simulator and firmware simulation for microcontrollers are genuinely useful: you can verify timing-critical embedded logic and analogue behaviour before soldering anything. KiCad is my secondary option for projects where open Gerber export or community footprint libraries are a better fit.",
+  },
+  {
+    type: "h2",
+    text: "Note-Taking and Organisation",
+  },
+  {
+    type: "p",
+    text: "[Notion](https://www.notion.so) for structured reference material and anything collaborative: project planning, research threads, meeting notes and project briefs. [Obsidian](https://obsidian.md) for long-form research and personal knowledge management where I want to keep plain Markdown files I actually own. The bidirectional linking between notes in Obsidian makes it easy to build context over time without a managed database. [Figma](https://www.figma.com) before starting any frontend work - thinking visually before writing CSS saves time. [Excalidraw](https://excalidraw.com) for quick system design sketches that do not need Figma-level polish.",
+  },
+  {
+    type: "h2",
+    text: "Version Control",
+  },
+  {
+    type: "p",
+    text: "Git on the command line for everything. I have tried GitKraken and Sourcetree and went back within a week each time. The mental model is clearer in the terminal because you can see exactly what each command does. The dotfiles repository uses a bare git repo approach: `git --git-dir=$HOME/.dotfiles --work-tree=$HOME` treats home as the work tree without cloning into it. Every config file lives in home, tracked by the bare repo and pushed to all three remotes (GitHub, GitLab, Codeberg) simultaneously via push URLs.",
+  },
+  {
+    type: "h2",
+    text: "What I Changed My Mind About",
+  },
+  {
+    type: "ul",
+    items: [
+      "Windows for development: WSL2 is good, not great; the file system performance across the boundary is noticeable, and half of the hardware tools I use do not work in WSL anyway",
+      "Tabs vs spaces: spaces everywhere; the tab-width ambiguity across editors and terminals caused too many display inconsistencies",
+      "Linters as blockers: running ESLint on pre-commit was frustrating at first; now I would not work on a codebase that does not do this",
+      "Branch-per-feature: I was too conservative with branching early on; I branch for everything including small fixes now, the PR history is the documentation",
+      "AI coding assistants: useful for boilerplate and API reference; I do not use them for architectural decisions or debugging subtle bugs, the confidence on unfamiliar APIs is too high relative to accuracy",
+    ],
+  },
+  {
+    type: "h2",
+    text: "Further Reading",
+  },
+  {
+    type: "ol-links",
+    items: [
+      { text: "Dotfiles repository (GitHub) - the actual config files behind most of this post", url: "https://github.com/zaccesss/dotfiles" },
+      { text: "Uses page on this site - the full list of tools, hardware and services I use", url: "/uses" },
+      { text: "Starship - cross-shell prompt configuration documentation", url: "https://starship.rs/config/" },
+      { text: "Proteus Design Suite - PCB design and circuit simulation tool", url: "https://www.labcenter.com/" },
+      { text: "PulseView / sigrok - open-source logic analyser software", url: "https://sigrok.org/wiki/PulseView" },
+      { text: "git-unlocked - my open-source Git course covering advanced workflows", url: "https://github.com/zaccesss/git-unlocked" },
+    ],
+  },
+],
+  },
+
+  // ── DRAFT: PHAEMOS ENGINEERING DECISIONS ─────────────────────────────────────
+  {
+    slug: "phaemos-engineering-decisions",
+    title: "PHAEMOS: Engineering Decisions from Breadboard to Distributed IoT System",
+    date: "2026-07-27",
+    type: "journal",
+    description:
+      "A case study in the decisions behind PHAEMOS - a multi-node environmental monitoring system. Why these hardware platforms, why this software stack and what I would do differently now.",
+    tags: ["PHAEMOS", "IoT", "Embedded", "Python", "Full-Stack"],
+    readingTime: 11,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "[PHAEMOS](/projects/phaemos) started as a single ESP32 on a breadboard connected to a DHT22 temperature sensor, sending readings to a terminal over UART. It is now a multi-node system with hardware nodes based on ESP32, STM32, Arduino Nano and Raspberry Pi Pico 2W, a [FastAPI](https://fastapi.tiangolo.com) backend with sub-200ms response times, JWT role-based access control, an Isolation Forest anomaly detection model and a Next.js dashboard. The gap between those two states required a lot of decisions. Most of them I got roughly right the first time. Some I got wrong.",
+      },
+      {
+        type: "h2",
+        text: "Why Four Different Microcontrollers",
+      },
+      {
+        type: "p",
+        text: "The natural question is: why not pick one platform and standardise on it? The answer is that each node has a different job. The ESP32 nodes are the primary connectivity nodes: they have WiFi built in, enough RAM to hold a TLS session and enough processing power to do some local filtering before transmitting. They are the obvious choice for anything that needs to talk to the internet directly.",
+      },
+      {
+        type: "p",
+        text: "The STM32 nodes handle situations where timing precision and real-time behaviour matter more than connectivity. The STM32F103 can run a PID controller at 10kHz without breaking a sweat while simultaneously handling three UART peripherals via DMA. An ESP32 can do this too, but the ESP32's [FreeRTOS](https://www.freertos.org) scheduler and WiFi stack add latency variance that is unacceptable for some control loops. The STM32 runs bare-metal or RTOS depending on the node's requirements.",
+      },
+      {
+        type: "p",
+        text: "The Arduino Nano nodes are for prototyping new sensor integrations. The Nano's 5V tolerance and the wide library support make it the fastest path from 'I have this sensor' to 'I have data'. Once a sensor integration is working on a Nano and the communication protocol is understood, it gets ported to whichever production platform is appropriate. The Nano nodes are never permanent - they are scaffolding.",
+      },
+      {
+        type: "p",
+        text: "The Raspberry Pi Pico 2W is the newest addition. The RP2350's dual-core architecture with one ARM Cortex-M33 core and one RISC-V Hazard3 core is interesting for workloads that benefit from parallelism: one core handles sensor sampling, the other handles WiFi communication, and because they are on separate cores (not using a scheduler), there is no preemption latency between them. MicroPython makes it fast to iterate.",
+      },
+      {
+        type: "h2",
+        text: "The Backend Choice: FastAPI",
+      },
+      {
+        type: "p",
+        text: "The backend is [FastAPI](https://fastapi.tiangolo.com) with PostgreSQL (via [Supabase](https://supabase.com)) and Redis for caching. I chose FastAPI over Express or a Go HTTP server because the team (at the time, me and one other person) was more productive in Python, and FastAPI's automatic OpenAPI documentation meant the API spec was always up to date. The async nature of FastAPI means sensor data ingestion endpoints can handle concurrent posts from multiple nodes without thread-blocking.",
+      },
+      {
+        type: "p",
+        text: "The sub-200ms response time target comes from the dashboard's requirement to feel live. The actual sensor data latency from node to dashboard is: sensor samples every 5 seconds → node transmits to FastAPI → FastAPI writes to PostgreSQL and invalidates Redis cache → dashboard polls API route → Next.js API route reads from Redis → response. The bottleneck is PostgreSQL write latency, which averages 40-60ms on the Supabase shared tier.",
+      },
+      {
+        type: "h2",
+        text: "Anomaly Detection with Isolation Forest",
+      },
+      {
+        type: "p",
+        text: "The Isolation Forest model detects anomalous sensor readings. Isolation Forest is an unsupervised algorithm: you train it on normal data and it learns to identify readings that are unusual relative to that baseline. It works by randomly partitioning the feature space with split trees - anomalous points are isolated near the root of the tree with few splits, while normal points require more splits to isolate. The anomaly score is the average depth across many trees.",
+      },
+      {
+        type: "p",
+        text: "I chose Isolation Forest over simpler threshold-based anomaly detection because the sensor readings are correlated. A temperature of 35°C is not anomalous in summer but is anomalous at 2am in January. Isolation Forest takes all 25 features (temperature, humidity, pressure, light, gas concentration and derived features like rolling mean and rolling standard deviation over 1-hour and 24-hour windows) into account simultaneously. A threshold approach would need 25 separately tuned thresholds and would miss cross-feature correlations.",
+      },
+      {
+        type: "h2",
+        text: "What I Got Wrong",
+      },
+      {
+        type: "p",
+        text: "The first version of the communication protocol between nodes and the backend was a flat JSON object with no versioning. When I added new sensor fields, every existing node started sending incomplete objects and the backend rejected them. The fix was adding a protocol version field and making the backend tolerant of missing fields for older protocol versions. I should have built this in from the start.",
+      },
+      {
+        type: "p",
+        text: "The Docker Compose deployment was also an afterthought. The initial development setup was three terminal windows running separate processes. Moving to Compose required restructuring the service dependencies and adding proper health checks. Had I written the Compose file first and developed against it, the production deployment would have been cleaner. Infrastructure should be defined before it is needed, not after.",
+      },
+      {
+        type: "p",
+        text: "The JWT RBAC implementation required three revisions. The first version put all permissions in the JWT payload, which meant revoking a token required invalidating every issued JWT - stateless JWTs do not support revocation without a token blocklist. The second version added a Redis blocklist but the cache invalidation was buggy. The third version separated authentication (JWT) from authorisation (database lookup per request), which is slower but correct. Security is one place where 'fast but wrong' has real consequences.",
+      },
+      {
+        type: "h2",
+        text: "What I Would Do Differently",
+      },
+      {
+        type: "ul",
+        items: [
+          "Start with a well-defined data schema for sensor payloads and version it from day one",
+          "Write the Docker Compose file before writing any service code - it forces you to think about service boundaries",
+          "Use MQTT instead of HTTP POST for node-to-backend communication - MQTT's QoS levels and retained messages are designed exactly for this use case",
+          "Consider InfluxDB or TimescaleDB instead of PostgreSQL for time-series data - the query patterns for sensor data (recent N readings, aggregates over time windows) are much faster on a time-series database",
+          "Automate the model retraining pipeline from the start - manually re-running the Isolation Forest notebook when data distribution shifts is a recurring manual step that should not be manual",
+        ],
+      },
+      {
+        type: "h2",
+        text: "References and Related",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "FreeRTOS - the kernel used on the STM32 node in Phaemos", url: "https://www.freertos.org" },
+          { text: "scikit-learn: IsolationForest - the anomaly detection algorithm used in Phaemos", url: "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.IsolationForest.html" },
+          { text: "FastAPI documentation - the Python framework powering the Phaemos backend", url: "https://fastapi.tiangolo.com" },
+          { text: "MQTT specification - the protocol used for node-to-backend communication", url: "https://mqtt.org/mqtt-specification/" },
+          { text: "Designing Data-Intensive Applications - Kleppmann - informed the backend architecture decisions", url: "https://dataintensive.net/" },
+          { text: "Docker documentation - Compose file reference", url: "https://docs.docker.com/compose/" },
+          { text: "TimescaleDB - time-series PostgreSQL extension (considered as alternative data store)", url: "https://docs.timescale.com/" },
+        ],
+      },
+    ],
+  },
+
+  // ── DRAFT: ELEVEN THINGS LEARNING TO CODE ────────────────────────────────────
+  {
+    slug: "eleven-things-learning-to-code",
+    title: "Eleven Things That Actually Help When Learning to Code",
+    date: "2026-09-07",
+    type: "article",
+    description:
+      "Not 'learn Python first' or 'do LeetCode every day'. The things that actually made a difference when moving from knowing nothing to shipping things: how to read documentation, how to get unstuck, how to build the habit.",
+    tags: ["Learning", "Career", "Programming", "Beginner", "Advice"],
+    readingTime: 8,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "The internet has no shortage of advice on learning to code. Most of it is either a technology recommendation (learn Python / JavaScript / Rust first) or a method recommendation (do LeetCode / build projects / contribute to open source). Both miss the more fundamental problems: how do you stay consistent, how do you get unstuck, how do you know if you are learning efficiently. This is the list I wish someone had given me.",
+      },
+      {
+        type: "h2",
+        text: "1. Read Error Messages All the Way Through",
+      },
+      {
+        type: "p",
+        text: "The instinct when an error appears is to scan for the first familiar word and Google it. A better instinct is to read the entire error message first, including the stack trace. Error messages in modern languages are usually very specific: 'Cannot read properties of undefined (reading map)' tells you exactly what is null and what operation you tried on it. 'No module named requests' tells you the package is not installed in the current environment. Google is for error messages you do not understand after reading them, not instead of reading them.",
+      },
+      {
+        type: "h2",
+        text: "2. Type Out Code Examples, Do Not Copy-Paste",
+      },
+      {
+        type: "p",
+        text: "When following a tutorial or reading documentation, type the examples manually rather than pasting them. Typing forces you to read each character and think about what it does. Pasting lets your brain treat the block as a single token without engaging with the structure. The difference in retention is significant. You will make typing mistakes that give you useful error messages. You will notice syntax you would have skipped over.",
+      },
+      {
+        type: "h2",
+        text: "3. Learn to Use the Debugger Before You Need It",
+      },
+      {
+        type: "p",
+        text: "Most beginners debug by adding print statements. Print-debugging works but it is slow: you add prints, run the program, read the output, add more prints, repeat. A debugger lets you pause execution at any line, inspect every variable in scope and step through the code instruction by instruction. Learning to use the debugger in VS Code or PyCharm takes an afternoon. It will save you hours on every non-trivial bug after that.",
+      },
+      {
+        type: "h2",
+        text: "4. Documentation Is Not Optional",
+      },
+      {
+        type: "p",
+        text: "When you use a function or library you do not fully understand, go to the official documentation and read the section for that function. Not a tutorial about it - the actual documentation. Documentation tells you the function signature, the types of arguments, the return type, the edge cases and the exceptions it can throw. Tutorials tell you the happy path. You will eventually hit a non-happy path. For web platform APIs, [MDN Web Docs](https://developer.mozilla.org) is the authoritative reference.",
+      },
+      {
+        type: "h2",
+        text: "5. Version Control from Day One",
+      },
+      {
+        type: "p",
+        text: "Start using Git from your very first project, even if it is a 50-line script. The habit of committing working states means you always have a point to revert to. It also means you build a record of how your code evolved, which is more useful for learning than the final state alone. The mechanical cost of `git init`, `git add`, `git commit` is two minutes. The cost of not doing it when you need to revert something is everything since the last save. If you want a structured starting point for learning Git properly, [git-unlocked](https://github.com/zaccesss/git-unlocked) covers everything from the basics to professional workflows.",
+      },
+      {
+        type: "h2",
+        text: "6. Stuck for 20 Minutes? Explain It Out Loud",
+      },
+      {
+        type: "p",
+        text: "Rubber duck debugging works. Explaining a problem to an inanimate object - or writing it out in full sentences - forces you to articulate assumptions you were holding implicitly. The act of formulating the explanation often surfaces the bug. Before asking someone else for help, spend a few minutes articulating the problem precisely: what you expected to happen, what actually happened, and what you have already tried. This process frequently produces the answer before you finish the question.",
+      },
+      {
+        type: "h2",
+        text: "7. Build Things You Actually Want to Exist",
+      },
+      {
+        type: "p",
+        text: "Tutorial projects are fine for learning syntax. They are not good at sustaining motivation. The projects that stick are the ones you actually want to use - a script that automates something tedious, a tool that solves a problem you have, a website for something you care about. When the project matters to you, debugging feels like progress rather than obstacle. The best thing I built for learning purposes was something I actively used afterwards.",
+      },
+      {
+        type: "h2",
+        text: "8. Read Other People's Code",
+      },
+      {
+        type: "p",
+        text: "Most beginners only read their own code and tutorial code. Reading production-quality open source code exposes you to patterns, conventions and approaches you would not arrive at yourself. Start with a project in a language you know, find something with fewer than 5000 lines of code and a README that explains what it does. Read the main files. Do not worry about understanding everything - focus on what looks unfamiliar and why.",
+      },
+      {
+        type: "h2",
+        text: "9. Consistency Beats Intensity",
+      },
+      {
+        type: "p",
+        text: "Two hours of coding every day for a month produces more learning than a 14-hour marathon on a weekend. The marathon feels productive but most of the deep work happens in the hours after you stop - when your brain consolidates what it processed. Regular shorter sessions give the brain more consolidation time. They also build the habit, which compounds. The learner who codes for 45 minutes every evening will outpace the learner who does full-day sessions every two weeks.",
+      },
+      {
+        type: "h2",
+        text: "10. Understand Why Before How",
+      },
+      {
+        type: "p",
+        text: "When learning something new, spend time on why it exists before learning how to use it. Why does Python have list comprehensions when for loops exist? Why do databases have indexes? Why does React have a virtual DOM? The why is the mental model. The how is syntax. Mental models transfer to new contexts; syntax is specific and forgettable. Once you understand why closures exist in JavaScript, the specific syntax becomes obvious.",
+      },
+      {
+        type: "h2",
+        text: "11. Write It Down",
+      },
+      {
+        type: "p",
+        text: "Keep a text file or notebook where you record things you learned, bugs you fixed and approaches that worked. The act of writing reinforces the memory. The record becomes searchable. You will encounter the same class of problem again in a different context; having notes from the first time means you spend minutes on the second encounter rather than hours. This is also the foundation of writing technical blog posts, which are a multiplier: they force you to understand something well enough to explain it, which is a different and deeper kind of knowing.",
+      },
+      {
+        type: "h2",
+        text: "Further Reading",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "The Pragmatic Programmer - Hunt and Thomas - the best book on developer habits and thinking", url: "https://pragprog.com/titles/tpp20/the-pragmatic-programmer-20th-anniversary-edition/" },
+          { text: "A Mind for Numbers - Barbara Oakley - the science behind learning technical subjects effectively", url: "https://barbaraoakley.com/books/a-mind-for-numbers/" },
+          { text: "git-unlocked - free open-source Git course covering version control from scratch", url: "https://github.com/zaccesss/git-unlocked" },
+          { text: "MDN Web Docs - the authoritative web platform reference; go here before Stack Overflow", url: "https://developer.mozilla.org/" },
+          { text: "Rubber Duck Debugging - Wikipedia - the formal name for the technique in point 6", url: "https://en.wikipedia.org/wiki/Rubber_duck_debugging" },
+        ],
+      },
+    ],
+  },
+
+  // ── DRAFT: ON BEING UNCOMFORTABLE ────────────────────────────────────────────
+  {
+    slug: "on-being-uncomfortable",
+    title: "On Being Uncomfortable: Why I Keep Choosing Hard Things",
+    date: "2026-09-19",
+    type: "journal",
+    description:
+      "A personal essay on discomfort, choosing difficult paths and what I have learned from consistently putting myself in situations where I do not know what I am doing yet.",
+    tags: ["Personal", "Career", "Learning", "Mindset"],
+    readingTime: 6,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "I have been uncomfortable for most of the past four years. Not in the abstract motivational-poster sense - I mean the specific feeling of being in a situation I am not equipped for yet, where I do not have the vocabulary or the skills or the context, and where the gap between where I am and where I need to be is visible and embarrassing. I have made a habit of choosing these situations deliberately. I think it is the right decision. I am still not sure.",
+      },
+      {
+        type: "h2",
+        text: "What Deliberate Discomfort Looks Like",
+      },
+      {
+        type: "p",
+        text: "I moved from Ghana to the UK with a General Arts background and enrolled in an Electronic Engineering and Computer Science degree. I had no physics beyond secondary school level and no mathematics beyond WAEC. I chose the hardest available entry route into a field I did not yet belong in. The first semester was the most intellectually painful experience I have had. I understood about 40% of what was taught and faked the rest.",
+      },
+      {
+        type: "p",
+        text: "I have applied for programmes and awards I was underqualified for. Some I did not get. Some I got and then had to grow into quickly. I entered a hackathon before I could build anything worth entering a hackathon with. I submitted pull requests to open source projects before I understood the codebases. In each case the experience of being in the room or in the review process taught me things I would not have learned by waiting until I was ready.",
+      },
+      {
+        type: "h2",
+        text: "The Mechanism",
+      },
+      {
+        type: "p",
+        text: "I think discomfort works as a learning accelerant because it forces attention. When you are comfortable, your brain is on autopilot - pattern-matching to existing schemas, spending as little energy as possible. When you are uncomfortable, the pattern-matching fails and you have to actually engage with what is in front of you. The engagement is costly in the moment. It compounds into skill over time.",
+      },
+      {
+        type: "p",
+        text: "There is also a calibration effect. Until you attempt something, your estimate of the difficulty is based on observation from the outside. From the outside, most things look harder than they are. Attempting them reveals that they are merely hard - not impossible, not reserved for some other category of person. This recalibration changes what you are willing to attempt next. The things that seemed impossible become the new baseline.",
+      },
+      {
+        type: "h2",
+        text: "The Difference Between Discomfort and Overwhelm",
+      },
+      {
+        type: "p",
+        text: "There is a meaningful distinction between productive discomfort and overwhelm. Productive discomfort is being in a situation where you are stretched but functional - confused about specific things, not everything. Overwhelm is the feeling of being unable to identify where to start, where every direction looks equally unfamiliar and scary. Overwhelm produces paralysis, not learning.",
+      },
+      {
+        type: "p",
+        text: "The practical difference is the size of the gap. A gap you can see the other side of - where you know roughly what skills you lack and roughly how to get them - is generative. A gap with no visible far side is demoralising. I have been in both. Getting out of overwhelm requires narrowing the problem: pick one specific thing that is unclear, address only that, then expand. The instinct to solve everything at once is the problem.",
+      },
+      {
+        type: "h2",
+        text: "What This Costs",
+      },
+      {
+        type: "p",
+        text: "Choosing difficulty is not free. It costs time - you cannot learn everything at the same pace if you are constantly reaching past your current level. It costs social capital - being visibly inexperienced in rooms where others are not is uncomfortable in ways that compound. And it costs confidence, at least in the short term. You spend enough time being the least experienced person in the room and you start to wonder if you should be there at all.",
+      },
+      {
+        type: "p",
+        text: "The answer to the last question is almost always yes. The people who belong in rooms are not always the most experienced. They are the ones who have something to contribute - a perspective, an effort, an approach - and who do not leave when the first question they cannot answer reveals their limits. Limits are temporary. Presence is the variable that matters.",
+      },
+      {
+        type: "h2",
+        text: "Why I Think It Is Right",
+      },
+      {
+        type: "p",
+        text: "I am not sure I would make different choices. The discomfort of not knowing how to do something has consistently been followed by knowing how to do it. The embarrassment of being wrong in front of people has consistently been followed by not making the same mistake. The anxiety of being evaluated at a level above my current ability has, more often than not, been followed by reaching that level faster than I expected.",
+      },
+      {
+        type: "p",
+        text: "I do not think this is about resilience as a personality trait, or some particular capacity for tolerating pain. I think it is about having a very clear picture of where you want to be and being willing to be embarrassed in the service of getting there. The discomfort is not the point. The destination is.",
+      },
+      {
+        type: "divider",
+      },
+      {
+        type: "h2",
+        text: "Further Reading",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "Mindset: The New Psychology of Success - Carol Dweck - the research behind growth vs fixed mindset", url: "https://www.penguin.co.uk/books/291600/mindset-by-carol-s-dweck/9781472116178" },
+          { text: "The Courage to Be Disliked - Kishimi and Koga - Adlerian psychology applied to self-determination", url: "https://www.penguin.co.uk/books/313385/the-courage-to-be-disliked-by-ichiro-kishimi-fumitake-koga/9781760630607" },
+          { text: "Paul Graham: Keep Your Identity Small (2009)", url: "http://www.paulgraham.com/identity.html" },
+          { text: "The Pragmatic Programmer - Hunt and Thomas - chapter on your knowledge portfolio", url: "https://pragprog.com/titles/tpp20/the-pragmatic-programmer-20th-anniversary-edition/" },
+        ],
+      },
+    ],
+  },
+
+  // ── DRAFT: WRITING FOR ENGINEERS ─────────────────────────────────────────────
+  {
+    slug: "writing-for-engineers",
+    title: "Writing Clearly as an Engineer: Notes on Technical Communication",
+    date: "2026-08-03",
+    type: "notes",
+    description:
+      "Notes on writing clearly: how to structure explanations, when to use diagrams, why passive voice creeps into technical writing and how to remove it. Based on mistakes I made writing reports, documentation and blog posts.",
+    tags: ["Writing", "Communication", "Documentation", "Career"],
+    readingTime: 7,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "Engineering writing is full of sentences like: 'It was determined that the threshold value should be modified to accommodate the revised specification requirements.' What this means is: 'We changed the threshold to match the new spec.' The passive voice is not more professional. It is harder to read and hides who made the decision. These are notes on the specific habits that make technical writing clearer.",
+      },
+      {
+        type: "h2",
+        text: "Lead with the Conclusion",
+      },
+      {
+        type: "p",
+        text: "Academic writing builds to a conclusion. Technical writing should lead with it. State the main point in the first sentence, then explain how you got there. 'The component fails above 85 degrees Celsius. Our measurements showed...' is better than two paragraphs of methodology before the finding. Readers rarely read in full; they scan for the answer to their question. Put the answer first.",
+      },
+      {
+        type: "h2",
+        text: "One Idea Per Paragraph",
+      },
+      {
+        type: "p",
+        text: "A paragraph that covers three ideas will be re-read three times and understood once. The discipline of one idea per paragraph forces you to know what each paragraph is for. If you cannot summarise a paragraph in one sentence, it is doing too much. Write the summary sentence first, then write the paragraph around it.",
+      },
+      {
+        type: "h2",
+        text: "Use Active Voice",
+      },
+      {
+        type: "p",
+        text: "Subject-verb-object. 'The script reads the config file' not 'The config file is read by the script.' Active voice is shorter, faster to parse and clearer about causality. Passive voice is appropriate when the subject is genuinely unknown or irrelevant. Otherwise, use active. Most passive sentences in engineering writing are passive out of habit, not necessity.",
+      },
+      {
+        type: "h2",
+        text: "Avoid Nominalisations",
+      },
+      {
+        type: "p",
+        text: "Nominalisations are verbs turned into nouns. 'Perform an investigation of' rather than 'investigate'. 'Make a decision about' rather than 'decide'. 'Provide an explanation of' rather than 'explain'. Every nominalisation adds words and slows the reader down. The verb form is almost always shorter and clearer.",
+      },
+      {
+        type: "ul",
+        items: [
+          "perform an analysis of -> analyse",
+          "make a determination -> determine",
+          "provide a summary of -> summarise",
+          "conduct an evaluation of -> evaluate",
+          "have an impact on -> affect",
+        ],
+      },
+      {
+        type: "h2",
+        text: "When to Use a Diagram",
+      },
+      {
+        type: "p",
+        text: "Use a diagram when the spatial or temporal relationship between things is the point. System architecture diagrams, signal timing diagrams, flowcharts and state machines communicate structure that text cannot. Do not use a diagram to avoid writing. A block diagram with no explanation is not useful; a block diagram with one sentence per component explaining its role is.",
+      },
+      {
+        type: "h2",
+        text: "Code Comments Are Documentation",
+      },
+      {
+        type: "p",
+        text: "A comment that says 'set the baud rate' next to `UBRR0H = (F_CPU / 16 / BAUD - 1) >> 8` tells you nothing you could not read from the code. A comment that says 'UBRR value is calculated per datasheet Table 20-1; F_CPU must match the fuse configuration' tells you something the code cannot. The rule: comment the why, not the what. What the code does is visible. Why it does it that way is not.",
+      },
+      {
+        type: "h2",
+        text: "Writing for an Audience You Do Not Know",
+      },
+      {
+        type: "p",
+        text: "Technical documentation often has two readers: the expert who knows the domain but not your specific system, and the newcomer who knows neither. Write for both by defining terms on first use and providing references for background knowledge rather than explaining it inline. 'The system uses I2C (a two-wire serial protocol; see the NXP UM10204 specification for protocol details)' gives the newcomer a path and does not waste the expert's time.",
+      },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "The Elements of Style - Strunk and White - short, specific and still the best general writing guide", url: "https://en.wikipedia.org/wiki/The_Elements_of_Style" },
+          { text: "Google developer documentation style guide - free online, practical and well-maintained", url: "https://developers.google.com/style" },
+          { text: "Microsoft Writing Style Guide - particularly useful for UI copy and error messages", url: "https://learn.microsoft.com/en-us/style-guide/welcome/" },
+          { text: "Write the Docs - community and resources for technical writers and developers who write docs", url: "https://www.writethedocs.org/" },
+          { text: "Style: Lessons in Clarity and Grace - Joseph M. Williams and Joseph Bizup - the most practically useful academic writing guide", url: "https://www.amazon.co.uk/Style-Lessons-Clarity-Grace-12th/dp/0134080416" },
+          { text: "Oxford Guide to Plain English - Martin Cutts - UK-focused plain English guidance", url: "https://global.oup.com/academic/product/oxford-guide-to-plain-english-9780198844785" },
+        ],
+      },
+    ],
+  },
+
+  // ── DRAFT: PYTHON TYPE ANNOTATIONS ───────────────────────────────────────────
+  {
+    slug: "python-type-annotations",
+    title: "Python Type Annotations: What I Actually Use and Why",
+    date: "2026-09-01",
+    type: "notes",
+    description:
+      "A practical guide to Python type hints: where they help, where they get in the way and the specific patterns I reach for when annotating FastAPI handlers, dataclasses and utility functions.",
+    tags: ["Python", "Types", "Backend", "FastAPI", "Notes"],
+    readingTime: 8,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "Python's type annotation syntax was introduced in PEP 484 (Python 3.5) and has been expanded significantly in each subsequent release. In 2026 the ecosystem is mature enough that type annotations are worth using on any Python project that more than one person will touch, or that you will return to after more than a few weeks. These are the patterns I use day-to-day in the [Phaemos](/projects/phaemos) backend ([FastAPI](https://fastapi.tiangolo.com)) and in the system daemons that power the portfolio live status features.",
+      },
+      {
+        type: "h2",
+        text: "The Basics: Function Signatures",
+      },
+      {
+        type: "p",
+        text: "Start by annotating function signatures. Parameter types and return types give mypy enough information to catch the most common errors: passing a string where an int is expected, forgetting to handle a None return, returning the wrong type from a function.",
+      },
+      {
+        type: "code",
+        lang: "python",
+        text: `def parse_sensor_reading(raw: str) -> float:
+    return float(raw.strip())
+
+def format_status(temp: float, humidity: float) -> dict[str, float]:
+    return {"temperature": temp, "humidity": humidity}
+
+# Without annotation, this is valid Python that will fail at runtime:
+result = parse_sensor_reading(42)  # mypy: Argument 1 to "parse_sensor_reading" has incompatible type "int"; expected "str"`,
+      },
+      {
+        type: "h2",
+        text: "Optional and Union",
+      },
+      {
+        type: "p",
+        text: "`Optional[T]` is shorthand for `T | None` (Python 3.10+ syntax). Use it whenever a value might not exist. The discipline of annotating Optional forces you to handle the None case explicitly, which catches a large class of AttributeError bugs at analysis time rather than in production.",
+      },
+      {
+        type: "code",
+        lang: "python",
+        text: `from typing import Optional
+
+def get_cached_value(key: str) -> Optional[str]:
+    # Redis might return None if the key does not exist
+    return redis_client.get(key)
+
+# Python 3.10+ syntax (preferred if your version allows it):
+def get_cached_value(key: str) -> str | None:
+    return redis_client.get(key)`,
+      },
+      {
+        type: "h2",
+        text: "TypedDict for Structured Data",
+      },
+      {
+        type: "p",
+        text: "When a function receives or returns a dictionary with a known shape, TypedDict gives you type-checked keys without the overhead of a full class. I use this for Redis payloads in the Phaemos daemons where the data is structured but does not warrant a Pydantic model.",
+      },
+      {
+        type: "code",
+        lang: "python",
+        text: `from typing import TypedDict
+
+class SensorPayload(TypedDict):
+    node_id: str
+    temperature: float
+    humidity: float
+    timestamp: int
+
+def publish_reading(payload: SensorPayload) -> None:
+    redis.set(f"node:{payload['node_id']}:latest", json.dumps(payload))`,
+      },
+      {
+        type: "h2",
+        text: "Pydantic in FastAPI",
+      },
+      {
+        type: "p",
+        text: "FastAPI uses Pydantic models for request and response validation. Annotating your Pydantic models means the editor and mypy both know the shape of request bodies and response objects. FastAPI will also auto-generate OpenAPI documentation from the models. This is type annotations paying rent: you write the types once and get validation, documentation and editor support for free.",
+      },
+      {
+        type: "code",
+        lang: "python",
+        text: `from pydantic import BaseModel, Field
+from typing import Literal
+
+class NodeReading(BaseModel):
+    node_id: str = Field(..., min_length=1, max_length=50)
+    temperature: float = Field(..., ge=-40.0, le=125.0)
+    alert_level: Literal["normal", "warning", "critical"] = "normal"
+
+@app.post("/readings")
+async def submit_reading(reading: NodeReading) -> dict[str, str]:
+    # reading.temperature is typed as float; FastAPI validated it on the way in
+    return {"status": "ok", "node": reading.node_id}`,
+      },
+      {
+        type: "h2",
+        text: "Protocol for Duck Typing",
+      },
+      {
+        type: "p",
+        text: "`Protocol` (PEP 544) lets you define structural types without inheritance. A class satisfies a Protocol if it has the right methods - no explicit `implements` declaration needed. This is the right pattern for utility functions that should work with any object that has a specific interface.",
+      },
+      {
+        type: "code",
+        lang: "python",
+        text: `from typing import Protocol
+
+class Serialisable(Protocol):
+    def to_dict(self) -> dict[str, object]: ...
+
+def cache_object(obj: Serialisable, key: str) -> None:
+    redis.set(key, json.dumps(obj.to_dict()))
+
+# Any class with a to_dict() method satisfies Serialisable
+# without inheriting from it`,
+      },
+      {
+        type: "h2",
+        text: "What Not to Over-Annotate",
+      },
+      {
+        type: "ul",
+        items: [
+          "Local variables: annotating every local variable adds noise without helping mypy much; let it infer",
+          "Obvious returns: `def get_name() -> str:` is fine; `name: str = get_name()` on the next line is redundant",
+          "Type: ignore: use it rarely and add a comment explaining why; a proliferation of type: ignore comments defeats the purpose",
+          "Any: avoid it except at system boundaries (external APIs, dynamic config); propagating Any through your codebase silences errors instead of fixing them",
+        ],
+      },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "PEP 484 - Type Hints (original specification)", url: "https://peps.python.org/pep-0484/" },
+          { text: "PEP 544 - Protocols: Structural subtyping", url: "https://peps.python.org/pep-0544/" },
+          { text: "mypy documentation - the standard Python static type checker", url: "https://mypy.readthedocs.io/en/stable/" },
+          { text: "Python typing documentation - the official typing module reference", url: "https://docs.python.org/3/library/typing.html" },
+          { text: "FastAPI - How FastAPI uses Pydantic and Python types", url: "https://fastapi.tiangolo.com/python-types/" },
+          { text: "PEP 526 - Syntax for variable annotations (Python 3.6+)", url: "https://peps.python.org/pep-0526/" },
+          { text: "Pyright - Microsoft's Python type checker, alternative to mypy", url: "https://github.com/microsoft/pyright" },
+        ],
+      },
+    ],
+  },
+
+  // ── DRAFT: COMPETITIVE PROGRAMMING START ──────────────────────────────────────
+  {
+    slug: "competitive-programming-start",
+    title: "How I Started With Competitive Programming (and What I Got Wrong First)",
+    date: "2026-09-28",
+    type: "journal",
+    description:
+      "A journal entry on starting competitive programming: the first few weeks on Codeforces, what Neetcode and LeetCode taught me that I could not get from coursework and the specific mistakes beginners make that I made too.",
+    tags: ["Competitive Programming", "Algorithms", "Learning", "Career", "CS"],
+    readingTime: 9,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "I started doing competitive programming seriously in late 2025. I had done [LeetCode](https://leetcode.com) sporadically for interview prep before that, but treating it as exam practice rather than skill-building meant I was grinding without developing intuition. The shift was moving to [Codeforces](https://codeforces.com) for regular contests and using [Neetcode](https://neetcode.io) to build structural understanding of algorithm patterns rather than just solving individual problems. This is what that process looked like from the beginning.",
+      },
+      {
+        type: "h2",
+        text: "Why I Started",
+      },
+      {
+        type: "p",
+        text: "Two reasons. First: I was embarrassing myself in time-pressured settings. Not in interviews specifically, but in hackathons where I needed to implement something quickly and kept reaching for brute-force approaches because I did not have the pattern library for something better. Knowing that a problem needs a sliding window or a monotonic stack is not the same as having the reflex to recognise it under pressure. That reflex requires repetition.",
+      },
+      {
+        type: "p",
+        text: "Second: the maths. My engineering degree is heavy on signals, linear algebra and complex numbers - topics that do not map directly to algorithm design. I wanted to build the discrete mathematics and combinatorics intuition that CS undergraduates develop naturally but that EE curricula skip. Competitive programming is one of the fastest ways to build that specific type of mathematical thinking.",
+      },
+      {
+        type: "h2",
+        text: "The First Few Weeks",
+      },
+      {
+        type: "p",
+        text: "The first Codeforces contest I entered seriously I solved problems A and B and got stuck on C for 40 minutes before the contest ended. This is completely normal. Codeforces problems A and B at Division 2 level are warm-up problems; C is where the actual thinking starts. At the beginning you will solve A and B comfortably and hit a wall at C. The wall is the work.",
+      },
+      {
+        type: "p",
+        text: "The mistake I made in week one was reading solutions immediately after failing. This is tempting - you are stuck, the solution is one click away, you read it and you think you understood it. But reading a solution and writing a solution from a blank page are different cognitive tasks. Read the editorial only after you have spent at least 30 minutes genuinely stuck, and then close the editorial and write the solution yourself without looking at it again.",
+      },
+      {
+        type: "h2",
+        text: "Neetcode as a Structured Starting Point",
+      },
+      {
+        type: "p",
+        text: "[Neetcode](https://neetcode.io)'s 150 (and later 250) problem list is structured by pattern: two pointers, sliding window, binary search, trees, graphs, dynamic programming and so on. The value is not the problems themselves but the grouping. Seeing five sliding window problems in sequence makes the pattern obvious in a way that encountering them randomly does not. I went through each category in the Neetcode 150 before doing unstructured [Codeforces](https://codeforces.com) practice.",
+      },
+      {
+        type: "p",
+        text: "The trap in pattern-grouped practice is false confidence. You can recognise a sliding window problem when you just did ten sliding window problems. The harder skill is recognising it in a mixed set. After finishing a category in Neetcode, I would do several Codeforces problems without looking at the category first, to practice the recognition step.",
+      },
+      {
+        type: "h2",
+        text: "What Competitive Programming Does Not Teach You",
+      },
+      {
+        type: "p",
+        text: "Competitive programming problems are self-contained and have provably correct solutions with known constraints. Real engineering problems have ambiguous requirements, shifting constraints and no editorial. The skill transfer is in the problem decomposition and the comfort with uncertainty during the solving process - not in the specific algorithms. Do not assume that being good at Codeforces means you will be good at designing systems or debugging production issues. The skills overlap less than they appear to.",
+      },
+      {
+        type: "h2",
+        text: "Practical Approach",
+      },
+      {
+        type: "ul",
+        items: [
+          "Codeforces Division 2 A-C is the right starting range; Division 3 is easier but less representative of real contest difficulty",
+          "Virtual contests (past contests run as if live) train time pressure better than upsolving alone",
+          "Keep a log of problem types you found hard; review them weekly, not when you happen to encounter the same type again",
+          "Time-box solving: 30 minutes on a problem, then take a hint (not a full solution); 30 more minutes, then read the editorial",
+          "LeetCode is optimised for interview prep; Codeforces is better for developing algorithmic intuition; use both for what each does well",
+        ],
+      },
+      {
+        type: "h2",
+        text: "References and Resources",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "Codeforces - competitive programming platform with rated contests", url: "https://codeforces.com/" },
+          { text: "Neetcode - structured algorithm practice with video explanations", url: "https://neetcode.io/" },
+          { text: "LeetCode - interview-focused algorithm practice", url: "https://leetcode.com/" },
+          { text: "CP-Algorithms - high-quality explanations of common competitive programming algorithms", url: "https://cp-algorithms.com/" },
+          { text: "The Algorithm Design Manual - Skiena - better than Cormen for developing problem-solving intuition", url: "https://www.algorist.com/" },
+          { text: "Introduction to Algorithms (CLRS) - the standard theoretical reference", url: "https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/" },
+          { text: "Competitive Programmer's Handbook - Antti Laaksonen (free PDF from cses.fi)", url: "https://cses.fi/book/book.pdf" },
+        ],
+      },
+    ],
+  },
+
+  // ── OPEN SOURCE CONTRIBUTING ──────────────────────────────────────────────────
+  {
+    slug: "open-source-contributing",
+    title: "How to Contribute to Open Source: A Practical Guide",
+    date: "2026-06-13",
+    type: "article",
+    description:
+      "A practical, honest guide to finding projects worth contributing to, reading a codebase before touching it, making your first pull request and handling review feedback. From someone who has done it and built a 217-topic Git course in the process.",
+    tags: ["Open Source", "Git", "GitHub", "Career", "Community"],
+    readingTime: 14,
+    published: true,
+    content: [
+      {
+        type: "p",
+        text: "Open source software is everywhere. The browser you are reading this in, the operating system running it, the programming languages and frameworks that built the web: almost all of it is open source. Millions of developers contribute to it every day. And yet most developers who use open source software have never contributed to it. The gap between user and contributor feels larger than it is.",
+      },
+      {
+        type: "p",
+        text: "This post is a practical guide to crossing that gap: finding the right project, understanding the codebase before you touch it, making your first contribution and handling the review process gracefully. It is written from the perspective of someone who has done it repeatedly, built an open source Git course with 217 files and tracked merged PRs to external repos in a personal dashboard.",
+      },
+      {
+        type: "h2",
+        text: "What Open Source Actually Is",
+      },
+      {
+        type: "p",
+        text: "Open source software is software whose source code is publicly available and licensed in a way that permits others to view, use, modify and distribute it. The licence matters: an MIT licence allows almost anything including commercial use; a GPL licence requires that derivative works also be open source; a proprietary licence with a public GitHub repository is not open source, just public. When people say 'open source contribution' they almost always mean: contributing code, documentation, tests or other improvements to a project under an open source licence.",
+      },
+      {
+        type: "p",
+        text: "The open source ecosystem includes everything from single-developer hobby projects to software maintained by foundations and used by billions of people. Linux, Node.js, Python, React, PostgreSQL, VS Code and Firefox are all open source projects you can contribute to. The barrier to entry varies enormously by project size, codebase complexity and maintainer responsiveness.",
+      },
+      {
+        type: "h2",
+        text: "Why Contribute?",
+      },
+      {
+        type: "p",
+        text: "There are four honest reasons to contribute to open source, and they are all valid.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Learning: reading and modifying production-quality code written by experienced engineers is one of the fastest ways to level up. You see patterns, conventions and architectural decisions you would not encounter in tutorial projects.",
+          "Career: merged pull requests to reputable projects are concrete, verifiable evidence of engineering skill. They link directly from your GitHub profile. They are more credible than side projects you built alone because they survived code review.",
+          "Community: you become part of the ecosystem you use. You understand the software better, you meet the people who build it and you occasionally make it better for everyone.",
+          "Fixing your own problems: the most immediately motivated contributions are fixing bugs or adding features you personally hit. 'I needed this and it did not exist' is a better motivator than 'I should contribute more'.",
+        ],
+      },
+      {
+        type: "h2",
+        text: "Finding Projects to Contribute To",
+      },
+      {
+        type: "p",
+        text: "The best first contribution is to something you already use. If you use a library, a CLI tool or a framework regularly, you already have context that most first-time contributors lack. You know what it is supposed to do, you probably know the documentation well and you have opinions about what could be clearer or better. Start there.",
+      },
+      {
+        type: "p",
+        text: "If you want to explore beyond your existing tools, there are several good starting points. GitHub Explore shows trending repositories and topics. The 'good first issue' label is used by many maintainers specifically to flag tasks that are approachable for newcomers: self-contained, well-described and not requiring deep knowledge of the whole codebase. Filtering by 'good first issue' on GitHub Search or on dedicated sites like [Good First Issue](https://goodfirstissue.dev) returns a curated list of these.",
+      },
+      {
+        type: "p",
+        text: "[Up For Grabs](https://up-for-grabs.net) and [First Contributions](https://firstcontributions.github.io) are platforms built specifically to connect first-time contributors with welcoming projects. They are worth browsing if you are looking for a structured starting point.",
+      },
+      {
+        type: "p",
+        text: "Language and domain matter. Contributing to a Python project is easier if you are comfortable with Python. Contributing to an embedded firmware project is easier if you know C and have some hardware context. Do not let unfamiliarity be the only filter, stretching is fine, but be realistic about the ramp-up time a completely unfamiliar stack requires.",
+      },
+      {
+        type: "h2",
+        text: "Understanding a Codebase Before Touching It",
+      },
+      {
+        type: "p",
+        text: "The single biggest mistake first-time contributors make is jumping straight to code before understanding the project. A pull request to a project you do not understand will either be wrong, duplicate existing work or conflict with the maintainer's direction. None of these is obvious until the review, and fixing them is demoralising for everyone.",
+      },
+      {
+        type: "p",
+        text: "Before writing a single line, do the following in order. First, read the README completely. It describes what the project is, what it is not and sometimes who it is for. Second, read CONTRIBUTING.md if it exists. This is the maintainer's explicit instructions for how contributions should be structured: branch naming conventions, testing requirements, commit message format, whether to open an issue first. Ignoring this file wastes everyone's time. Third, browse the open issues and pull requests. You will see what problems are being worked on, what the maintainers have already declined and what kind of conversations happen in review. This is the most valuable context you can get before contributing.",
+      },
+      {
+        type: "p",
+        text: "Fourth, look at the git log. Understanding how the codebase evolved tells you which parts are stable and which are actively changing. A file that has 47 commits in the last month is not a good place to make a first contribution. A utility module that has not changed in two years and has a well-scoped open bug report is ideal.",
+      },
+      {
+        type: "h2",
+        text: "Types of Contribution",
+      },
+      {
+        type: "p",
+        text: "Code is not the only way to contribute, and for many projects it is not even the most needed contribution. The types of contribution that maintainers consistently value include:",
+      },
+      {
+        type: "ul",
+        items: [
+          "Documentation: outdated or unclear documentation is one of the most common complaints about open source projects. Improving a README, fixing a broken example or writing a missing how-to guide are all genuine contributions that require no deep codebase knowledge.",
+          "Bug reports: a well-written bug report with a minimal reproducible example is more valuable than most code contributions. 'It does not work' is not a bug report. 'On Windows 11 with Python 3.12, calling function X with argument Y produces Z instead of the documented W, here is the minimal script that reproduces it' is a bug report.",
+          "Tests: adding test coverage for edge cases, fixing flaky tests or improving test infrastructure are contributions that help every future change to the project.",
+          "Code fixes: fixing a specific, well-scoped bug from the issue tracker. Not architectural refactors on your first contribution. Not rewriting a module. Fix one specific thing.",
+          "Translations: documentation and UI translations are valuable for many projects and rarely require deep technical knowledge.",
+          "Design and accessibility: improving visual design, fixing accessibility issues or contributing icon assets are legitimate contributions to projects that have a visual or UI component.",
+        ],
+      },
+      {
+        type: "h2",
+        text: "The Contribution Workflow",
+      },
+      {
+        type: "p",
+        text: "Git is the tool that makes open source contribution possible. The standard workflow is fork, clone, branch, commit, push, pull request. Here is each step with enough detail to actually follow it.",
+      },
+      {
+        type: "code",
+        lang: "bash",
+        text: `# 1. Fork the repo on GitHub (click Fork button) - creates your own copy
+# 2. Clone YOUR fork, not the original
+git clone https://github.com/YOUR_USERNAME/REPO_NAME.git
+cd REPO_NAME
+
+# 3. Add the original repo as 'upstream' so you can pull future changes
+git remote add upstream https://github.com/ORIGINAL_OWNER/REPO_NAME.git
+
+# 4. Create a branch for your change - name it descriptively
+git checkout -b fix/broken-link-in-readme
+
+# 5. Make your changes, then stage and commit them
+git add README.md
+git commit -m "fix: correct broken link in installation section"
+
+# 6. Push your branch to YOUR fork
+git push origin fix/broken-link-in-readme
+
+# 7. Open a pull request on GitHub from your fork's branch to the upstream main`,
+      },
+      {
+        type: "p",
+        text: "A few details that matter. Fork the repository rather than cloning it directly: you do not have write access to the original. Create a new branch for each contribution: committing directly to main in your fork makes it harder to manage multiple contributions simultaneously and makes syncing with upstream messy. Keep branches small and scoped: a pull request that changes three files for a single purpose is much easier to review than one that changes fifteen files for multiple purposes.",
+      },
+      {
+        type: "h2",
+        text: "Writing Good Commit Messages and PR Descriptions",
+      },
+      {
+        type: "p",
+        text: "A commit message should describe what changed and, more importantly, why. 'Fix bug' is not a commit message. 'Fix null pointer in user lookup when session has expired' is a commit message. The [Conventional Commits](https://www.conventionalcommits.org) format (type: description) is widely used in open source: feat: add dark mode toggle, fix: prevent duplicate API calls on form submit, docs: update installation instructions for Windows. Check whether the project already uses this format before adopting it.",
+      },
+      {
+        type: "p",
+        text: "The pull request description is your opportunity to explain the change to the maintainer before they read a single line of code. A good PR description covers: what the change does, why it is needed (link to the issue it addresses), how you tested it and anything the reviewer should pay particular attention to. It does not need to be long. It needs to give the maintainer everything they need to understand and evaluate the change without asking you questions.",
+      },
+      {
+        type: "code",
+        lang: "markdown",
+        text: `## What does this PR do?
+Fixes the broken installation link in README.md that pointed to a deleted
+documentation page. Updated to point to the current getting-started guide.
+
+## Why is this needed?
+Closes #247. New contributors were hitting a 404 on the first link they
+clicked in the README, making a poor first impression.
+
+## How was this tested?
+Clicked the updated link in a browser preview. Verified the target page exists.
+
+## Checklist
+- [x] I have read CONTRIBUTING.md
+- [x] My change passes all existing checks`,
+      },
+      {
+        type: "h2",
+        text: "Handling Review Feedback",
+      },
+      {
+        type: "p",
+        text: "Your pull request will receive feedback. Some of it will be requests for changes. Some of it will be questions. Some of it, if you are unlucky, will be terse and feel dismissive. None of it is personal.",
+      },
+      {
+        type: "p",
+        text: "The correct response to review feedback is: read it carefully, ask for clarification if you genuinely do not understand what is being asked, make the requested changes and push new commits to the same branch. Do not close the PR and open a new one. Do not argue with the reviewer's preferences even if you disagree. This is their project and you are contributing to their vision of it, not your own. If the feedback reveals a fundamental disagreement about the direction of the change, discuss it in the PR comments before investing more time coding.",
+      },
+      {
+        type: "p",
+        text: "Some pull requests do not get merged. The maintainer may have a different direction in mind. They may not have time to review it. The project may have become unmaintained. This is not a failure. Every pull request you write, even the ones that are not merged, teaches you about code review, about codebases and about communicating technical decisions. The practice has value independent of the outcome.",
+      },
+      {
+        type: "h2",
+        text: "Common Mistakes Beginners Make",
+      },
+      {
+        type: "ul",
+        items: [
+          "Opening a pull request without reading CONTRIBUTING.md first: most projects have specific requirements for how contributions should be structured. Ignoring these signals to the maintainer that you have not done the minimum expected work.",
+          "Making the PR too large: reviewers have limited time. A pull request that touches 20 files for multiple reasons will sit unreviewed. One file, one purpose, one clear description.",
+          "Not opening an issue before the PR: for any non-trivial change, comment on an existing issue or open a new one to describe what you want to do and get confirmation that the maintainer is interested before writing the code. Discovering your approach is not wanted after implementing it is demoralising and avoidable.",
+          "Copy-pasting solutions without understanding them: if you do not understand what your code does, you cannot defend it in review and you will not learn from the experience.",
+          "Getting discouraged by slow responses: open source maintainers are often volunteers working on their own time. A week of silence on a PR is completely normal. A month is not uncommon. Do not interpret silence as rejection.",
+          "Forgetting to sync your fork before starting work: if your fork is behind upstream by many commits, your PR will have merge conflicts that you could have avoided by running git fetch upstream and git rebase upstream/main before branching.",
+        ],
+      },
+      {
+        type: "h2",
+        text: "My Own Experience",
+      },
+      {
+        type: "p",
+        text: "I built [git-unlocked](https://github.com/zaccesss/git-unlocked), a free open source MIT-licensed Git and version control course, as a direct response to the frustration of finding existing Git resources either too shallow or paywalled. It spans 217 files covering Git, GitHub, GitLab, Bitbucket, Azure DevOps, IDEs, the terminal, real-world workflows, disaster recovery and a curated resources section. Every file covers Windows, Mac and Linux side by side. The course itself became an exercise in everything this post describes: maintaining a consistent structure across hundreds of files, writing a changelog that documents every decision and keeping the CI pipeline (GitHub Actions running markdown linting and link checking) green.",
+      },
+      {
+        type: "p",
+        text: "Beyond git-unlocked, I track merged pull requests to external repositories in my portfolio dashboard. The dashboard pulls from GitHub's API and surfaces the PRs I am most proud of. Seeing them listed there, each one a specific problem in a specific codebase that I found, understood and fixed, is a better record of growth than any course certificate. The habit of contributing builds on itself: each time you understand a new codebase from the outside, the next one takes less time.",
+      },
+      {
+        type: "p",
+        text: "The portfolio itself is [open source on GitHub](https://github.com/zaccesss/isaac-adjei-portfolio). Every post on this blog, every page of this site, every API route: all of it is publicly readable code. If you find a bug, there is a CONTRIBUTING.md. You know what to do.",
+      },
+      {
+        type: "quote",
+        text: "The value of open source is not just the software. It is the record of how good engineers think.",
+        source: "Something I understood after reading enough PRs",
+      },
+      {
+        type: "h2",
+        text: "Watch: Contributing to Open Source",
+      },
+      {
+        type: "video",
+        youtubeId: "yzeVMecydCE",
+        title: "How to Contribute to Open Source on GitHub",
+        description: "GitHub's official walkthrough of the fork-and-pull-request workflow, covering everything from finding issues to getting your PR merged.",
+      },
+      {
+        type: "h2",
+        text: "References",
+      },
+      {
+        type: "ol-links",
+        items: [
+          { text: "GitHub Docs: Contributing to a project", url: "https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project" },
+          { text: "Open Source Guides: How to Contribute to Open Source (GitHub)", url: "https://opensource.guide/how-to-contribute/" },
+          { text: "Choose a Licence - open source licence comparisons", url: "https://choosealicense.com/" },
+          { text: "First Contributions - a beginner-friendly project to practice your first PR", url: "https://firstcontributions.github.io/" },
+          { text: "Good First Issue - curated list of beginner-friendly open source issues", url: "https://goodfirstissue.dev/" },
+          { text: "Up For Grabs - projects that are looking for first-time contributors", url: "https://up-for-grabs.net/" },
+          { text: "git-unlocked - my open source Git course (MIT licensed, 217 files)", url: "https://github.com/zaccesss/git-unlocked" },
+          { text: "Conventional Commits specification - a lightweight commit message convention", url: "https://www.conventionalcommits.org/" },
+          { text: "Wikipedia: Open-source software - background and history", url: "https://en.wikipedia.org/wiki/Open-source_software" },
         ],
       },
     ],
@@ -3155,7 +5387,8 @@ end architecture rtl;`,
 ]
 
 export function getPublishedPosts(): BlogPost[] {
-  return posts.filter((p) => p.published)
+  const today = new Date().toISOString().split("T")[0]
+  return posts.filter((p) => p.published && p.date <= today)
 }
 
 export function getPostBySlug(slug: string): BlogPost | undefined {

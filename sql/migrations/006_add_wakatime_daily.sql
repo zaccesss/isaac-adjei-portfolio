@@ -1,7 +1,7 @@
 -- 006_add_wakatime_daily.sql
 -- Creates the wakatime_daily table for storing one row per calendar day of
 -- coding activity synced from the WakaTime API via the wakatime-sync workflow.
--- Safe to run on existing databases — CREATE TABLE IF NOT EXISTS.
+-- Safe to run on existing databases - CREATE TABLE IF NOT EXISTS.
 -- Run: paste into Supabase SQL Editor and execute.
 
 

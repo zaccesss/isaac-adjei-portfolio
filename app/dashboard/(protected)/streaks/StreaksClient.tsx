@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Trash2, Flame, Trophy, Check } from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, Legend } from "recharts"
 
 type Streak = {
   id: string
@@ -96,7 +96,6 @@ const STREAK_COLOURS = ["#6366f1", "#f59e0b", "#22c55e", "#ef4444", "#3b82f6", "
 function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs: Log[]; today: string }) {
   if (streaks.length === 0) return null
 
-  // I build a day-by-day dataset for the last 90 days - each day gets a 0/1 per streak
   const days: string[] = []
   for (let i = 89; i >= 0; i--) {
     const d = new Date(today)
@@ -109,9 +108,23 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
     new Set(logs.filter((l) => l.streak_id === s.id && l.completed).map((l) => l.date)),
   ]))
 
-  // I sample every 7 days for the chart to keep it readable while still showing 90 days of trend
+  // Weekly summary bar chart data - total check-ins per week
+  const weeks: { label: string; count: number }[] = []
+  for (let w = 0; w < 13; w++) {
+    const weekDays = days.slice(w * 7, w * 7 + 7)
+    if (!weekDays.length) continue
+    const anchor = new Date(weekDays[weekDays.length - 1])
+    const label = anchor.toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+    let count = 0
+    weekDays.forEach((d) => {
+      streaks.forEach((s) => { if (doneSets.get(s.id)?.has(d)) count++ })
+    })
+    weeks.push({ label, count })
+  }
+
+  // Per-streak line chart data - sampled every 7 days
   const sampled = days.filter((_, i) => i % 7 === 0 || i === days.length - 1)
-  const data = sampled.map((d) => {
+  const lineData = sampled.map((d) => {
     const point: Record<string, string | number> = {
       date: new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
     }
@@ -119,48 +132,84 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
     return point
   })
 
+  const totalCheckins = weeks.reduce((a, b) => a + b.count, 0)
+
   return (
-    <div className="border border-border rounded-xl p-4 mt-2">
-      <p className="text-sm font-medium mb-3">Activity over 90 days</p>
-      <ResponsiveContainer width="100%" height={160}>
-        <LineChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
-          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} interval={1} />
-          <YAxis domain={[0, 1]} ticks={[0, 1]} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-          <Tooltip
-            content={({ active, payload, label }) => {
-              if (!active || !payload?.length) return null
-              const checked = payload.filter((p) => p.value === 1)
-              return (
-                <div className="bg-card border border-border rounded px-2.5 py-1.5 text-xs shadow-sm">
-                  <p className="font-medium mb-1">{label}</p>
-                  {checked.length === 0
-                    ? <p className="text-muted-foreground">None checked in</p>
-                    : checked.map((p) => {
-                        const s = streaks.find((x) => x.id === String(p.dataKey))
-                        return <p key={String(p.dataKey)}>{s?.icon} {s?.name}</p>
-                      })}
-                </div>
-              )
-            }}
-          />
-          <Legend
-            formatter={(value) => {
-              const s = streaks.find((x) => x.id === value)
-              return s ? `${s.icon} ${s.name}` : value
-            }}
-            wrapperStyle={{ fontSize: 11 }}
-          />
-          {streaks.map((s, i) => (
-            <Line
-              key={s.id}
-              dataKey={s.id}
-              stroke={STREAK_COLOURS[i % STREAK_COLOURS.length]}
-              dot={false}
-              strokeWidth={2}
+    <div className="flex flex-col gap-4 mt-2">
+      {/* Weekly total bar chart */}
+      <div className="border border-border rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-medium">Weekly check-ins (90 days)</p>
+          <p className="text-xs text-muted-foreground">{totalCheckins} total</p>
+        </div>
+        <ResponsiveContainer width="100%" height={140}>
+          <BarChart data={weeks} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+            <XAxis dataKey="label" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} />
+            <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
+            <Tooltip
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null
+                const count = payload[0]?.value as number
+                return (
+                  <div className="bg-card border border-border rounded px-2.5 py-1.5 text-xs shadow-sm">
+                    <p className="font-medium mb-0.5">w/e {label}</p>
+                    <p className="text-muted-foreground">{count} check-in{count !== 1 ? "s" : ""}</p>
+                  </div>
+                )
+              }}
             />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+            <Bar dataKey="count" radius={[3, 3, 0, 0]}>
+              {weeks.map((entry, i) => (
+                <Cell key={i} fill={entry.count === 0 ? "hsl(var(--muted))" : "#6366f1"} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Per-streak line chart with individual colors */}
+      <div className="border border-border rounded-xl p-4">
+        <p className="text-sm font-medium mb-3">Activity by habit (90 days)</p>
+        <ResponsiveContainer width="100%" height={160}>
+          <LineChart data={lineData} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+            <XAxis dataKey="date" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} interval={1} />
+            <YAxis domain={[0, 1]} ticks={[0, 1]} tick={{ fontSize: 0 }} tickLine={false} axisLine={false} />
+            <Tooltip
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null
+                const checked = payload.filter((p) => Number(p.value) === 1)
+                return (
+                  <div className="bg-card border border-border rounded px-2.5 py-1.5 text-xs shadow-sm">
+                    <p className="font-medium mb-1">{label}</p>
+                    {checked.length === 0
+                      ? <p className="text-muted-foreground">None checked in</p>
+                      : checked.map((p) => {
+                          const s = streaks.find((x) => x.id === String(p.dataKey))
+                          return <p key={String(p.dataKey)}>{s?.icon} {s?.name}</p>
+                        })}
+                  </div>
+                )
+              }}
+            />
+            <Legend
+              formatter={(value) => {
+                const s = streaks.find((x) => x.id === value)
+                return s ? `${s.icon} ${s.name}` : value
+              }}
+              wrapperStyle={{ fontSize: 11 }}
+            />
+            {streaks.map((s, i) => (
+              <Line
+                key={s.id}
+                dataKey={s.id}
+                stroke={STREAK_COLOURS[i % STREAK_COLOURS.length]}
+                dot={false}
+                strokeWidth={2}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }

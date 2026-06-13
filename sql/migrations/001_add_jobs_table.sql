@@ -1,7 +1,7 @@
 -- 001_add_jobs_table.sql
 -- Adds the applications tracker columns introduced in the 2026-05-21 rebuild,
 -- then adds last_scraped_at and sponsors_visa from the 2026-05-28 scraper update.
--- Safe to run on existing databases — every ALTER TABLE uses IF NOT EXISTS.
+-- Safe to run on existing databases - every ALTER TABLE uses IF NOT EXISTS.
 -- Run: paste into Supabase SQL Editor and execute.
 
 

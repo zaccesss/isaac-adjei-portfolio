@@ -1,7 +1,7 @@
 -- 003_add_blog_reactions.sql
 -- Adds updated_at to goals, creates the activity_log/habits/habit_logs tables
 -- with RLS, and seeds the theme_preference config key.
--- Safe to run on existing databases — CREATE TABLE IF NOT EXISTS throughout,
+-- Safe to run on existing databases - CREATE TABLE IF NOT EXISTS throughout,
 -- and the DO blocks make the RLS policies idempotent.
 -- Run: paste into Supabase SQL Editor and execute.
 
@@ -16,7 +16,7 @@ alter table goals add column if not exists updated_at timestamptz default now();
 
 
 -- ============================================================
--- B.6 NEW TABLES — activity_log, habits, habit_logs
+-- B.6 NEW TABLES - activity_log, habits, habit_logs
 -- ============================================================
 
 create table if not exists activity_log (
@@ -70,7 +70,7 @@ end $$;
 
 
 -- ============================================================
--- B.7 SEED — theme_preference CONFIG KEY
+-- B.7 SEED - theme_preference CONFIG KEY
 -- ============================================================
 
 insert into config (key, value) values ('theme_preference', '"system"')

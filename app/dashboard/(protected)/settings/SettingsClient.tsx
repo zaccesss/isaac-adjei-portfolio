@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   KeyRound, Shield, Cpu, Clock, CheckCircle2, XCircle,
-  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare
+  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity
 } from "lucide-react"
 import { setConfig } from "@/app/dashboard/actions"
 
@@ -54,6 +54,14 @@ export default function SettingsClient() {
   // Discord digest section state
   const [discordDigestLoading, setDiscordDigestLoading] = useState(false)
   const [discordDigestMessage, setDiscordDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
+  // CV generation section state
+  const [cvLoading, setCvLoading] = useState(false)
+  const [cvMessage, setCvMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
+  // WakaTime sync section state
+  const [wakatimeLoading, setWakatimeLoading] = useState(false)
+  const [wakatimeMessage, setWakatimeMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
   // I fetch scraper status once on mount so the settings page shows live data
   useEffect(() => {
@@ -148,6 +156,42 @@ export default function SettingsClient() {
       setDigestMessage({ text: "Something went wrong.", ok: false })
     } finally {
       setDigestLoading(false)
+    }
+  }
+
+  async function handleTriggerCv() {
+    setCvLoading(true)
+    setCvMessage(null)
+    try {
+      const res = await fetch("/api/dashboard/trigger-cv", { method: "POST" })
+      const data = await res.json().catch(() => ({})) as { ok?: boolean; error?: string }
+      if (res.ok) {
+        setCvMessage({ text: "CV regeneration triggered. Check GitHub Actions for progress.", ok: true })
+      } else {
+        setCvMessage({ text: data.error ?? "Failed to trigger CV generation.", ok: false })
+      }
+    } catch {
+      setCvMessage({ text: "Something went wrong.", ok: false })
+    } finally {
+      setCvLoading(false)
+    }
+  }
+
+  async function handleTriggerWakatime() {
+    setWakatimeLoading(true)
+    setWakatimeMessage(null)
+    try {
+      const res = await fetch("/api/dashboard/trigger-wakatime", { method: "POST" })
+      const data = await res.json().catch(() => ({})) as { ok?: boolean; error?: string }
+      if (res.ok) {
+        setWakatimeMessage({ text: "WakaTime sync triggered. Data will appear in the coding heatmap shortly.", ok: true })
+      } else {
+        setWakatimeMessage({ text: data.error ?? "Failed to trigger WakaTime sync.", ok: false })
+      }
+    } catch {
+      setWakatimeMessage({ text: "Something went wrong.", ok: false })
+    } finally {
+      setWakatimeLoading(false)
     }
   }
 
@@ -397,6 +441,72 @@ export default function SettingsClient() {
             {digestMessage && (
               <span className={`text-xs ${digestMessage.ok ? "text-green-600" : "text-destructive"}`}>
                 {digestMessage.text}
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* CV generation section */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">CV Generation</h2>
+        </div>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium">Regenerate all CVs</span>
+            <p className="text-xs text-muted-foreground">
+              Triggers the cv-pdf.yml workflow — rebuilds all 7 role PDFs and DOCX files from the HTML source
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleTriggerCv()}
+              disabled={cvLoading}
+              className="flex items-center gap-1.5"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${cvLoading ? "animate-spin" : ""}`} />
+              {cvLoading ? "Triggering..." : "Regenerate"}
+            </Button>
+            {cvMessage && (
+              <span className={`text-xs ${cvMessage.ok ? "text-green-600" : "text-destructive"}`}>
+                {cvMessage.text}
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* WakaTime sync section */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <Activity className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">WakaTime Sync</h2>
+        </div>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-medium">Sync coding activity</span>
+            <p className="text-xs text-muted-foreground">
+              Triggers the wakatime-sync.yml workflow — pulls the last 7 days of coding data into the heatmap
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleTriggerWakatime()}
+              disabled={wakatimeLoading}
+              className="flex items-center gap-1.5"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${wakatimeLoading ? "animate-spin" : ""}`} />
+              {wakatimeLoading ? "Triggering..." : "Sync now"}
+            </Button>
+            {wakatimeMessage && (
+              <span className={`text-xs ${wakatimeMessage.ok ? "text-green-600" : "text-destructive"}`}>
+                {wakatimeMessage.text}
               </span>
             )}
           </div>

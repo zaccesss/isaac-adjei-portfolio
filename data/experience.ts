@@ -15,7 +15,7 @@ export interface Experience {
 }
 
 export const experiences: Experience[] = [
-  // PAL Leader — uncomment when role begins in September 2026
+  // PAL Leader - uncomment when role begins in September 2026
   // {
   //   id: "pal-leader",
   //   role: "PAL Leader - Electronics and Programming",

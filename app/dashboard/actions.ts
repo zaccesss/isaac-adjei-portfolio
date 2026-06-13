@@ -827,6 +827,7 @@ export async function createInventoryItem(data: {
   serial_number?: string
   notes?: string
   warranty_expiry?: string | null
+  url?: string
 }) {
   if (
     !validStr(data.name) ||
@@ -837,7 +838,8 @@ export async function createInventoryItem(data: {
     !optStr(data.price_paid) ||
     !optStr(data.serial_number) ||
     !optStr(data.notes, MAX_LONG_TEXT) ||
-    !optStr(data.warranty_expiry)
+    !optStr(data.warranty_expiry) ||
+    !optStr(data.url)
   ) return INVALID
   const { data: inserted } = await supabase.from("inventory_items").insert(data).select().single()
   revalidatePath("/dashboard/inventory")
@@ -854,6 +856,7 @@ export async function updateInventoryItem(id: string, data: Partial<{
   serial_number: string
   notes: string
   warranty_expiry: string | null
+  url: string
 }>) {
   if (!validId(id)) return INVALID
   await supabase.from("inventory_items").update(data).eq("id", id)

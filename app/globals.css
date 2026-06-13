@@ -105,7 +105,7 @@ html.theme-transitioning *::after {
   animation: marquee-scroll 14s linear infinite;
 }
 
-/* Skills icon grid — fixed columns, centered */
+/* Skills icon grid - fixed columns, centered */
 .skills-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 88px);

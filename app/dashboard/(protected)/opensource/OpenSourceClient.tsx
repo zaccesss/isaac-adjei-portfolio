@@ -46,7 +46,7 @@ const EMPTY_NEW_ROW: NewRow = {
   status: "open",
   language: "",
   notes: "",
-  submitted_at: new Date().toISOString().slice(0, 10),
+  submitted_at: new Date().toISOString().slice(0, 16),
 }
 
 export default function OpenSourceClient({
@@ -428,7 +428,7 @@ export default function OpenSourceClient({
                 </td>
                 <td className="px-3 py-2">
                   <input
-                    type="date"
+                    type="datetime-local"
                     value={newRow.submitted_at}
                     onChange={(e) => setNewRow((p) => ({ ...p, submitted_at: e.target.value }))}
                     className="border border-border rounded px-2 py-1 text-sm bg-background"
@@ -572,13 +572,13 @@ export default function OpenSourceClient({
                   <EditCell
                     id={row.id}
                     field="submitted_at"
-                    value={row.submitted_at}
+                    value={row.submitted_at.slice(0, 16)}
                     editCell={editCell}
                     setEditCell={setEditCell}
                     onSave={handleCellSave}
                     editRef={editRef}
-                    inputType="date"
-                    display={row.submitted_at}
+                    inputType="datetime-local"
+                    display={new Date(row.submitted_at).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   />
 
                   {/* notes */}
@@ -658,7 +658,7 @@ function EditCell({
           className="cursor-pointer hover:underline text-sm"
           onClick={() => setEditCell({ id, field })}
         >
-          {display ?? value ?? <span className="text-muted-foreground">—</span>}
+          {display ?? value ?? <span className="text-muted-foreground">-</span>}
         </span>
       )}
     </td>

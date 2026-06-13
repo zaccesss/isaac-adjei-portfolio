@@ -19,7 +19,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
 const VALID_DEPTHS = new Set([25, 50, 75, 100])
 const VALID_SLUG = /^[a-z0-9-]{1,120}$/
 
-// I allow each IP 60 events per 10-minute window — generous enough for real
+// I allow each IP 60 events per 10-minute window - generous enough for real
 // readers moving through a post, tight enough to stop a scraper hammering it.
 const RATE_LIMIT = 60
 const WINDOW_SECONDS = 600
@@ -29,7 +29,7 @@ function ipKey(ip: string) {
 }
 
 export async function POST(req: NextRequest) {
-  // I parse the body defensively — the route receives fire-and-forget beacon requests.
+  // I parse the body defensively - the route receives fire-and-forget beacon requests.
   let body: unknown
   try {
     body = await req.json()
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
   }
 
   // I upsert so duplicate events from the same visitor within a session are idempotent.
-  // The unique constraint is (slug, depth, ip_hash) — I store an MD5-like truncated hash
+  // The unique constraint is (slug, depth, ip_hash) - I store an MD5-like truncated hash
   // rather than the raw IP for privacy compliance.
   const ipHash = ip === "unknown" ? "unknown" : Buffer.from(ip).toString("base64").slice(0, 12)
 

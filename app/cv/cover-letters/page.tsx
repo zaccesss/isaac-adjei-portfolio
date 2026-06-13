@@ -3,7 +3,7 @@
 
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ArrowLeft, ExternalLink, FileText, Mail, Edit3, Laptop, Wrench, BarChart3, Cloud, TrendingUp, Lock, File } from "lucide-react"
+import { ArrowLeft, ExternalLink, FileText, Download, Edit3, Laptop, Wrench, BarChart3, Cloud, TrendingUp, Lock, File } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
@@ -84,8 +84,7 @@ export default function CoverLettersPage() {
           <div className="mt-6">
             <h1 className="text-3xl font-bold tracking-tight">Cover Letter Templates</h1>
             <p className="text-muted-foreground mt-2 max-w-2xl">
-              Download and customise these tailored cover letters for my applications.
-              Each template is provided as HTML format - open in my browser or save to edit in Word.
+              Tailored cover letters for each engineering discipline. Download as PDF to send or as Word to customise.
             </p>
           </div>
         </div>
@@ -96,13 +95,11 @@ export default function CoverLettersPage() {
         <div className="rounded-lg border bg-muted/30 p-4 flex items-start gap-3">
           <Edit3 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
           <div className="text-sm">
-            <p className="font-medium">How I use these templates:</p>
+            <p className="font-medium">How to use:</p>
             <ol className="text-muted-foreground mt-1 space-y-1 list-decimal list-inside">
-              <li>Open the template that matches the role I am applying for</li>
-              <li>Use Ctrl+P (or Cmd+P on Mac) to print, then select Save as PDF</li>
-              <li>Or copy the text and paste into Microsoft Word or Google Docs to edit</li>
-              <li>Replace [Company Name] and [Role Title] with the specific details</li>
-              <li>Customise with my own achievements and proofread before sending</li>
+              <li>Download the Word (.docx) version to customise with company name and role title</li>
+              <li>Or download the PDF version to send directly</li>
+              <li>Replace all highlighted placeholders before sending</li>
             </ol>
           </div>
         </div>
@@ -120,8 +117,8 @@ export default function CoverLettersPage() {
             >
               <div className="flex items-start gap-4">
                 <div className="rounded-lg bg-primary/10 p-3 shrink-0">
-                <letter.icon className="h-6 w-6 text-primary" />
-              </div>
+                  <letter.icon className="h-6 w-6 text-primary" />
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h2 className="font-semibold group-hover:text-primary transition-colors">
@@ -136,11 +133,23 @@ export default function CoverLettersPage() {
                   <p className="text-sm text-muted-foreground mt-1">
                     {letter.description}
                   </p>
-                  <div className="mt-4">
-                    <Button asChild size="sm" className={letter.isPrimary ? "" : "variant-outline"}>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button asChild variant="default" size="sm">
                       <a href={letter.path} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="mr-2 h-4 w-4" />
-                        View Template
+                        View
+                      </a>
+                    </Button>
+                    <Button asChild variant="outline" size="sm">
+                      <a href={`/api/cover-letter/${letter.id}/pdf`} download>
+                        <Download className="mr-2 h-4 w-4" />
+                        PDF
+                      </a>
+                    </Button>
+                    <Button asChild variant="outline" size="sm">
+                      <a href={`/api/cover-letter/${letter.id}/docx`} download>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Word
                       </a>
                     </Button>
                   </div>
