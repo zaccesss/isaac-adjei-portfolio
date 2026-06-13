@@ -2,8 +2,8 @@ name: Job Scraper
 
 on:
   schedule:
-    # I run at midnight UTC every day so fresh roles appear by morning.
-    - cron: "0 0 * * *"
+    # I run every 3 days at midnight UTC — daily is unnecessary outside peak cycle (Aug-Sep).
+    - cron: "0 0 */3 * *"
   workflow_dispatch:
 
 # I cancel any in-progress run when a new one is triggered so two runs never
@@ -21,8 +21,8 @@ jobs:
     env:
       # I set SCRAPER_MODE so main() skips The Trackr in this job.
       SCRAPER_MODE: api
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       REED_API_KEY: ${{ secrets.REED_API_KEY }}
       ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
@@ -65,8 +65,8 @@ jobs:
     env:
       # I set SCRAPER_MODE so main() runs only The Trackr in this job.
       SCRAPER_MODE: browser
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
     steps:
       - uses: actions/checkout@v4
