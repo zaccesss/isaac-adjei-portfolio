@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import {
@@ -11,7 +12,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
-type Month = "January" | "February" | "March" | "April" | "May" | "June" | "July" | "August" | "September"
+type Month =
+  | "January" | "February" | "March" | "April" | "May" | "June"
+  | "July" | "August" | "September" | "October" | "November" | "December"
+
+const MONTH_NUMBER: Record<Month, number> = {
+  January: 0, February: 1, March: 2,    April: 3,
+  May: 4,     June: 5,     July: 6,     August: 7,
+  September: 8, October: 9, November: 10, December: 11,
+}
+
+function isMonthAvailable(month: Month, preview: boolean): boolean {
+  if (preview) return true
+  const now = new Date()
+  return now >= new Date(2026, MONTH_NUMBER[month], 1)
+}
 
 const MONTH_CHIP: Record<Month, string> = {
   January:   "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
@@ -23,9 +38,15 @@ const MONTH_CHIP: Record<Month, string> = {
   July:      "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
   August:    "bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/20",
   September: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
+  October:   "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
+  November:  "bg-lime-500/10 text-lime-600 dark:text-lime-400 border-lime-500/20",
+  December:  "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
 }
 
-const MONTHS: Month[] = ["January", "February", "March", "April", "May", "June", "July", "August", "September"]
+const MONTHS: Month[] = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+]
 
 // --- TYPES ---
 type VideoEntry = {
@@ -647,11 +668,18 @@ function SpotifyNowPlaying() {
 
 // --- MAIN COMPONENT ---
 export default function ConsumedContent() {
+  const searchParams = useSearchParams()
+  const preview = searchParams.get("preview") === "1"
+
   const [activeMonth, setActiveMonth] = useState<string>("all")
   const [activeVideos, setActiveVideos] = useState<Set<string>>(new Set())
 
-  const filterByMonth = <T extends { month: Month }>(items: T[]) =>
-    activeMonth === "all" ? items : items.filter((i) => i.month === activeMonth)
+  const availableMonths = MONTHS.filter((m) => isMonthAvailable(m, preview))
+
+  const filterByMonth = <T extends { month: Month }>(items: T[]) => {
+    const visible = items.filter((i) => isMonthAvailable(i.month, preview))
+    return activeMonth === "all" ? visible : visible.filter((i) => i.month === activeMonth)
+  }
 
   const filteredVideos    = filterByMonth(videos)
   const filteredPodcasts  = filterByMonth(podcasts)
@@ -663,7 +691,7 @@ export default function ConsumedContent() {
   const activateVideo = (id: string) =>
     setActiveVideos((prev) => new Set([...prev, id]))
 
-  const monthsToShow = activeMonth === "all" ? MONTHS : [activeMonth as Month]
+  const monthsToShow = activeMonth === "all" ? availableMonths : [activeMonth as Month]
 
   return (
     <div className="container py-24 space-y-10">
@@ -699,7 +727,7 @@ export default function ConsumedContent() {
           >
             All
           </button>
-          {MONTHS.map((m) => (
+          {availableMonths.map((m) => (
             <button
               type="button"
               key={m}
