@@ -383,6 +383,7 @@ export async function createVaultEntry(data: {
   // I return the full inserted row so the client can splice it into the local entries list
   // in sorted order without waiting for a page refetch
   const { data: inserted } = await supabase.from("vault").insert(data).select().single()
+  void logActivity("vault.create", data.name)
   revalidatePath("/dashboard/vault")
   return inserted
 }
@@ -415,6 +416,7 @@ export async function updateVaultEntry(id: string, data: Partial<{
 export async function deleteVaultEntry(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("vault").delete().eq("id", id)
+  void logActivity("vault.delete", id)
   revalidatePath("/dashboard/vault")
 }
 
@@ -558,6 +560,7 @@ export async function checkInStreak(streakId: string, date: string) {
   // - double-clicking the button or a race condition will not create duplicate rows
   if (!validId(streakId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
   await supabase.from("streak_logs").upsert({ streak_id: streakId, date, completed: true }, { onConflict: "streak_id,date" })
+  void logActivity("streak.checkin", date)
   revalidatePath("/dashboard/streaks")
 }
 
@@ -793,6 +796,7 @@ export async function createWishlistItem(data: {
     !optStr(data.notes, MAX_LONG_TEXT)
   ) return INVALID
   const { data: inserted } = await supabase.from("wishlist").insert(data).select().single()
+  void logActivity("wishlist.create", data.name)
   revalidatePath("/dashboard/wishlist")
   return inserted
 }
@@ -812,6 +816,7 @@ export async function updateWishlistItem(id: string, data: Partial<{
 export async function deleteWishlistItem(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("wishlist").delete().eq("id", id)
+  void logActivity("wishlist.delete", id)
   revalidatePath("/dashboard/wishlist")
 }
 
@@ -842,6 +847,7 @@ export async function createInventoryItem(data: {
     !optStr(data.url)
   ) return INVALID
   const { data: inserted } = await supabase.from("inventory_items").insert(data).select().single()
+  void logActivity("inventory.create", data.name)
   revalidatePath("/dashboard/inventory")
   return inserted
 }
@@ -866,6 +872,7 @@ export async function updateInventoryItem(id: string, data: Partial<{
 export async function deleteInventoryItem(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("inventory_items").delete().eq("id", id)
+  void logActivity("inventory.delete", id)
   revalidatePath("/dashboard/inventory")
 }
 
@@ -1170,6 +1177,7 @@ export type WakatimeDayRow = {
   languages: { name: string; total_seconds: number }[]
   projects: { name: string; total_seconds: number }[]
   editors: { name: string; total_seconds: number }[]
+  operating_systems?: { name: string; total_seconds: number }[]
 }
 
 export async function getWakatimeHeatmap(): Promise<WakatimeDayRow[]> {
@@ -1178,7 +1186,7 @@ export async function getWakatimeHeatmap(): Promise<WakatimeDayRow[]> {
   since.setDate(since.getDate() - 364)
   const { data, error } = await supabase
     .from("wakatime_daily")
-    .select("date, total_seconds, languages, projects, editors")
+    .select("date, total_seconds, languages, projects, editors, operating_systems")
     .gte("date", since.toISOString().slice(0, 10))
     .order("date", { ascending: true })
   if (error || !data) return []
