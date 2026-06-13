@@ -63,7 +63,8 @@
   "overrides": {
     "@typescript-eslint/typescript-estree": {
       "brace-expansion": "5.0.6"
-    }
+    },
+    "esbuild": ">=0.25.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
