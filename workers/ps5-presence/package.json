@@ -9,5 +9,8 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240512.0",
     "wrangler": "^4.95.0"
+  },
+  "overrides": {
+    "esbuild": ">=0.25.2"
   }
 }

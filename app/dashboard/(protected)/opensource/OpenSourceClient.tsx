@@ -8,7 +8,7 @@ import {
   bulkDeleteOpenSourceContributions,
   type OpenSourceContribution,
 } from "@/app/dashboard/actions"
-import { Github, ExternalLink, Plus, Trash2, Download } from "lucide-react"
+import { Github, ExternalLink, Plus, Trash2, Download, Pencil } from "lucide-react"
 
 // I define the valid status values and their badge colours in one place
 // so the table cells and the add-row select are always in sync.
@@ -462,7 +462,7 @@ export default function OpenSourceClient({
               filtered.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-b border-border even:bg-muted/20 hover:bg-muted/40 transition-colors"
+                  className="group border-b border-border even:bg-muted/20 hover:bg-muted/40 transition-colors"
                 >
                   <td className="px-3 py-2">
                     <input
@@ -593,14 +593,26 @@ export default function OpenSourceClient({
                     className="w-40"
                   />
 
-                  {/* delete */}
+                  {/* actions */}
                   <td className="px-3 py-2">
-                    <button
-                      onClick={() => handleDelete(row.id)}
-                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 transition-opacity"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => setEditCell({ id: row.id, field: "notes" })}
+                        title="Edit"
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(row.id)}
+                        title="Delete"
+                        className="text-muted-foreground hover:text-red-500"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
