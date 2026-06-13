@@ -24,6 +24,20 @@ type Item = {
   url: string | null
 }
 
+type SpecRow = { key: string; value: string }
+
+function parseSpecs(description: string): SpecRow[] | null {
+  const lines = description.trim().split("\n").filter(Boolean)
+  if (lines.length < 2) return null
+  const pairs = lines.map((l) => {
+    const idx = l.indexOf(":")
+    if (idx === -1) return null
+    return { key: l.slice(0, idx).trim(), value: l.slice(idx + 1).trim() }
+  })
+  if (pairs.filter(Boolean).length < lines.length / 2) return null
+  return pairs.filter(Boolean) as SpecRow[]
+}
+
 // I convert a category slug back to a display-friendly title
 function slugToTitle(slug: string): string {
   return slug
@@ -257,11 +271,23 @@ export default function InventoryItemClient({
         <span className="inline-flex w-fit text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
           {item.category}
         </span>
-        {item.description && (
-          <p className="text-sm text-muted-foreground leading-relaxed border-t border-border/50 pt-3 mt-1">
-            {item.description}
-          </p>
-        )}
+        {item.description && (() => {
+          const specs = parseSpecs(item.description)
+          return specs ? (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-sm border-t border-border/50 pt-3 mt-1">
+              {specs.map(({ key, value }) => (
+                <>
+                  <dt key={`dt-${key}`} className="text-muted-foreground/70 whitespace-nowrap">{key}</dt>
+                  <dd key={`dd-${key}`} className="text-muted-foreground">{value}</dd>
+                </>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line border-t border-border/50 pt-3 mt-1">
+              {item.description}
+            </p>
+          )
+        })()}
       </div>
 
       {/* Detail fields */}
@@ -283,7 +309,7 @@ export default function InventoryItemClient({
       {item.notes && (
         <div className="border border-border rounded-xl p-5 bg-card">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Notes</p>
-          <p className="text-sm text-foreground leading-relaxed">{item.notes}</p>
+          <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{item.notes}</p>
         </div>
       )}
 
