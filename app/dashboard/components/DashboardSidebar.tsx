@@ -71,7 +71,8 @@ export default function DashboardSidebar({
               />
             )}
             <div className="min-w-0">
-              <p className="text-xs font-semibold truncate leading-tight">{user.name}</p>
+              <p className="text-xs font-semibold truncate leading-tight">My Dashboard</p>
+              {user.name && <p className="text-[10px] text-muted-foreground truncate leading-tight">{user.name}</p>}
             </div>
           </div>
         )}
