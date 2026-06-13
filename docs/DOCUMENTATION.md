@@ -131,7 +131,7 @@ Status values: Not Applied, Interested, Application Submitted, Online Assessment
 
 ### Database (Supabase)
 
-All dashboard data is stored in a Supabase Postgres database. The full schema is in `supabase-schema.sql`. Run Section A on a fresh project and Section B on an existing database. Key tables:
+All dashboard data is stored in a Supabase Postgres database. For a fresh install run `sql/schema.sql` in the Supabase SQL Editor. For an existing database run the migration files in `sql/migrations/` in order. Key tables:
 
 | Table | Purpose |
 | --- | --- |
@@ -153,6 +153,9 @@ All dashboard data is stored in a Supabase Postgres database. The full schema is
 | `wishlist` | Wishlist items by category and priority |
 | `activity_log` | Last N user actions for the activity feed on the dashboard home |
 | `config` | Key-value store for settings (theme_preference, me_profile, course_data, dashboard_pin_hash) |
+| `opensource_contributions` | External OSS PRs submitted to third-party repos |
+| `blog_read_events` | Scroll-depth events (25/50/75/100%) per post per IP hash |
+| `wakatime_daily` | Daily coding activity synced from WakaTime API by `wakatime-sync.yml` |
 
 ---
 
@@ -195,19 +198,29 @@ All dashboard data is stored in a Supabase Postgres database. The full schema is
 
 ## Job scraper
 
-The job scraper is a Python script (`scripts/job-scraper.py`) that runs on a GitHub Actions cron every day at midnight UTC. It can also be triggered manually from `/dashboard/settings` via the "Run Now" button, which calls `POST /api/dashboard/trigger-scraper` which dispatches the GitHub Actions workflow using a `GH_PAT` with workflow permissions.
+The job scraper is a Python script (`scripts/job-scraper.py`) that runs every 3 days at midnight UTC via GitHub Actions. It can also be triggered manually from `/dashboard/settings` via the "Run Now" button, which calls `POST /api/dashboard/trigger-scraper` and dispatches the workflow using a `GH_PAT` with workflow scope.
+
+The GitHub Actions job has two parallel jobs: `api-sources` (REST APIs, no browser) and `browser-sources` (Playwright). Both write to the same Supabase table and share the deduplication key set.
 
 ### Sources
 
 | Source | Method | Auth |
 | --- | --- | --- |
 | The Trackr | Playwright (headless Chromium) | None |
-| Greenhouse | JSON API (`/v1/boards/{company}/jobs`) | None |
-| Lever | JSON API (`/v0/postings/{company}`) | None |
-| Ashby | JSON API (`/posting-api/job-board`) | None |
-| Gradcracker | HTTP scrape | None |
-| RateMyPlacement | HTTP scrape | None |
-| TargetJobs | HTTP scrape | None |
+| Google Careers | Playwright | None |
+| Meta Careers | Playwright | None |
+| ARM Careers | Playwright (Workday - session auth blocks REST API) | None |
+| Goldman Sachs | Playwright (higher.gs.com React portal) | None |
+| JPMorgan Careers | Playwright (Workday - session auth blocks REST API) | None |
+| Greenhouse | JSON API (`/v1/boards/{company}/jobs?content=true`) | None |
+| Lever | JSON API (`/v0/postings/{company}?mode=json`) | None |
+| Ashby | REST API (`/posting-api/job-board/{slug}`) | None |
+| SmartRecruiters | JSON API (`/v1/companies/{id}/postings`) | None |
+| Apple Careers | JSON API | None |
+| Microsoft Careers | JSON API | None |
+| Amazon Jobs | JSON API (`/en/search.json`) | None |
+| Workday | CXS API (NVIDIA, Intel, Morgan Stanley) | None |
+| Remotive | JSON API (free, no auth) | None |
 | Adzuna | REST API (`/v1/api/jobs/gb/search/`) | `ADZUNA_APP_ID` and `ADZUNA_APP_KEY` |
 | Jooble | REST API | `JOOBLE_API_KEY` |
 | Arbeitnow | REST API (free, no auth) | None |
@@ -234,7 +247,9 @@ Adzuna provides a `redirect_url` tracking link instead of the direct company ATS
 
 ### Required GitHub Actions secrets
 
-`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `REED_API_KEY`, `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, `JOOBLE_API_KEY`, `DISCORD_WEBHOOK_URL`
+`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `REED_API_KEY`, `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, `JOOBLE_API_KEY`, `DISCORD_WEBHOOK_URL`, `GH_PAT`
+
+`WAKATIME_API_KEY` — GitHub Actions secret only. Do not add to Vercel. The `wakatime-sync.yml` workflow writes to Supabase directly; the dashboard reads from Supabase, so the key never touches the Next.js runtime.
 
 ---
 
@@ -400,8 +415,14 @@ Create `.env.local` in the project root for local development. All variables are
 | `AUTH_SECONDARY_PIN` | 4-digit (or longer) PIN for the secondary auth gate on Diary, Notes and Vault. Can be overridden by setting a bcrypt hash in the `config` table under key `dashboard_pin_hash` |
 | `CRON_SECRET` | Shared secret for Vercel cron routes. The cron job sends `Authorization: Bearer <CRON_SECRET>` and the route verifies it. Generate with `openssl rand -base64 32` |
 | `DIGEST_EMAIL` | Email address that receives the weekly dashboard digest sent via Resend |
-| `GH_PAT` | GitHub Personal Access Token with `workflow` scope. Required for the Settings > "Run Now" scraper trigger which calls the GitHub Actions API to dispatch the job-scraper workflow |
+| `GH_PAT` | GitHub Personal Access Token with `workflow` scope. Required for the Settings page scraper, WakaTime sync and CV regeneration triggers which dispatch GitHub Actions workflows |
 | `DISCORD_WEBHOOK_URL` | Discord incoming webhook URL for the daily digest. Create it in Discord > Server Settings > Integrations > Webhooks. Required in Vercel environment variables for the daily cron |
+
+### GitHub Actions only (never add to Vercel)
+
+| Variable | Purpose |
+| --- | --- |
+| `WAKATIME_API_KEY` | WakaTime API key for `wakatime-sync.yml`. The sync writes coding stats to Supabase; the dashboard reads from Supabase. The key is only needed by the GitHub Actions runner, not by the Next.js app. Get it from wakatime.com/settings/account |
 
 ---
 
@@ -426,17 +447,22 @@ Create `.env.local` in the project root for local development. All variables are
 | `/api/bible-verse` | GET | Random Bible verse from NET Bible API with fallback to Jeremiah 29:11 |
 | `/api/og` | GET | Dynamic OG image generation - accepts `title` and `description` query params; strips non-ASCII |
 | `/api/newsletter-issues` | GET | Fetches past Beehiiv posts for the newsletter page; cached 10 min in Redis |
+| `/api/blog/read-event` | POST | Record a scroll-depth event (25/50/75/100%) for a blog post; rate-limited per IP |
+| `/api/cover-letter/[role]/[format]` | GET | Serve a role-specific cover letter as PDF or DOCX |
 
 ### Dashboard (session auth required)
 
 | Route | Method | Purpose |
 | --- | --- | --- |
-| `/api/dashboard/trigger-digest` | POST | Trigger the weekly email digest immediately by calling `lib/send-weekly-digest.ts` directly |
-| `/api/dashboard/weekly-digest` | GET | Vercel cron endpoint (checks `Authorization: Bearer <CRON_SECRET>`) then calls the digest helper |
+| `/api/dashboard/trigger-digest` | POST | Trigger the weekly email digest immediately |
+| `/api/dashboard/weekly-digest` | GET | Vercel cron endpoint (checks CRON_SECRET); fires Sunday 18:00 UTC |
 | `/api/dashboard/trigger-discord-digest` | POST | Trigger the daily Discord digest immediately; uses session auth |
-| `/api/dashboard/discord-digest` | GET | Vercel cron endpoint for daily Discord digest (checks CRON_SECRET); fires at `0 8 * * *` |
-| `/api/dashboard/trigger-scraper` | POST | Dispatch the GitHub Actions job-scraper workflow via the GitHub API using `GH_PAT` |
-| `/api/dashboard/scraper-status` | GET | Poll the latest GitHub Actions workflow run status for the scraper |
+| `/api/dashboard/discord-digest` | GET | Vercel cron endpoint for daily Discord digest (checks CRON_SECRET); fires 08:00 UTC |
+| `/api/dashboard/trigger-scraper` | POST | Dispatch the GitHub Actions job-scraper workflow via `GH_PAT` |
+| `/api/dashboard/scraper-status` | GET | Poll the latest GitHub Actions workflow run status for the job scraper |
+| `/api/dashboard/trigger-wakatime` | POST | Dispatch the GitHub Actions wakatime-sync workflow via `GH_PAT` |
+| `/api/dashboard/trigger-cv` | POST | Dispatch the GitHub Actions cv-pdf workflow via `GH_PAT` |
+| `/api/dashboard/vault-expiry-check` | GET | CRON_SECRET-protected endpoint called by `vault-expiry-check.yml` |
 | `/api/dashboard/verify-pin` | POST | Verify secondary PIN and set `dashboard_pin_verified` httpOnly cookie |
 | `/api/dashboard/change-pin` | POST | Change the secondary PIN (bcrypt hash stored in Supabase config table) |
 
@@ -468,11 +494,13 @@ Hosted on **Vercel**. DNS via **Cloudflare**. Every push to `main` triggers an a
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| `ci.yml` | Push and PR to main | Lint and build check |
-| `gitleaks.yml` | Push and PR | Secret leak detection |
-| `generate-cvs.yml` | Push to main affecting cv.yml | Regenerate role-specific HTML CVs and PDFs |
-| `cv-pdf.yml` | Push to main affecting cv.html | Regenerate main Isaac_Adjei_CV.pdf and DOCX |
-| `job-scraper.yml` | Daily cron at midnight UTC and manual dispatch | Run job-scraper.py and upsert results to Supabase |
+| `ci.yml` | Every PR and push to main | Lint and build check |
+| `gitleaks-scan.yml` | Every push | Secret scanning |
+| `automerge-dependabot.yml` | Dependabot PRs | Auto-merge after CI passes |
+| `cv-pdf.yml` | Push to `public/resume/cv.html` on main | Regenerate all CV PDFs and DOCX, create auto-merge PR |
+| `job-scraper.yml` | Every 3 days at midnight UTC and manual dispatch | Scrape jobs from all sources and upsert to Supabase |
+| `wakatime-sync.yml` | Daily at 23:30 UTC and manual dispatch | Fetch WakaTime daily summaries, upsert to `wakatime_daily` |
+| `vault-expiry-check.yml` | Daily at 08:00 UTC and manual dispatch | Check vault item expiry, send Discord alert if any are near or past |
 
 ### Vercel cron jobs
 

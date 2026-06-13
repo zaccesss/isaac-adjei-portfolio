@@ -93,7 +93,7 @@ SQL for the Supabase database lives in `sql/schema.sql` (fresh install) and `sql
 ├── workflows/
 │   ├── ci.yml                        Lint and build check on every PR
 │   ├── cv-pdf.yml                    Regenerate CV PDF/DOCX on cv.html push
-│   ├── job-scraper.yml               Daily job scraper (Mon-Fri, 07:00 UTC)
+│   ├── job-scraper.yml               Job scraper — every 3 days at midnight UTC
 │   ├── wakatime-sync.yml             Daily WakaTime coding activity sync
 │   ├── vault-expiry-check.yml        Daily vault item expiry check and Discord alert
 │   ├── generate-cvs.yml              Manual CV regeneration trigger
@@ -278,7 +278,7 @@ Most pages work without environment variables. The live status cards (Spotify, M
 | --- | --- | --- |
 | `ci.yml` | Every PR and push | Lint + Next.js build check |
 | `cv-pdf.yml` | Push to `public/resume/cv.html` | Regenerate all CV PDFs and DOCX, create auto-merge PR |
-| `job-scraper.yml` | Daily 07:00 UTC (Mon-Fri) + manual | Scrape jobs from Gradcracker, Handshake, Workable and REST APIs |
+| `job-scraper.yml` | Every 3 days at midnight UTC + manual | Scrape jobs from 20+ sources (Playwright + REST APIs) and upsert to Supabase |
 | `wakatime-sync.yml` | Daily 01:00 UTC + manual | Sync WakaTime coding stats to `wakatime_daily` in Supabase |
 | `vault-expiry-check.yml` | Daily 09:00 UTC + manual | Check vault item expiry, send Discord alert if any are near or past |
 | `generate-cvs.yml` | Manual | Regenerate role CVs without changing cv.html |
