@@ -65,7 +65,7 @@ jobs:
       - name: Generate DOCX from cv.html
         run: |
           # I install html-to-docx locally so it is available without adding it to
-          # package.json — this keeps it out of the production bundle.
+          # package.json - this keeps it out of the production bundle.
           npm install --no-save html-to-docx
           node -e "
           const fs = require('fs');
@@ -108,4 +108,4 @@ jobs:
             --head "$branch" \
             --title "chore: regenerate CV download artefacts" \
             --body "Automatically regenerates the committed CV PDF and DOCX after cv.html changed on main."
-          gh pr merge "$branch" --squash --auto --delete-branch
+          gh pr merge "$branch" --squash --delete-branch

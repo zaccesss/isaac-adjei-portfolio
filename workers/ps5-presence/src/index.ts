@@ -136,7 +136,7 @@ async function getAccessToken(env: Env): Promise<string> {
   if (storedRefreshToken) {
     try {
       const { access_token, refresh_token } = await exchangeRefreshToken(storedRefreshToken)
-      // PSN rotates refresh tokens on each use — persist the new one.
+      // PSN rotates refresh tokens on each use - persist the new one.
       await env.PS5_KV.put(REFRESH_TOKEN_KEY, refresh_token)
       console.log("Auth: used stored refresh token")
       return access_token
@@ -145,14 +145,14 @@ async function getAccessToken(env: Env): Promise<string> {
     }
   }
 
-  // First run or refresh token expired — fall back to NPSSO.
+  // First run or refresh token expired - fall back to NPSSO.
   const { access_token, refresh_token } = await exchangeNpsso(env.PSN_NPSSO)
   await env.PS5_KV.put(REFRESH_TOKEN_KEY, refresh_token)
   console.log("Auth: used NPSSO, stored new refresh token")
   return access_token
 }
 
-// PSN returns marketing names; IGDB uses official titles — map the differences here.
+// PSN returns marketing names; IGDB uses official titles - map the differences here.
 const IGDB_NAME_MAP: Record<string, string> = {
   "EA SPORTS FC 26": "EA Sports FC 26",
   "EA SPORTS FC 27": "EA Sports FC 27",
@@ -168,7 +168,7 @@ async function fetchIgdbCover(env: Env, gameName: string): Promise<string | null
   // I skip the lookup entirely if the secrets are not configured to avoid noisy errors.
   if (!env.IGDB_CLIENT_ID || !env.IGDB_CLIENT_SECRET) return null
   try {
-    // I use the client_credentials flow — no user login needed, tokens last ~60 days.
+    // I use the client_credentials flow - no user login needed, tokens last ~60 days.
     const tokenRes = await fetch(
       `https://id.twitch.tv/oauth2/token?client_id=${env.IGDB_CLIENT_ID}&client_secret=${env.IGDB_CLIENT_SECRET}&grant_type=client_credentials`,
       { method: "POST" }
@@ -277,7 +277,7 @@ export default {
 
     await upstash(env, ["SET", "ps5:status", payload, "EX", "150"])
     // I only update last-known when the PS5 is actually online so the "last seen" timestamp
-    // reflects when it was genuinely active — not just when the cron last ran while offline.
+    // reflects when it was genuinely active - not just when the cron last ran while offline.
     if (presence.online) {
       await upstash(env, ["SET", "ps5:last-known", payload])
     }
