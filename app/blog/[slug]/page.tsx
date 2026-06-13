@@ -18,6 +18,7 @@ import TableOfContents, { type TocHeading } from "@/components/shared/TableOfCon
 import BlogReactions from "@/components/shared/BlogReactions"
 import SeriesBanner from "@/components/shared/SeriesBanner"
 import ShareButton from "@/components/shared/ShareButton"
+import GiscusComments from "@/components/blog/GiscusComments"
 
 function renderInline(text: string): React.ReactNode {
   const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g)
@@ -460,6 +461,13 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           {post.published && (
             <div className="mt-12 pt-6 border-t border-border/40">
               <BlogReactions slug={slug} />
+            </div>
+          )}
+
+          {/* Comments */}
+          {post.published && (
+            <div className="mt-8 pt-6 border-t border-border/40">
+              <GiscusComments />
             </div>
           )}
 
