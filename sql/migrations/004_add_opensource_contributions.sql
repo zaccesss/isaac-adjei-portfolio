@@ -21,4 +21,5 @@ create table if not exists opensource_contributions (
 
 alter table opensource_contributions enable row level security;
 
+drop policy if exists "allow all" on opensource_contributions;
 create policy "allow all" on opensource_contributions for all using (true);

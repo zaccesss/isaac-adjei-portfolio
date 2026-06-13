@@ -18,4 +18,5 @@ create unique index if not exists blog_read_events_unique
 
 alter table blog_read_events enable row level security;
 
+drop policy if exists "allow all" on blog_read_events;
 create policy "allow all" on blog_read_events for all using (true);
