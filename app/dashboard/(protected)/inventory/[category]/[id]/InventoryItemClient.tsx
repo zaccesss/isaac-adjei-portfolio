@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ChevronLeft, Edit2, Trash2 } from "lucide-react"
+import { ChevronLeft, Edit2, Trash2, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { deleteInventoryItem, updateInventoryItem } from "@/app/dashboard/actions"
@@ -21,6 +21,7 @@ type Item = {
   serial_number: string | null
   notes: string | null
   warranty_expiry: string | null
+  url: string | null
 }
 
 // I convert a category slug back to a display-friendly title
@@ -57,6 +58,7 @@ type EditForm = {
   serial_number: string
   notes: string
   warranty_expiry: string
+  url: string
 }
 
 function EditDialog({
@@ -80,6 +82,7 @@ function EditDialog({
     serial_number: item.serial_number ?? "",
     notes: item.notes ?? "",
     warranty_expiry: item.warranty_expiry ?? "",
+    url: item.url ?? "",
   })
   const [, startTransition] = useTransition()
 
@@ -97,6 +100,7 @@ function EditDialog({
       serial_number: form.serial_number || null,
       notes: form.notes || null,
       warranty_expiry: form.warranty_expiry || null,
+      url: form.url || null,
     })
     startTransition(() => void updateInventoryItem(item.id, form))
     onClose()
@@ -162,6 +166,12 @@ function EditDialog({
             onChange={(e) => set("serial_number", e.target.value)}
             placeholder="Serial / model number (optional)"
           />
+          <Input
+            value={form.url}
+            onChange={(e) => set("url", e.target.value)}
+            placeholder="Product URL (optional)"
+            type="url"
+          />
           <Textarea
             value={form.notes}
             onChange={(e) => set("notes", e.target.value)}
@@ -199,30 +209,22 @@ export default function InventoryItemClient({
     })
   }
 
-  const rows: { label: string; value: React.ReactNode }[] = []
+  const warrantyExpiring = item.warranty_expiry ? isWithin90Days(item.warranty_expiry) : false
 
-  if (item.description) rows.push({ label: "Description", value: item.description })
-  if (item.serial_number) rows.push({ label: "Serial", value: <span className="font-mono">{item.serial_number}</span> })
-  if (item.quantity > 1) rows.push({ label: "Quantity", value: item.quantity })
-  if (item.price_paid) rows.push({ label: "Price paid", value: item.price_paid })
-  if (item.purchase_date)
-    rows.push({ label: "Purchase date", value: formatMonthYear(item.purchase_date) })
-  if (item.warranty_expiry) {
-    const expiring = isWithin90Days(item.warranty_expiry)
-    rows.push({
-      label: "Warranty until",
-      value: (
-        <span className={expiring ? "text-red-500" : undefined}>
-          {formatMonthYear(item.warranty_expiry)}
-        </span>
-      ),
-    })
-  }
-  if (item.notes) rows.push({ label: "Notes", value: item.notes })
+  const detailFields: { label: string; value: React.ReactNode }[] = [
+    ...(item.quantity > 1 ? [{ label: "Quantity", value: String(item.quantity) }] : []),
+    ...(item.price_paid ? [{ label: "Price paid", value: item.price_paid }] : []),
+    ...(item.purchase_date ? [{ label: "Purchased", value: formatMonthYear(item.purchase_date) }] : []),
+    ...(item.warranty_expiry ? [{
+      label: "Warranty",
+      value: <span className={warrantyExpiring ? "text-amber-500 font-medium" : undefined}>{formatMonthYear(item.warranty_expiry)}{warrantyExpiring ? " — expiring soon" : ""}</span>
+    }] : []),
+    ...(item.serial_number ? [{ label: "Serial / model", value: <span className="font-mono text-xs">{item.serial_number}</span> }] : []),
+  ]
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
-      {/* Header row */}
+      {/* Nav */}
       <div className="flex items-center justify-between gap-4">
         <Link
           href={`/dashboard/inventory/${category}`}
@@ -232,51 +234,57 @@ export default function InventoryItemClient({
           Back to {categoryName}
         </Link>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1"
-            onClick={() => setEditOpen(true)}
-          >
-            <Edit2 className="h-3.5 w-3.5" />
-            Edit
+          <Button variant="outline" size="sm" className="gap-1" onClick={() => setEditOpen(true)}>
+            <Edit2 className="h-3.5 w-3.5" /> Edit
           </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="gap-1"
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete
+          <Button variant="destructive" size="sm" className="gap-1" onClick={handleDelete}>
+            <Trash2 className="h-3.5 w-3.5" /> Delete
           </Button>
         </div>
       </div>
 
-      <hr className="border-border" />
-
-      {/* Item name and category badge */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold">{item.name}</h1>
+      {/* Title block */}
+      <div className="border border-border rounded-xl p-5 bg-card flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-2xl font-bold leading-tight">{item.name}</h1>
+          {item.url && (
+            <a href={item.url} target="_blank" rel="noopener noreferrer"
+              className="shrink-0 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md px-2.5 py-1.5 transition-colors">
+              <ExternalLink className="h-3 w-3" /> Product page
+            </a>
+          )}
+        </div>
         <span className="inline-flex w-fit text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
           {item.category}
         </span>
+        {item.description && (
+          <p className="text-sm text-muted-foreground leading-relaxed border-t border-border/50 pt-3 mt-1">
+            {item.description}
+          </p>
+        )}
       </div>
 
-      {/* Detail rows */}
-      {rows.length > 0 && (
-        <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-3 text-sm">
-          {rows.map(({ label, value }) => (
-            <>
-              <dt key={`dt-${label}`} className="text-muted-foreground font-medium whitespace-nowrap">
-                {label}
-              </dt>
-              <dd key={`dd-${label}`} className="text-foreground">
-                {value}
-              </dd>
-            </>
-          ))}
-        </dl>
+      {/* Detail fields */}
+      {detailFields.length > 0 && (
+        <div className="border border-border rounded-xl p-5 bg-card">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">Details</p>
+          <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-3 text-sm">
+            {detailFields.map(({ label, value }) => (
+              <>
+                <dt key={`dt-${label}`} className="text-muted-foreground whitespace-nowrap">{label}</dt>
+                <dd key={`dd-${label}`} className="text-foreground">{value}</dd>
+              </>
+            ))}
+          </dl>
+        </div>
+      )}
+
+      {/* Notes */}
+      {item.notes && (
+        <div className="border border-border rounded-xl p-5 bg-card">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Notes</p>
+          <p className="text-sm text-foreground leading-relaxed">{item.notes}</p>
+        </div>
       )}
 
       <EditDialog
