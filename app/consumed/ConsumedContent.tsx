@@ -701,8 +701,7 @@ export default function ConsumedContent() {
       <div className="space-y-4 max-w-2xl">
         <h1 className="text-4xl font-bold tracking-tight">Consumed</h1>
         <p className="text-lg text-muted-foreground leading-relaxed">
-          Everything I have watched, listened to and read so far this year. Videos, podcasts, books, music, resources and more.
-          More will be added as the year goes on. See what I am up to right now on my{" "}
+          Everything I have watched, listened to and read so far this year. Videos, podcasts, books, music, resources and more. More content will be added as the year goes on. See what I am up to right now on my{" "}
           <Link href="/now" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
             Now page
           </Link>
