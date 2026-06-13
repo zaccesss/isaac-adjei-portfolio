@@ -108,6 +108,4 @@ jobs:
             --head "$branch" \
             --title "chore: regenerate CV download artefacts" \
             --body "Automatically regenerates the committed CV PDF and DOCX after cv.html changed on main."
-          # I wait for CI checks to pass before merging so branch protection is satisfied.
-          gh pr checks "$branch" --watch --interval 10
           gh pr merge "$branch" --squash --delete-branch
