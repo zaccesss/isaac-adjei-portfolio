@@ -414,6 +414,12 @@ export default function SettingsClient() {
         {!scraperLoading && scraperStatus && (
           <div className="flex flex-col gap-3">
             <StatusBadge status={scraperStatus.status} lastRun={scraperStatus.lastRun} />
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium">Run job scraper</span>
+              <p className="text-xs text-muted-foreground">
+                Triggers the job-scraper workflow — scrapes new listings and syncs them to the applications table
+              </p>
+            </div>
             {scraperStatus.hasToken ? (
               <div className="flex items-center gap-3 flex-wrap">
                 <Button

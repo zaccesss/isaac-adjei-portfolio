@@ -84,13 +84,13 @@ export function ProgressLineChart({ data }: { data: AssessmentPoint[] }) {
           <Line
             type="monotone"
             dataKey="mark"
-            stroke="#6366f1"
-            strokeWidth={2}
+            stroke="#94a3b8"
+            strokeWidth={1.5}
             dot={(props) => {
               const { cx, cy, payload } = props
-              return <circle key={props.key} cx={cx} cy={cy} r={4} fill={markColour(payload.mark)} stroke="none" />
+              return <circle key={props.key} cx={cx} cy={cy} r={5} fill={markColour(payload.mark)} stroke="#fff" strokeWidth={1.5} />
             }}
-            activeDot={{ r: 6 }}
+            activeDot={{ r: 7, stroke: "#fff", strokeWidth: 2 }}
           />
         </LineChart>
       </ResponsiveContainer>

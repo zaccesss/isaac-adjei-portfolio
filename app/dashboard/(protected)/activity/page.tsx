@@ -49,7 +49,14 @@ export default async function ActivityPage() {
       <p className="text-sm text-muted-foreground mb-6">Last 100 actions taken on the dashboard.</p>
 
       {logs.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No activity yet. Start using the dashboard and actions will appear here.</p>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
+          <p className="text-xs text-muted-foreground">
+            If you have used the dashboard and nothing appears here, run{" "}
+            <code className="font-mono bg-muted px-1 py-0.5 rounded text-xs">sql/migrations/009_ensure_activity_log.sql</code>{" "}
+            in the Supabase SQL editor to create the activity_log table.
+          </p>
+        </div>
       ) : (
         <ol className="space-y-1">
           {logs.map((log) => (
