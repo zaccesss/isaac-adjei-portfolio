@@ -9,12 +9,6 @@ export const dynamic = "force-dynamic"
 
 const SITE_URL = "https://www.isaacadjei.me"
 
-function resolveImageUrl(coverImage: string | undefined): string | null {
-  if (!coverImage) return null
-  if (coverImage.startsWith("http")) return coverImage
-  return `${SITE_URL}${coverImage}`
-}
-
 function imageType(url: string): string {
   if (url.endsWith(".png")) return "image/png"
   if (url.endsWith(".svg")) return "image/svg+xml"
@@ -22,7 +16,12 @@ function imageType(url: string): string {
   return "image/jpeg"
 }
 
-function buildXml(posts: ReturnType<typeof getPublishedPosts>, includeStylesheet = true) {
+function buildXml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_URL, includeStylesheet = true) {
+  function resolveImageUrl(coverImage: string | undefined): string | null {
+    if (!coverImage) return null
+    if (coverImage.startsWith("http")) return coverImage
+    return `${baseUrl}${coverImage}`
+  }
   const items = posts
     .map((post) => {
       const url = `${SITE_URL}/blog/${post.slug}`
@@ -206,10 +205,12 @@ export function GET(request: Request) {
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
 
+  const baseUrl = `${url.protocol}//${url.host}`
+
   // I serve plain XML when ?raw is requested - the old syntax-highlighted HTML viewer
   // ran too many regex passes over the full XML string and exceeded Cloudflare's CPU limit.
   if (forceRaw) {
-    return new Response(buildXml(posts, false), {
+    return new Response(buildXml(posts, baseUrl, false), {
       headers: {
         "Content-Type": "text/xml; charset=utf-8",
         "Cache-Control": "public, max-age=3600",
@@ -218,7 +219,6 @@ export function GET(request: Request) {
   }
 
   if (accept.includes("text/html")) {
-    const baseUrl = `${url.protocol}//${url.host}`
     return new Response(buildHtml(posts, baseUrl), {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
@@ -227,7 +227,7 @@ export function GET(request: Request) {
     })
   }
 
-  return new Response(buildXml(posts), {
+  return new Response(buildXml(posts, baseUrl), {
     headers: {
       "Content-Type": "application/rss+xml; charset=utf-8",
       "Cache-Control": "public, max-age=3600",

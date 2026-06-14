@@ -106,6 +106,8 @@ export default function LinearView() {
     groups.get(key)!.issues.push(issue)
   }
 
+  const sevenDaysFromNow = new Date(Date.now() + 7 * 86400000)
+
   return (
     <div className="flex-1 overflow-auto min-h-0 p-4 space-y-4">
       {/* Summary row */}
@@ -113,7 +115,7 @@ export default function LinearView() {
         {[
           { label: "Total", value: data.issues.length },
           { label: "Urgent / High", value: data.issues.filter((i) => i.priority <= 2 && i.priority > 0).length },
-          { label: "Due soon", value: data.issues.filter((i) => i.dueDate && new Date(i.dueDate) <= new Date(Date.now() + 7 * 86400000)).length },
+          { label: "Due soon", value: data.issues.filter((i) => i.dueDate && new Date(i.dueDate) <= sevenDaysFromNow).length },
           { label: "Projects", value: groups.size },
         ].map((s) => (
           <div key={s.label} className="border border-border rounded-lg p-3 bg-card min-w-[90px]">
