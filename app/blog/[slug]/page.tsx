@@ -474,13 +474,6 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             </div>
           )}
 
-          {/* Reactions — above prev/next */}
-          {post.published && process.env.NEXT_PUBLIC_GISCUS_ENABLED?.toLowerCase() === "true" && (
-            <div className="mt-12 pt-6 border-t border-border/40">
-              <BlogReactions slug={slug} />
-            </div>
-          )}
-
           {/* Prev/next navigation */}
           <div className="mt-8 pt-6 border-t border-border/40">
             <div className="grid grid-cols-2 gap-3">
@@ -526,9 +519,10 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             </Link>
           </div>
 
-          {/* Comments — very bottom, loads eagerly */}
+          {/* Reactions + Comments — very bottom, after prev/next */}
           {post.published && process.env.NEXT_PUBLIC_GISCUS_ENABLED?.toLowerCase() === "true" && (
-            <div className="mt-8 pt-6 border-t border-border/40">
+            <div className="mt-8 pt-6 border-t border-border/40 space-y-8">
+              <BlogReactions slug={slug} />
               <GiscusComments />
             </div>
           )}
