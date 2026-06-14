@@ -2,7 +2,25 @@
 
 .gsc-footer { display: none !important; }
 
-/* Target sign-in button by its actual OAuth href — unambiguous */
+main {
+  /* Match site's light background and borders */
+  --color-canvas-default: #ffffff;
+  --color-canvas-subtle: hsl(214.3, 31.8%, 97%);
+  --color-canvas-inset: hsl(214.3, 31.8%, 97%);
+  --color-border-default: hsl(214.3, 31.8%, 91.4%);
+  --color-border-muted: hsl(214.3, 31.8%, 91.4%);
+  --color-fg-default: hsl(222.2, 84%, 4.9%);
+  --color-fg-muted: hsl(215.4, 16.3%, 46.9%);
+
+  /* Blue primary button to match site */
+  --color-btn-primary-bg: hsl(225, 70%, 50%);
+  --color-btn-primary-hover-bg: hsl(225, 70%, 44%);
+  --color-btn-primary-selected-bg: hsl(225, 70%, 40%);
+  --color-btn-primary-border: hsl(225, 70%, 44%);
+  --color-btn-primary-text: #fff;
+}
+
+/* Fallback: target button by OAuth href in case variables don't cascade */
 a[href*="giscus.app/api/oauth"] {
   background-color: hsl(225, 70%, 50%) !important;
   background: hsl(225, 70%, 50%) !important;
@@ -14,7 +32,6 @@ a[href*="giscus.app/api/oauth"]:hover {
   background: hsl(225, 70%, 44%) !important;
 }
 
-/* Target textarea by placeholder text — works regardless of disabled state */
 textarea[placeholder="Sign in to comment"] {
   text-align: center !important;
   padding-top: 1.5rem !important;
