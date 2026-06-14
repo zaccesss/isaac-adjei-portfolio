@@ -14,13 +14,8 @@ const PRESETS: { type: PresetType; emoji: string; label: string }[] = [
   { type: "surprised", emoji: "😮", label: "Surprised me"      },
 ]
 
-// Popular emojis shown in the picker grid (excludes presets)
-const PICKER_EMOJIS = [
-  "😂","😍","🤩","🎉","👏","💯","🙌","🥹","💪",
-  "🙏","👀","🤣","😭","🤑","👎","💔","🫶","😤",
-  "🙃","😎","🤓","😏","🥳","💀","🤮","✨","🚀",
-  "🫡","😱","🤯","🤝","🫠","🥲",
-]
+// Curated reactions for blog posts — limited to prevent spam
+const PICKER_EMOJIS = ["🤯","🚀","💡","🙏","😂","🤓"]
 
 type Counts = Record<string, number>
 

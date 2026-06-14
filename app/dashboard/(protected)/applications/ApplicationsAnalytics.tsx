@@ -90,6 +90,20 @@ export default function ApplicationsAnalytics({ apps }: { apps: Application[] })
   }
   const locBar = Object.entries(locCounts).filter(([, v]) => v > 0).map(([name, value]) => ({ name, value }))
 
+  // ── Weekly trend — last 13 weeks ────────────────────────────────────────────
+  const today = new Date()
+  const weeklyBar: { name: string; value: number }[] = []
+  for (let w = 12; w >= 0; w--) {
+    const end = new Date(today)
+    end.setDate(today.getDate() - w * 7)
+    const start = new Date(end)
+    start.setDate(end.getDate() - 6)
+    const startIso = start.toISOString().slice(0, 10)
+    const endIso = end.toISOString().slice(0, 10)
+    const count = apps.filter((a) => a.applied_date && a.applied_date >= startIso && a.applied_date <= endIso).length
+    weeklyBar.push({ name: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), value: count })
+  }
+
   // ── Monthly trend ───────────────────────────────────────────────────────────
   const monthlyCounts: Record<string, number> = {}
   for (const a of apps) {
@@ -108,11 +122,21 @@ export default function ApplicationsAnalytics({ apps }: { apps: Application[] })
   // ── Summary stats ───────────────────────────────────────────────────────────
   const total = apps.length
   const applied = apps.filter((a) => !["Not Applied","Interested","Not Interested"].includes(normalise(a.status))).length
+  const atOA = apps.filter((a) => ["Online Assessment","Case Study","HireVue"].includes(normalise(a.status))).length
   const atInterview = apps.filter((a) => ["Telephone Interview","Video Interview","Face-to-face Interview","Assessment Centre","Offer Received"].includes(normalise(a.status))).length
   const offers = apps.filter((a) => normalise(a.status) === "Offer Received").length
   const rejected = apps.filter((a) => normalise(a.status) === "Rejected").length
   const interviewRate = applied > 0 ? Math.round((atInterview / applied) * 100) : 0
   const offerRate = applied > 0 ? Math.round((offers / applied) * 100) : 0
+
+  // ── Application funnel ──────────────────────────────────────────────────────
+  const funnelData = [
+    { name: "Applied",    value: applied,     colour: "#6366f1" },
+    { name: "Assessment", value: atOA,        colour: "#8b5cf6" },
+    { name: "Interview",  value: atInterview, colour: "#f59e0b" },
+    { name: "Offer",      value: offers,      colour: "#22c55e" },
+    { name: "Rejected",   value: rejected,    colour: "#64748b" },
+  ]
 
   return (
     <div className="flex-1 overflow-auto min-h-0 p-4 space-y-4">
@@ -162,11 +186,59 @@ export default function ApplicationsAnalytics({ apps }: { apps: Application[] })
         </div>
       </div>
 
+      {/* Funnel */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <p className="text-sm font-semibold mb-3">Application funnel</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={funnelData} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={72} />
+              <Tooltip formatter={(v) => [`${v}`, ""]} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                {funnelData.map((entry, i) => <Cell key={i} fill={entry.colour} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="flex flex-col gap-1.5">
+            {funnelData.map((entry) => (
+              <div key={entry.name} className="flex items-center justify-between text-xs gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full shrink-0" style={{ background: entry.colour }} />
+                  <span className="text-muted-foreground">{entry.name}</span>
+                </div>
+                <div className="flex items-center gap-1.5 tabular-nums">
+                  <span className="font-medium">{entry.value}</span>
+                  {applied > 0 && entry.name !== "Applied" && (
+                    <span className="text-muted-foreground">{Math.round((entry.value / applied) * 100)}%</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Weekly trend */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <p className="text-sm font-semibold mb-3">Weekly applications (last 13 weeks)</p>
+        <ResponsiveContainer width="100%" height={140}>
+          <BarChart data={weeklyBar} barSize={10} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} vertical={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} interval={2} />
+            <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
+            <Tooltip formatter={(v) => [`${v}`, "Applied"]} contentStyle={{ fontSize: 12, borderRadius: 8 }} cursor={{ fill: "hsl(var(--muted))" }} />
+            <Bar dataKey="value" fill="#6366f1" radius={[3, 3, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
       {/* Monthly trend + Location */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {monthlyBar.length > 0 && (
           <div className="border border-border rounded-lg p-4 bg-card">
-            <p className="text-sm font-semibold mb-3">Applications over time</p>
+            <p className="text-sm font-semibold mb-3">Applications over time (monthly)</p>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={monthlyBar} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />

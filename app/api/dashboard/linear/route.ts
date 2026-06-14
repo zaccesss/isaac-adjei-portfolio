@@ -5,7 +5,7 @@ const LINEAR_GQL = "https://api.linear.app/graphql"
 
 const ISSUES_QUERY = `
   query Issues {
-    issues(orderBy: updatedAt, filter: { state: { type: { neq: "cancelled" } } }) {
+    issues(first: 250, orderBy: updatedAt, filter: { state: { type: { neq: "cancelled" } } }) {
       nodes {
         id
         identifier
@@ -60,12 +60,15 @@ export async function GET() {
     })
 
     if (!res.ok) {
-      return NextResponse.json({ configured: true, error: "Linear API error", issues: [] }, { status: res.status })
+      const body = await res.text().catch(() => "")
+      const detail = res.status === 401 ? "Invalid or expired LINEAR_API_KEY" : `HTTP ${res.status}`
+      return NextResponse.json({ configured: true, error: `Linear API error: ${detail}`, issues: [], detail: body }, { status: res.status })
     }
 
-    const json = await res.json() as { data?: { issues?: { nodes: LinearIssue[] } }; errors?: unknown[] }
-    if (json.errors) {
-      return NextResponse.json({ configured: true, error: "Linear query error", issues: [] }, { status: 400 })
+    const json = await res.json() as { data?: { issues?: { nodes: LinearIssue[] } }; errors?: { message: string }[] }
+    if (json.errors?.length) {
+      const msg = json.errors[0]?.message ?? "Unknown error"
+      return NextResponse.json({ configured: true, error: `Linear query error: ${msg}`, issues: [] }, { status: 400 })
     }
 
     const issues = json.data?.issues?.nodes ?? []

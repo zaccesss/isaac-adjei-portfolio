@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ExternalLink, AlertCircle, Loader2 } from "lucide-react"
 import type { LinearIssue } from "@/app/api/dashboard/linear/route"
 
-type Response = { configured: boolean; issues: LinearIssue[]; error?: string }
+type Response = { configured: boolean; issues: LinearIssue[]; error?: string; detail?: string }
 
 const PRIORITY_LABEL: Record<number, { label: string; colour: string }> = {
   0: { label: "No priority", colour: "text-muted-foreground" },
@@ -84,9 +84,16 @@ export default function LinearView() {
 
   if (data.error) {
     return (
-      <div className="flex flex-1 items-center justify-center gap-2 text-destructive text-sm">
-        <AlertCircle className="h-4 w-4" />
-        {data.error}
+      <div className="flex flex-1 items-center justify-center p-8">
+        <div className="max-w-sm text-center space-y-2">
+          <div className="flex justify-center"><AlertCircle className="h-6 w-6 text-destructive" /></div>
+          <p className="text-sm font-medium text-destructive">{data.error}</p>
+          {data.error.includes("Invalid") && (
+            <p className="text-xs text-muted-foreground">
+              Check that <code className="bg-muted px-1 py-0.5 rounded text-[10px]">LINEAR_API_KEY</code> is set correctly in Vercel and redeploy.
+            </p>
+          )}
+        </div>
       </div>
     )
   }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Users, Plus, X, ExternalLink, Mail, Bell, BellOff, Pencil, Check } from "lucide-react"
+import { Users, Plus, X, ExternalLink, Mail, Phone, Bell, BellOff, Pencil, Github } from "lucide-react"
 import type { Contact } from "@/app/dashboard/actions"
 import { createContact, updateContact, deleteContact } from "@/app/dashboard/actions"
 
@@ -29,12 +29,14 @@ function needsFollowUp(contact: Contact): boolean {
 
 type FormState = {
   name: string; company: string; role: string; how_met: string
-  email: string; linkedin_url: string; last_contact: string; notes: string
+  email: string; phone: string; linkedin_url: string; github_url: string
+  last_contact: string; notes: string
 }
 
 const EMPTY: FormState = {
   name: "", company: "", role: "", how_met: "",
-  email: "", linkedin_url: "", last_contact: "", notes: "",
+  email: "", phone: "", linkedin_url: "", github_url: "",
+  last_contact: "", notes: "",
 }
 
 function ContactForm({
@@ -74,6 +76,7 @@ function ContactForm({
         <select
           value={form.how_met}
           onChange={set("how_met")}
+          title="How we met"
           className="border border-border rounded px-3 py-1.5 text-sm bg-background text-muted-foreground"
         >
           <option value="">How we met</option>
@@ -87,17 +90,32 @@ function ContactForm({
           className="border border-border rounded px-3 py-1.5 text-sm bg-background"
         />
         <input
+          placeholder="Phone"
+          type="tel"
+          value={form.phone}
+          onChange={set("phone")}
+          className="border border-border rounded px-3 py-1.5 text-sm bg-background"
+        />
+        <input
           placeholder="LinkedIn URL"
           value={form.linkedin_url}
           onChange={set("linkedin_url")}
           className="border border-border rounded px-3 py-1.5 text-sm bg-background"
         />
+        <input
+          placeholder="GitHub URL"
+          value={form.github_url}
+          onChange={set("github_url")}
+          className="border border-border rounded px-3 py-1.5 text-sm bg-background"
+        />
         <div className="flex flex-col gap-0.5">
-          <label className="text-xs text-muted-foreground">Last contact</label>
+          <label htmlFor="contact-last-contact" className="text-xs text-muted-foreground">Last contact</label>
           <input
+            id="contact-last-contact"
             type="date"
             value={form.last_contact}
             onChange={set("last_contact")}
+            title="Last contact date"
             className="border border-border rounded px-3 py-1.5 text-sm bg-background"
           />
         </div>
@@ -142,7 +160,9 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
       role: form.role || undefined,
       how_met: form.how_met || undefined,
       email: form.email || undefined,
+      phone: form.phone || undefined,
       linkedin_url: form.linkedin_url || undefined,
+      github_url: form.github_url || undefined,
       last_contact: form.last_contact || null,
       notes: form.notes || undefined,
     })
@@ -159,17 +179,28 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
       role: form.role || undefined,
       how_met: form.how_met || undefined,
       email: form.email || undefined,
+      phone: form.phone || undefined,
       linkedin_url: form.linkedin_url || undefined,
+      github_url: form.github_url || undefined,
       last_contact: form.last_contact || null,
       notes: form.notes || undefined,
     })
     setContacts((p) =>
       p.map((c) =>
         c.id === id
-          ? { ...c, name: form.name, company: form.company || null, role: form.role || null,
-              how_met: form.how_met || null, email: form.email || null,
+          ? {
+              ...c,
+              name: form.name,
+              company: form.company || null,
+              role: form.role || null,
+              how_met: form.how_met || null,
+              email: form.email || null,
+              phone: form.phone || null,
               linkedin_url: form.linkedin_url || null,
-              last_contact: form.last_contact || null, notes: form.notes || null }
+              github_url: form.github_url || null,
+              last_contact: form.last_contact || null,
+              notes: form.notes || null,
+            }
           : c
       )
     )
@@ -251,7 +282,9 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
                     role: contact.role ?? "",
                     how_met: contact.how_met ?? "",
                     email: contact.email ?? "",
+                    phone: contact.phone ?? "",
                     linkedin_url: contact.linkedin_url ?? "",
+                    github_url: contact.github_url ?? "",
                     last_contact: contact.last_contact ?? "",
                     notes: contact.notes ?? "",
                   }}
@@ -276,33 +309,64 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
                           <span className="text-xs bg-muted px-1.5 py-0.5 rounded">{contact.how_met}</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 mt-1 flex-wrap">
-                        {contact.email && (
-                          <a
-                            href={`mailto:${contact.email}`}
-                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            <Mail className="h-3 w-3" />
-                            {contact.email}
-                          </a>
-                        )}
-                        {contact.linkedin_url && (
-                          <a
-                            href={contact.linkedin_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            LinkedIn
-                          </a>
-                        )}
-                        {contact.last_contact && (
-                          <span className={`text-xs ${needsFollowUp(contact) ? "text-amber-500" : "text-muted-foreground"}`}>
-                            Last contact: {relativeDate(contact.last_contact)}
-                          </span>
-                        )}
-                      </div>
+
+                      {/* Row 1: email | phone */}
+                      {(contact.email || contact.phone) && (
+                        <div className="flex items-center gap-3 mt-1 flex-wrap">
+                          {contact.email && (
+                            <a
+                              href={`mailto:${contact.email}`}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              <Mail className="h-3 w-3" />
+                              {contact.email}
+                            </a>
+                          )}
+                          {contact.phone && (
+                            <a
+                              href={`tel:${contact.phone}`}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              <Phone className="h-3 w-3" />
+                              {contact.phone}
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Row 2: LinkedIn | GitHub */}
+                      {(contact.linkedin_url || contact.github_url) && (
+                        <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                          {contact.linkedin_url && (
+                            <a
+                              href={contact.linkedin_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              LinkedIn
+                            </a>
+                          )}
+                          {contact.github_url && (
+                            <a
+                              href={contact.github_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              <Github className="h-3 w-3" />
+                              GitHub
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                      {contact.last_contact && (
+                        <p className={`text-xs mt-0.5 ${needsFollowUp(contact) ? "text-amber-500" : "text-muted-foreground"}`}>
+                          Last contact: {relativeDate(contact.last_contact)}
+                        </p>
+                      )}
                       {contact.notes && (
                         <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">{contact.notes}</p>
                       )}

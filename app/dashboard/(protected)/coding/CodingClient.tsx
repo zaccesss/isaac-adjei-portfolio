@@ -6,7 +6,7 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts"
-import type { WakatimeDayRow, GitHubDay } from "@/app/dashboard/actions"
+import type { WakatimeDayRow, GitHubDay, GitHubContribTotals } from "@/app/dashboard/actions"
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -180,7 +180,15 @@ function DonutPanel({
   )
 }
 
-export default function CodingClient({ rows, ghDays = [] }: { rows: WakatimeDayRow[]; ghDays?: GitHubDay[] }) {
+export default function CodingClient({
+  rows,
+  ghDays = [],
+  ghTotals,
+}: {
+  rows: WakatimeDayRow[]
+  ghDays?: GitHubDay[]
+  ghTotals?: GitHubContribTotals
+}) {
   const [tooltip, setTooltip] = useState<{ date: string; seconds: number } | null>(null)
   const [ghTooltip, setGhTooltip] = useState<{ date: string; count: number } | null>(null)
   const grid = useMemo(() => buildGrid(rows), [rows])
@@ -236,6 +244,97 @@ export default function CodingClient({ rows, ghDays = [] }: { rows: WakatimeDayR
   const osPieData = topOs.map(([name, value]) => ({ name, value }))
   const totalProjSeconds = topProjs.reduce((acc, [, s]) => acc + s, 0)
   const weekdayData = WEEKDAY_LABELS.map((day, i) => ({ day, seconds: weekdayMap[i] }))
+
+  // Daily coding totals — last 30 days
+  const dailyCodings = useMemo(() => {
+    const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
+    const today = new Date()
+    const result: { label: string; seconds: number }[] = []
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today)
+      d.setDate(today.getDate() - i)
+      const iso = d.toISOString().slice(0, 10)
+      result.push({
+        label: d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+        seconds: byDate.get(iso) ?? 0,
+      })
+    }
+    return result
+  }, [rows])
+
+  // Daily GitHub contributions — last 30 days
+  const dailyGH = useMemo(() => {
+    if (!ghDays.length) return []
+    const byDate = new Map(ghDays.map((d) => [d.date, d.count]))
+    const today = new Date()
+    const result: { label: string; count: number }[] = []
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today)
+      d.setDate(today.getDate() - i)
+      const iso = d.toISOString().slice(0, 10)
+      result.push({
+        label: d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+        count: byDate.get(iso) ?? 0,
+      })
+    }
+    return result
+  }, [ghDays])
+
+  // Weekly coding totals — last 13 weeks
+  const weeklyCodings = useMemo(() => {
+    const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
+    const today = new Date()
+    const result: { label: string; seconds: number }[] = []
+    for (let w = 12; w >= 0; w--) {
+      const end = new Date(today)
+      end.setDate(today.getDate() - w * 7)
+      let total = 0
+      for (let d = 6; d >= 0; d--) {
+        const day = new Date(end)
+        day.setDate(end.getDate() - d)
+        total += byDate.get(day.toISOString().slice(0, 10)) ?? 0
+      }
+      result.push({
+        label: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+        seconds: total,
+      })
+    }
+    return result
+  }, [rows])
+
+  // GitHub breakdown pie data
+  const ghBreakdownData = ghTotals && (ghTotals.commits + ghTotals.pullRequests + ghTotals.reviews + ghTotals.issues) > 0
+    ? [
+        { name: "Commits",       value: ghTotals.commits },
+        { name: "Pull Requests", value: ghTotals.pullRequests },
+        { name: "Reviews",       value: ghTotals.reviews },
+        { name: "Issues",        value: ghTotals.issues },
+      ].filter((d) => d.value > 0)
+    : []
+  const ghBreakdownTotal = ghBreakdownData.reduce((a, d) => a + d.value, 0)
+
+  // Weekly GitHub contribution totals — last 13 weeks
+  const weeklyGH = useMemo(() => {
+    if (!ghDays.length) return []
+    const byDate = new Map(ghDays.map((d) => [d.date, d.count]))
+    const today = new Date()
+    const result: { label: string; count: number }[] = []
+    for (let w = 12; w >= 0; w--) {
+      const end = new Date(today)
+      end.setDate(today.getDate() - w * 7)
+      let total = 0
+      for (let d = 6; d >= 0; d--) {
+        const day = new Date(end)
+        day.setDate(end.getDate() - d)
+        total += byDate.get(day.toISOString().slice(0, 10)) ?? 0
+      }
+      result.push({
+        label: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+        count: total,
+      })
+    }
+    return result
+  }, [ghDays])
 
   return (
     <div className="flex flex-col gap-6">
@@ -367,6 +466,151 @@ export default function CodingClient({ rows, ghDays = [] }: { rows: WakatimeDayR
               <div key={lvl} className={`h-3 w-3 rounded-sm ${GH_INTENSITY_CLASS[lvl]}`} />
             ))}
             <span className="text-xs text-muted-foreground">More</span>
+          </div>
+        </div>
+      )}
+
+      {/* Daily coding + GitHub bar charts — last 30 days */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <h2 className="text-sm font-semibold mb-3">Coding — daily (last 30 days)</h2>
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={dailyCodings} barSize={6} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 8 }} tickLine={false} axisLine={false} interval={4} />
+              <YAxis hide />
+              <Tooltip
+                formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]}
+                contentStyle={{ fontSize: "11px" }}
+                cursor={{ fill: "hsl(var(--muted))" }}
+              />
+              <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        {dailyGH.length > 0 && (
+          <div className="border border-border rounded-lg p-4 bg-card">
+            <h2 className="text-sm font-semibold mb-3">GitHub — daily (last 30 days)</h2>
+            <ResponsiveContainer width="100%" height={120}>
+              <BarChart data={dailyGH} barSize={6} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 8 }} tickLine={false} axisLine={false} interval={4} />
+                <YAxis hide />
+                <Tooltip
+                  formatter={(v) => [v, "Contributions"]}
+                  contentStyle={{ fontSize: "11px" }}
+                  cursor={{ fill: "hsl(var(--muted))" }}
+                />
+                <Bar dataKey="count" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Weekly coding + GitHub contribution bar charts */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <h2 className="text-sm font-semibold mb-3">Coding — weekly totals</h2>
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart data={weeklyCodings} barSize={12} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} interval={2} />
+              <YAxis hide />
+              <Tooltip
+                formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]}
+                contentStyle={{ fontSize: "11px" }}
+                cursor={{ fill: "hsl(var(--muted))" }}
+              />
+              <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        {weeklyGH.length > 0 && (
+          <div className="border border-border rounded-lg p-4 bg-card">
+            <h2 className="text-sm font-semibold mb-3">GitHub — weekly contributions</h2>
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart data={weeklyGH} barSize={12} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} interval={2} />
+                <YAxis hide />
+                <Tooltip
+                  formatter={(v) => [v, "Contributions"]}
+                  contentStyle={{ fontSize: "11px" }}
+                  cursor={{ fill: "hsl(var(--muted))" }}
+                />
+                <Bar dataKey="count" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* GitHub contribution breakdown */}
+      {ghBreakdownData.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Pie chart */}
+          <div className="border border-border rounded-lg p-4 bg-card">
+            <h2 className="text-sm font-semibold mb-2">GitHub breakdown — pie (this year)</h2>
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <div className="shrink-0 w-36">
+                <ResponsiveContainer width="100%" height={150}>
+                  <PieChart>
+                    <Pie
+                      data={ghBreakdownData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={38}
+                      outerRadius={58}
+                      dataKey="value"
+                      paddingAngle={2}
+                    >
+                      {ghBreakdownData.map((_, i) => (
+                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(v) => [v, ""]} contentStyle={{ fontSize: "11px" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex flex-col gap-1.5 flex-1">
+                {ghBreakdownData.map((item, i) => (
+                  <div key={item.name} className="flex items-center justify-between text-xs gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="h-2 w-2 rounded-full shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                      <span className="text-muted-foreground">{item.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0 tabular-nums">
+                      <span>{item.value}</span>
+                      <span className="text-muted-foreground">
+                        {ghBreakdownTotal > 0 ? `${Math.round((item.value / ghBreakdownTotal) * 100)}%` : ""}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                <div className="flex items-center justify-between text-xs gap-2 mt-1 pt-1 border-t border-border">
+                  <span className="text-muted-foreground font-medium">Total</span>
+                  <span className="tabular-nums font-medium">{ghBreakdownTotal}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Bar chart */}
+          <div className="border border-border rounded-lg p-4 bg-card">
+            <h2 className="text-sm font-semibold mb-3">GitHub breakdown — bar (this year)</h2>
+            <ResponsiveContainer width="100%" height={150}>
+              <BarChart data={ghBreakdownData} barSize={24} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                <YAxis hide />
+                <Tooltip formatter={(v) => [v, "Count"]} contentStyle={{ fontSize: "11px" }} cursor={{ fill: "hsl(var(--muted))" }} />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  {ghBreakdownData.map((_, i) => (
+                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}
