@@ -32,22 +32,29 @@ To add more games: add the exe name to `KNOWN_GAMES` in `scripts/gpc-daemon.py`.
 
 ---
 
+## Public Pages — Blog and Portfolio
+
+**Blog post table of contents improvements**
+The ToC currently only renders h2/h3 from the `content` array. Add smooth scroll + active heading highlighting as you scroll down the page — highlight whichever heading is currently at the top of the viewport.
+
+**Blog search / full-text filter on listing page**
+The blog listing page has type/category filters but no keyword search. Add a search box that filters by title and description client-side. Could also add a search page at `/blog/search`.
+
+**Portfolio project detail pages — live demo embeds**
+For projects like AstonCV, Git Unlocked and Phaemos that have live URLs, embed a small iframe or screenshot carousel on the project page so visitors can see the project running without leaving the site.
+
+**Projects page sorting and filtering**
+Add a tag-based filter to `/projects` matching the blog listing filter pattern. Let visitors filter by: Embedded, Web, Software, IoT, Academic etc.
+
+**Reading time accuracy**
+Current reading time is hardcoded in `data/blog.ts`. Replace with a computed value from content length: count words across all `text` and `code` blocks, divide by 200 (average reading speed). Update on every build.
+
+---
+
 ## Dashboard Enhancements
-
-**Blog post cover images**
-Add a `cover_image` field to each post's data in `data/blog.ts`. Show it as a full-width hero image at the top of the post, and use it as the `og:image` meta tag so shared links on Twitter/LinkedIn show a preview card instead of a blank. Images can be hosted in `public/blog/` or on a CDN. Also show a thumbnail on the blog listing page to make posts more scannable.
-
-**Custom emoji reactions on blog posts**
-Let visitors react with any emoji, not just the 6 presets. Add an emoji picker button at the end of the reaction row — clicking opens a native emoji picker or a grid of popular emojis. Store each reaction type as a separate Redis key (`reactions:{slug}:{emoji}`). Display all reactions with non-zero counts dynamically. The preset 6 stay pinned; custom ones appear after.
-
-**Reading tracker (Notion)**
-Connect to a Notion database with columns: Title, Author, Status (Reading / Want to Read / Finished), Cover URL, Rating, Notes. Show a "Currently Reading" widget on the dashboard home, and a full reading list page with filters. The Notion API key already has a slot in `.env.example`.
 
 **Application timeline / deadline view**
 Gantt-style calendar for the applications page showing deadlines, opening dates and applied dates on a horizontal timeline. Particularly useful in Sep-Dec peak cycle when 20+ deadlines land in the same month. Built entirely from existing `applications` table data.
-
-**Network / contacts tracker**
-Track people met at career fairs, coffee chats, LinkedIn connections. Fields: name, company, role, how we met, last contact date, notes. Dashboard page with a "follow up" queue for contacts not reached in 30+ days. Separate Supabase table — no external API needed.
 
 **Interview prep tracker**
 Per-application interview notes and question banks. When an application moves to "Telephone Interview" or beyond, a prep section unlocks: add questions asked, model answers, feedback notes. Export as PDF before the next round.
@@ -55,11 +62,20 @@ Per-application interview notes and question banks. When an application moves to
 **Salary and offer comparison**
 When status = "Offer Received", unlock a salary card: base, bonus, benefits, location cost-of-living adjustment. Side-by-side comparison view when multiple offers exist. Entirely in the existing applications table (add salary columns or use the notes field).
 
-**GitHub contribution heatmap**
-Pull commit activity from the GitHub API (already have `GH_PAT`) and display a GitHub-style heatmap alongside the WakaTime heatmap on the coding page. Two data sources, one unified coding activity view.
+**Delete and edit individual scraped jobs from the jobs browser**
+The settings page can clear all jobs but there is no way to delete or edit a single row from the scraped jobs list in the UI. Add a jobs browser page (or tab in Applications) that shows scraped jobs with per-row delete and edit.
 
-**Daily coding summary push notification**
-At midnight, a cron checks if today's WakaTime total exceeded the daily average. If yes, send a Discord DM or notification: "Great day — 4h 20m coded, above your 2h 30m average." Uses existing WakaTime data, no new dependencies.
+**Reading tracker (Notion)**
+Connect to a Notion database with columns: Title, Author, Status (Reading / Want to Read / Finished), Cover URL, Rating, Notes. Show a "Currently Reading" widget on the dashboard home and a full reading list page with filters. The Notion API key already has a slot in `.env.example`.
+
+**Contacts follow-up automation**
+Extend the contacts page: when `last_contact` is older than 30 days, include the contact in the daily Discord coding summary as a "follow-up reminder" item. Zero new infrastructure needed — just amend `scripts/daily-coding-summary.mjs`.
+
+**Dashboard home: more summary widgets**
+The home page currently shows 4-5 stat cards. Add: upcoming application deadlines (within 7 days), contacts needing follow-up count, streak summary (longest current streak) and a "last login" timestamp from the activity log.
+
+**Login event tracking**
+The activity log does not record sign-ins. Add a `logActivity("auth.login")` call in the NextAuth `signIn` callback in `auth.ts` so the activity log shows when sessions start.
 
 ---
 
@@ -72,7 +88,7 @@ Feed a job description into the dashboard and have Claude rewrite the profile se
 For each scraped job, run a quick embedding similarity check against the current CVs. Score each role 0-100 for fit. Surface the highest-scoring roles first in the dashboard. Turns the job board into a ranked personalised feed instead of a raw list of 500 roles.
 
 **Browser extension: one-click job save**
-A Chrome/Firefox extension that adds a "Save to dashboard" button on any job posting page (LinkedIn, Glassdoor, company career sites). One click pre-fills the application form with company, role, URL and deadline extracted from the page. No manual data entry.
+A Chrome/Firefox extension that adds a "Save to dashboard" button on any job posting page (LinkedIn, Glassdoor, company career sites). One click pre-fills the application form with company, role, URL and deadline extracted from the page. No manual data entry. Difficulty: medium (~1-2 days). Requires Manifest V3, content script, popup UI and a dedicated extension API key.
 
 **Post-internship advisor mode**
 After landing an internship, flip a switch that publishes anonymised stats (application count, interview rate, offer rate, timeline) as a public page at `isaacadjei.me/internship-journey`. Lets you advise others without exposing which specific companies rejected you. The data is already tracked — just needs a public-facing view.
@@ -81,4 +97,7 @@ After landing an internship, flip a switch that publishes anonymised stats (appl
 Auto-update LinkedIn profile fields via the LinkedIn API when the main CV is regenerated. Profile, skills and experience sections are the obvious targets. Requires LinkedIn developer app setup and OAuth flow. Difficult to implement — LinkedIn's API is heavily restricted for personal use.
 
 **Automated Weekly Digest**
-Already partially built (weekly digest email exists). Extend it: every Monday morning pull the previous week's application activity, new jobs scraped, coding hours, blog posts published. Claude writes a one-paragraph personal summary included in the digest.
+Already partially built (weekly digest email exists). Extend it: every Monday morning pull the previous week's application activity, new jobs scraped, coding hours and blog posts published. Claude writes a one-paragraph personal summary included in the digest.
+
+**Public stats page**
+A public page at `isaacadjei.me/stats` showing anonymised portfolio stats: total blog posts, total projects, total coding hours this year, streak count. Updated from live data. No sensitive information — just the numbers that make the portfolio feel alive to visitors.

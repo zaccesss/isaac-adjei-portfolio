@@ -1,7 +1,7 @@
-// API route for blog post reactions.
-// GET ?slug=my-post returns the current counts for all four reaction types.
-// POST { slug, type } increments the given reaction and returns the new count.
-// I store each reaction as a separate Redis key so I can increment them atomically.
+// Blog reactions API.
+// GET ?slug=my-post returns counts for all preset + any custom emojis used on that post.
+// POST { slug, type, action } increments/decrements the given reaction type.
+// type can be a preset name OR any emoji character for custom reactions.
 
 import { NextRequest, NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
@@ -14,58 +14,76 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
   })
 }
 
-export const REACTION_TYPES = ["thumbsup", "fire", "lightbulb", "heart", "thinking", "surprised"] as const
-export type ReactionType = (typeof REACTION_TYPES)[number]
+export const PRESET_TYPES = ["thumbsup", "heart", "fire", "lightbulb", "thinking", "surprised"] as const
+export type ReactionType = (typeof PRESET_TYPES)[number]
 
-function reactionKey(slug: string, type: ReactionType) {
+const PRESET_DEFAULTS: Record<ReactionType, 0> = {
+  thumbsup: 0, heart: 0, fire: 0, lightbulb: 0, thinking: 0, surprised: 0,
+}
+
+function reactionKey(slug: string, type: string) {
   return `reactions:${slug}:${type}`
+}
+
+function customSetKey(slug: string) {
+  return `reactions:${slug}:_custom`
+}
+
+function isValidType(type: string): boolean {
+  // Allow presets or any single-character emoji (unicode)
+  if ((PRESET_TYPES as readonly string[]).includes(type)) return true
+  // Allow emoji: 1-4 unicode code points (covers most emoji including ZWJ sequences)
+  return type.length > 0 && type.length <= 8 && /\p{Emoji}/u.test(type)
 }
 
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("slug")
-  if (!slug) {
-    return NextResponse.json({ error: "slug is required" }, { status: 400 })
-  }
+  if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 })
 
   if (!redis) {
     return NextResponse.json(
-      { thumbsup: 0, fire: 0, lightbulb: 0, heart: 0, thinking: 0, surprised: 0 },
+      { presets: PRESET_DEFAULTS, custom: {} },
       { headers: { "Cache-Control": "no-store" } }
     )
   }
 
-  const [thumbsup, fire, lightbulb, heart, thinking, surprised] = await redis.mget<number[]>(
-    reactionKey(slug, "thumbsup"),
-    reactionKey(slug, "fire"),
-    reactionKey(slug, "lightbulb"),
-    reactionKey(slug, "heart"),
-    reactionKey(slug, "thinking"),
-    reactionKey(slug, "surprised")
-  )
+  // Fetch preset counts and the custom emoji set in parallel
+  const presetKeys = PRESET_TYPES.map((t) => reactionKey(slug, t))
+  const [presetCounts, customEmojis] = await Promise.all([
+    redis.mget<number[]>(...presetKeys),
+    redis.smembers<string[]>(customSetKey(slug)),
+  ])
+
+  const presets = Object.fromEntries(
+    PRESET_TYPES.map((t, i) => [t, presetCounts[i] ?? 0])
+  ) as Record<ReactionType, number>
+
+  let custom: Record<string, number> = {}
+  if (customEmojis.length > 0) {
+    const customCounts = await redis.mget<number[]>(
+      ...customEmojis.map((e) => reactionKey(slug, e))
+    )
+    custom = Object.fromEntries(
+      customEmojis.map((e, i) => [e, customCounts[i] ?? 0])
+    )
+  }
 
   return NextResponse.json(
-    {
-      thumbsup:  thumbsup  ?? 0,
-      fire:      fire      ?? 0,
-      lightbulb: lightbulb ?? 0,
-      heart:     heart     ?? 0,
-      thinking:  thinking  ?? 0,
-      surprised: surprised ?? 0,
-    },
+    { presets, custom },
     { headers: { "Cache-Control": "no-store" } }
   )
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { slug, type } = body as { slug: string; type: string }
+    const body = await req.json() as { slug: string; type: string; action?: string }
+    const { slug, type } = body
+    const action = body.action ?? "react"
 
     if (!slug || !type) {
-      return NextResponse.json({ error: "slug and type are required" }, { status: 400 })
+      return NextResponse.json({ error: "slug and type required" }, { status: 400 })
     }
-
-    if (!(REACTION_TYPES as readonly string[]).includes(type)) {
+    if (!isValidType(type)) {
       return NextResponse.json({ error: "invalid reaction type" }, { status: 400 })
     }
 
@@ -73,14 +91,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ count: 0 }, { headers: { "Cache-Control": "no-store" } })
     }
 
-    const action = (body as { action?: string }).action ?? "react"
+    const key = reactionKey(slug, type)
+    const isCustom = !(PRESET_TYPES as readonly string[]).includes(type)
+
     let newCount: number
     if (action === "unreact") {
-      const current = (await redis.get<number>(reactionKey(slug, type as ReactionType))) ?? 0
-      newCount = current > 0 ? await redis.decr(reactionKey(slug, type as ReactionType)) : 0
+      const current = (await redis.get<number>(key)) ?? 0
+      newCount = current > 0 ? await redis.decr(key) : 0
+      // If count drops to 0 remove from custom set to keep it clean
+      if (isCustom && newCount <= 0) {
+        await redis.srem(customSetKey(slug), type)
+      }
     } else {
-      newCount = await redis.incr(reactionKey(slug, type as ReactionType))
+      newCount = await redis.incr(key)
+      // Track custom emojis in a set so GET can discover them
+      if (isCustom) {
+        await redis.sadd(customSetKey(slug), type)
+      }
     }
+
     return NextResponse.json(
       { count: Math.max(0, newCount) },
       { headers: { "Cache-Control": "no-store" } }

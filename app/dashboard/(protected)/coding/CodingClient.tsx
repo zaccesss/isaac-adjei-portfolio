@@ -6,7 +6,7 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts"
-import type { WakatimeDayRow } from "@/app/dashboard/actions"
+import type { WakatimeDayRow, GitHubDay } from "@/app/dashboard/actions"
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -49,6 +49,44 @@ const INTENSITY_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
 }
 
 type GridCell = { date: string; seconds: number; level: 0 | 1 | 2 | 3 | 4 }
+type GHCell = { date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }
+
+function ghIntensity(count: number): 0 | 1 | 2 | 3 | 4 {
+  if (count === 0) return 0
+  if (count < 3) return 1
+  if (count < 6) return 2
+  if (count < 10) return 3
+  return 4
+}
+
+function buildGHGrid(days: GitHubDay[]): GHCell[][] {
+  const byDate = new Map(days.map((d) => [d.date, d.count]))
+  const today = new Date()
+  const startOfLastWeek = new Date(today)
+  startOfLastWeek.setDate(today.getDate() - today.getDay() + 7 - 52 * 7)
+  startOfLastWeek.setHours(0, 0, 0, 0)
+  const weeks: GHCell[][] = []
+  const cursor = new Date(startOfLastWeek)
+  for (let w = 0; w < 52; w++) {
+    const week: GHCell[] = []
+    for (let d = 0; d < 7; d++) {
+      const iso = cursor.toISOString().slice(0, 10)
+      const count = byDate.get(iso) ?? 0
+      week.push({ date: iso, count, level: ghIntensity(count) })
+      cursor.setDate(cursor.getDate() + 1)
+    }
+    weeks.push(week)
+  }
+  return weeks
+}
+
+const GH_INTENSITY_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
+  0: "bg-muted",
+  1: "bg-blue-200 dark:bg-blue-900",
+  2: "bg-blue-400 dark:bg-blue-700",
+  3: "bg-blue-500 dark:bg-blue-500",
+  4: "bg-blue-700 dark:bg-blue-300",
+}
 
 function buildGrid(rows: WakatimeDayRow[]): GridCell[][] {
   const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
@@ -142,9 +180,11 @@ function DonutPanel({
   )
 }
 
-export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
+export default function CodingClient({ rows, ghDays = [] }: { rows: WakatimeDayRow[]; ghDays?: GitHubDay[] }) {
   const [tooltip, setTooltip] = useState<{ date: string; seconds: number } | null>(null)
+  const [ghTooltip, setGhTooltip] = useState<{ date: string; count: number } | null>(null)
   const grid = useMemo(() => buildGrid(rows), [rows])
+  const ghGrid = useMemo(() => buildGHGrid(ghDays), [ghDays])
 
   const totalSecondsYear = rows.reduce((acc, r) => acc + r.total_seconds, 0)
   const lastWeek = grid[grid.length - 1] ?? []
@@ -278,6 +318,58 @@ export default function CodingClient({ rows }: { rows: WakatimeDayRow[] }) {
           <span className="text-xs text-muted-foreground">More</span>
         </div>
       </div>
+
+      {/* GitHub contributions heatmap */}
+      {ghDays.length > 0 && (
+        <div className="border border-border rounded-lg p-4 bg-card overflow-x-auto">
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="text-sm font-semibold">GitHub Contributions</h2>
+            <span className="text-xs text-muted-foreground">— commits, PRs, issues and reviews</span>
+          </div>
+          <div className="flex gap-1 mb-1">
+            <div className="w-6 shrink-0" />
+            {ghGrid.map((week, wi) => (
+              <div key={wi} className="w-3 shrink-0 text-[9px] text-muted-foreground text-center">
+                {monthLabel(week as unknown as GridCell[]) ?? ""}
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-1">
+            <div className="flex flex-col gap-1 w-6 shrink-0">
+              {DAYS.map((d, i) => (
+                <div key={d} className={`h-3 text-[9px] text-muted-foreground leading-3 ${i % 2 === 0 ? "opacity-0" : ""}`}>
+                  {d}
+                </div>
+              ))}
+            </div>
+            {ghGrid.map((week, wi) => (
+              <div key={wi} className="flex flex-col gap-1">
+                {week.map((cell) => (
+                  <div
+                    key={cell.date}
+                    className={`h-3 w-3 rounded-sm cursor-default transition-opacity hover:opacity-80 ${GH_INTENSITY_CLASS[cell.level]}`}
+                    onMouseEnter={() => setGhTooltip({ date: cell.date, count: cell.count })}
+                    onMouseLeave={() => setGhTooltip(null)}
+                    title={`${cell.date}: ${cell.count} contribution${cell.count !== 1 ? "s" : ""}`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+          {ghTooltip && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              {ghTooltip.date} — {ghTooltip.count} contribution{ghTooltip.count !== 1 ? "s" : ""}
+            </div>
+          )}
+          <div className="flex items-center gap-1.5 mt-3">
+            <span className="text-xs text-muted-foreground">Less</span>
+            {([0, 1, 2, 3, 4] as const).map((lvl) => (
+              <div key={lvl} className={`h-3 w-3 rounded-sm ${GH_INTENSITY_CLASS[lvl]}`} />
+            ))}
+            <span className="text-xs text-muted-foreground">More</span>
+          </div>
+        </div>
+      )}
 
       {/* Languages — horizontal bars */}
       <div className="border border-border rounded-lg p-4 bg-card">

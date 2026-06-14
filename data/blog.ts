@@ -31,6 +31,8 @@ export interface BlogPost {
   published: boolean
   content: ContentBlock[]
   projectSlug?: string
+  // Optional hero image shown at the top of the post and as og:image for social sharing.
+  cover_image?: string
   // I use series + seriesPart to group related posts. Both fields must be set together.
   series?: string
   seriesPart?: number
@@ -54,6 +56,7 @@ export const posts: BlogPost[] = [
     title: "My Journey So Far",
     date: "2024-06-01",
     type: "journal",
+    cover_image: "https://images.unsplash.com/photo-1490133961212-53d0e60a1f73?w=1200&auto=format&fit=crop&q=80",
     description:
       "From losing sight in one eye at age two, to losing my father, to moving countries and rebuilding from scratch. The full story of how I got to where I am today.",
     tags: ["Personal", "Ghana", "Aston", "Journey", "Engineering", "Faith"],
@@ -217,6 +220,7 @@ export const posts: BlogPost[] = [
     date: "2026-03-01",
     type: "report",
     projectSlug: "audio-amplifier",
+    cover_image: "/images/projects/audio-amplifier/pcb-angled.jpg",
     description:
       "Full technical report on the design, simulation, PCB fabrication and testing of a two-stage audio amplifier using a TL071 active band-pass filter and OPA551 unity-gain output buffer, optimised for an iPhone input and 8 ohm speaker load.",
     tags: ["Electronics", "PCB", "Op-Amp", "Audio", "Aston", "Proteus"],
@@ -563,6 +567,7 @@ export const posts: BlogPost[] = [
     date: "2026-04-01",
     type: "blog",
     projectSlug: "avr-zac",
+    cover_image: "https://images.unsplash.com/photo-1562408590-e32931084e23?w=1200&auto=format&fit=crop&q=80",
     description:
       "How I built a nine-mode state machine on an ATmega644P from scratch using bare metal C, writing directly to hardware registers with no framework, no HAL and no shortcuts. Still ongoing.",
     tags: ["Embedded", "AVR", "C", "Microcontroller", "Aston"],
@@ -747,6 +752,7 @@ srandom(ADC);`,
     date: "2025-12-01",
     type: "blog",
     projectSlug: "led-cube",
+    cover_image: "/images/projects/led-cube/final-setup.jpeg",
     description:
       "A walkthrough of building a 4x4x4 NeoPixel LED Cube with four animation modes and automatic brightness adjustment via an LDR sensor, using Arduino and bare C++.",
     tags: ["Arduino", "C++", "LED", "Hardware", "IoT"],
@@ -897,6 +903,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     date: "2026-05-14",
     type: "blog",
     projectSlug: "phaemos",
+    cover_image: "/images/projects/phaemos/main.svg",
     description:
       "How I am building Phaemos - a full-stack predictive maintenance platform with four hardware nodes (ESP32, STM32 Black Pill, Arduino Nano, Raspberry Pi Pico 2W), 11 sensors, a FastAPI backend, Isolation Forest ML and a live Next.js dashboard.",
     tags: ["FastAPI", "Next.js", "ESP32", "STM32", "ML", "IoT", "Python", "MicroPython"],
@@ -1018,6 +1025,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     date: "2026-04-21",
     type: "blog",
     projectSlug: "git-unlocked",
+    cover_image: "/images/projects/git-unlocked/octocat-laptop.jpg",
     description:
       "The motivation behind git-unlocked, an open-source Git and version control course spanning 12 sections and every major platform, and what writing 217 files taught me about technical communication.",
     tags: ["Git", "Open Source", "Teaching", "GitHub"],
@@ -1121,6 +1129,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     title: "Inside British Airways Engineering: What a Maintenance Simulation Taught Me",
     date: "2025-10-01",
     type: "journal",
+    cover_image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&auto=format&fit=crop&q=80",
     description:
       "Reflections on the British Airways Engineering Virtual Experience on Forage, covering A320 maintenance planning, C-check operations and what aviation engineering looks like from the inside.",
     tags: ["British Airways", "Aviation", "Engineering", "Maintenance", "Career"],
@@ -1216,6 +1225,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     title: "Smart Cities and Clean Air: What I Learned at Yunex Traffic",
     date: "2025-08-20",
     type: "journal",
+    cover_image: "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&auto=format&fit=crop&q=80",
     description:
       "Reflections on the Yunex Traffic Smart Mobility and Environmental Sustainability virtual work experience, covering intelligent transport systems, Zephyr air quality sensors and what the engineers behind smart cities actually do.",
     tags: ["Yunex", "IoT", "Transport", "Smart Cities", "Virtual"],
@@ -1312,6 +1322,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     title: "Learning Business Analytics: From Probability to Machine Learning",
     date: "2026-05-01",
     type: "notes",
+    cover_image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&auto=format&fit=crop&q=80",
     description:
       "Notes from working through a structured executive education business analytics course, covering probability, statistics, Python, descriptive analytics, predictive ML and prescriptive optimisation.",
     tags: ["Data Science", "Python", "ML", "Analytics", "Learning"],
@@ -1403,6 +1414,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     title: "Building My Portfolio: Decisions, Stack and What I Learned",
     date: "2025-09-01",
     type: "blog",
+    cover_image: "/images/projects/zacess-pages/main.png",
     description:
       "How I rebuilt my portfolio from scratch and kept building it: Next.js App Router, TypeScript, Tailwind CSS, Upstash Redis, Vercel, Python daemons for live device status, a custom PS5 OAuth v2 Cloudflare Worker, 5-tier GPC game detection with IGDB cover art, Discord presence via Lanyard and Spotify now-playing - and what shipping something personal actually teaches you.",
     tags: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Redis", "Vercel", "Python"],
@@ -1666,6 +1678,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     date: "2026-05-13",
     type: "blog",
     projectSlug: "astoncv",
+    cover_image: "/images/projects/astoncv/main.png",
     description:
       "How I built a full-stack CV database website from scratch using pure PHP 8.2 and MySQL for a university module, with eleven security measures, PDF export via mPDF and a complete UI redesign across four versions.",
     tags: ["PHP", "MySQL", "Security", "Full-Stack", "Aston", "Web Dev"],
@@ -1826,14 +1839,90 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     title: "Week 1 at Aston: What Second Year Actually Feels Like",
     date: "2025-09-22",
     type: "journal",
+    cover_image: "/images/projects/astoncv/aston-skyline.jpg",
     description:
       "A journal entry I will write properly once second year officially begins. Check back soon.",
     tags: ["University", "EECS", "Year 2"],
     readingTime: 3,
-    published: true,
+    published: false,
     series: "life-at-aston",
     seriesPart: 1,
-    content: [],
+    content: [
+      {
+        type: "p",
+        text: "This is a placeholder. I will rewrite this properly once I have had enough of second year to say something real about it. The structure below is a rough outline of what I want to cover. The images are from campus and will stay wherever they make sense once the content is written.",
+      },
+      {
+        type: "image",
+        src: "/images/projects/astoncv/campus-hero.jpg",
+        alt: "Aston University campus",
+        caption: "Aston University, Birmingham.",
+      },
+      {
+        type: "h2",
+        text: "Back at Aston",
+      },
+      {
+        type: "p",
+        text: "Second year started on 22 September 2025. I remember standing at the main entrance that first morning thinking it felt both completely familiar and completely different at the same time. Year 1 was survival. Year 2 already felt like something else: less time to figure things out, more expectation that you already have.",
+      },
+      {
+        type: "image",
+        src: "/images/projects/astoncv/campus-aerial.jpg",
+        alt: "Aerial view of Aston University campus",
+        caption: "Aston University from above. Birmingham city centre is a ten-minute walk.",
+      },
+      {
+        type: "h2",
+        text: "The Module Load",
+      },
+      {
+        type: "p",
+        text: "Second year modules are noticeably harder than first year. Digital Systems Design, Embedded Software Engineering, Advanced Programming and Signals and Systems are the ones I am most interested in. A lot of overlap with things I have been building outside coursework, which either means I will find it easier or I will be bored in the lectures. Probably both, depending on the week.",
+      },
+      {
+        type: "image",
+        src: "/images/projects/astoncv/campus-main.jpg",
+        alt: "Aston University main building",
+        caption: "The main building. I spend more time in the labs than I do in lecture theatres.",
+      },
+      {
+        type: "h2",
+        text: "PAL Leadership",
+      },
+      {
+        type: "p",
+        text: "This year I am also running Peer Assisted Learning sessions as a PAL Leader for first year EECS students. I did not expect to enjoy it as much as I do. Explaining something you understand well is a different skill from just understanding it. You find out quickly which parts of your knowledge are actually solid and which parts you have been faking.",
+      },
+      {
+        type: "image",
+        src: "/images/projects/astoncv/campus-library.jpg",
+        alt: "Aston University library",
+        caption: "The library. Good for deep work when the labs are full.",
+      },
+      {
+        type: "h2",
+        text: "Projects Running in Parallel",
+      },
+      {
+        type: "p",
+        text: "PHAEMOS is still going. The AVR bare metal state machine is ongoing. I also want to push more blog posts before the semester fully ramps up. Balancing coursework with personal projects is the thing I have not figured out yet. Year 1 taught me that leaving everything to the last minute works until it suddenly does not.",
+      },
+      {
+        type: "image",
+        src: "/images/projects/astoncv/campus-lake.jpg",
+        alt: "Aston University lake",
+        caption: "The lake on campus. Good place to think on the walk in each morning.",
+      },
+      {
+        type: "h2",
+        text: "What I Actually Want from This Year",
+      },
+      {
+        type: "p",
+        text: "More depth. Last year I was covering ground: getting used to the environment, the people, the workload. This year I want to go deeper on the things that actually matter: embedded systems, software architecture, building things that last longer than a coursework deadline. I want to leave second year with two or three projects I am genuinely proud of and a clearer picture of what kind of engineer I am becoming.",
+      },
+    ],
   },
 
   // ── ARTICLE ──────────────────────────────────────────────────────────────────
@@ -1842,6 +1931,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     title: "Why Every Software Engineer Should Understand Hardware",
     date: "2026-03-10",
     type: "article",
+    cover_image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&auto=format&fit=crop&q=80",
     description:
       "An argument for why understanding hardware - registers, memory, timing, power - makes you a significantly better software engineer, regardless of whether you ever write firmware.",
     tags: ["Opinion", "Embedded", "Software Engineering", "Career"],
@@ -1937,6 +2027,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     title: "Resources for Engineering and Technology",
     date: "2026-02-20",
     type: "resources",
+    cover_image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1200&auto=format&fit=crop&q=80",
     description:
       "A curated list of books, courses, documentation, tools and videos I have found genuinely useful for learning embedded systems, software engineering, computer science and the craft of building things. Updated as I find new things worth recommending.",
     tags: ["Resources", "Embedded", "Software Engineering", "Learning", "Tools"],
@@ -2074,6 +2165,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     title: "Security Gaps in Consumer IoT: A Survey of Common Attack Vectors",
     date: "2025-11-30",
     type: "research",
+    cover_image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=1200&auto=format&fit=crop&q=80",
     description:
       "A technical review of the most common vulnerabilities in consumer IoT devices: hardcoded credentials, unencrypted traffic, insufficient update mechanisms and insecure interfaces, with reference to real incidents, CVEs and regulatory standards.",
     tags: ["IoT", "Security", "Research", "Embedded", "Networking"],
@@ -2221,6 +2313,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     title: "SPI vs I2C: When to Use Which",
     date: "2026-01-14",
     type: "research",
+    cover_image: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=1200&auto=format&fit=crop&q=80",
     description:
       "A detailed technical comparison of SPI and I2C for embedded projects: signalling, timing, addressing, clock modes, pull-ups, edge cases and when the choice actually matters.",
     tags: ["SPI", "I2C", "Embedded", "Notes", "Protocols"],
@@ -2435,6 +2528,7 @@ void i2c_scan(void) {
     title: "UART From Scratch: Serial Communication Without a Library",
     date: "2026-06-01",
     type: "research",
+    cover_image: "https://images.unsplash.com/photo-1553406830-ef2513450d76?w=1200&auto=format&fit=crop&q=80",
     description:
       "How to set up UART on an AVR microcontroller using bare metal C, configure baud rate registers, transmit and receive bytes and debug embedded systems over a serial monitor.",
     tags: ["UART", "Embedded", "AVR", "C", "Serial"],
@@ -2658,6 +2752,7 @@ uint8_t uart_rx_read(void) {
     title: "What an RTOS Actually Does: Tasks, Scheduling and Why It Matters",
     date: "2026-06-15",
     type: "research",
+    cover_image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&auto=format&fit=crop&q=80",
     description:
       "A practical introduction to real-time operating systems: what a task scheduler does, why timing guarantees matter in embedded systems and how FreeRTOS implements preemptive multitasking on a microcontroller.",
     tags: ["RTOS", "FreeRTOS", "Embedded", "C", "Scheduling"],
@@ -2865,6 +2960,7 @@ void sensor_task(void *pvParameters) {
     title: "Bionic Vision and Ocular Prosthetics: Where the Science Actually Stands",
     date: "2026-05-20",
     type: "research",
+    cover_image: "https://images.unsplash.com/photo-1501621667575-af81f1f0bacc?w=1200&auto=format&fit=crop&q=80",
     description:
       "A technical survey of retinoblastoma, ocular prosthetics and bionic vision systems: what prosthetic eyes can and cannot do, how retinal implants work and where the engineering challenges in restoring functional vision lie.",
     tags: ["Health Tech", "Prosthetics", "Research", "Bioelectronics", "Vision"],
@@ -3003,6 +3099,7 @@ void sensor_task(void *pvParameters) {
     title: "TypeScript Patterns That Actually Matter in Production",
     date: "2026-04-15",
     type: "blog",
+    cover_image: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=1200&auto=format&fit=crop&q=80",
     description:
       "The TypeScript features and patterns that have made the biggest practical difference in real codebases: discriminated unions, the satisfies operator, branded types, const assertions and when strict mode actually catches bugs.",
     tags: ["TypeScript", "Software Engineering", "Web", "Best Practices"],
@@ -3196,6 +3293,7 @@ function area(s: Shape): number {
     title: "DMA Explained: Moving Data Without the CPU",
     date: "2026-07-01",
     type: "research",
+    cover_image: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1200&auto=format&fit=crop&q=80",
     description:
       "How Direct Memory Access works on microcontrollers, why it matters for high-throughput embedded systems and how to configure a DMA transfer on an STM32 without relying on HAL.",
     tags: ["DMA", "STM32", "Embedded", "C", "Performance"],
@@ -3344,6 +3442,7 @@ if (half_ready == 0) {
     title: "Getting Started with FPGAs: What They Are and How to Think About Them",
     date: "2026-05-29",
     type: "blog",
+    cover_image: "https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=1200&auto=format&fit=crop&q=80",
     description:
       "A beginner-friendly introduction to FPGAs and VHDL: what an FPGA actually is, how it differs from a microcontroller, why hardware description languages feel so different from programming and the mental model shift you need to make sense of it all.",
     tags: ["FPGA", "VHDL", "Embedded", "Hardware", "Digital Logic", "Beginners"],
@@ -3538,6 +3637,7 @@ end architecture rtl;`,
     title: "Interrupt-Driven Design: Writing Non-Blocking Firmware for Microcontrollers",
     date: "2026-07-15",
     type: "blog",
+    cover_image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=1200&auto=format&fit=crop&q=80",
     description:
       "Why polling loops kill embedded systems and how to replace them with interrupt service routines. Covers ISR setup, volatile variables, debounce, critical sections and the rules that separate good embedded firmware from bad.",
     tags: ["Embedded", "C", "Microcontroller", "Hardware", "Firmware"],
@@ -3729,6 +3829,7 @@ NVIC_EnableIRQ(TIM2_IRQn);`,
     title: "Real-Time Data on the Web: WebSockets, SSE and Long Polling Compared",
     date: "2026-07-20",
     type: "blog",
+    cover_image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&auto=format&fit=crop&q=80",
     description:
       "When to use WebSockets, Server-Sent Events or long polling for real-time data in a web application. A practical comparison covering latency, connection overhead, firewall behaviour and implementation complexity.",
     tags: ["WebSockets", "JavaScript", "Next.js", "Full-Stack", "API"],
@@ -3917,6 +4018,7 @@ source.onerror = () => console.log("reconnecting...")`,
     title: "Reading Datasheets: The Skill Nobody Teaches You",
     date: "2026-08-10",
     type: "notes",
+    cover_image: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=1200&auto=format&fit=crop&q=80",
     description:
       "Datasheets are dense, inconsistently structured and written for engineers who already know the terminology. Here is how to navigate them, find what you actually need and use them to debug hardware problems.",
     tags: ["Embedded", "Hardware", "Microcontroller", "Learning", "Electronics"],
@@ -4058,6 +4160,7 @@ uint8_t uart_read_blocking(void) {
     title: "Navigating UK Engineering as an International Student: What No One Tells You",
     date: "2026-08-20",
     type: "journal",
+    cover_image: "https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?w=1200&auto=format&fit=crop&q=80",
     description:
       "The practical and personal side of studying Electronic Engineering and Computer Science in the UK as an international student: the paperwork, the culture shock, the academic differences and what actually helped.",
     tags: ["Personal", "Career", "University", "International", "Engineering"],
@@ -4177,6 +4280,7 @@ uint8_t uart_read_blocking(void) {
     title: "JavaScript's Event Loop Without the Metaphors",
     date: "2026-06-22",
     type: "article",
+    cover_image: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=1200&auto=format&fit=crop&q=80",
     description:
       "Most explanations of the JavaScript event loop use hand-wavy analogies. This one explains the actual mechanism: the call stack, the task queue, the microtask queue and why the order matters for real code.",
     tags: ["JavaScript", "TypeScript", "Web", "Async", "Full-Stack"],
@@ -4336,6 +4440,7 @@ console.log("C")                      // runs before "B"
     title: "My Development Setup in 2026: Everything I Use to Build, Learn and Ship",
     date: "2026-06-29",
     type: "article",
+    cover_image: "https://images.unsplash.com/photo-1593642532400-2682810df593?w=1200&auto=format&fit=crop&q=80",
     description:
       "A full tour of my hardware, editor configuration, terminal setup, dotfiles and the tools I reach for when building embedded systems and web applications. What I use, why I use it and what I changed my mind about.",
     tags: ["Tools", "Productivity", "Terminal", "Setup", "Dotfiles"],
@@ -4465,6 +4570,7 @@ console.log("C")                      // runs before "B"
     title: "PHAEMOS: Engineering Decisions from Breadboard to Distributed IoT System",
     date: "2026-07-27",
     type: "journal",
+    cover_image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1200&auto=format&fit=crop&q=80",
     description:
       "A case study in the decisions behind PHAEMOS - a multi-node environmental monitoring system. Why these hardware platforms, why this software stack and what I would do differently now.",
     tags: ["PHAEMOS", "IoT", "Embedded", "Python", "Full-Stack"],
@@ -4574,6 +4680,7 @@ console.log("C")                      // runs before "B"
     title: "Eleven Things That Actually Help When Learning to Code",
     date: "2026-09-07",
     type: "article",
+    cover_image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&auto=format&fit=crop&q=80",
     description:
       "Not 'learn Python first' or 'do LeetCode every day'. The things that actually made a difference when moving from knowing nothing to shipping things: how to read documentation, how to get unstuck, how to build the habit.",
     tags: ["Learning", "Career", "Programming", "Beginner", "Advice"],
@@ -4695,6 +4802,7 @@ console.log("C")                      // runs before "B"
     title: "On Being Uncomfortable: Why I Keep Choosing Hard Things",
     date: "2026-09-19",
     type: "journal",
+    cover_image: "https://plus.unsplash.com/premium_photo-1711987269038-a3c47b00b14c?w=1200&auto=format&fit=crop&q=80",
     description:
       "A personal essay on discomfort, choosing difficult paths and what I have learned from consistently putting myself in situations where I do not know what I am doing yet.",
     tags: ["Personal", "Career", "Learning", "Mindset"],
@@ -4790,6 +4898,7 @@ console.log("C")                      // runs before "B"
     title: "Writing Clearly as an Engineer: Notes on Technical Communication",
     date: "2026-08-03",
     type: "notes",
+    cover_image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&auto=format&fit=crop&q=80",
     description:
       "Notes on writing clearly: how to structure explanations, when to use diagrams, why passive voice creeps into technical writing and how to remove it. Based on mistakes I made writing reports, documentation and blog posts.",
     tags: ["Writing", "Communication", "Documentation", "Career"],
@@ -4890,6 +4999,7 @@ console.log("C")                      // runs before "B"
     title: "Python Type Annotations: What I Actually Use and Why",
     date: "2026-09-01",
     type: "notes",
+    cover_image: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=1200&auto=format&fit=crop&q=80",
     description:
       "A practical guide to Python type hints: where they help, where they get in the way and the specific patterns I reach for when annotating FastAPI handlers, dataclasses and utility functions.",
     tags: ["Python", "Types", "Backend", "FastAPI", "Notes"],
@@ -5047,6 +5157,7 @@ def cache_object(obj: Serialisable, key: str) -> None:
     title: "How I Started With Competitive Programming (and What I Got Wrong First)",
     date: "2026-09-28",
     type: "journal",
+    cover_image: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=1200&auto=format&fit=crop&q=80",
     description:
       "A journal entry on starting competitive programming: the first few weeks on Codeforces, what Neetcode and LeetCode taught me that I could not get from coursework and the specific mistakes beginners make that I made too.",
     tags: ["Competitive Programming", "Algorithms", "Learning", "Career", "CS"],
@@ -5140,6 +5251,7 @@ def cache_object(obj: Serialisable, key: str) -> None:
     title: "How to Contribute to Open Source: A Practical Guide",
     date: "2026-06-13",
     type: "article",
+    cover_image: "https://images.unsplash.com/photo-1556075798-4825dfaaf498?w=1200&auto=format&fit=crop&q=80",
     description:
       "A practical, honest guide to finding projects worth contributing to, reading a codebase before touching it, making your first pull request and handling review feedback. From someone who has done it and built a 217-topic Git course in the process.",
     tags: ["Open Source", "Git", "GitHub", "Career", "Community"],
@@ -5388,6 +5500,8 @@ Clicked the updated link in a browser preview. Verified the target page exists.
 ]
 
 export function getPublishedPosts(): BlogPost[] {
+  // In dev mode show every post (including drafts and future dates) so cover images can be previewed
+  if (process.env.NODE_ENV === "development") return posts
   const today = new Date().toISOString().split("T")[0]
   return posts.filter((p) => p.published && p.date <= today)
 }

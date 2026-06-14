@@ -9,6 +9,19 @@ export const dynamic = "force-dynamic"
 
 const SITE_URL = "https://www.isaacadjei.me"
 
+function resolveImageUrl(coverImage: string | undefined): string | null {
+  if (!coverImage) return null
+  if (coverImage.startsWith("http")) return coverImage
+  return `${SITE_URL}${coverImage}`
+}
+
+function imageType(url: string): string {
+  if (url.endsWith(".png")) return "image/png"
+  if (url.endsWith(".svg")) return "image/svg+xml"
+  if (url.endsWith(".webp")) return "image/webp"
+  return "image/jpeg"
+}
+
 function buildXml(posts: ReturnType<typeof getPublishedPosts>, includeStylesheet = true) {
   const items = posts
     .map((post) => {
@@ -17,6 +30,10 @@ function buildXml(posts: ReturnType<typeof getPublishedPosts>, includeStylesheet
       const categories = post.tags
         .map((tag) => `      <category>${tag}</category>`)
         .join("\n")
+      const imageUrl = resolveImageUrl(post.cover_image)
+      const enclosure = imageUrl
+        ? `      <enclosure url="${imageUrl}" length="0" type="${imageType(imageUrl)}" />`
+        : ""
       return `
     <item>
       <title><![CDATA[${post.title}]]></title>
@@ -26,13 +43,14 @@ function buildXml(posts: ReturnType<typeof getPublishedPosts>, includeStylesheet
       <author>contact@isaacadjei.me (Isaac Adjei)</author>
       <pubDate>${pubDate}</pubDate>
 ${categories}
+${enclosure}
     </item>`
     })
     .join("")
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 ${includeStylesheet ? '<?xml-stylesheet type="text/xsl" href="/feed.xsl"?>\n' : ''}
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
     <title>Isaac Adjei</title>
     <link>${SITE_URL}</link>
@@ -50,7 +68,12 @@ ${items}
 </rss>`
 }
 
-function buildHtml(posts: ReturnType<typeof getPublishedPosts>) {
+function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_URL) {
+  function resolveLocal(coverImage: string | undefined): string | null {
+    if (!coverImage) return null
+    if (coverImage.startsWith("http")) return coverImage
+    return `${baseUrl}${coverImage}`
+  }
   const items = posts
     .map((post) => {
       const url = `${SITE_URL}/blog/${post.slug}`
@@ -60,12 +83,16 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>) {
       const tags = post.tags
         .map((t) => `<span class="tag">${t}</span>`)
         .join("")
+      const imageUrl = resolveLocal(post.cover_image)
       return `
       <div class="post">
-        <div class="post-title"><a href="${url}">${post.title}</a></div>
-        <div class="post-desc">${post.description}</div>
-        <div class="post-meta"><span>${pubDate}</span></div>
-        ${tags ? `<div class="tags">${tags}</div>` : ""}
+        ${imageUrl ? `<img class="post-img" src="${imageUrl}" alt="${post.title}" loading="lazy" />` : ""}
+        <div class="post-body">
+          <div class="post-title"><a href="${url}">${post.title}</a></div>
+          <div class="post-desc">${post.description}</div>
+          <div class="post-meta"><span>${pubDate}</span></div>
+          ${tags ? `<div class="tags">${tags}</div>` : ""}
+        </div>
       </div>`
     })
     .join("")
@@ -113,8 +140,10 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>) {
       .subscribe-box a:hover { text-decoration: underline; }
       .rss-icon { color: #f97316; }
       .posts { display: flex; flex-direction: column; gap: 0; }
-      .post { border-bottom: 1px solid var(--border); padding: 1.5rem 0; }
+      .post { border-bottom: 1px solid var(--border); padding: 1.5rem 0; display: flex; gap: 1rem; align-items: flex-start; }
       .post:last-child { border-bottom: none; }
+      .post-img { width: 80px; height: 56px; object-fit: cover; border-radius: 0.375rem; border: 1px solid var(--card-border); flex-shrink: 0; }
+      .post-body { flex: 1; min-width: 0; }
       .post-title { font-size: 1rem; font-weight: 600; color: var(--heading); margin-bottom: 0.375rem; }
       .post-title a { color: inherit; text-decoration: none; }
       .post-title a:hover { color: var(--link); }
@@ -189,7 +218,8 @@ export function GET(request: Request) {
   }
 
   if (accept.includes("text/html")) {
-    return new Response(buildHtml(posts), {
+    const baseUrl = `${url.protocol}//${url.host}`
+    return new Response(buildHtml(posts, baseUrl), {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "public, max-age=3600",

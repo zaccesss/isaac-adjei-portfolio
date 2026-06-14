@@ -266,7 +266,11 @@ export async function generateMetadata({
       canonical: `https://www.isaacadjei.me/blog/${slug}`,
     },
     openGraph: {
-      images: [`/api/og?title=${encodeURIComponent(post.title)}&description=${encodeURIComponent(post.description)}`],
+      images: [
+        post.cover_image
+          ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.isaacadjei.me"}${post.cover_image}`
+          : `/api/og?title=${encodeURIComponent(post.title)}&description=${encodeURIComponent(post.description)}`,
+      ],
     },
   }
 }
@@ -275,7 +279,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const post = getPostBySlug(slug)
   if (!post) notFound()
-  if (!post.published) notFound()
+  if (!post.published && process.env.NODE_ENV !== "development") notFound()
   const linkedProject = post.projectSlug ? projects.find((p) => p.id === post.projectSlug) : null
 
   // I find related posts by counting shared tags, excluding the current post
@@ -383,6 +387,19 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           </div>
         )}
 
+        {post.cover_image && (
+          <div className="relative w-full aspect-[21/9] overflow-hidden rounded-xl mt-4">
+            <Image
+              src={post.cover_image}
+              alt={post.title}
+              fill
+              className="object-cover"
+              priority
+              sizes="(max-width: 768px) 100vw, 800px"
+            />
+          </div>
+        )}
+
         {linkedProject && (
           <div className="flex items-center gap-4 flex-wrap">
             <Link
@@ -418,7 +435,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
               currentSlug={slug}
             />
           )}
-          {post.published && post.content.length > 0 ? (
+          {(post.published || process.env.NODE_ENV === "development") && post.content.length > 0 ? (
             <div className="space-y-5">
               {post.content.map((block, i) => renderBlock(block, i, headingIds, post.content[i - 1]))}
             </div>

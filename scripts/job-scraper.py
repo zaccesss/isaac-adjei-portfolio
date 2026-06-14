@@ -810,11 +810,30 @@ def scrape_trackr_all(existing_keys: set) -> int:
     with sync_playwright() as p:
         # I use a single browser instance across all four pages to share
         # startup overhead.
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--no-first-run",
+            ],
+        )
         context = browser.new_context(
-            user_agent=HEADERS["User-Agent"],
-            # I set locale here too so JS-based geo checks see a UK user.
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/125.0.0.0 Safari/537.36"
+            ),
             locale="en-GB",
+            viewport={"width": 1920, "height": 1080},
+            extra_http_headers={"Accept-Language": "en-GB,en;q=0.9"},
+        )
+        # Hide navigator.webdriver so bot-detection scripts see a real browser.
+        context.add_init_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
         )
 
         for slug, job_type in categories:
@@ -996,10 +1015,29 @@ def scrape_company_sites_playwright(existing_keys: set) -> int:
     print("\nScraping company career sites (headless)...")
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--no-first-run",
+            ],
+        )
         context = browser.new_context(
-            user_agent=HEADERS["User-Agent"],
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/125.0.0.0 Safari/537.36"
+            ),
             locale="en-GB",
+            viewport={"width": 1920, "height": 1080},
+            extra_http_headers={"Accept-Language": "en-GB,en;q=0.9"},
+        )
+        context.add_init_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
         )
 
         # ── Google Careers ──────────────────────────────────────────────────
