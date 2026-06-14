@@ -5,9 +5,9 @@ export const dynamic = "force-dynamic"
 export const metadata = { title: "Coding Activity", robots: "noindex, nofollow" }
 
 export default async function CodingPage() {
-  const [rows, ghDays] = await Promise.all([
+  const [rows, ghStats] = await Promise.all([
     getWakatimeHeatmap(),
     getGitHubContributions(),
   ])
-  return <CodingClient rows={rows} ghDays={ghDays} />
+  return <CodingClient rows={rows} ghDays={ghStats.days} ghTotals={ghStats.totals} />
 }
