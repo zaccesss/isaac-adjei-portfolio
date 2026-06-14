@@ -92,6 +92,7 @@ export default function BlogReactions({ slug }: { slug: string }) {
           return (
             <button
               key={type}
+              type="button"
               onClick={() => handleToggle(type)}
               title={label}
               className={`
