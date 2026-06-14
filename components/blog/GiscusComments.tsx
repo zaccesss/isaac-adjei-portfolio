@@ -6,11 +6,10 @@ import { useTheme } from "next-themes"
 export default function GiscusComments() {
   const { resolvedTheme } = useTheme()
 
-  const repoId = process.env.NEXT_PUBLIC_GISCUS_REPO_ID
-  const categoryId = process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID
+  if (process.env.NEXT_PUBLIC_GISCUS_ENABLED?.toLowerCase() === "false") return null
 
-  if (process.env.NODE_ENV === "development") return null
-  if (process.env.NEXT_PUBLIC_GISCUS_ENABLED?.toLowerCase() !== "true" || !repoId || !categoryId) return null
+  const repoId = process.env.NEXT_PUBLIC_GISCUS_REPO_ID ?? ""
+  const categoryId = process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID ?? ""
 
   return (
     <Giscus
