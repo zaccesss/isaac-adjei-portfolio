@@ -2,23 +2,16 @@
 
 .gsc-footer { display: none !important; }
 
-.btn-primary,
-button.btn-primary,
-a.btn-primary {
-  background-color: hsl(225, 70%, 50%) !important;
-  background: hsl(225, 70%, 50%) !important;
-  border-color: hsl(225, 70%, 44%) !important;
-  color: #fff !important;
-}
-.btn-primary:hover,
-button.btn-primary:hover,
-a.btn-primary:hover {
-  background-color: hsl(225, 70%, 44%) !important;
-  background: hsl(225, 70%, 44%) !important;
+/* Variables are scoped to 'main' in giscus — override them there */
+main {
+  --color-btn-primary-bg: hsl(225, 70%, 50%);
+  --color-btn-primary-hover-bg: hsl(225, 70%, 44%);
+  --color-btn-primary-selected-bg: hsl(225, 70%, 40%);
+  --color-btn-primary-border: hsl(225, 70%, 44%);
 }
 
-.gsc-comment-box-write textarea:disabled,
-.gsc-comment-box-write textarea[disabled] {
+textarea[disabled],
+textarea:disabled {
   text-align: center !important;
   padding-top: 1.5rem !important;
 }
