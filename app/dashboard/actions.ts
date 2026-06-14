@@ -4,6 +4,7 @@
 // Every action here is intentionally thin - validate, write, revalidate. No business logic lives here.
 import { supabase } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
+import { syncApplicationToLinear } from "@/lib/linear-sync"
 
 // I fire-and-forget activity logs so a logging failure never blocks the actual action.
 // The activity_log table must exist in Supabase:
@@ -318,6 +319,11 @@ export async function createApplication(data: {
   // I return the inserted row so the client can optimistically show the new card without a refetch
   const { data: inserted } = await supabase.from("applications").insert(data).select().single()
   void logActivity("application.create", `${data.company} - ${data.role}`)
+  if (inserted) {
+    void syncApplicationToLinear({ ...inserted, linear_issue_id: null }).then(async (issueId) => {
+      if (issueId) await supabase.from("applications").update({ linear_issue_id: issueId }).eq("id", inserted.id)
+    })
+  }
   revalidatePath("/dashboard/applications")
   return inserted
 }
@@ -348,6 +354,12 @@ export async function updateApplication(id: string, data: Partial<{
   if (!validId(id)) return INVALID
   await supabase.from("applications").update(data).eq("id", id)
   void logActivity("application.update", data.status ? `status → ${data.status}` : (data.company ?? id))
+  if (data.status) {
+    const { data: row } = await supabase.from("applications").select("id,company,role,type,url,linear_issue_id").eq("id", id).single()
+    if (row) void syncApplicationToLinear({ ...row, status: data.status }).then(async (issueId) => {
+      if (issueId && !row.linear_issue_id) await supabase.from("applications").update({ linear_issue_id: issueId }).eq("id", id)
+    })
+  }
   revalidatePath("/dashboard/applications")
 }
 

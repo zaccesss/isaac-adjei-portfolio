@@ -54,8 +54,13 @@ const MY_STATUSES = [
   "Video Interview",
   "Face-to-face Interview",
   "Assessment Centre",
+  "Final Round",
   "Offer Received",
+  "Negotiating",
+  "Accepted",
   "Rejected",
+  "Ghosted",
+  "Withdrawn",
   "Not Interested",
 ] as const
 
@@ -77,20 +82,35 @@ function normaliseStatus(raw: string): string {
     hirevue: "HireVue",
     rejected: "Rejected",
     video_interview: "Video Interview",
+    final_round: "Final Round",
+    negotiating: "Negotiating",
+    accepted: "Accepted",
+    ghosted: "Ghosted",
+    withdrawn: "Withdrawn",
   }
   return map[raw] ?? raw
 }
 
 function statusTextClass(status: string): string {
   const s = normaliseStatus(status)
-  if (s === "Not Applied") return "text-red-600 dark:text-red-400"
-  if (s === "Interested" || s === "Application Submitted") return "text-blue-600 dark:text-blue-400"
-  if (s === "Online Assessment" || s === "Case Study" || s === "HireVue") return "text-purple-600 dark:text-purple-400"
-  if (s === "Telephone Interview" || s === "Video Interview" || s === "Face-to-face Interview") return "text-amber-600 dark:text-amber-400"
-  if (s === "Assessment Centre") return "text-orange-600 dark:text-orange-400"
-  if (s === "Offer Received") return "text-green-600 dark:text-green-400"
-  if (s === "Rejected") return "text-muted-foreground line-through"
-  if (s === "Not Interested") return "text-muted-foreground"
+  if (s === "Not Applied")            return "text-red-500 dark:text-red-400"
+  if (s === "Interested")             return "text-cyan-500 dark:text-cyan-400"
+  if (s === "Application Submitted")  return "text-blue-600 dark:text-blue-400"
+  if (s === "Online Assessment")      return "text-indigo-600 dark:text-indigo-400"
+  if (s === "Case Study")             return "text-violet-600 dark:text-violet-400"
+  if (s === "HireVue")                return "text-fuchsia-600 dark:text-fuchsia-400"
+  if (s === "Telephone Interview")    return "text-amber-500 dark:text-amber-400"
+  if (s === "Video Interview")        return "text-lime-600 dark:text-lime-400"
+  if (s === "Face-to-face Interview") return "text-orange-500 dark:text-orange-400"
+  if (s === "Assessment Centre")      return "text-pink-600 dark:text-pink-400"
+  if (s === "Final Round")            return "text-rose-600 dark:text-rose-400"
+  if (s === "Offer Received")         return "text-green-600 dark:text-green-400"
+  if (s === "Negotiating")            return "text-teal-600 dark:text-teal-400"
+  if (s === "Accepted")               return "text-emerald-600 dark:text-emerald-400 font-semibold"
+  if (s === "Rejected")               return "text-muted-foreground line-through"
+  if (s === "Ghosted")                return "text-slate-400 dark:text-slate-500 line-through"
+  if (s === "Withdrawn")              return "text-slate-500 dark:text-slate-400 italic"
+  if (s === "Not Interested")         return "text-muted-foreground"
   return ""
 }
 
@@ -897,11 +917,11 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   })
 
   // Stats (based on filtered)
-  const activeStatuses = ["Not Applied", "Interested", "Application Submitted", "Online Assessment", "Case Study", "HireVue", "Telephone Interview", "Video Interview", "Face-to-face Interview", "Assessment Centre"]
+  const activeStatuses = ["Not Applied", "Interested", "Application Submitted", "Online Assessment", "Case Study", "HireVue", "Telephone Interview", "Video Interview", "Face-to-face Interview", "Assessment Centre", "Final Round", "Offer Received", "Negotiating"]
   const statsTotal = filtered.length
   const statsPipeline = filtered.filter((a) => activeStatuses.includes(normaliseStatus(a.status))).length
-  const statsOffers = filtered.filter((a) => normaliseStatus(a.status) === "Offer Received").length
-  const statsRejected = filtered.filter((a) => normaliseStatus(a.status) === "Rejected").length
+  const statsOffers = filtered.filter((a) => ["Offer Received", "Negotiating", "Accepted"].includes(normaliseStatus(a.status))).length
+  const statsRejected = filtered.filter((a) => ["Rejected", "Ghosted", "Withdrawn"].includes(normaliseStatus(a.status))).length
 
   // Group by category then sort: London/Birmingham first, then Manchester, then remote, then other
   function locPriority(loc: string | null): number {
