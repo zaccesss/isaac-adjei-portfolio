@@ -1,5 +1,3 @@
-"use server"
-
 import { getTrash, restoreFromTrash, permanentlyDelete, emptyTrash } from "@/app/dashboard/actions"
 import { revalidatePath } from "next/cache"
 import { Trash2, RotateCcw, X } from "lucide-react"
