@@ -2,16 +2,20 @@
 
 .gsc-footer { display: none !important; }
 
-/* Variables are scoped to 'main' in giscus — override them there */
-main {
-  --color-btn-primary-bg: hsl(225, 70%, 55%);
-  --color-btn-primary-hover-bg: hsl(225, 70%, 50%);
-  --color-btn-primary-selected-bg: hsl(225, 70%, 48%);
-  --color-btn-primary-border: hsl(225, 70%, 50%);
+/* Target sign-in button by its actual OAuth href — unambiguous */
+a[href*="giscus.app/api/oauth"] {
+  background-color: hsl(225, 70%, 55%) !important;
+  background: hsl(225, 70%, 55%) !important;
+  border-color: hsl(225, 70%, 50%) !important;
+  color: #fff !important;
+}
+a[href*="giscus.app/api/oauth"]:hover {
+  background-color: hsl(225, 70%, 50%) !important;
+  background: hsl(225, 70%, 50%) !important;
 }
 
-textarea[disabled],
-textarea:disabled {
+/* Target textarea by placeholder text — works regardless of disabled state */
+textarea[placeholder="Sign in to comment"] {
   text-align: center !important;
   padding-top: 1.5rem !important;
 }
