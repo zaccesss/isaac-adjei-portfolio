@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp } from "lucide-react"
+import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp, BarChart2, Layers } from "lucide-react"
 import ApplicationsKanban from "./ApplicationsKanban"
+import ApplicationsAnalytics from "./ApplicationsAnalytics"
+import LinearView from "./LinearView"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -829,7 +831,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const [filterMyStatus, setFilterMyStatus] = useState("All")
   const [filterLocation, setFilterLocation] = useState("All")
   const [filterKeyword, setFilterKeyword] = useState("All")
-  const [view, setView] = useState<"table" | "kanban">("table")
+  const [view, setView] = useState<"table" | "kanban" | "analytics" | "linear">("table")
   const [addOpen, setAddOpen] = useState(false)
   const [editApp, setEditApp] = useState<Application | null>(null)
   const [, startTransition] = useTransition()
@@ -1089,6 +1091,22 @@ export default function ApplicationsClient({ applications: initial }: { applicat
             >
               <LayoutGrid className="h-3.5 w-3.5" />
             </button>
+            <button
+              type="button"
+              onClick={() => setView("analytics")}
+              title="Analytics"
+              className={`p-1.5 transition-colors ${view === "analytics" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <BarChart2 className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("linear")}
+              title="Linear"
+              className={`p-1.5 transition-colors ${view === "linear" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Layers className="h-3.5 w-3.5" />
+            </button>
           </div>
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
@@ -1232,6 +1250,12 @@ export default function ApplicationsClient({ applications: initial }: { applicat
           <ApplicationsKanban applications={apps} />
         </div>
       )}
+
+      {/* Analytics */}
+      {view === "analytics" && <ApplicationsAnalytics apps={tabApps} />}
+
+      {/* Linear */}
+      {view === "linear" && <LinearView />}
 
       {/* Table */}
       {view === "table" && <div className="flex-1 overflow-auto min-h-0 px-4 pb-4">

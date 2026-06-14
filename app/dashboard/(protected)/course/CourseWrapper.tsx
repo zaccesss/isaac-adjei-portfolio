@@ -25,6 +25,5 @@ export default function CourseWrapper({
   modules: CourseModule[]
   config: CourseConfig
 }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return <CourseClient modules={modules} config={config as any} />
 }

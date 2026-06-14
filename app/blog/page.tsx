@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Calendar, Clock, Rss, Terminal } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -29,13 +30,9 @@ function formatDate(dateStr: string): string {
 export default function BlogPage() {
   const [activeType, setActiveType] = useState<PostType | "all">("all")
 
-  const allPosts = getPublishedPosts().sort((a, b) => {
-    // Pin journey post to top always
-    if (a.slug === "my-journey-so-far") return -1
-    if (b.slug === "my-journey-so-far") return 1
-    // Sort all others by date descending (newest first)
-    return new Date(b.date).getTime() - new Date(a.date).getTime()
-  })
+  const allPosts = getPublishedPosts().sort((a, b) =>
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
   const filtered =
     activeType === "all" ? allPosts : allPosts.filter((p) => p.type === activeType)
 
@@ -84,28 +81,30 @@ export default function BlogPage() {
       {filtered.length > 0 ? (
         <div className="space-y-6">
           {filtered.map((post) => {
-            const isJourney = post.slug === "my-journey-so-far"
             return (
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
-              className={`group block rounded-lg border transition-all px-6 py-5 space-y-3 ${
-                isJourney
-                  ? "border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary/60"
-                  : "border-border/60 bg-muted/40 hover:bg-muted/60 hover:border-border"
-              }`}
+              className="group block rounded-lg border transition-all overflow-hidden border-border/60 bg-muted/40 hover:bg-muted/60 hover:border-border"
             >
+              {post.cover_image && (
+                <div className="relative w-full h-40 overflow-hidden">
+                  <Image
+                    src={post.cover_image}
+                    alt={post.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 768px) 100vw, 700px"
+                  />
+                </div>
+              )}
+              <div className={`space-y-3 px-6 py-5`}>
               <div className="flex items-center gap-2 flex-wrap">
                 <span
                   className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${TYPE_STYLES[post.type]}`}
                 >
                   {POST_TYPES.find((t) => t.value === post.type)?.label ?? post.type}
                 </span>
-                {isJourney && (
-                  <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                    Pinned
-                  </span>
-                )}
               </div>
 
               <div className="space-y-1">
@@ -137,6 +136,7 @@ export default function BlogPage() {
                   ))}
                 </div>
               )}
+              </div>
             </Link>
             )
           })}

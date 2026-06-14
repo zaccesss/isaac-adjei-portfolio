@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react"
 import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
-  Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2
+  Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -31,6 +31,8 @@ const nav = [
   { href: "/dashboard/opensource", label: "Open Source", icon: Github },
   { href: "/dashboard/blog-analytics", label: "Blog Analytics", icon: BarChart2 },
   { href: "/dashboard/coding", label: "Coding Activity", icon: Code2 },
+  { href: "/dashboard/contacts", label: "Contacts", icon: Users },
+  { href: "/dashboard/trash", label: "Trash", icon: Trash2 },
 ]
 
 export default function DashboardSidebar({

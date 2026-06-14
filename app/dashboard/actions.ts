@@ -13,11 +13,20 @@ import { revalidatePath } from "next/cache"
 //     detail text,
 //     created_at timestamptz NOT NULL DEFAULT now()
 //   );
-async function logActivity(action: string, detail?: string) {
-  try {
-    await supabase.from("activity_log").insert({ action, detail: detail ?? null })
-  } catch {
-    // non-fatal - logging failure should never break the parent action
+export async function logActivity(action: string, detail?: string) {
+  const { error } = await supabase.from("activity_log").insert({ action, detail: detail ?? null })
+  if (error) console.error("[activity_log]", error.message, error.details)
+}
+
+async function moveToTrash(tableName: string, id: string, displayName?: string) {
+  const { data } = await supabase.from(tableName).select("*").eq("id", id).single()
+  if (data) {
+    await supabase.from("trash").insert({
+      table_name: tableName,
+      original_id: id,
+      display_name: displayName ?? null,
+      data,
+    })
   }
 }
 
@@ -95,11 +104,13 @@ export async function updateGoal(id: string, data: Partial<{
     !optNum(data.progress, 0, 100)
   ) return INVALID
   await supabase.from("goals").update(data).eq("id", id)
+  void logActivity("goal.update", data.title)
   revalidatePath("/dashboard/goals")
 }
 
 export async function deleteGoal(id: string) {
   if (!validId(id)) return INVALID
+  await moveToTrash("goals", id)
   await supabase.from("goals").delete().eq("id", id)
   void logActivity("goal.delete", id)
   revalidatePath("/dashboard/goals")
@@ -130,6 +141,7 @@ export async function createModule(data: {
   // I .select().single() here because the client needs the auto-generated id to add to local state
   // without it I would have to refetch the full modules list just to get the new row's id
   const { data: inserted } = await supabase.from("modules").insert(data).select().single()
+  void logActivity("module.create", data.name)
   revalidatePath("/dashboard/modules")
   return inserted
 }
@@ -156,12 +168,14 @@ export async function updateModule(id: string, data: Partial<{
     !optStr(data.rules, MAX_LONG_TEXT)
   ) return INVALID
   await supabase.from("modules").update(data).eq("id", id)
+  void logActivity("module.update", data.name ?? id)
   revalidatePath("/dashboard/modules")
 }
 
 export async function deleteModule(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("modules").delete().eq("id", id)
+  void logActivity("module.delete", id)
   revalidatePath("/dashboard/modules")
 }
 
@@ -170,6 +184,7 @@ export async function updateModuleStatus(id: string, status: string) {
   // and I do not want the caller to build a full update payload just to flip one field
   if (!validId(id) || !validStr(status)) return INVALID
   await supabase.from("modules").update({ status }).eq("id", id)
+  void logActivity("module.update", `status → ${status}`)
   revalidatePath("/dashboard/modules")
 }
 
@@ -203,6 +218,7 @@ export async function createAssessment(data: {
   // I return the inserted row so the client can append it to local state
   // without needing to know the DB-generated id ahead of time
   const { data: inserted } = await supabase.from("assessments").insert(data).select().single()
+  void logActivity("grade.create", data.name)
   revalidatePath("/dashboard/modules")
   return inserted
 }
@@ -213,6 +229,7 @@ export async function updateAssessmentMark(id: string, mark: number | null) {
   if (!validId(id)) return INVALID
   if (mark !== null && !validNum(mark, 0, 200)) return INVALID
   await supabase.from("assessments").update({ mark_achieved: mark }).eq("id", id)
+  void logActivity("grade.update", mark !== null ? `${mark}` : "cleared")
   revalidatePath("/dashboard/modules")
 }
 
@@ -239,12 +256,14 @@ export async function updateAssessment(id: string, data: Partial<{
     !optStr(data.my_notes, MAX_LONG_TEXT)
   ) return INVALID
   await supabase.from("assessments").update(data).eq("id", id)
+  void logActivity("grade.update", data.name ?? id)
   revalidatePath("/dashboard/modules")
 }
 
 export async function deleteAssessment(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("assessments").delete().eq("id", id)
+  void logActivity("grade.delete", id)
   revalidatePath("/dashboard/modules")
 }
 
@@ -328,11 +347,13 @@ export async function updateApplication(id: string, data: Partial<{
 }>) {
   if (!validId(id)) return INVALID
   await supabase.from("applications").update(data).eq("id", id)
+  void logActivity("application.update", data.status ? `status → ${data.status}` : (data.company ?? id))
   revalidatePath("/dashboard/applications")
 }
 
 export async function deleteApplication(id: string) {
   if (!validId(id)) return INVALID
+  await moveToTrash("applications", id)
   await supabase.from("applications").delete().eq("id", id)
   void logActivity("application.delete", id)
   revalidatePath("/dashboard/applications")
@@ -415,6 +436,7 @@ export async function updateVaultEntry(id: string, data: Partial<{
 
 export async function deleteVaultEntry(id: string) {
   if (!validId(id)) return INVALID
+  await moveToTrash("vault", id)
   await supabase.from("vault").delete().eq("id", id)
   void logActivity("vault.delete", id)
   revalidatePath("/dashboard/vault")
@@ -460,6 +482,7 @@ export async function updateDiaryEntry(id: string, data: Partial<{
 
 export async function deleteDiaryEntry(id: string) {
   if (!validId(id)) return INVALID
+  await moveToTrash("diary", id)
   await supabase.from("diary").delete().eq("id", id)
   void logActivity("diary.delete", id)
   revalidatePath("/dashboard/diary")
@@ -510,6 +533,7 @@ export async function updateNote(id: string, data: Partial<{
 
 export async function deleteNote(id: string) {
   if (!validId(id)) return INVALID
+  await moveToTrash("notes", id)
   await supabase.from("notes").delete().eq("id", id)
   void logActivity("note.delete", id)
   revalidatePath("/dashboard/notes")
@@ -532,6 +556,7 @@ export async function createStreak(data: {
     !validNum(data.order_index, 0, 9999)
   ) return INVALID
   const { data: inserted } = await supabase.from("streaks").insert(data).select().single()
+  void logActivity("streak.create", data.name)
   revalidatePath("/dashboard/streaks")
   return inserted
 }
@@ -551,7 +576,9 @@ export async function updateStreak(id: string, data: Partial<{
 
 export async function deleteStreak(id: string) {
   if (!validId(id)) return INVALID
+  await moveToTrash("streaks", id)
   await supabase.from("streaks").delete().eq("id", id)
+  void logActivity("streak.delete", id)
   revalidatePath("/dashboard/streaks")
 }
 
@@ -589,6 +616,7 @@ export async function createHealthSection(data: {
     !validNum(data.order_index, 0, 9999)
   ) return INVALID
   const { data: inserted } = await supabase.from("health_sections").insert(data).select().single()
+  void logActivity("health.create", data.name)
   revalidatePath("/dashboard/health")
   return inserted
 }
@@ -609,6 +637,7 @@ export async function updateHealthSection(id: string, data: Partial<{
 export async function deleteHealthSection(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("health_sections").delete().eq("id", id)
+  void logActivity("health.delete", id)
   revalidatePath("/dashboard/health")
 }
 
@@ -627,6 +656,7 @@ export async function createHealthWorkout(data: {
     !validNum(data.order_index, 0, 9999)
   ) return INVALID
   const { data: inserted } = await supabase.from("health_workouts").insert(data).select().single()
+  void logActivity("health.create", data.day_label)
   revalidatePath("/dashboard/health")
   return inserted
 }
@@ -646,6 +676,7 @@ export async function updateHealthWorkout(id: string, data: Partial<{
 export async function deleteHealthWorkout(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("health_workouts").delete().eq("id", id)
+  void logActivity("health.delete", id)
   revalidatePath("/dashboard/health")
 }
 
@@ -679,6 +710,7 @@ export async function createHealthNutrition(data: {
     !validNum(data.order_index, 0, 9999)
   ) return INVALID
   const { data: inserted } = await supabase.from("health_nutrition").insert(data).select().single()
+  void logActivity("health.create", data.category)
   revalidatePath("/dashboard/health")
   return inserted
 }
@@ -686,6 +718,7 @@ export async function createHealthNutrition(data: {
 export async function deleteHealthNutrition(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("health_nutrition").delete().eq("id", id)
+  void logActivity("health.delete", id)
   revalidatePath("/dashboard/health")
 }
 
@@ -810,11 +843,13 @@ export async function updateWishlistItem(id: string, data: Partial<{
 }>) {
   if (!validId(id)) return INVALID
   await supabase.from("wishlist").update(data).eq("id", id)
+  void logActivity("wishlist.update", data.name ?? id)
   revalidatePath("/dashboard/wishlist")
 }
 
 export async function deleteWishlistItem(id: string) {
   if (!validId(id)) return INVALID
+  await moveToTrash("wishlist", id)
   await supabase.from("wishlist").delete().eq("id", id)
   void logActivity("wishlist.delete", id)
   revalidatePath("/dashboard/wishlist")
@@ -866,11 +901,13 @@ export async function updateInventoryItem(id: string, data: Partial<{
 }>) {
   if (!validId(id)) return INVALID
   await supabase.from("inventory_items").update(data).eq("id", id)
+  void logActivity("inventory.update", data.name ?? id)
   revalidatePath("/dashboard/inventory")
 }
 
 export async function deleteInventoryItem(id: string) {
   if (!validId(id)) return INVALID
+  await moveToTrash("inventory_items", id)
   await supabase.from("inventory_items").delete().eq("id", id)
   void logActivity("inventory.delete", id)
   revalidatePath("/dashboard/inventory")
@@ -1132,6 +1169,7 @@ export async function updateOpenSourceContribution(
 
 export async function deleteOpenSourceContribution(id: string) {
   if (!validId(id)) return INVALID
+  await moveToTrash("opensource_contributions", id)
   await supabase.from("opensource_contributions").delete().eq("id", id)
   void logActivity("opensource.delete", id)
   revalidatePath("/dashboard/opensource")
@@ -1191,4 +1229,177 @@ export async function getWakatimeHeatmap(): Promise<WakatimeDayRow[]> {
     .order("date", { ascending: true })
   if (error || !data) return []
   return data as WakatimeDayRow[]
+}
+
+export type GitHubDay = { date: string; count: number }
+
+export async function getGitHubContributions(): Promise<GitHubDay[]> {
+  const pat = process.env.GH_PAT ?? process.env.GITHUB_PAT
+  if (!pat) return []
+  try {
+    const res = await fetch("https://api.github.com/graphql", {
+      method: "POST",
+      headers: {
+        Authorization: `bearer ${pat}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: `{
+          user(login: "zaccesss") {
+            contributionsCollection {
+              contributionCalendar {
+                weeks {
+                  contributionDays {
+                    date
+                    contributionCount
+                  }
+                }
+              }
+            }
+          }
+        }`,
+      }),
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) return []
+    const json = await res.json()
+    const weeks =
+      json?.data?.user?.contributionsCollection?.contributionCalendar?.weeks ?? []
+    return weeks.flatMap((w: { contributionDays: { date: string; contributionCount: number }[] }) =>
+      w.contributionDays.map((d) => ({ date: d.date, count: d.contributionCount }))
+    )
+  } catch {
+    return []
+  }
+}
+
+// ─── Data management ─────────────────────────────────────────
+
+export async function clearAllJobs() {
+  // I delete using neq on a dummy value to hit all rows without a WHERE clause,
+  // which Supabase's REST API otherwise disallows.
+  await supabase.from("jobs").delete().neq("id", "00000000-0000-0000-0000-000000000000")
+  void logActivity("scraper.cleared", "all scraped jobs")
+  revalidatePath("/dashboard/applications")
+}
+
+export async function clearAllApplications() {
+  await supabase.from("applications").delete().neq("id", "00000000-0000-0000-0000-000000000000")
+  void logActivity("application.cleared", "all tracked applications")
+  revalidatePath("/dashboard/applications")
+}
+
+// ─── Contacts / Network Tracker ─────────────────────────────
+
+export type Contact = {
+  id: string
+  name: string
+  company: string | null
+  role: string | null
+  how_met: string | null
+  email: string | null
+  linkedin_url: string | null
+  last_contact: string | null
+  notes: string | null
+  follow_up: boolean
+  created_at: string
+  updated_at: string
+}
+
+export async function getContacts(): Promise<Contact[]> {
+  const { data } = await supabase
+    .from("contacts")
+    .select("*")
+    .order("created_at", { ascending: false })
+  return (data ?? []) as Contact[]
+}
+
+export async function createContact(data: {
+  name: string
+  company?: string
+  role?: string
+  how_met?: string
+  email?: string
+  linkedin_url?: string
+  last_contact?: string | null
+  notes?: string
+  follow_up?: boolean
+}) {
+  if (!validStr(data.name)) return INVALID
+  const { data: inserted } = await supabase
+    .from("contacts")
+    .insert({ ...data, follow_up: data.follow_up ?? false })
+    .select()
+    .single()
+  void logActivity("contact.create", data.name)
+  revalidatePath("/dashboard/contacts")
+  return inserted
+}
+
+export async function updateContact(id: string, data: Partial<{
+  name: string
+  company: string
+  role: string
+  how_met: string
+  email: string
+  linkedin_url: string
+  last_contact: string | null
+  notes: string
+  follow_up: boolean
+}>) {
+  if (!validId(id)) return INVALID
+  await supabase
+    .from("contacts")
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq("id", id)
+  void logActivity("contact.update", data.name ?? id)
+  revalidatePath("/dashboard/contacts")
+}
+
+export async function deleteContact(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("contacts", id)
+  await supabase.from("contacts").delete().eq("id", id)
+  void logActivity("contact.delete", id)
+  revalidatePath("/dashboard/contacts")
+}
+
+// ─── Trash / Recycle Bin ─────────────────────────────────────
+
+export type TrashItem = {
+  id: string
+  table_name: string
+  original_id: string
+  display_name: string | null
+  data: Record<string, unknown>
+  deleted_at: string
+  expires_at: string
+}
+
+export async function getTrash(): Promise<TrashItem[]> {
+  const { data } = await supabase
+    .from("trash")
+    .select("*")
+    .order("deleted_at", { ascending: false })
+  return (data ?? []) as TrashItem[]
+}
+
+export async function restoreFromTrash(trashId: string) {
+  if (!validId(trashId)) return INVALID
+  const { data: item } = await supabase.from("trash").select("*").eq("id", trashId).single()
+  if (!item) return INVALID
+  const { id: _id, ...row } = item.data as Record<string, unknown>
+  await supabase.from(item.table_name).insert({ id: item.original_id, ...row })
+  await supabase.from("trash").delete().eq("id", trashId)
+  void logActivity(`${item.table_name}.restore`, item.display_name ?? item.original_id)
+}
+
+export async function permanentlyDelete(trashId: string) {
+  if (!validId(trashId)) return INVALID
+  await supabase.from("trash").delete().eq("id", trashId)
+}
+
+export async function emptyTrash() {
+  await supabase.from("trash").delete().neq("id", "00000000-0000-0000-0000-000000000000")
+  void logActivity("trash.empty")
 }

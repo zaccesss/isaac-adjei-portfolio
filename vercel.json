@@ -15,6 +15,10 @@
     {
       "path": "/api/dashboard/vault-expiry-check",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/dashboard/trash-cleanup",
+      "schedule": "0 3 * * *"
     }
   ]
 }
