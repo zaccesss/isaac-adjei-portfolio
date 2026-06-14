@@ -1,0 +1,24 @@
+@import url("https://giscus.app/themes/light.css");
+
+/* Hide "powered by giscus" attribution */
+.gsc-footer {
+  display: none !important;
+}
+
+/* Center and emphasize the sign-in prompt */
+.gsc-comment-box-textarea::placeholder {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.gsc-comment-box-bottom {
+  justify-content: center !important;
+}
+
+.gsc-comment-box-bottom a[href*="github"] {
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+}

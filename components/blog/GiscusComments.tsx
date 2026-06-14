@@ -22,7 +22,10 @@ export default function GiscusComments() {
       reactionsEnabled="0"
       emitMetadata="0"
       inputPosition="top"
-      theme={resolvedTheme === "dark" ? "dark" : "light"}
+      theme={resolvedTheme === "dark"
+        ? `${process.env.NEXT_PUBLIC_SITE_URL}/giscus-theme-dark.css`
+        : `${process.env.NEXT_PUBLIC_SITE_URL}/giscus-theme-light.css`
+      }
       lang="en"
       loading="eager"
     />
