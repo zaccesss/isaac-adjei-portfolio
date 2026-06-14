@@ -31,3 +31,9 @@
   background-color: hsl(225, 65%, 35%) !important;
   border-color: hsl(225, 65%, 30%) !important;
 }
+
+.gsc-comment-box-write textarea:disabled {
+  text-align: center;
+  padding-top: 2rem;
+  font-weight: 600;
+}
