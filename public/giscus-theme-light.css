@@ -1,6 +1,5 @@
 @import url("https://giscus.app/themes/light.css");
 
-/* Hide "powered by giscus" attribution */
 .gsc-footer {
   display: none !important;
 }
