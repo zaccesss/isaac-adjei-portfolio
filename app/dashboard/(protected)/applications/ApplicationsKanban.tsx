@@ -42,26 +42,47 @@ const COLUMNS: { id: string; label: string; targetStatus: string; statuses: stri
     statuses: ["Telephone Interview", "Video Interview", "Face-to-face Interview", "Assessment Centre"],
   },
   {
+    id: "final_round",
+    label: "Final Round",
+    targetStatus: "Final Round",
+    statuses: ["Final Round"],
+  },
+  {
     id: "offer",
     label: "Offer",
     targetStatus: "Offer Received",
     statuses: ["Offer Received"],
   },
   {
-    id: "rejected",
-    label: "Rejected",
+    id: "negotiating",
+    label: "Negotiating",
+    targetStatus: "Negotiating",
+    statuses: ["Negotiating"],
+  },
+  {
+    id: "accepted",
+    label: "Accepted",
+    targetStatus: "Accepted",
+    statuses: ["Accepted"],
+  },
+  {
+    id: "closed",
+    label: "Closed",
     targetStatus: "Rejected",
-    statuses: ["Rejected", "Not Interested"],
+    statuses: ["Rejected", "Ghosted", "Withdrawn", "Not Interested"],
   },
 ]
 
 const COLUMN_COLOURS: Record<string, string> = {
-  wishlist:   "border-t-slate-400",
-  applied:    "border-t-blue-400",
-  assessment: "border-t-amber-400",
-  interview:  "border-t-purple-400",
-  offer:      "border-t-green-400",
-  rejected:   "border-t-red-400",
+  wishlist:    "border-t-slate-400",
+  applied:     "border-t-blue-400",
+  assessment:  "border-t-amber-400",
+  interview:   "border-t-purple-400",
+  final_round: "border-t-orange-400",
+  offer:       "border-t-green-400",
+  negotiating: "border-t-teal-400",
+  accepted:    "border-t-emerald-500",
+  closed:      "border-t-red-400",
 }
 
 function normaliseStatus(raw: string): string {
@@ -81,6 +102,11 @@ function normaliseStatus(raw: string): string {
     "offer_received": "Offer Received",
     "rejected": "Rejected",
     "not_interested": "Not Interested",
+    "final_round": "Final Round",
+    "negotiating": "Negotiating",
+    "accepted": "Accepted",
+    "ghosted": "Ghosted",
+    "withdrawn": "Withdrawn",
   }
   return map[raw.toLowerCase().replace(/ /g, "_")] ?? raw
 }
