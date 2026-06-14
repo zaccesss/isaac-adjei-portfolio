@@ -55,7 +55,8 @@ const nextConfig = {
               "img-src 'self' data: blob: https:",
               `connect-src ${connectSrc.join(" ")}`,
               // I include 'self' so the /cv page can embed /resume/cv.html in an iframe
-              "frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://open.spotify.com",
+              // giscus.app is required for the blog comments iframe
+              "frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://open.spotify.com https://giscus.app",
               // I use SAMEORIGIN instead of 'none' so the CV iframe can load same-origin content
               "frame-ancestors 'self'",
               "base-uri 'self'",
