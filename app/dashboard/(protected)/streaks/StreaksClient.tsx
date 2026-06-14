@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Trash2, Flame, Trophy, Check } from "lucide-react"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, Legend } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, Legend, PieChart, Pie } from "recharts"
 
 type Streak = {
   id: string
@@ -134,6 +134,14 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
 
   const totalCheckins = weeks.reduce((a, b) => a + b.count, 0)
 
+  const pieData = streaks
+    .map((s, i) => ({
+      name: `${s.icon} ${s.name}`,
+      value: days.filter((d) => doneSets.get(s.id)?.has(d)).length,
+      colour: STREAK_COLOURS[i % STREAK_COLOURS.length],
+    }))
+    .filter((d) => d.value > 0)
+
   return (
     <div className="flex flex-col gap-4 mt-2">
       {/* Weekly total bar chart */}
@@ -166,6 +174,37 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Per-streak check-in share pie chart */}
+      {pieData.length > 0 && (
+        <div className="border border-border rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium">Check-in share (90 days)</p>
+            <p className="text-xs text-muted-foreground">{totalCheckins} total</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <ResponsiveContainer width="50%" height={160}>
+              <PieChart>
+                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3}>
+                  {pieData.map((entry, i) => <Cell key={i} fill={entry.colour} />)}
+                </Pie>
+                <Tooltip formatter={(v) => [`${v} check-ins`]} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+              {pieData.map((entry) => (
+                <div key={entry.name} className="flex items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: entry.colour }} />
+                    <span className="truncate text-muted-foreground">{entry.name}</span>
+                  </div>
+                  <span className="font-medium tabular-nums shrink-0">{entry.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Per-streak line chart with individual colors */}
       <div className="border border-border rounded-xl p-4">

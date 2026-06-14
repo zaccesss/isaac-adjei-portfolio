@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { logActivity } from "@/app/dashboard/actions"
 
 export async function POST() {
   const session = await auth()
@@ -50,6 +51,7 @@ export async function POST() {
       )
     }
 
+    void logActivity("workflow.scraper")
     return NextResponse.json(
       { ok: true },
       { headers: { "Cache-Control": "no-store" } }

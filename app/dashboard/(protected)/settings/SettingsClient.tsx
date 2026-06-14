@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   KeyRound, Shield, Cpu, Clock, CheckCircle2, XCircle,
-  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity
+  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity, Trash2
 } from "lucide-react"
-import { setConfig } from "@/app/dashboard/actions"
+import { setConfig, clearAllJobs, clearAllApplications } from "@/app/dashboard/actions"
 
 type ScraperStatus = {
   lastRun: string | null
@@ -89,6 +89,9 @@ export default function SettingsClient() {
 
   const [discordDigestLoading, setDiscordDigestLoading] = useState(false)
   const [discordDigestMessage, setDiscordDigestMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
+  const [dataMessage, setDataMessage] = useState<{ text: string; ok: boolean } | null>(null)
+  const [dataLoading, setDataLoading] = useState(false)
 
   useEffect(() => {
     async function loadStatuses() {
@@ -168,6 +171,34 @@ export default function SettingsClient() {
   async function handleLockAll() {
     await fetch("/api/dashboard/verify-pin", { method: "DELETE" })
     router.push("/dashboard")
+  }
+
+  async function handleClearJobs() {
+    if (!confirm("This will permanently delete all scraped jobs. Are you sure?")) return
+    setDataLoading(true)
+    setDataMessage(null)
+    try {
+      await clearAllJobs()
+      setDataMessage({ text: "All scraped jobs cleared.", ok: true })
+    } catch {
+      setDataMessage({ text: "Failed to clear jobs.", ok: false })
+    } finally {
+      setDataLoading(false)
+    }
+  }
+
+  async function handleClearApplications() {
+    if (!confirm("This will permanently delete all tracked applications. Are you sure?")) return
+    setDataLoading(true)
+    setDataMessage(null)
+    try {
+      await clearAllApplications()
+      setDataMessage({ text: "All tracked applications cleared.", ok: true })
+    } catch {
+      setDataMessage({ text: "Failed to clear applications.", ok: false })
+    } finally {
+      setDataLoading(false)
+    }
   }
 
   async function handleTriggerScraper() {
@@ -593,6 +624,51 @@ export default function SettingsClient() {
             )}
           </div>
         </div>
+      </section>
+      {/* Data Management */}
+      <section className="flex flex-col gap-4 border border-destructive/30 rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <Trash2 className="h-4 w-4 text-destructive" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-destructive">Data Management</h2>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          These actions are irreversible. Items moved to trash can be recovered for 7 days.
+        </p>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Clear scraped jobs</p>
+              <p className="text-xs text-muted-foreground">Remove all jobs fetched by the scraper from the jobs table.</p>
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleClearJobs}
+              disabled={dataLoading}
+            >
+              Clear all jobs
+            </Button>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Clear tracked applications</p>
+              <p className="text-xs text-muted-foreground">Delete all manually tracked job applications.</p>
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleClearApplications}
+              disabled={dataLoading}
+            >
+              Clear all
+            </Button>
+          </div>
+        </div>
+        {dataMessage && (
+          <span className={`text-xs ${dataMessage.ok ? "text-green-600" : "text-destructive"}`}>
+            {dataMessage.text}
+          </span>
+        )}
       </section>
     </motion.div>
   )

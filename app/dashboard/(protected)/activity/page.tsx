@@ -5,26 +5,72 @@ export const metadata = { robots: "noindex, nofollow" }
 
 function formatAction(action: string): string {
   const labels: Record<string, string> = {
+    // Goals
     "goal.create": "Created goal",
+    "goal.update": "Updated goal",
     "goal.delete": "Deleted goal",
+    // Diary / notes
     "diary.create": "New diary entry",
+    "diary.update": "Updated diary entry",
     "diary.delete": "Deleted diary entry",
     "note.create": "Created note",
+    "note.update": "Updated note",
     "note.delete": "Deleted note",
+    // Applications
     "application.create": "Added application",
     "application.update": "Updated application",
     "application.delete": "Deleted application",
+    // Vault
     "vault.create": "Added vault entry",
+    "vault.update": "Updated vault entry",
     "vault.delete": "Removed vault entry",
+    // Wishlist
     "wishlist.create": "Added to wishlist",
+    "wishlist.update": "Updated wishlist item",
     "wishlist.delete": "Removed from wishlist",
+    // Inventory
     "inventory.create": "Added inventory item",
+    "inventory.update": "Updated inventory item",
     "inventory.delete": "Removed inventory item",
+    // Streaks
     "streak.checkin": "Streak check-in",
+    "streak.create": "Created streak",
+    "streak.delete": "Deleted streak",
+    // Open source
     "opensource.create": "Added open source contribution",
     "opensource.update": "Updated contribution",
     "opensource.delete": "Removed contribution",
     "opensource.bulk_delete": "Bulk deleted contributions",
+    // Modules / course
+    "module.create": "Added module",
+    "module.update": "Updated module",
+    "module.delete": "Removed module",
+    "grade.create": "Added grade",
+    "grade.update": "Updated grade",
+    "grade.delete": "Removed grade",
+    // Health
+    "health.create": "Logged health entry",
+    "health.update": "Updated health entry",
+    "health.delete": "Deleted health entry",
+    // Contacts
+    "contact.create": "Added contact",
+    "contact.update": "Updated contact",
+    "contact.delete": "Removed contact",
+    // Settings / system
+    "pin.change": "Changed PIN",
+    "settings.update": "Updated settings",
+    "auth.login": "Signed in",
+    // Workflow triggers (manual)
+    "workflow.wakatime": "Triggered WakaTime sync",
+    "workflow.scraper": "Triggered job scraper",
+    "workflow.cv": "Triggered CV regeneration",
+    "workflow.digest": "Triggered weekly digest",
+    "workflow.discord": "Triggered Discord digest",
+    // Automated sends (logged by cron routes)
+    "digest.sent": "Weekly digest sent",
+    "discord.sent": "Discord digest sent",
+    "wakatime.synced": "WakaTime sync completed",
+    "scraper.completed": "Job scraper completed",
   }
   return labels[action] ?? action
 }
@@ -40,6 +86,17 @@ function relativeTime(iso: string): string {
   return `${days}d ago`
 }
 
+function absoluteTime(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
 export default async function ActivityPage() {
   const logs = await getActivityLog(100)
 
@@ -49,23 +106,21 @@ export default async function ActivityPage() {
       <p className="text-sm text-muted-foreground mb-6">Last 100 actions taken on the dashboard.</p>
 
       {logs.length === 0 ? (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
-          <p className="text-xs text-muted-foreground">
-            If you have used the dashboard and nothing appears here, run{" "}
-            <code className="font-mono bg-muted px-1 py-0.5 rounded text-xs">sql/migrations/009_ensure_activity_log.sql</code>{" "}
-            in the Supabase SQL editor to create the activity_log table.
-          </p>
-        </div>
+        <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
       ) : (
         <ol className="space-y-1">
           {logs.map((log) => (
-            <li key={log.id} className="flex items-baseline gap-3 text-sm py-2 border-b border-border/50 last:border-0">
-              <span className="text-muted-foreground text-xs w-16 shrink-0 tabular-nums">{relativeTime(log.created_at)}</span>
-              <span className="font-medium">{formatAction(log.action)}</span>
-              {log.detail && (
-                <span className="text-muted-foreground truncate">{log.detail}</span>
-              )}
+            <li key={log.id} className="flex items-start gap-3 text-sm py-2.5 border-b border-border/50 last:border-0">
+              <div className="flex flex-col items-end shrink-0 w-28">
+                <span className="text-muted-foreground text-xs tabular-nums">{relativeTime(log.created_at)}</span>
+                <span className="text-muted-foreground/60 text-[10px] tabular-nums">{absoluteTime(log.created_at)}</span>
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="font-medium">{formatAction(log.action)}</span>
+                {log.detail && (
+                  <span className="text-muted-foreground text-xs truncate">{log.detail}</span>
+                )}
+              </div>
             </li>
           ))}
         </ol>
