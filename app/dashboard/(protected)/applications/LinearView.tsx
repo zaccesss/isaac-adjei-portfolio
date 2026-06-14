@@ -44,6 +44,8 @@ function relativeDate(iso: string): string {
 export default function LinearView() {
   const [data, setData] = useState<Response | null>(null)
   const [loading, setLoading] = useState(true)
+  // eslint-disable-next-line react-hooks/purity
+  const sevenDaysFromNow = useMemo(() => new Date(Date.now() + 7 * 86400000), [])
 
   useEffect(() => {
     fetch("/api/dashboard/linear")
@@ -105,8 +107,6 @@ export default function LinearView() {
     if (!groups.has(key)) groups.set(key, { colour, issues: [] })
     groups.get(key)!.issues.push(issue)
   }
-
-  const sevenDaysFromNow = useMemo(() => new Date(Date.now() + 7 * 86400000), [])
 
   return (
     <div className="flex-1 overflow-auto min-h-0 p-4 space-y-4">
