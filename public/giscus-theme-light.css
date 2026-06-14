@@ -1,5 +1,33 @@
 @import url("https://giscus.app/themes/light.css");
 
-.gsc-footer {
-  display: none !important;
+.gsc-footer { display: none !important; }
+
+:root {
+  /* Match site's blue primary instead of GitHub green */
+  --color-btn-primary-bg: hsl(225, 65%, 40%);
+  --color-btn-primary-hover-bg: hsl(225, 65%, 35%);
+  --color-btn-primary-selected-bg: hsl(225, 65%, 35%);
+  --color-btn-primary-border: hsla(225, 65%, 30%, 0.6);
+  --color-btn-primary-shadow: none;
+  --color-btn-primary-inset-shadow: none;
+  --color-btn-primary-text: hsl(210, 40%, 98%);
+
+  /* Match site's light background */
+  --color-canvas-default: hsl(0, 0%, 100%);
+  --color-canvas-subtle: hsl(214.3, 31.8%, 97%);
+  --color-canvas-inset: hsl(214.3, 31.8%, 97%);
+  --color-border-default: hsl(214.3, 31.8%, 91.4%);
+  --color-border-muted: hsl(214.3, 31.8%, 91.4%);
+  --color-fg-default: hsl(222.2, 84%, 4.9%);
+  --color-fg-muted: hsl(215.4, 16.3%, 46.9%);
+}
+
+.btn-primary {
+  background-color: hsl(225, 65%, 40%) !important;
+  border-color: hsl(225, 65%, 35%) !important;
+  color: hsl(210, 40%, 98%) !important;
+}
+.btn-primary:hover {
+  background-color: hsl(225, 65%, 35%) !important;
+  border-color: hsl(225, 65%, 30%) !important;
 }
