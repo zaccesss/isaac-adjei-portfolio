@@ -24,7 +24,7 @@ export default function GiscusComments() {
       inputPosition="top"
       theme={resolvedTheme === "dark" ? "dark" : "light"}
       lang="en"
-      loading="lazy"
+      loading="eager"
     />
   )
 }
