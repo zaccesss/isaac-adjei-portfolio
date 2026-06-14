@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ExternalLink, AlertCircle, Loader2 } from "lucide-react"
 import type { LinearIssue } from "@/app/api/dashboard/linear/route"
 
@@ -106,7 +106,7 @@ export default function LinearView() {
     groups.get(key)!.issues.push(issue)
   }
 
-  const sevenDaysFromNow = new Date(Date.now() + 7 * 86400000)
+  const sevenDaysFromNow = useMemo(() => new Date(Date.now() + 7 * 86400000), [])
 
   return (
     <div className="flex-1 overflow-auto min-h-0 p-4 space-y-4">
