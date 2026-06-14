@@ -1233,9 +1233,22 @@ export async function getWakatimeHeatmap(): Promise<WakatimeDayRow[]> {
 
 export type GitHubDay = { date: string; count: number }
 
-export async function getGitHubContributions(): Promise<GitHubDay[]> {
+export type GitHubContribTotals = {
+  commits: number
+  pullRequests: number
+  reviews: number
+  issues: number
+}
+
+export type GitHubStats = {
+  days: GitHubDay[]
+  totals: GitHubContribTotals
+}
+
+export async function getGitHubContributions(): Promise<GitHubStats> {
   const pat = process.env.GH_PAT ?? process.env.GITHUB_PAT
-  if (!pat) return []
+  const empty: GitHubStats = { days: [], totals: { commits: 0, pullRequests: 0, reviews: 0, issues: 0 } }
+  if (!pat) return empty
   try {
     const res = await fetch("https://api.github.com/graphql", {
       method: "POST",
@@ -1247,6 +1260,10 @@ export async function getGitHubContributions(): Promise<GitHubDay[]> {
         query: `{
           user(login: "zaccesss") {
             contributionsCollection {
+              totalCommitContributions
+              totalPullRequestContributions
+              totalPullRequestReviewContributions
+              totalIssueContributions
               contributionCalendar {
                 weeks {
                   contributionDays {
@@ -1261,15 +1278,24 @@ export async function getGitHubContributions(): Promise<GitHubDay[]> {
       }),
       next: { revalidate: 3600 },
     })
-    if (!res.ok) return []
+    if (!res.ok) return empty
     const json = await res.json()
-    const weeks =
-      json?.data?.user?.contributionsCollection?.contributionCalendar?.weeks ?? []
-    return weeks.flatMap((w: { contributionDays: { date: string; contributionCount: number }[] }) =>
+    const col = json?.data?.user?.contributionsCollection
+    const weeks = col?.contributionCalendar?.weeks ?? []
+    const days = weeks.flatMap((w: { contributionDays: { date: string; contributionCount: number }[] }) =>
       w.contributionDays.map((d) => ({ date: d.date, count: d.contributionCount }))
     )
+    return {
+      days,
+      totals: {
+        commits: col?.totalCommitContributions ?? 0,
+        pullRequests: col?.totalPullRequestContributions ?? 0,
+        reviews: col?.totalPullRequestReviewContributions ?? 0,
+        issues: col?.totalIssueContributions ?? 0,
+      },
+    }
   } catch {
-    return []
+    return empty
   }
 }
 
@@ -1298,7 +1324,9 @@ export type Contact = {
   role: string | null
   how_met: string | null
   email: string | null
+  phone: string | null
   linkedin_url: string | null
+  github_url: string | null
   last_contact: string | null
   notes: string | null
   follow_up: boolean
@@ -1320,7 +1348,9 @@ export async function createContact(data: {
   role?: string
   how_met?: string
   email?: string
+  phone?: string
   linkedin_url?: string
+  github_url?: string
   last_contact?: string | null
   notes?: string
   follow_up?: boolean
@@ -1342,7 +1372,9 @@ export async function updateContact(id: string, data: Partial<{
   role: string
   how_met: string
   email: string
+  phone: string
   linkedin_url: string
+  github_url: string
   last_contact: string | null
   notes: string
   follow_up: boolean

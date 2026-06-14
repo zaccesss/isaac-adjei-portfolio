@@ -132,6 +132,31 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
     return point
   })
 
+  // Daily check-ins — last 30 days
+  const last30: string[] = []
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    last30.push(d.toISOString().split("T")[0])
+  }
+  const dailyCounts = last30.map((d) => {
+    let count = 0
+    streaks.forEach((s) => { if (doneSets.get(s.id)?.has(d)) count++ })
+    return {
+      label: new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+      count,
+    }
+  })
+
+  // Per-streak pie data for last 30 days
+  const dailyPieData = streaks
+    .map((s, i) => ({
+      name: `${s.icon} ${s.name}`,
+      value: last30.filter((d) => doneSets.get(s.id)?.has(d)).length,
+      colour: STREAK_COLOURS[i % STREAK_COLOURS.length],
+    }))
+    .filter((d) => d.value > 0)
+
   const totalCheckins = weeks.reduce((a, b) => a + b.count, 0)
 
   const pieData = streaks
@@ -144,6 +169,68 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
 
   return (
     <div className="flex flex-col gap-4 mt-2">
+      {/* Daily check-ins — last 30 days */}
+      <div className="border border-border rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-medium">Daily check-ins (last 30 days)</p>
+          <p className="text-xs text-muted-foreground">{dailyCounts.reduce((a, b) => a + b.count, 0)} total</p>
+        </div>
+        <ResponsiveContainer width="100%" height={120}>
+          <BarChart data={dailyCounts} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+            <XAxis dataKey="label" tick={{ fontSize: 8 }} tickLine={false} axisLine={false} interval={4} />
+            <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
+            <Tooltip
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null
+                const count = payload[0]?.value as number
+                return (
+                  <div className="bg-card border border-border rounded px-2.5 py-1.5 text-xs shadow-sm">
+                    <p className="font-medium mb-0.5">{label}</p>
+                    <p className="text-muted-foreground">{count} check-in{count !== 1 ? "s" : ""}</p>
+                  </div>
+                )
+              }}
+            />
+            <Bar dataKey="count" radius={[3, 3, 0, 0]}>
+              {dailyCounts.map((entry, i) => (
+                <Cell key={i} fill={entry.count === 0 ? "hsl(var(--muted))" : "#22c55e"} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Daily pie chart — per-streak share over last 30 days */}
+      {dailyPieData.length > 0 && (
+        <div className="border border-border rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium">Daily share (last 30 days)</p>
+            <p className="text-xs text-muted-foreground">{dailyCounts.reduce((a, b) => a + b.count, 0)} total</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <ResponsiveContainer width="50%" height={150}>
+              <PieChart>
+                <Pie data={dailyPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={38} outerRadius={60} paddingAngle={3}>
+                  {dailyPieData.map((entry, i) => <Cell key={i} fill={entry.colour} />)}
+                </Pie>
+                <Tooltip formatter={(v) => [`${v} check-ins`]} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+              {dailyPieData.map((entry) => (
+                <div key={entry.name} className="flex items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: entry.colour }} />
+                    <span className="truncate text-muted-foreground">{entry.name}</span>
+                  </div>
+                  <span className="font-medium tabular-nums shrink-0">{entry.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Weekly total bar chart */}
       <div className="border border-border rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
