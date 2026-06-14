@@ -15,11 +15,11 @@ export default function GiscusComments() {
     <Giscus
       repo="zaccesss/isaac-adjei-portfolio-discussions"
       repoId={repoId}
-      category="General"
+      category="Announcements"
       categoryId={categoryId}
       mapping="pathname"
-      strict="0"
-      reactionsEnabled="1"
+      strict="1"
+      reactionsEnabled="0"
       emitMetadata="0"
       inputPosition="top"
       theme={resolvedTheme === "dark" ? "dark" : "light"}
