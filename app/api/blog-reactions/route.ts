@@ -14,11 +14,11 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
   })
 }
 
-export const PRESET_TYPES = ["thumbsup", "heart", "fire", "lightbulb", "thinking", "surprised"] as const
+export const PRESET_TYPES = ["thumbsup", "thumbsdown", "laugh", "hooray", "confused", "heart", "rocket", "eyes"] as const
 export type ReactionType = (typeof PRESET_TYPES)[number]
 
 const PRESET_DEFAULTS: Record<ReactionType, 0> = {
-  thumbsup: 0, heart: 0, fire: 0, lightbulb: 0, thinking: 0, surprised: 0,
+  thumbsup: 0, thumbsdown: 0, laugh: 0, hooray: 0, confused: 0, heart: 0, rocket: 0, eyes: 0,
 }
 
 function reactionKey(slug: string, type: string) {
