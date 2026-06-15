@@ -4,7 +4,7 @@ import type { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Isaac Adjei | Dashboard",
+    name: "Dashboard | Isaac Adjei",
     short_name: "Zacess",
     description: "Isaac Adjei's personal dashboard",
     start_url: "/dashboard",
