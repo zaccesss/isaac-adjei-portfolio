@@ -116,7 +116,7 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_U
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Isaac Adjei - RSS Feed</title>
+    <title>RSS Feed | Isaac Adjei</title>
     <link rel="icon" type="image/png" href="${SITE_URL}/images/avatar.png" />
     <link rel="alternate" type="application/rss+xml" title="Isaac Adjei RSS" href="${SITE_URL}/feed.xml" />
     <style>
@@ -248,12 +248,30 @@ export function GET(request: Request) {
 
   const baseUrl = `${url.protocol}//${url.host}`
 
-  // I serve plain XML when ?raw is requested - the old syntax-highlighted HTML viewer
-  // ran too many regex passes over the full XML string and exceeded Cloudflare's CPU limit.
+  // I serve a minimal HTML wrapper for ?raw so the browser shows the correct favicon and
+  // title. The XML is HTML-escaped and dropped into a <pre> - no regex syntax highlighting
+  // (that was what exceeded Cloudflare's CPU limit previously).
   if (forceRaw) {
-    return new Response(buildXml(posts, baseUrl, false), {
+    const xml = buildXml(posts, baseUrl, false)
+    const escaped = xml.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RSS Feed | Isaac Adjei</title>
+  <link rel="icon" type="image/png" href="${SITE_URL}/images/avatar.png" />
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#1e1e1e;color:#d4d4d4;font-family:monospace;font-size:13px;line-height:1.5}
+    pre{padding:1.25rem;white-space:pre-wrap;word-break:break-word}
+  </style>
+</head>
+<body><pre>${escaped}</pre></body>
+</html>`
+    return new Response(html, {
       headers: {
-        "Content-Type": "text/xml; charset=utf-8",
+        "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "public, max-age=3600",
       },
     })

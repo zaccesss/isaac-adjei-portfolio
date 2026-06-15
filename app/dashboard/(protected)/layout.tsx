@@ -13,7 +13,7 @@ import { getConfig } from "@/app/dashboard/actions"
 // I set the metadata here so all protected dashboard pages inherit this title without
 // affecting the root layout used by the public site
 export const metadata = {
-  title: { absolute: "Isaac Adjei | Dashboard" },
+  title: { absolute: "Dashboard | Isaac Adjei" },
   robots: "noindex, nofollow",
 }
 

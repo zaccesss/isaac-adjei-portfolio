@@ -521,14 +521,14 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           {post.published && process.env.NEXT_PUBLIC_GISCUS_ENABLED?.toLowerCase() === "true" && (
             <div className="mt-8 pt-6 border-t border-border/40 space-y-8">
               <AuthorCard />
-              <div className="space-y-4">
+              <div id="reactions" className="space-y-4 scroll-mt-20">
                 <div>
                   <h3 className="text-base font-semibold">Reactions</h3>
                   <p className="text-sm text-muted-foreground mt-0.5">No login needed. Tap an emoji to let me know what landed.</p>
                 </div>
                 <BlogReactions slug={slug} />
               </div>
-              <div className="space-y-4">
+              <div id="comments" className="space-y-4 scroll-mt-20">
                 <div>
                   <h3 className="text-base font-semibold">Comments</h3>
                   <p className="text-sm text-muted-foreground mt-0.5">Have a thought, correction or question? Sign in with GitHub - I read every comment and reply where I can.</p>
