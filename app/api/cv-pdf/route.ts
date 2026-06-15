@@ -1,3 +1,4 @@
+// I serve the general software engineering CV as a PDF download; force-dynamic prevents Next.js caching the binary at the edge.
 // API route that serves the CV as a PDF download.
 // On Vercel the static Isaac_Adjei_CV.pdf is always served. It is regenerated
 // from cv.html locally and committed whenever the CV changes, so it is always

@@ -1,3 +1,5 @@
+// I describe my planned AI project to predict FIFA World Cup 2026 outcomes using historical data and machine learning.
+
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"

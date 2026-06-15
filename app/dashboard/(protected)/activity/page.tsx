@@ -1,18 +1,25 @@
+// I show the last N dashboard actions here so I can audit what changed and when.
 import { getActivityLog } from "../../actions"
 
 export const dynamic = "force-dynamic"
 export const metadata = { robots: "noindex, nofollow" }
 
 function formatAction(action: string): string {
+  // I handle dynamic restore actions here since the prefix varies by table name
+  if (action.endsWith(".restore")) {
+    const resource = action.replace(".restore", "")
+    return `Restored ${resource} item`
+  }
   const labels: Record<string, string> = {
     // Goals
     "goal.create": "Created goal",
     "goal.update": "Updated goal",
     "goal.delete": "Deleted goal",
-    // Diary / notes
+    // Diary
     "diary.create": "New diary entry",
     "diary.update": "Updated diary entry",
     "diary.delete": "Deleted diary entry",
+    // Notes
     "note.create": "Created note",
     "note.update": "Updated note",
     "note.delete": "Deleted note",
@@ -20,6 +27,7 @@ function formatAction(action: string): string {
     "application.create": "Added application",
     "application.update": "Updated application",
     "application.delete": "Deleted application",
+    "application.cleared": "Cleared all applications",
     // Vault
     "vault.create": "Added vault entry",
     "vault.update": "Updated vault entry",
@@ -34,14 +42,16 @@ function formatAction(action: string): string {
     "inventory.delete": "Removed inventory item",
     // Streaks
     "streak.checkin": "Streak check-in",
+    "streak.undo_checkin": "Undone streak check-in",
     "streak.create": "Created streak",
+    "streak.update": "Updated streak",
     "streak.delete": "Deleted streak",
     // Open source
     "opensource.create": "Added open source contribution",
     "opensource.update": "Updated contribution",
     "opensource.delete": "Removed contribution",
     "opensource.bulk_delete": "Bulk deleted contributions",
-    // Modules / course
+    // Modules and course
     "module.create": "Added module",
     "module.update": "Updated module",
     "module.delete": "Removed module",
@@ -56,7 +66,12 @@ function formatAction(action: string): string {
     "contact.create": "Added contact",
     "contact.update": "Updated contact",
     "contact.delete": "Removed contact",
-    // Settings / system
+    // Trash
+    "trash.empty": "Emptied trash",
+    "trash.permanent_delete": "Permanently deleted item",
+    // Job scraper
+    "scraper.cleared": "Cleared all scraped jobs",
+    // Settings and system
     "pin.change": "Changed PIN",
     "settings.update": "Updated settings",
     "auth.login": "Signed in",

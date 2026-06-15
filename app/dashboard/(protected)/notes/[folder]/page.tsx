@@ -1,23 +1,16 @@
+// I fetch all notes from Supabase, then filter by the folder slug from the URL before passing them
+// to the client component. I handle the virtual "all" and "hidden" folder slugs here so the client
+// component only ever sees the notes it should display and does not need to re-filter.
 import { supabase } from "@/lib/supabase"
-import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
 import NotesFolderClient from "./NotesFolderClient"
 
 export const dynamic = "force-dynamic"
 export const metadata = { robots: "noindex, nofollow" }
 
-// I convert a folder name to a URL slug for consistent routing
 const toSlug = (s: string) => s.toLowerCase().replace(/\s+/g, "-")
 
 export default async function NotesFolderPage({ params }: { params: Promise<{ folder: string }> }) {
   const { folder } = await params
-  const cookieStore = await cookies()
-  const pinVerified = cookieStore.get("dashboard_pin_verified")?.value === "1"
-
-  // I require PIN verification here too since notes are sensitive
-  if (!pinVerified) {
-    redirect("/dashboard/notes")
-  }
 
   const { data: notes } = await supabase
     .from("notes")
@@ -26,12 +19,18 @@ export default async function NotesFolderPage({ params }: { params: Promise<{ fo
     .order("updated_at", { ascending: false })
 
   const filtered =
-    folder === "all"
-      ? (notes ?? [])
-      : (notes ?? []).filter((n) => toSlug(n.folder) === folder)
+    folder === "hidden"
+      ? (notes ?? []).filter((n) => n.hidden)
+      : folder === "all"
+      ? (notes ?? []).filter((n) => !n.hidden)
+      : (notes ?? []).filter((n) => toSlug(n.folder) === folder && !n.hidden)
 
+  // I prefer the actual folder name from the first note rather than capitalising the slug,
+  // because note folders can have mixed casing (e.g. "JavaScript" not "Javascript")
   const displayFolder =
-    folder === "all"
+    folder === "hidden"
+      ? "Hidden"
+      : folder === "all"
       ? "All notes"
       : filtered[0]?.folder ??
         folder.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())

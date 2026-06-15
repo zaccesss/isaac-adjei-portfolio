@@ -1,7 +1,4 @@
-// Root layout - wraps every page on the site.
-// Sets the global metadata (title template, description, OG image, etc.),
-// applies the Geist font variables and wires up the ThemeProvider.
-// The CommandMenu is rendered outside the page content so it floats over everything.
+// I wrap every page here with global metadata, Geist fonts, ThemeProvider and a floating CommandMenu.
 
 import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
@@ -45,7 +42,7 @@ export const metadata: Metadata = {
   },
   // Description length target: 140-160 characters for optimal search snippets.
   description:
-    "Electronic Engineering and Computer Science student at Aston University, Birmingham. Building full-stack software, embedded systems and IoT products from concept to deployment.",
+    "Electronic Engineering and Computer Science student at Aston University, Birmingham. Building full-stack software, embedded systems, AI/ML and data science solutions from concept to deployment.",
   keywords: [
     "Isaac Adjei",
     "Zac",
@@ -54,7 +51,9 @@ export const metadata: Metadata = {
     "Computer Science",
     "Aston University",
     "Embedded Systems",
-    "IoT",
+    "AI",
+    "Machine Learning",
+    "Data Science",
   ],
   authors: [{ name: "Isaac Adjei" }],
   creator: "Isaac Adjei",
@@ -75,7 +74,7 @@ export const metadata: Metadata = {
     url: SITE_URL,
     title: "Isaac Adjei | EECS",
     description:
-      "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",
+      "Electronic Engineering and Computer Science student building full-stack software, embedded systems, AI/ML and data science solutions.",
     siteName: "Isaac Adjei Portfolio",
     images: [{
       url: "/api/og?title=Isaac%20Adjei&description=Electronic%20Engineering%20and%20Computer%20Science%20Student",
@@ -88,7 +87,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Isaac Adjei | EECS",
     description:
-      "Electronic Engineering and Computer Science student building full-stack software, embedded systems and IoT products.",
+      "Electronic Engineering and Computer Science student building full-stack software, embedded systems, AI/ML and data science solutions.",
     images: ["/api/og?title=Isaac%20Adjei&description=Electronic%20Engineering%20and%20Computer%20Science%20Student"],
   },
 }

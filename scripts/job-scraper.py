@@ -1,3 +1,4 @@
+# I scrape tech internships and placements from 20+ sources and upsert them into Supabase so my application tracker stays fresh without manual searching.
 """
 Job Scraper - runs via GitHub Actions every 3 days at midnight UTC.
 

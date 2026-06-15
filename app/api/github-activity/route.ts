@@ -1,3 +1,7 @@
+// I fetch the most recent PushEvent from the GitHub public events API and cache the
+// result in Redis for 5 minutes to avoid hammering the API on every page load.
+// I skip the profile README repo (zaccesss/zaccesss) because it is not a real project.
+// relativeTime is always recomputed on cache hits so "2m ago" stays accurate.
 import { NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
 

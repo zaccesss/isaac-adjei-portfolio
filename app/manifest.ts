@@ -1,3 +1,5 @@
+// I define the web app manifest so the dashboard can be installed as a PWA on mobile.
+
 import type { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {

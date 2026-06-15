@@ -1,3 +1,8 @@
+// I persist which reactions a visitor has already given in localStorage so the
+// toggled state survives a page refresh without a server round-trip. The key is
+// per-slug so reactions on different posts never bleed into each other.
+// Custom (picker-selected) emojis are stored separately on the server so the GET
+// response can discover and return them alongside the 8 pinned reactions.
 "use client"
 
 import { useEffect, useState } from "react"

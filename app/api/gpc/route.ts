@@ -1,3 +1,7 @@
+// I read gaming PC presence from two Redis keys: gpc:status (600s TTL set by the
+// Windows daemon) and gpc:last-known (no TTL). The live key's presence determines
+// online status. CPU, GPU and game are only exposed when the PC is online - stale
+// values from last-known would be misleading.
 import { NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
 

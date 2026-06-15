@@ -1,3 +1,5 @@
+// I guard all /dashboard routes at the edge - unauthenticated requests are redirected to /dashboard/login.
+
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 

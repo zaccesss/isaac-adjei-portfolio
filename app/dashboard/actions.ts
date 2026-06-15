@@ -1,5 +1,7 @@
 "use server"
 
+// All dashboard mutations live here as Next.js server actions so the Supabase
+// service key never ships to the browser and revalidatePath can be called directly.
 // I use server actions rather than direct client-side Supabase calls so the service key never ships to the browser.
 // Every action here is intentionally thin - validate, write, revalidate. No business logic lives here.
 import { supabase } from "@/lib/supabase"
@@ -36,7 +38,9 @@ async function moveToTrash(tableName: string, id: string, displayName?: string) 
 // return early with a generic error so callers never see a Supabase error message.
 
 const MAX_TEXT = 500
-const MAX_LONG_TEXT = 2000
+const MAX_LONG_TEXT = 10_000_000
+const MAX_DIARY_TEXT = 10_000_000
+const MAX_NOTE_TEXT = 10_000_000
 
 const INVALID = { error: "Invalid input" } as const
 
@@ -443,6 +447,7 @@ export async function updateVaultEntry(id: string, data: Partial<{
 }>) {
   if (!validId(id)) return INVALID
   await supabase.from("vault").update(data).eq("id", id)
+  void logActivity("vault.update", id)
   revalidatePath("/dashboard/vault")
 }
 
@@ -463,7 +468,7 @@ export async function createDiaryEntry(data: {
 }) {
   if (
     !validStr(data.title) ||
-    !validStr(data.content, MAX_LONG_TEXT) ||
+    !validStr(data.content, MAX_DIARY_TEXT) ||
     !validStr(data.mood)
   ) return INVALID
   // I return the inserted row so the DiaryClient can prepend it to the top of the list immediately
@@ -483,12 +488,13 @@ export async function updateDiaryEntry(id: string, data: Partial<{
   if (
     !validId(id) ||
     !optStr(data.title) ||
-    !optStr(data.content, MAX_LONG_TEXT) ||
+    !optStr(data.content, MAX_DIARY_TEXT) ||
     !optStr(data.mood)
   ) return INVALID
   // I always stamp updated_at server-side so the value is the true server time
   // not whatever the client clock happens to say
   await supabase.from("diary").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  void logActivity("diary.update", data.title ?? id)
   revalidatePath("/dashboard/diary")
 }
 
@@ -513,7 +519,7 @@ export async function createNote(data: {
 }) {
   if (
     !validStr(data.title) ||
-    !validStr(data.content, MAX_LONG_TEXT) ||
+    !validStr(data.content, MAX_NOTE_TEXT) ||
     !validStr(data.folder) ||
     !Array.isArray(data.tags) ||
     typeof data.pinned !== "boolean" ||
@@ -540,6 +546,7 @@ export async function updateNote(id: string, data: Partial<{
   // I spread updated_at on the server side for the same reason as updateDiaryEntry
   // - the client's clock drifts and I do not want stale sort orders
   await supabase.from("notes").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  void logActivity("note.update", data.title ?? id)
   revalidatePath("/dashboard/notes")
 }
 
@@ -583,6 +590,7 @@ export async function updateStreak(id: string, data: Partial<{
 }>) {
   if (!validId(id)) return INVALID
   await supabase.from("streaks").update(data).eq("id", id)
+  void logActivity("streak.update", data.name ?? id)
   revalidatePath("/dashboard/streaks")
 }
 
@@ -608,6 +616,7 @@ export async function undoStreakCheckIn(streakId: string, date: string) {
   // between "never checked in" and "checked in then undone" - both look the same in the streak calc
   if (!validId(streakId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
   await supabase.from("streak_logs").delete().eq("streak_id", streakId).eq("date", date)
+  void logActivity("streak.undo_checkin", date)
   revalidatePath("/dashboard/streaks")
 }
 
@@ -643,6 +652,7 @@ export async function updateHealthSection(id: string, data: Partial<{
 }>) {
   if (!validId(id)) return INVALID
   await supabase.from("health_sections").update(data).eq("id", id)
+  void logActivity("health.update", id)
   revalidatePath("/dashboard/health")
 }
 
@@ -682,6 +692,7 @@ export async function updateHealthWorkout(id: string, data: Partial<{
   if (!validId(id)) return INVALID
   // I always refresh updated_at server-side so I know the true last-modified time
   await supabase.from("health_workouts").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  void logActivity("health.update", data.day_label ?? id)
   revalidatePath("/dashboard/health")
 }
 
@@ -706,6 +717,7 @@ export async function updateHealthNutrition(id: string, data: Partial<{
     !optNum(data.order_index, 0, 9999)
   ) return INVALID
   await supabase.from("health_nutrition").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  void logActivity("health.update", data.category ?? id)
   revalidatePath("/dashboard/health")
 }
 
@@ -1041,18 +1053,21 @@ export async function getActivityLog(limit = 50) {
 export async function toggleDiaryHidden(id: string, hidden: boolean) {
   if (!validId(id)) return INVALID
   await supabase.from("diary").update({ hidden }).eq("id", id)
+  void logActivity("diary.update", hidden ? "hidden" : "visible")
   revalidatePath("/dashboard/diary")
 }
 
 export async function toggleDiaryPinned(id: string, pinned: boolean) {
   if (!validId(id)) return INVALID
   await supabase.from("diary").update({ pinned }).eq("id", id)
+  void logActivity("diary.update", pinned ? "pinned" : "unpinned")
   revalidatePath("/dashboard/diary")
 }
 
 export async function toggleDiaryLocked(id: string, locked: boolean) {
   if (!validId(id)) return INVALID
   await supabase.from("diary").update({ locked }).eq("id", id)
+  void logActivity("diary.update", locked ? "locked" : "unlocked")
   revalidatePath("/dashboard/diary")
 }
 
@@ -1062,18 +1077,21 @@ export async function toggleDiaryLocked(id: string, locked: boolean) {
 export async function toggleNoteHidden(id: string, hidden: boolean) {
   if (!validId(id)) return INVALID
   await supabase.from("notes").update({ hidden }).eq("id", id)
+  void logActivity("note.update", hidden ? "hidden" : "visible")
   revalidatePath("/dashboard/notes")
 }
 
 export async function toggleNotePinned(id: string, pinned: boolean) {
   if (!validId(id)) return INVALID
   await supabase.from("notes").update({ pinned }).eq("id", id)
+  void logActivity("note.update", pinned ? "pinned" : "unpinned")
   revalidatePath("/dashboard/notes")
 }
 
 export async function toggleNoteLocked(id: string, locked: boolean) {
   if (!validId(id)) return INVALID
   await supabase.from("notes").update({ locked }).eq("id", id)
+  void logActivity("note.update", locked ? "locked" : "unlocked")
   revalidatePath("/dashboard/notes")
 }
 
@@ -1084,12 +1102,14 @@ export async function toggleNoteLocked(id: string, locked: boolean) {
 export async function toggleVaultHidden(id: string, hidden: boolean) {
   if (!validId(id)) return INVALID
   await supabase.from("vault").update({ hidden }).eq("id", id)
+  void logActivity("vault.update", hidden ? "hidden" : "visible")
   revalidatePath("/dashboard/vault")
 }
 
 export async function toggleVaultLocked(id: string, locked: boolean) {
   if (!validId(id)) return INVALID
   await supabase.from("vault").update({ locked }).eq("id", id)
+  void logActivity("vault.update", locked ? "locked" : "unlocked")
   revalidatePath("/dashboard/vault")
 }
 
@@ -1441,6 +1461,7 @@ export async function restoreFromTrash(trashId: string) {
 export async function permanentlyDelete(trashId: string) {
   if (!validId(trashId)) return INVALID
   await supabase.from("trash").delete().eq("id", trashId)
+  void logActivity("trash.permanent_delete", trashId)
 }
 
 export async function emptyTrash() {

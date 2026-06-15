@@ -1,5 +1,4 @@
-﻿# CV Data - Single source of truth for all CV generation
-# This file drives the automatic generation of all role-specific CVs
+﻿# I keep all CV content here as the single source of truth for all role-specific generated variants.
 
 personal:
   name: "Isaac (Zac) Adjei"

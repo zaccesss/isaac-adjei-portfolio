@@ -1,3 +1,6 @@
+// I check the last run of the job-scraper GitHub Actions workflow so the dashboard
+// can show when it last ran and whether it succeeded. hasToken is returned so the
+// client can conditionally render the "Run now" button without a separate request.
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 

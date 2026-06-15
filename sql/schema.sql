@@ -41,6 +41,8 @@ drop table if exists tech_devices             cascade;
 drop table if exists opensource_contributions cascade;
 drop table if exists blog_read_events         cascade;
 drop table if exists wakatime_daily           cascade;
+drop table if exists trash                    cascade;
+drop table if exists contacts                 cascade;
 
 
 -- ============================================================
@@ -52,7 +54,7 @@ create table goals (
   created_at  timestamptz default now(),
   updated_at  timestamptz default now(),
   title       text not null,
-  description text,
+  description text,                    -- markdown
   category    text default 'Personal',
   status      text default 'not_started',
   target_date date,
@@ -68,8 +70,8 @@ create table modules (
   year       int,
   semester   int,
   status     text default 'ongoing',
-  summary    text,
-  rules      text
+  summary    text,  -- markdown
+  rules      text   -- markdown
 );
 
 create table assessments (
@@ -84,7 +86,7 @@ create table assessments (
   date           date,
   week           text,
   is_pass_fail   boolean default false,
-  my_notes       text
+  my_notes       text   -- markdown
 );
 
 create table vault (
@@ -105,8 +107,8 @@ create table vault (
   key_name    text,
   key_value   text,
   key_expiry  date,
-  content     text,
-  notes       text,
+  content     text,  -- markdown
+  notes       text,  -- markdown
   fields      jsonb default '{}',
   hidden      boolean default false,
   locked      boolean default false
@@ -119,7 +121,7 @@ create table wishlist (
   category   text not null,
   status     text default 'wanted',
   priority   text default 'medium',
-  notes      text
+  notes      text   -- markdown
 );
 
 create table diary (
@@ -127,7 +129,7 @@ create table diary (
   created_at timestamptz default now(),
   updated_at timestamptz default now(),
   title      text not null,
-  content    text not null,
+  content    text not null,  -- markdown
   mood       text,
   hidden     boolean default false,
   pinned     boolean default false,
@@ -139,7 +141,7 @@ create table notes (
   created_at timestamptz default now(),
   updated_at timestamptz default now(),
   title      text not null,
-  content    text default '',
+  content    text default '',  -- markdown
   folder     text default 'General',
   tags       text[] default '{}',
   pinned     boolean default false,
@@ -153,7 +155,7 @@ create table streaks (
   created_at  timestamptz default now(),
   name        text not null,
   icon        text default '🔥',
-  description text,
+  description text,  -- markdown
   color       text default '#6366f1',
   active      boolean default true,
   order_index int default 0
@@ -185,7 +187,7 @@ create table health_workouts (
   section_id  uuid references health_sections(id) on delete cascade,
   day_label   text not null,
   exercises   jsonb default '[]',
-  notes       text,
+  notes       text,  -- markdown
   order_index int default 0
 );
 
@@ -228,22 +230,20 @@ create table inventory_items (
   name            text not null,
   category        text not null default 'Tech and Devices',
   quantity        int default 1,
-  description     text,
+  description     text,  -- markdown
   purchase_date   date,
   price_paid      text,
   serial_number   text,
-  notes           text,
+  notes           text,  -- markdown
   warranty_expiry date,
   url             text
 );
 
 create table activity_log (
-  id          uuid primary key default gen_random_uuid(),
-  created_at  timestamptz default now(),
-  action      text not null,
-  entity_type text,
-  entity_id   uuid,
-  details     jsonb default '{}'
+  id         uuid        primary key default gen_random_uuid(),
+  action     text        not null,
+  detail     text,
+  created_at timestamptz not null default now()
 );
 
 create table habits (
@@ -251,7 +251,7 @@ create table habits (
   created_at  timestamptz default now(),
   name        text not null,
   frequency   text not null default 'daily',
-  description text,
+  description text,  -- markdown
   active      boolean default true,
   color       text default '#6366f1',
   order_index int default 0
@@ -262,7 +262,7 @@ create table habit_logs (
   habit_id  uuid references habits(id) on delete cascade,
   date      date not null,
   completed boolean default true,
-  notes     text,
+  notes     text,    -- markdown
   unique(habit_id, date)
 );
 
@@ -274,7 +274,7 @@ create table opensource_contributions (
   pr_number    integer,
   status       text not null default 'open',
   language     text,
-  notes        text,
+  notes        text,  -- markdown
   submitted_at date not null default current_date,
   created_at   timestamptz default now(),
   updated_at   timestamptz default now()
@@ -299,6 +299,33 @@ create table wakatime_daily (
   projects          jsonb default '[]',
   editors           jsonb default '[]',
   operating_systems jsonb default '[]'
+);
+
+create table trash (
+  id           uuid        primary key default gen_random_uuid(),
+  table_name   text        not null,
+  original_id  text        not null,
+  display_name text,
+  data         jsonb       not null,
+  deleted_at   timestamptz not null default now(),
+  expires_at   timestamptz not null default (now() + interval '7 days')
+);
+
+create table contacts (
+  id            uuid        primary key default gen_random_uuid(),
+  name          text        not null,
+  company       text,
+  role          text,
+  how_met       text,
+  email         text,
+  linkedin_url  text,
+  phone         text,
+  github_url    text,
+  last_contact  date,
+  notes         text,       -- markdown
+  follow_up     boolean     not null default false,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
 );
 
 
@@ -328,6 +355,8 @@ alter table habit_logs               enable row level security;
 alter table opensource_contributions enable row level security;
 alter table blog_read_events         enable row level security;
 alter table wakatime_daily           enable row level security;
+alter table trash                    enable row level security;
+alter table contacts                 enable row level security;
 
 
 -- ============================================================
@@ -355,6 +384,8 @@ create policy "allow all" on habit_logs               for all using (true);
 create policy "allow all" on opensource_contributions for all using (true);
 create policy "allow all" on blog_read_events         for all using (true);
 create policy "allow all" on wakatime_daily           for all using (true);
+create policy "allow all" on trash                    for all using (true) with check (true);
+create policy "allow all" on contacts                 for all using (true) with check (true);
 
 -- Applications policy may already exist since the table is preserved.
 do $$

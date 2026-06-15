@@ -1,3 +1,7 @@
+// I serve cover letters as binary file downloads from /public/resume so Next.js
+// does not need to generate them at runtime. The [role]/[format] segments let one
+// route handle all combinations without duplicating response logic.
+// force-dynamic prevents Next.js caching the binary response at the edge.
 import { readFileSync } from "fs"
 import { join } from "path"
 

@@ -1,3 +1,6 @@
+// I use server actions for restore and delete here so I can call revalidatePath
+// without a round-trip to an API route. Items are soft-deleted elsewhere and hard-
+// deleted either here manually or by the daily trash-cleanup cron after 7 days.
 import { getTrash, restoreFromTrash, permanentlyDelete, emptyTrash } from "@/app/dashboard/actions"
 import { revalidatePath } from "next/cache"
 import { Trash2, RotateCcw, X } from "lucide-react"

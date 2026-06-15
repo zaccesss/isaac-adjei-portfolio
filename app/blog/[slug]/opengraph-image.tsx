@@ -1,3 +1,5 @@
+// I generate per-post OG images with type badge, title, description and date/reading-time footer.
+
 import { ImageResponse } from "next/og"
 import { getPostBySlug } from "@/data/blog"
 

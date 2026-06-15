@@ -1,4 +1,6 @@
-﻿"use client"
+﻿// I provide a private diary with mood tracking, hidden/pinned/locked entries and a 30-day mood chart.
+// This page is only accessible from within the authenticated dashboard.
+"use client"
 
 import { useState, useTransition } from "react"
 import { createDiaryEntry, updateDiaryEntry, deleteDiaryEntry, toggleDiaryHidden, toggleDiaryPinned, toggleDiaryLocked } from "../../actions"
@@ -8,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, BarChart2, MoreVertical, EyeOff, Eye, Pin, PinOff, Lock, Unlock } from "lucide-react"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
 
 type Entry = {
@@ -215,9 +218,11 @@ function EntryCard({ entry, onEdit, onDelete, onToggle }: {
           </DropdownMenu>
         </div>
 
-        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-          {expanded ? entry.content : preview}
-        </p>
+        {expanded ? (
+          <MarkdownContent className="text-muted-foreground">{entry.content}</MarkdownContent>
+        ) : (
+          <MarkdownContent compact className="text-muted-foreground line-clamp-3">{preview}</MarkdownContent>
+        )}
 
         {entry.content.length > 180 && (
           <button
@@ -237,6 +242,7 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
   const [entries, setEntries] = useState<Entry[]>(initial)
   const [open, setOpen] = useState(false)
   const [editEntry, setEditEntry] = useState<Entry | null>(null)
+  const [showHidden, setShowHidden] = useState(false)
   const [, startTransition] = useTransition()
 
   function handleAdd(data: typeof emptyForm) {
@@ -276,22 +282,40 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
     else startTransition(() => void toggleDiaryLocked(id, value))
   }
 
+  const hiddenCount = entries.filter((e) => e.hidden).length
+  const visibleEntries = showHidden ? entries : entries.filter((e) => !e.hidden)
+
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">My diary</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{entries.length} entr{entries.length !== 1 ? "ies" : "y"} - just for me</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {entries.length} entr{entries.length !== 1 ? "ies" : "y"} - just for me
+            {hiddenCount > 0 && ` · ${hiddenCount} hidden`}
+          </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-1"><Plus className="h-4 w-4" />Write</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>New entry</DialogTitle></DialogHeader>
-            <EntryForm onSave={handleAdd} onCancel={() => setOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2">
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowHidden((v) => !v)}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-md hover:bg-muted"
+            >
+              {showHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+              {showHidden ? "Hide hidden" : "Show hidden"}
+            </button>
+          )}
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-1"><Plus className="h-4 w-4" />Write</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader><DialogTitle>New entry</DialogTitle></DialogHeader>
+              <EntryForm onSave={handleAdd} onCancel={() => setOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <MoodChart entries={entries} />
@@ -305,7 +329,7 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {entries.map((e) => <EntryCard key={e.id} entry={e} onEdit={(entry) => setEditEntry(entry)} onDelete={handleDelete} onToggle={handleToggle} />)}
+          {visibleEntries.map((e) => <EntryCard key={e.id} entry={e} onEdit={(entry) => setEditEntry(entry)} onDelete={handleDelete} onToggle={handleToggle} />)}
         </div>
       )}
 

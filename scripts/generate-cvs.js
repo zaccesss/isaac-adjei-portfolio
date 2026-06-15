@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// I generate role-specific CV HTML files from a single cv.yml data source so each variant stays in sync and I only edit one file.
 /**
  * CV Generator Script
  * Generates all role-specific CVs from data/cv.yml

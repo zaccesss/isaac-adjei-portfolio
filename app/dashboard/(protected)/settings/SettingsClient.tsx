@@ -1,3 +1,6 @@
+// I provide the dashboard settings page: PIN management, theme toggle, job-scraper controls,
+// WakaTime sync, CV regeneration, weekly and Discord digest triggers and data management.
+// I fetch workflow and scraper statuses on mount so I can show the last-run time and success state.
 "use client"
 
 import { useState, useEffect } from "react"
@@ -93,6 +96,8 @@ export default function SettingsClient() {
   const [dataMessage, setDataMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [dataLoading, setDataLoading] = useState(false)
 
+  // I use Promise.allSettled rather than Promise.all so a single failing status endpoint
+  // does not prevent the others from rendering - each section degrades independently
   useEffect(() => {
     async function loadStatuses() {
       setScraperLoading(true)
@@ -389,7 +394,7 @@ export default function SettingsClient() {
           </div>
           <div className="flex items-center justify-between py-1">
             <span className="text-muted-foreground">PIN-protected pages</span>
-            <span className="font-medium">Modules, Diary, Notes and Vault</span>
+            <span className="font-medium">Modules, Diary and Vault</span>
           </div>
         </div>
       </section>

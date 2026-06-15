@@ -1,3 +1,6 @@
+// I show vault entries of a specific type (accounts, secure notes, API keys, cards or identities).
+// I render each entry as a collapsible card with secret fields masked by default and a copy button
+// that never forces the user to reveal a secret just to copy it.
 "use client"
 
 import { useState, useTransition } from "react"
@@ -11,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Plus, Copy, Eye, EyeOff, Trash2, ExternalLink, Check, Search, Edit2, Key, CreditCard, User, StickyNote, Globe, MoreVertical, Lock, Unlock } from "lucide-react"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { dashboardPage } from "@/lib/animations"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 
 // I keep the VaultEntry type faithful to the DB schema so TypeScript catches any field name drift
 type VaultEntry = {
@@ -182,11 +186,10 @@ function EntryCard({ entry, onEdit, onDelete, onToggle }: {
           {entry.content && (
             <div className="flex flex-col gap-1 pt-1">
               <span className="text-xs text-muted-foreground">Content</span>
-              {/* I use whitespace-pre-wrap so multi-line secure notes preserve their formatting */}
-              <p className="text-xs leading-relaxed whitespace-pre-wrap">{entry.content}</p>
+              <MarkdownContent compact>{entry.content}</MarkdownContent>
             </div>
           )}
-          {entry.notes && <p className="text-xs text-muted-foreground border-t border-border/50 pt-2">{entry.notes}</p>}
+          {entry.notes && <div className="border-t border-border/50 pt-2"><MarkdownContent compact>{entry.notes}</MarkdownContent></div>}
         </div>
       )}
     </div>

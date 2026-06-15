@@ -2,7 +2,7 @@
 // If you add a new public route, add an entry here.
 
 import { MetadataRoute } from "next"
-import { posts } from "@/data/blog"
+import { getPublishedPosts } from "@/data/blog"
 import { projects } from "@/data/projects"
 import { SITE_URL } from "@/lib/constants"
 
@@ -22,7 +22,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/experience`,                    lastModified: new Date("2026-04-01"), changeFrequency: "monthly", priority: 0.8  },
     { url: `${SITE_URL}/skills`,                        lastModified: new Date("2026-04-01"), changeFrequency: "monthly", priority: 0.7  },
     { url: `${SITE_URL}/blog`,                          lastModified: new Date("2026-05-14"), changeFrequency: "weekly",  priority: 0.7  },
-    { url: `${SITE_URL}/cv`,                            lastModified: new Date("2026-04-01"), changeFrequency: "monthly", priority: 0.6  },
     { url: `${SITE_URL}/contact`,                       lastModified: new Date("2026-04-01"), changeFrequency: "yearly",  priority: 0.5  },
     { url: `${SITE_URL}/links`,                         lastModified: new Date("2026-04-01"), changeFrequency: "monthly", priority: 0.4  },
     { url: `${SITE_URL}/notes`,                         lastModified: new Date("2026-05-29"), changeFrequency: "monthly", priority: 0.6  },
@@ -48,8 +47,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: project.featured ? 0.8 : 0.6,
   }))
 
-  const blogRoutes: MetadataRoute.Sitemap = posts
-    .filter((post) => post.published)
+  const blogRoutes: MetadataRoute.Sitemap = getPublishedPosts()
     .map((post) => ({
       url: `${SITE_URL}/blog/${post.slug}`,
       lastModified: new Date(post.date),

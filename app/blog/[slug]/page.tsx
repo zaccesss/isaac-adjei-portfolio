@@ -1,7 +1,4 @@
-// Dynamic blog post page. Looks up the post by slug from data/blog.ts.
-// If the post exists but is not published, it returns 404 so draft URLs are not indexed.
-// The renderBlock function is a switch statement that turns each ContentBlock
-// into the appropriate JSX element (paragraph, heading, list, code block, etc.).
+// I look up each post by slug and return 404 for unpublished drafts so they never get indexed.
 
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
@@ -19,6 +16,7 @@ import BlogReactions from "@/components/shared/BlogReactions"
 import SeriesBanner from "@/components/shared/SeriesBanner"
 import ShareButton from "@/components/shared/ShareButton"
 import GiscusComments from "@/components/blog/GiscusComments"
+import AuthorCard from "@/components/blog/AuthorCard"
 
 function renderInline(text: string): React.ReactNode {
   const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g)
@@ -519,11 +517,24 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             </Link>
           </div>
 
-          {/* Reactions + Comments — very bottom, after prev/next */}
+          {/* Author, reactions and comments - very bottom, after prev/next */}
           {post.published && process.env.NEXT_PUBLIC_GISCUS_ENABLED?.toLowerCase() === "true" && (
             <div className="mt-8 pt-6 border-t border-border/40 space-y-8">
-              <BlogReactions slug={slug} />
-              <GiscusComments />
+              <AuthorCard />
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-base font-semibold">Reactions</h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">No login needed. Tap an emoji to let me know what landed.</p>
+                </div>
+                <BlogReactions slug={slug} />
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-base font-semibold">Comments</h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">Have a thought, correction or question? Sign in with GitHub - I read every comment and reply where I can.</p>
+                </div>
+                <GiscusComments />
+              </div>
             </div>
           )}
         </div>

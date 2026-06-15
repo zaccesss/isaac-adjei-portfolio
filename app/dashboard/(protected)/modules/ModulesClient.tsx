@@ -1,3 +1,6 @@
+// I export the Assessment and Module types from here so ModulesYearClient and other
+// sub-components can share the same definitions without a separate types file.
+// YEAR_ORDER is explicit so the accordion always renders 1-2-3-4 regardless of DB insertion order.
 "use client"
 
 import Link from "next/link"

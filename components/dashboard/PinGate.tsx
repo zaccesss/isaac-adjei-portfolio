@@ -1,3 +1,6 @@
+// I render the PIN prompt that gates Diary, Vault and Modules. Verification is done
+// server-side so the hash never reaches the browser. A successful unlock sets an
+// httpOnly cookie (via /api/dashboard/verify-pin) that persists for 4 hours.
 "use client"
 
 import { useState } from "react"

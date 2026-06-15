@@ -1,3 +1,5 @@
+// I show the detail view for a single inventory item with editable fields and a warranty warning.
+// I live at /dashboard/inventory/[category]/[id] so each item has a bookmarkable URL.
 "use client"
 
 import { useState, useTransition } from "react"
@@ -9,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { deleteInventoryItem, updateInventoryItem } from "@/app/dashboard/actions"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 
 type Item = {
   id: string
@@ -26,6 +29,9 @@ type Item = {
 
 type SpecRow = { key: string; value: string }
 
+// I try to parse the description as a key-value spec table (one "Key: Value" pair per line).
+// I require at least half the lines to be valid pairs before switching to the table layout -
+// this prevents normal prose descriptions from being incorrectly rendered as specs.
 function parseSpecs(description: string): SpecRow[] | null {
   const lines = description.trim().split("\n").filter(Boolean)
   if (lines.length < 2) return null
@@ -283,9 +289,9 @@ export default function InventoryItemClient({
               ))}
             </dl>
           ) : (
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line border-t border-border/50 pt-3 mt-1">
-              {item.description}
-            </p>
+            <div className="border-t border-border/50 pt-3 mt-1">
+              <MarkdownContent>{item.description}</MarkdownContent>
+            </div>
           )
         })()}
       </div>
@@ -309,7 +315,7 @@ export default function InventoryItemClient({
       {item.notes && (
         <div className="border border-border rounded-xl p-5 bg-card">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Notes</p>
-          <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{item.notes}</p>
+          <MarkdownContent>{item.notes}</MarkdownContent>
         </div>
       )}
 

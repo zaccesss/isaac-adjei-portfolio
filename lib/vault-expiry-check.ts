@@ -1,3 +1,6 @@
+// I check vault entries and inventory items for upcoming expiry dates and send an
+// email alert when anything is within its type-specific warning window. I keep this
+// logic in a lib file so the cron route and any future callers share one implementation.
 import { supabase } from "@/lib/supabase"
 
 // I use per-type thresholds so time-sensitive documents (passports) alert

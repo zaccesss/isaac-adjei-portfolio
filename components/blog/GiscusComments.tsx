@@ -1,3 +1,6 @@
+// I load Giscus comments in a client component so I can read the resolved theme
+// and pass a matching custom CSS URL. I use a separate discussions repo so comment
+// activity does not pollute the main portfolio repo's issue tracker.
 "use client"
 
 import Giscus from "@giscus/react"

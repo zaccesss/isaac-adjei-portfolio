@@ -3,8 +3,8 @@
 // showLabel is optional - when true the platform name appears next to the icon.
 
 import Link from "next/link"
-import { Github, Linkedin, Link2, Mail, Globe, Newspaper } from "lucide-react"
-import { SiOrcid } from "react-icons/si"
+import { Github, Linkedin, Link2, Mail, Newspaper } from "lucide-react"
+import { SiOrcid, SiBuymeacoffee } from "react-icons/si"
 import { socialLinks } from "@/data/social"
 import { cn } from "@/lib/utils"
 
@@ -13,25 +13,28 @@ const iconMap: Record<string, React.ElementType> = {
   linkedin: Linkedin,
   link: Link2,
   mail: Mail,
-  globe: Globe,
   orcid: SiOrcid,
   newsletter: Newspaper,
+  buymeacoffee: SiBuymeacoffee,
 }
 
 interface SocialLinksProps {
   className?: string
   iconSize?: string
   showLabel?: boolean
+  footerOnly?: boolean
 }
 
 export default function SocialLinks({
   className,
   iconSize = "h-4 w-4",
   showLabel = false,
+  footerOnly = false,
 }: SocialLinksProps) {
+  const links = footerOnly ? socialLinks.filter((s) => s.footer !== false) : socialLinks
   return (
     <div className={cn("flex items-center gap-4 flex-wrap", className)}>
-      {socialLinks.map((social) => {
+      {links.map((social) => {
         const Icon = iconMap[social.icon] ?? Link2
         return (
           <Link

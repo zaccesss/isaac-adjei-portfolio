@@ -1,3 +1,5 @@
+// I set Lab section metadata and wrap child pages with no extra chrome.
+
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {

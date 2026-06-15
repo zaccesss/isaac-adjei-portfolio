@@ -1,5 +1,7 @@
 "use client"
 
+// I render the Lab - a terminal-style interactive explorer with commands, live data panels and blog post previews.
+
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { posts } from "@/data/blog"

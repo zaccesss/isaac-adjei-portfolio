@@ -1,3 +1,7 @@
+// Cron route that checks how old the ps5:last-known Redis key is.
+// I send an email reminder when the data is 50+ days old because the NPSSO session
+// cookie expires after 60 days, so that gives a 10-day window to renew before the
+// Cloudflare Worker stops being able to read PSN presence.
 import { NextRequest, NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
 

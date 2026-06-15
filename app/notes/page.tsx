@@ -1,3 +1,5 @@
+// I render the notes hub with links to research topics, active projects and public writing outside the main blog.
+
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
