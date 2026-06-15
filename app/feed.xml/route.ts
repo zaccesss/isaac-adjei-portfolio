@@ -69,13 +69,19 @@ ${items}
 </rss>`
 }
 
-function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_URL) {
+const RSS_PER_PAGE = 7
+
+function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_URL, page = 1) {
+  const totalPages = Math.ceil(posts.length / RSS_PER_PAGE)
+  const currentPage = Math.max(1, Math.min(page, totalPages))
+  const paginated = posts.slice((currentPage - 1) * RSS_PER_PAGE, currentPage * RSS_PER_PAGE)
+
   function resolveLocal(coverImage: string | undefined): string | null {
     if (!coverImage) return null
     if (coverImage.startsWith("http")) return coverImage
     return `${baseUrl}${coverImage}`
   }
-  const items = posts
+  const items = paginated
     .map((post) => {
       const url = `${SITE_URL}/blog/${post.slug}`
       const pubDate = new Date(post.date).toLocaleDateString("en-GB", {
@@ -175,6 +181,17 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_U
         margin-top: 0.75rem;
       }
       .raw-btn:hover { border-color: var(--muted); color: var(--fg); }
+      .pagination { display: flex; align-items: center; justify-content: center; gap: 0.375rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+      .page-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 2rem; height: 2rem; padding: 0 0.5rem;
+        border: 1px solid var(--card-border); border-radius: 0.375rem;
+        background: var(--card); color: var(--btn-fg);
+        font-size: 0.8125rem; text-decoration: none; cursor: pointer;
+      }
+      .page-btn:hover { border-color: var(--muted); color: var(--fg); }
+      .page-btn.active { background: var(--link); border-color: var(--link); color: #fff; }
+      .page-btn.disabled { opacity: 0.4; pointer-events: none; }
       .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--subtle); }
       .footer a { color: var(--link); text-decoration: none; }
     </style>
@@ -200,6 +217,16 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_U
       </div>
       <div class="posts">${items}
       </div>
+      ${totalPages > 1 ? `
+      <div class="pagination">
+        <a href="?page=1" class="page-btn${currentPage === 1 ? " disabled" : ""}">&#171;</a>
+        <a href="?page=${currentPage - 1}" class="page-btn${currentPage === 1 ? " disabled" : ""}">&#8249;</a>
+        ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p =>
+          `<a href="?page=${p}" class="page-btn${p === currentPage ? " active" : ""}">${p}</a>`
+        ).join("")}
+        <a href="?page=${currentPage + 1}" class="page-btn${currentPage === totalPages ? " disabled" : ""}">&#8250;</a>
+        <a href="?page=${totalPages}" class="page-btn${currentPage === totalPages ? " disabled" : ""}">&#187;</a>
+      </div>` : ""}
       <div class="footer">
         <a href="${SITE_URL}">isaacadjei.me</a>
         &#183;
@@ -232,7 +259,8 @@ export function GET(request: Request) {
   }
 
   if (accept.includes("text/html")) {
-    return new Response(buildHtml(posts, baseUrl), {
+    const page = parseInt(url.searchParams.get("page") ?? "1", 10)
+    return new Response(buildHtml(posts, baseUrl, page), {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "public, max-age=3600",

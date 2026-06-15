@@ -39,7 +39,7 @@ export default function PastIssues() {
     <section className="space-y-4">
       <div className="flex items-center gap-2">
         <Rss className="h-5 w-5 text-primary" />
-        <h2 className="text-2xl font-bold">Past issues</h2>
+        <h2 className="text-2xl font-bold">Recent issues</h2>
       </div>
 
       {loading && (

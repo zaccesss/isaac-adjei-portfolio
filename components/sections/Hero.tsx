@@ -39,7 +39,7 @@ export default function Hero() {
             Electronic Engineering &amp; Computer Science
           </p>
           <p className="text-xl md:text-2xl text-muted-foreground">
-            Building at the intersection of hardware, software and AI.
+            Building at the intersection of hardware, software and AI/ML.
           </p>
         </motion.div>
 

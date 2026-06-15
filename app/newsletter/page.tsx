@@ -1,4 +1,4 @@
-// I render the public newsletter landing page with topic cards, a subscribe form and past issues.
+// I render the public newsletter landing page with topic cards, a subscribe form and recent issues.
 // I am a server component so the metadata and OG image are available for crawlers without JS.
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
