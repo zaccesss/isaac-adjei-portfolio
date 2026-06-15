@@ -14,12 +14,14 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
   })
 }
 
-export const PRESET_TYPES = ["thumbsup", "thumbsdown", "laugh", "hooray", "confused", "heart", "rocket", "eyes"] as const
+// All 8 pinned + 12 picker extras — stored by emoji character
+export const PRESET_TYPES = [
+  "👍","❤️","🔥","💡","🤯","🎉","💯","🎯",
+  "👎","😄","😕","😢","🚀","👀","🙌","😮","💪","🧠","✨","🌟","🙏","😍","🤝","😎","🫶","🥹","🫠","🤌",
+] as const
 export type ReactionType = (typeof PRESET_TYPES)[number]
 
-const PRESET_DEFAULTS: Record<ReactionType, 0> = {
-  thumbsup: 0, thumbsdown: 0, laugh: 0, hooray: 0, confused: 0, heart: 0, rocket: 0, eyes: 0,
-}
+const PRESET_DEFAULTS: Record<string, 0> = Object.fromEntries(PRESET_TYPES.map((t) => [t, 0]))
 
 function reactionKey(slug: string, type: string) {
   return `reactions:${slug}:${type}`
@@ -56,7 +58,7 @@ export async function GET(req: NextRequest) {
 
   const presets = Object.fromEntries(
     PRESET_TYPES.map((t, i) => [t, presetCounts[i] ?? 0])
-  ) as Record<ReactionType, number>
+  )
 
   let custom: Record<string, number> = {}
   if (customEmojis.length > 0) {
