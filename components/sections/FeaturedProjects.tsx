@@ -9,11 +9,25 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { projects } from "@/data/projects"
+import type { Project } from "@/data/projects"
 import ProjectCard from "@/components/projects/ProjectCard"
 import { staggerContainer, fadeUp } from "@/lib/animations"
 
+// I control the display order here so the homepage grid always shows a curated sequence
+// regardless of the order projects appear in data/projects.ts.
+const FEATURED_ORDER = [
+  "audio-amplifier",
+  "led-cube",
+  "astoncv",
+  "cad-portfolio",
+  "phaemos",
+  "git-unlocked",
+]
+
 export default function FeaturedProjects() {
-  const featured = projects.filter((p) => p.featured)
+  const featured = FEATURED_ORDER
+    .map((id) => projects.find((p) => p.id === id))
+    .filter((p): p is Project => p !== undefined)
 
   return (
     <section className="py-24 border-t">
