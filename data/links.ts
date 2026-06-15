@@ -1,6 +1,4 @@
-// Data for the /links page - all my profiles grouped by category.
-// iconImage is an optional image path used instead of a vector icon for platforms
-// that don't have a matching lucide/react-icons entry.
+// I list all my public profiles grouped by category for the /links page.
 
 export interface LinkItem {
   title: string

@@ -1,5 +1,4 @@
-// Homepage - assembles the five homepage sections in order.
-// All the heavy lifting lives inside the individual section components.
+// I assemble the five homepage sections in order - each section component owns its own logic.
 
 import type { Metadata } from "next"
 import Hero from "@/components/sections/Hero"

@@ -1,6 +1,4 @@
-// These are reusable Framer Motion animation variants I use across the whole site.
-// Instead of writing the same animation config over and over, I define them once here
-// and import whichever ones I need in each component.
+// I define reusable Framer Motion animation variants here so every component imports the same config instead of duplicating it.
 
 import type { Variants } from "framer-motion"
 

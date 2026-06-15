@@ -1,5 +1,4 @@
-// All work experience, internships and virtual programmes.
-// The 'type' field controls the badge colour on the timeline.
+// I list all work experience, internships and programmes shown on the About timeline.
 
 export interface Experience {
   id: string

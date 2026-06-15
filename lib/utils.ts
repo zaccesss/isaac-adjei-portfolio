@@ -1,4 +1,4 @@
-// Utility helpers used throughout the project.
+// I collect small utility helpers here so every file can import from one place.
 
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"

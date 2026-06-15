@@ -1,7 +1,5 @@
-// Central place for all route paths and navigation links.
-// I define everything here so if a URL ever changes, I only have to update it once.
+// I centralise all route paths and navigation links here so a URL change only needs one edit.
 
-// All the URL paths used across the site
 export const ROUTES = {
   home: "/",
   about: "/about",

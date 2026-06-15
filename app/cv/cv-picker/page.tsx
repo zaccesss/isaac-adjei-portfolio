@@ -1,6 +1,4 @@
-// I present all six role-specific CV variants as a grid so recruiters can immediately download the version most relevant to the position they are hiring for.
-// CV Picker sub-page - shows all role-specific CV options
-// Linked from the main CV page for visitors wanting a tailored CV
+// I present all six role-specific CV variants as a grid so recruiters can immediately download the most relevant version.
 
 import type { Metadata } from "next"
 import Link from "next/link"

@@ -1,7 +1,4 @@
-// Dynamic blog post page. Looks up the post by slug from data/blog.ts.
-// If the post exists but is not published, it returns 404 so draft URLs are not indexed.
-// The renderBlock function is a switch statement that turns each ContentBlock
-// into the appropriate JSX element (paragraph, heading, list, code block, etc.).
+// I look up each post by slug and return 404 for unpublished drafts so they never get indexed.
 
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"

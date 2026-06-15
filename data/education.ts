@@ -1,5 +1,4 @@
-// My education history. Each entry appears on the About page.
-// modules is optional - I only fill it in where the specific modules are relevant.
+// I list my education history shown on the About page - modules is optional per entry.
 
 export interface Education {
   id: string

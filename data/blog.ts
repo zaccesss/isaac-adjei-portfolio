@@ -1,7 +1,4 @@
-// All blog post data and the type definitions needed to work with it.
-// PostType controls the coloured label shown on each post card.
-// ContentBlock is a discriminated union - each object has a 'type' field that tells
-// the renderer exactly how to display it (paragraph, heading, list, code block, etc.).
+// I define all blog post types, content block shapes and the master list of published posts.
 
 export type PostType = "blog" | "journal" | "research" | "notes" | "report" | "article" | "resources"
 

@@ -1,7 +1,6 @@
 // I generate the Open Graph preview image shown when the site is shared on social media.
-// I use Next.js ImageResponse which renders JSX to a PNG via the 'tw' prop
-// for Tailwind-like inline styles (processed by @vercel/og, not the regular Tailwind build).
-// I run on the edge runtime to keep generation fast.
+// I use Next.js ImageResponse with the 'tw' prop for Tailwind-like styles processed by @vercel/og, not the regular build.
+// I run on the edge runtime to keep generation fast with no cold-start penalty.
 
 import { ImageResponse } from "next/og"
 
