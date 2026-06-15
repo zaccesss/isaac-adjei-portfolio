@@ -5,6 +5,7 @@ import Hero from "@/components/sections/Hero"
 import AboutPreview from "@/components/sections/AboutPreview"
 import FeaturedProjects from "@/components/sections/FeaturedProjects"
 import FeaturedBlogPosts from "@/components/sections/FeaturedBlogPosts"
+import FeaturedNewsletterIssues from "@/components/sections/FeaturedNewsletterIssues"
 import SkillsOverview from "@/components/sections/SkillsOverview"
 import ContactCTA from "@/components/sections/ContactCTA"
 
@@ -24,6 +25,7 @@ export default function Home() {
       <AboutPreview />
       <FeaturedProjects />
       <FeaturedBlogPosts />
+      <FeaturedNewsletterIssues />
       <SkillsOverview />
       <ContactCTA />
     </>
