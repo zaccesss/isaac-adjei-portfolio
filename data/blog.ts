@@ -33,6 +33,8 @@ export interface BlogPost {
   // I use series + seriesPart to group related posts. Both fields must be set together.
   series?: string
   seriesPart?: number
+  // I mark the 4 best posts for homepage feature section - must have a cover_image.
+  featured?: boolean
 }
 
 export const POST_TYPES: { label: string; value: PostType | "all" }[] = [
@@ -1934,6 +1936,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     tags: ["Opinion", "Embedded", "Software Engineering", "Career"],
     readingTime: 7,
     published: true,
+    featured: true,
     content: [
       {
         type: "p",
@@ -2030,6 +2033,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
     tags: ["Resources", "Embedded", "Software Engineering", "Learning", "Tools"],
     readingTime: 8,
     published: true,
+    featured: true,
     content: [
       {
         type: "p",
@@ -2963,6 +2967,7 @@ void sensor_task(void *pvParameters) {
     tags: ["Health Tech", "Prosthetics", "Research", "Bioelectronics", "Vision"],
     readingTime: 12,
     published: true,
+    featured: true,
     content: [
       {
         type: "p",
@@ -5254,6 +5259,7 @@ def cache_object(obj: Serialisable, key: str) -> None:
     tags: ["Open Source", "Git", "GitHub", "Career", "Community"],
     readingTime: 14,
     published: true,
+    featured: true,
     content: [
       {
         type: "p",
@@ -5501,6 +5507,10 @@ export function getPublishedPosts(): BlogPost[] {
   if (process.env.NODE_ENV === "development") return posts
   const today = new Date().toISOString().split("T")[0]
   return posts.filter((p) => p.published && p.date <= today)
+}
+
+export function getFeaturedPosts(): BlogPost[] {
+  return getPublishedPosts().filter((p) => p.featured && p.cover_image)
 }
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
