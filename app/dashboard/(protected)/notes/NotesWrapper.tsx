@@ -14,6 +14,7 @@ type Note = {
   tags: string[]
   pinned: boolean
   locked: boolean
+  hidden: boolean
   color: string | null
   created_at: string
   updated_at: string
