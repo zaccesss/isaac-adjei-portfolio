@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { deleteInventoryItem, updateInventoryItem } from "@/app/dashboard/actions"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 
 type Item = {
   id: string
@@ -283,9 +284,9 @@ export default function InventoryItemClient({
               ))}
             </dl>
           ) : (
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line border-t border-border/50 pt-3 mt-1">
-              {item.description}
-            </p>
+            <div className="border-t border-border/50 pt-3 mt-1">
+              <MarkdownContent>{item.description}</MarkdownContent>
+            </div>
           )
         })()}
       </div>
@@ -309,7 +310,7 @@ export default function InventoryItemClient({
       {item.notes && (
         <div className="border border-border rounded-xl p-5 bg-card">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Notes</p>
-          <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{item.notes}</p>
+          <MarkdownContent>{item.notes}</MarkdownContent>
         </div>
       )}
 

@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ChevronLeft, ChevronDown, Plus, Trash2, Edit2, AlertTriangle } from "lucide-react"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 import { AssessmentBarChart, ProgressLineChart, ModuleGradePieChart } from "../ModuleCharts"
 import { calcMark, classLabel, markColour, classBadge, StatsBar, type Assessment, type Module } from "../ModulesClient"
 
@@ -435,7 +436,7 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
       {mod.summary && (
         <div className="border border-border rounded-lg p-3 bg-muted/20">
           <p className="text-xs font-semibold text-muted-foreground mb-1">Module summary</p>
-          <p className="text-xs text-muted-foreground leading-relaxed">{mod.summary}</p>
+          <MarkdownContent compact>{mod.summary}</MarkdownContent>
         </div>
       )}
 

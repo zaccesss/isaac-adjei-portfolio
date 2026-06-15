@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 import { ExternalLink, Rss, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import type { NewsletterIssue } from "@/app/api/newsletter-issues/route"
 
-const ISSUES_PER_PAGE = 7
+const ISSUES_PER_PAGE = 10
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {

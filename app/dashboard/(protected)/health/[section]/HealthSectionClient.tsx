@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Trash2, Edit2, Dumbbell, Salad, Footprints, X } from "lucide-react"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { dashboardPage } from "@/lib/animations"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 
 type Section = {
   id: string
@@ -107,7 +108,7 @@ function WorkoutDayCard({ workout, onEdit, onDelete }: {
               </div>
             ))}
           </div>
-          {workout.notes && <p className="text-xs text-muted-foreground border-t border-border/50 pt-2">{workout.notes}</p>}
+          {workout.notes && <div className="border-t border-border/50 pt-2"><MarkdownContent compact>{workout.notes}</MarkdownContent></div>}
           <div className="flex gap-2 pt-1">
             <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={onEdit}><Edit2 className="h-3 w-3" />Edit</Button>
             <Button size="sm" variant="outline" className="h-7 text-xs gap-1 text-destructive hover:text-destructive" onClick={() => onDelete(workout.id)}><Trash2 className="h-3 w-3" />Delete</Button>
@@ -163,7 +164,7 @@ function NutritionCard({ item, onUpdate, onDelete }: {
               <p className="text-xs font-medium text-muted-foreground">Rules</p>
               {item.rules.map((rule, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="text-xs flex-1 text-muted-foreground">{rule}</span>
+                  <div className="flex-1"><MarkdownContent compact>{rule}</MarkdownContent></div>
                   <button type="button" aria-label="Remove rule" onClick={() => onUpdate(item.id, { rules: item.rules.filter((_, j) => j !== i) })} className="p-1 text-muted-foreground hover:text-destructive"><X className="h-3 w-3" /></button>
                 </div>
               ))}

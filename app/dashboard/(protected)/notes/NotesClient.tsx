@@ -39,7 +39,7 @@ export default function NotesClient({ notes }: { notes: Note[] }) {
       <div>
         <h1 className="text-xl font-semibold">Notes</h1>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {notes.length} {notes.length === 1 ? "note" : "notes"} across {folders.length} {folders.length === 1 ? "folder" : "folders"}
+          {visibleNotes.length} {visibleNotes.length === 1 ? "note" : "notes"} across {folders.length} {folders.length === 1 ? "folder" : "folders"}{hiddenNotes.length > 0 ? ` · ${hiddenNotes.length} hidden` : ""}
         </p>
       </div>
 

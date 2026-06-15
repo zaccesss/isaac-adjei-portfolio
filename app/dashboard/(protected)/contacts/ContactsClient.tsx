@@ -4,6 +4,8 @@ import { useState } from "react"
 import { Users, Plus, X, ExternalLink, Mail, Phone, Bell, BellOff, Pencil, Github } from "lucide-react"
 import type { Contact } from "@/app/dashboard/actions"
 import { createContact, updateContact, deleteContact } from "@/app/dashboard/actions"
+import MarkdownContent from "@/components/shared/MarkdownContent"
+import PhoneField from "@/components/shared/PhoneField"
 
 const HOW_MET_OPTIONS = [
   "Career fair", "LinkedIn", "Coffee chat", "Referral",
@@ -89,12 +91,9 @@ function ContactForm({
           onChange={set("email")}
           className="border border-border rounded px-3 py-1.5 text-sm bg-background"
         />
-        <input
-          placeholder="Phone"
-          type="tel"
+        <PhoneField
           value={form.phone}
-          onChange={set("phone")}
-          className="border border-border rounded px-3 py-1.5 text-sm bg-background"
+          onChange={(v) => setForm((p) => ({ ...p, phone: v }))}
         />
         <input
           placeholder="LinkedIn URL"
@@ -368,7 +367,9 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
                         </p>
                       )}
                       {contact.notes && (
-                        <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">{contact.notes}</p>
+                        <div className="mt-1.5 line-clamp-3">
+                          <MarkdownContent compact>{contact.notes}</MarkdownContent>
+                        </div>
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">

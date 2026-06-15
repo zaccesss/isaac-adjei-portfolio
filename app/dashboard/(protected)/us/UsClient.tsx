@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus, Trash2, Save, X } from "lucide-react"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 
 type Pledge = { text: string; status: string }
 type RoutineItem = { time: string; activity: string }
@@ -43,6 +44,13 @@ function EditableText({ value, onSave, multiline }: { value: string; onSave: (v:
         }
         <button type="button" onClick={() => { onSave(draft); setEditing(false) }} className="p-1 text-green-600"><Save className="h-3.5 w-3.5" /></button>
         <button type="button" onClick={() => { setDraft(value); setEditing(false) }} className="p-1 text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
+      </div>
+    )
+  }
+  if (multiline && value) {
+    return (
+      <div className="cursor-pointer hover:ring-1 hover:ring-border rounded px-1 -mx-1" onClick={() => { setDraft(value); setEditing(true) }}>
+        <MarkdownContent compact>{value}</MarkdownContent>
       </div>
     )
   }

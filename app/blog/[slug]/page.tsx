@@ -534,7 +534,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
               <div className="space-y-4">
                 <div>
                   <h3 className="text-base font-semibold">Comments</h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">Sign in with GitHub to leave a comment — I read every one and reply where I can.</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">Have a thought, correction or question? Sign in with GitHub — I read every comment and reply where I can.</p>
                 </div>
                 <GiscusComments />
               </div>

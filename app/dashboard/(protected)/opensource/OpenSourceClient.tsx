@@ -9,6 +9,7 @@ import {
   type OpenSourceContribution,
 } from "@/app/dashboard/actions"
 import { Github, ExternalLink, Plus, Trash2, Download, Pencil } from "lucide-react"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 
 // I define the valid status values and their badge colours in one place
 // so the table cells and the add-row select are always in sync.
@@ -591,6 +592,7 @@ export default function OpenSourceClient({
                     onSave={handleCellSave}
                     editRef={editRef}
                     className="w-40"
+                    markdown
                   />
 
                   {/* actions */}
@@ -637,6 +639,7 @@ function EditCell({
   inputType = "text",
   className = "w-32",
   display,
+  markdown = false,
 }: {
   id: string
   field: string
@@ -648,6 +651,7 @@ function EditCell({
   inputType?: string
   className?: string
   display?: string
+  markdown?: boolean
 }) {
   const isEditing = editCell?.id === id && editCell.field === field
   return (
@@ -665,6 +669,10 @@ function EditCell({
           }}
           className={`${className} border border-border rounded px-2 py-0.5 text-sm bg-background`}
         />
+      ) : markdown && value ? (
+        <div className="cursor-pointer" onClick={() => setEditCell({ id, field })}>
+          <MarkdownContent compact>{value}</MarkdownContent>
+        </div>
       ) : (
         <span
           className="cursor-pointer hover:underline text-sm"

@@ -13,6 +13,7 @@ import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, L
 import ApplicationsKanban from "./ApplicationsKanban"
 import ApplicationsAnalytics from "./ApplicationsAnalytics"
 import LinearView from "./LinearView"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -528,28 +529,26 @@ function YesNoBadge({ value }: { value: string | null }) {
   return <span className="text-xs">{value}</span>
 }
 
-const NOTES_TRUNCATE_LENGTH = 80
-
 function NotesCell({ notes }: { notes: string | null }) {
   const [expanded, setExpanded] = useState(false)
   if (!notes) return <span className="text-muted-foreground/40">-</span>
-  const isLong = notes.length > NOTES_TRUNCATE_LENGTH
+  const isLong = notes.length > 120
   return (
-    <span className="text-muted-foreground text-xs">
-      {isLong && !expanded ? notes.slice(0, NOTES_TRUNCATE_LENGTH) + "…" : notes}
+    <div className="text-xs">
+      {isLong && !expanded
+        ? <MarkdownContent compact>{notes.slice(0, 120) + "…"}</MarkdownContent>
+        : <MarkdownContent compact>{notes}</MarkdownContent>
+      }
       {isLong && (
-        <>
-          {" "}
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className="text-xs text-muted-foreground underline cursor-pointer"
-          >
-            {expanded ? "Show less" : "Show more"}
-          </button>
-        </>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-xs text-primary hover:underline mt-0.5"
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
       )}
-    </span>
+    </div>
   )
 }
 

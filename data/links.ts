@@ -46,7 +46,7 @@ export const profileLinks: LinkItem[] = [
   },
   {
     title: "Newsletter",
-    description: "Subscribe to my newsletter - engineering, tech and more",
+    description: "Subscribe via Beehiiv — engineering, tech and more",
     url: "https://newsletter.isaacadjei.me/",
     icon: "newspaper",
     category: "professional",
