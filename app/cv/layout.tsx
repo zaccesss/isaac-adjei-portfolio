@@ -5,6 +5,7 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "CV",
   description: "My curriculum vitae - Electronic Engineering and Computer Science student at Aston University.",
+  robots: { index: false, follow: false },
   alternates: {
     canonical: "https://www.isaacadjei.me/cv",
   },
