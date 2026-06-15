@@ -1,3 +1,7 @@
+# I fire on every push to main and bring all open PRs with auto-merge enabled up to date
+# with the base branch. This prevents the "branch behind main" stall that blocks auto-merge
+# when a Dependabot PR (or any other PR) merges to main while another PR is open.
+
 name: Update PR branches
 
 on:
@@ -17,6 +21,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
+          # Only target PRs that already have auto-merge set - ignore everything else
           prs=$(gh api repos/$REPO/pulls --jq '[.[] | select(.state=="open" and .auto_merge != null) | .number] | .[]')
           if [ -z "$prs" ]; then
             echo "No open PRs with auto-merge enabled"
@@ -24,5 +29,6 @@ jobs:
           fi
           for pr in $prs; do
             echo "Updating branch for PR #$pr"
+            # The API returns 422 if the branch is already up to date - treat that as success
             gh api repos/$REPO/pulls/$pr/update-branch --method PUT || echo "PR #$pr already up to date"
           done

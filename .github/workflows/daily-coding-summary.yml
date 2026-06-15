@@ -1,8 +1,12 @@
+# I fetch yesterday's WakaTime data from Supabase and post a formatted coding summary
+# to Discord every night at 23:55 UTC - after the WakaTime sync at 23:30 has completed.
+# Also triggerable manually via workflow_dispatch for testing.
+
 name: Daily Coding Summary
 
 on:
   schedule:
-    # Runs at 23:55 UTC every day — after WakaTime has synced the day's data.
+    # Runs at 23:55 UTC every day - after WakaTime has synced the day's data.
     - cron: "55 23 * * *"
   workflow_dispatch:
 
@@ -21,6 +25,7 @@ jobs:
       - name: Send daily coding summary to Discord
         env:
           SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          # I use the service role key so the script can read all rows without RLS blocking it
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: node scripts/daily-coding-summary.mjs

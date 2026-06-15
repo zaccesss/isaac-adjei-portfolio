@@ -1,3 +1,7 @@
+# I regenerate the CV PDF and DOCX artefacts whenever cv.html changes on main, then open
+# an auto-merging PR to commit the updated files back. This keeps the downloadable CV
+# in sync with the source HTML without any manual step. Also triggerable via workflow_dispatch.
+
 name: Regenerate CV PDF
 
 on:
