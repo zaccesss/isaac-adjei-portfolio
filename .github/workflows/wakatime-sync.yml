@@ -1,3 +1,7 @@
+# I fetch the latest WakaTime coding stats and upsert them into the wakatime_daily
+# Supabase table so the dashboard coding page always reflects up-to-date data.
+# Runs nightly at 23:30 UTC and can be triggered manually from the Settings dashboard page.
+
 name: WakaTime Sync
 
 on:

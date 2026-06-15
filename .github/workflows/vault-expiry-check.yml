@@ -1,3 +1,7 @@
+# I check the vault table in Supabase for entries with upcoming or past expiry dates
+# and post a Discord alert if any are found. Runs daily at 08:00 UTC so alerts arrive
+# at the start of the working day. Also triggerable manually via workflow_dispatch.
+
 name: Vault Expiry Check
 
 on:
@@ -16,6 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          # I cache npm to speed up installs since the script depends on the supabase-js client
           cache: "npm"
 
       - run: npm ci

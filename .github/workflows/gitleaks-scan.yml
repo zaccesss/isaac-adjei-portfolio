@@ -1,3 +1,7 @@
+# I scan the repository for hard-coded secrets and credentials on every push to main
+# and on every PR targeting main. A pinned gitleaks binary is installed directly to
+# avoid the action wrapper that requires a paid licence for SARIF upload on private repos.
+
 name: Gitleaks Scan
 
 on:
