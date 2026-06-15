@@ -39,15 +39,15 @@ export const profileLinks: LinkItem[] = [
   // },
   {
     title: "Email",
-    description: "Get in touch - contact@isaacadjei.me",
-    url: "mailto:contact@isaacadjei.me",
+    description: "Get in touch - hello@isaacadjei.me",
+    url: "mailto:hello@isaacadjei.me",
     icon: "mail",
     category: "professional",
   },
   {
     title: "Newsletter",
     description: "Subscribe to my newsletter - engineering, tech and more",
-    url: "https://isaacadjei.me/newsletter",
+    url: "https://newsletter.isaacadjei.me/",
     icon: "newspaper",
     category: "professional",
   },
@@ -56,6 +56,13 @@ export const profileLinks: LinkItem[] = [
     description: "My ORCID researcher profile",
     url: "https://orcid.org/0009-0001-8298-5098",
     icon: "orcid",
+    category: "professional",
+  },
+  {
+    title: "Google Scholar",
+    description: "View my publications and citations on Google Scholar",
+    url: "https://scholar.google.com/citations?user=YZq0XuMAAAAJ",
+    icon: "googlescholar",
     category: "professional",
   },
   {
@@ -203,10 +210,10 @@ export const profileLinks: LinkItem[] = [
   },
   // Support
   {
-    title: "Patreon",
-    description: "Support me on Patreon - exclusive perks & content",
-    url: "https://www.patreon.com/cw/zaccesss",
-    icon: "patreon",
+    title: "GitHub Sponsors",
+    description: "Sponsor me on GitHub - help me keep building open source",
+    url: "https://github.com/sponsors/zaccesss",
+    icon: "githubsponsors",
     category: "support",
   },
   {
@@ -214,6 +221,13 @@ export const profileLinks: LinkItem[] = [
     description: "Buy me a coffee - one-time support, much appreciated",
     url: "https://buymeacoffee.com/zaccesss",
     icon: "buymeacoffee",
+    category: "support",
+  },
+  {
+    title: "Patreon",
+    description: "Support me on Patreon - exclusive perks & content",
+    url: "https://www.patreon.com/cw/zaccesss",
+    icon: "patreon",
     category: "support",
   },
 ]

@@ -389,7 +389,7 @@ export default function SettingsClient() {
           </div>
           <div className="flex items-center justify-between py-1">
             <span className="text-muted-foreground">PIN-protected pages</span>
-            <span className="font-medium">Modules, Diary, Notes and Vault</span>
+            <span className="font-medium">Modules, Diary and Vault</span>
           </div>
         </div>
       </section>

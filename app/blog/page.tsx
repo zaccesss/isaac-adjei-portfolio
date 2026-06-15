@@ -1,13 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Calendar, Clock, Rss, Terminal } from "lucide-react"
+import { Calendar, Clock, Rss, Terminal, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { getPublishedPosts, POST_TYPES, type PostType } from "@/data/blog"
 import NewsletterForm from "@/components/shared/NewsletterForm"
+
+const POSTS_PER_PAGE = 7
 
 const TYPE_STYLES: Record<PostType, string> = {
   blog: "bg-primary/10 text-primary border-primary/20",
@@ -29,12 +31,21 @@ function formatDate(dateStr: string): string {
 
 export default function BlogPage() {
   const [activeType, setActiveType] = useState<PostType | "all">("all")
+  const [page, setPage] = useState(1)
 
   const allPosts = getPublishedPosts().sort((a, b) =>
     new Date(b.date).getTime() - new Date(a.date).getTime()
   )
   const filtered =
     activeType === "all" ? allPosts : allPosts.filter((p) => p.type === activeType)
+
+  const totalPages = Math.ceil(filtered.length / POSTS_PER_PAGE)
+  const paginated = filtered.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE)
+
+  function setFilter(type: PostType | "all") {
+    setActiveType(type)
+    setPage(1)
+  }
 
   return (
     <div className="container max-w-4xl py-24 space-y-12">
@@ -65,7 +76,7 @@ export default function BlogPage() {
           <button
             key={t.value}
             type="button"
-            onClick={() => setActiveType(t.value)}
+            onClick={() => setFilter(t.value)}
             className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
               activeType === t.value
                 ? "bg-primary text-primary-foreground border-primary"
@@ -80,7 +91,7 @@ export default function BlogPage() {
       {/* Post grid */}
       {filtered.length > 0 ? (
         <div className="space-y-6">
-          {filtered.map((post) => {
+          {paginated.map((post) => {
             return (
             <Link
               key={post.slug}
@@ -140,6 +151,28 @@ export default function BlogPage() {
             </Link>
             )
           })}
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-1 pt-4">
+              <button type="button" onClick={() => setPage(1)} disabled={page === 1} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="First page">
+                <ChevronsLeft className="h-4 w-4" />
+              </button>
+              <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Previous page">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button key={p} type="button" onClick={() => setPage(p)} className={`min-w-[2rem] h-8 px-2 rounded-lg border text-sm font-medium transition-colors ${p === page ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
+                  {p}
+                </button>
+              ))}
+              <button type="button" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Next page">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              <button type="button" onClick={() => setPage(totalPages)} disabled={page === totalPages} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Last page">
+                <ChevronsRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="rounded-lg border border-dashed border-border/60 p-12 text-center space-y-2">

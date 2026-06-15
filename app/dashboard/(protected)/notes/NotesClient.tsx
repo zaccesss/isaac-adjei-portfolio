@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Folder, Pin, Lock } from "lucide-react"
+import { Folder, Pin, Lock, EyeOff } from "lucide-react"
 import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
 
 type Note = {
@@ -22,10 +22,12 @@ type Note = {
 const toSlug = (s: string) => s.toLowerCase().replace(/\s+/g, "-")
 
 export default function NotesClient({ notes }: { notes: Note[] }) {
-  // I derive unique folders from the live notes array so the grid reflects actual data
-  const folders = Array.from(new Set(notes.map((n) => n.folder).filter(Boolean))).sort()
-  const pinnedNotes = notes.filter((n) => n.pinned)
-  const lockedNotes = notes.filter((n) => n.locked)
+  const visibleNotes = notes.filter((n) => !n.hidden)
+  const hiddenNotes = notes.filter((n) => n.hidden)
+  // I derive unique folders from visible notes only — hidden notes live under the Hidden virtual folder
+  const folders = Array.from(new Set(visibleNotes.map((n) => n.folder).filter(Boolean))).sort()
+  const pinnedNotes = visibleNotes.filter((n) => n.pinned)
+  const lockedNotes = visibleNotes.filter((n) => n.locked)
 
   return (
     <motion.div
@@ -41,7 +43,7 @@ export default function NotesClient({ notes }: { notes: Note[] }) {
         </p>
       </div>
 
-      {notes.length === 0 ? (
+      {visibleNotes.length === 0 && hiddenNotes.length === 0 ? (
         <div className="border border-dashed border-border rounded-xl p-10 text-center">
           <Folder className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
           <p className="text-sm font-medium">No notes yet</p>
@@ -65,7 +67,7 @@ export default function NotesClient({ notes }: { notes: Note[] }) {
           >
             <div className="flex items-center justify-between">
               <Folder className="h-5 w-5 text-muted-foreground" />
-              <span className="text-2xl font-bold tabular-nums text-foreground/80">{notes.length}</span>
+              <span className="text-2xl font-bold tabular-nums text-foreground/80">{visibleNotes.length}</span>
             </div>
             <div>
               <p className="font-semibold text-sm group-hover:text-primary transition-colors">All notes</p>
@@ -87,7 +89,7 @@ export default function NotesClient({ notes }: { notes: Note[] }) {
 
         {/* I show a card per folder so the user can navigate directly to a folder */}
         {folders.map((folder) => {
-          const folderNotes = notes.filter((n) => n.folder === folder)
+          const folderNotes = visibleNotes.filter((n) => n.folder === folder)
           const folderPinned = folderNotes.filter((n) => n.pinned).length
           const folderLocked = folderNotes.filter((n) => n.locked).length
           // I show only the first two note titles as a preview so the card is informative but compact
@@ -130,6 +132,24 @@ export default function NotesClient({ notes }: { notes: Note[] }) {
             </motion.div>
           )
         })}
+
+        {hiddenNotes.length > 0 && (
+          <motion.div variants={dashboardCard}>
+            <Link
+              href="/dashboard/notes/hidden"
+              className="flex flex-col gap-3 p-4 rounded-xl border border-border/60 bg-muted/20 hover:shadow-md transition-all group block opacity-70 hover:opacity-100"
+            >
+              <div className="flex items-center justify-between">
+                <EyeOff className="h-5 w-5 text-muted-foreground" />
+                <span className="text-2xl font-bold tabular-nums text-foreground/80">{hiddenNotes.length}</span>
+              </div>
+              <div>
+                <p className="font-semibold text-sm group-hover:text-primary transition-colors">Hidden</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Notes hidden from main view</p>
+              </div>
+            </Link>
+          </motion.div>
+        )}
       </motion.div>
     </motion.div>
   )

@@ -11,7 +11,7 @@ export default function Footer() {
   return (
     <footer className="border-t py-12">
       <div className="container flex flex-col items-center gap-6 text-center">
-        <SocialLinks showLabel className="justify-center" />
+        <SocialLinks showLabel footerOnly className="justify-center" />
 
         <div className="flex items-center flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <Link href="/now" className="hover:text-foreground transition-colors">Now</Link>

@@ -6,15 +6,10 @@ export interface SocialLink {
   url: string
   icon: string
   username?: string
+  footer?: boolean
 }
 
 export const socialLinks: SocialLink[] = [
-  {
-    name: "All Pages",
-    url: "/all-pages",
-    icon: "globe",
-    username: "all-pages",
-  },
   {
     name: "Contact",
     url: "/contact",
@@ -44,5 +39,12 @@ export const socialLinks: SocialLink[] = [
     url: "https://orcid.org/0009-0001-8298-5098",
     icon: "orcid",
     username: "0009-0001-8298-5098",
+  },
+  {
+    name: "Buy Me a Coffee",
+    url: "https://buymeacoffee.com/zaccesss",
+    icon: "buymeacoffee",
+    username: "zaccesss",
+    footer: false,
   },
 ]

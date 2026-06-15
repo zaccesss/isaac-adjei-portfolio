@@ -36,7 +36,9 @@ async function moveToTrash(tableName: string, id: string, displayName?: string) 
 // return early with a generic error so callers never see a Supabase error message.
 
 const MAX_TEXT = 500
-const MAX_LONG_TEXT = 2000
+const MAX_LONG_TEXT = 10_000_000
+const MAX_DIARY_TEXT = 10_000_000
+const MAX_NOTE_TEXT = 10_000_000
 
 const INVALID = { error: "Invalid input" } as const
 
@@ -463,7 +465,7 @@ export async function createDiaryEntry(data: {
 }) {
   if (
     !validStr(data.title) ||
-    !validStr(data.content, MAX_LONG_TEXT) ||
+    !validStr(data.content, MAX_DIARY_TEXT) ||
     !validStr(data.mood)
   ) return INVALID
   // I return the inserted row so the DiaryClient can prepend it to the top of the list immediately
@@ -483,7 +485,7 @@ export async function updateDiaryEntry(id: string, data: Partial<{
   if (
     !validId(id) ||
     !optStr(data.title) ||
-    !optStr(data.content, MAX_LONG_TEXT) ||
+    !optStr(data.content, MAX_DIARY_TEXT) ||
     !optStr(data.mood)
   ) return INVALID
   // I always stamp updated_at server-side so the value is the true server time
@@ -513,7 +515,7 @@ export async function createNote(data: {
 }) {
   if (
     !validStr(data.title) ||
-    !validStr(data.content, MAX_LONG_TEXT) ||
+    !validStr(data.content, MAX_NOTE_TEXT) ||
     !validStr(data.folder) ||
     !Array.isArray(data.tags) ||
     typeof data.pinned !== "boolean" ||

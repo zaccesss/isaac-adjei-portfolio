@@ -30,6 +30,8 @@ import {
   SiBuymeacoffee,
   SiGitlab,
   SiCodeberg,
+  SiGithubsponsors,
+  SiGooglescholar,
 } from "react-icons/si"
 import { Globe, Mail, ExternalLink, Newspaper } from "lucide-react"
 import Image from "next/image"
@@ -64,6 +66,8 @@ const iconMap: Record<string, React.ElementType> = {
   newspaper: Newspaper,
   patreon: SiPatreon,
   buymeacoffee: SiBuymeacoffee,
+  githubsponsors: SiGithubsponsors,
+  googlescholar: SiGooglescholar,
 }
 
 const brandClasses: Record<string, { bg: string; icon: string }> = {
@@ -90,6 +94,8 @@ const brandClasses: Record<string, { bg: string; icon: string }> = {
   newspaper: { bg: "bg-primary/10", icon: "text-primary" },
   patreon: { bg: "bg-[#FF424D]/10", icon: "text-[#FF424D]" },
   buymeacoffee: { bg: "bg-[#FFDD00]/15", icon: "text-[#FFDD00]" },
+  githubsponsors: { bg: "bg-[#ea4aaa]/10", icon: "text-[#ea4aaa]" },
+  googlescholar: { bg: "bg-[#4285F4]/10", icon: "text-[#4285F4]" },
 }
 
 const categoryLabel: Record<LinkItem["category"], string> = {

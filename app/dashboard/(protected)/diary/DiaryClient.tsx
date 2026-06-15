@@ -1,6 +1,8 @@
 ﻿"use client"
 
 import { useState, useTransition } from "react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { createDiaryEntry, updateDiaryEntry, deleteDiaryEntry, toggleDiaryHidden, toggleDiaryPinned, toggleDiaryLocked } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -215,9 +217,13 @@ function EntryCard({ entry, onEdit, onDelete, onToggle }: {
           </DropdownMenu>
         </div>
 
-        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-          {expanded ? entry.content : preview}
-        </p>
+        {expanded ? (
+          <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{entry.content}</ReactMarkdown>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{preview}</p>
+        )}
 
         {entry.content.length > 180 && (
           <button

@@ -4,8 +4,10 @@
 // Falls back to the placeholder if none have been published yet.
 
 import { useEffect, useState } from "react"
-import { ExternalLink, Rss } from "lucide-react"
+import { ExternalLink, Rss, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import type { NewsletterIssue } from "@/app/api/newsletter-issues/route"
+
+const ISSUES_PER_PAGE = 7
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
@@ -18,6 +20,7 @@ function formatDate(iso: string) {
 export default function PastIssues() {
   const [issues, setIssues] = useState<NewsletterIssue[]>([])
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     fetch("/api/newsletter-issues")
@@ -29,6 +32,9 @@ export default function PastIssues() {
       .catch(() => setLoading(false))
   }, [])
 
+  const totalPages = Math.ceil(issues.length / ISSUES_PER_PAGE)
+  const paginated = issues.slice((page - 1) * ISSUES_PER_PAGE, page * ISSUES_PER_PAGE)
+
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-2">
@@ -39,7 +45,7 @@ export default function PastIssues() {
       {loading && (
         <div className="space-y-3">
           {[1, 2].map((i) => (
-            <div key={i} className="h-16 rounded-lg bg-muted/40 animate-pulse" />
+            <div key={i} className="h-20 rounded-lg bg-muted/40 animate-pulse" />
           ))}
         </div>
       )}
@@ -55,15 +61,24 @@ export default function PastIssues() {
 
       {!loading && issues.length > 0 && (
         <div className="space-y-3">
-          {issues.map((issue) => (
+          {paginated.map((issue) => (
             <a
               key={issue.id}
               href={issue.webUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-start justify-between gap-4 rounded-lg border border-border/60 bg-muted/20 px-5 py-4 hover:border-primary/40 hover:bg-muted/30 transition-all"
+              className="group flex items-start gap-4 rounded-lg border border-border/60 bg-muted/20 px-4 py-4 hover:border-primary/40 hover:bg-muted/30 transition-all"
             >
-              <div className="space-y-1 min-w-0">
+              {issue.thumbnailUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={issue.thumbnailUrl}
+                  alt=""
+                  className="w-16 h-16 rounded-md object-cover shrink-0 border border-border/40"
+                  loading="lazy"
+                />
+              )}
+              <div className="space-y-1 min-w-0 flex-1">
                 <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
                   {issue.title}
                 </p>
@@ -90,6 +105,28 @@ export default function PastIssues() {
               <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-0.5" />
             </a>
           ))}
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-1 pt-2">
+              <button type="button" onClick={() => setPage(1)} disabled={page === 1} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="First page">
+                <ChevronsLeft className="h-4 w-4" />
+              </button>
+              <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Previous page">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button key={p} type="button" onClick={() => setPage(p)} className={`min-w-[2rem] h-8 px-2 rounded-lg border text-sm font-medium transition-colors ${p === page ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
+                  {p}
+                </button>
+              ))}
+              <button type="button" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Next page">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              <button type="button" onClick={() => setPage(totalPages)} disabled={page === totalPages} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Last page">
+                <ChevronsRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       )}
     </section>
