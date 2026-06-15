@@ -1,0 +1,28 @@
+name: Update PR branches
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update open PRs with auto-merge enabled
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          prs=$(gh api repos/$REPO/pulls --jq '[.[] | select(.state=="open" and .auto_merge != null) | .number] | .[]')
+          if [ -z "$prs" ]; then
+            echo "No open PRs with auto-merge enabled"
+            exit 0
+          fi
+          for pr in $prs; do
+            echo "Updating branch for PR #$pr"
+            gh api repos/$REPO/pulls/$pr/update-branch --method PUT || echo "PR #$pr already up to date"
+          done
