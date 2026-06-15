@@ -226,7 +226,8 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_U
         ).join("")}
         <a href="?page=${currentPage + 1}" class="page-btn${currentPage === totalPages ? " disabled" : ""}">&#8250;</a>
         <a href="?page=${totalPages}" class="page-btn${currentPage === totalPages ? " disabled" : ""}">&#187;</a>
-      </div>` : ""}
+      </div>
+      <p style="text-align:center;font-size:0.75rem;color:var(--muted);margin-top:0.5rem;">Showing ${(currentPage - 1) * RSS_PER_PAGE + 1}&#8211;${Math.min(currentPage * RSS_PER_PAGE, posts.length)} of ${posts.length} posts</p>` : ""}
       <div class="footer">
         <a href="${SITE_URL}">isaacadjei.me</a>
         &#183;

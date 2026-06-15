@@ -107,25 +107,30 @@ export default function PastIssues() {
           ))}
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-1 pt-2">
-              <button type="button" onClick={() => setPage(1)} disabled={page === 1} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="First page">
-                <ChevronsLeft className="h-4 w-4" />
-              </button>
-              <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Previous page">
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button key={p} type="button" onClick={() => setPage(p)} className={`min-w-[2rem] h-8 px-2 rounded-lg border text-sm font-medium transition-colors ${p === page ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
-                  {p}
+            <>
+              <div className="flex items-center justify-center gap-1 pt-2">
+                <button type="button" onClick={() => setPage(1)} disabled={page === 1} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="First page">
+                  <ChevronsLeft className="h-4 w-4" />
                 </button>
-              ))}
-              <button type="button" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Next page">
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              <button type="button" onClick={() => setPage(totalPages)} disabled={page === totalPages} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Last page">
-                <ChevronsRight className="h-4 w-4" />
-              </button>
-            </div>
+                <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Previous page">
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button key={p} type="button" onClick={() => setPage(p)} className={`min-w-[2rem] h-8 px-2 rounded-lg border text-sm font-medium transition-colors ${p === page ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
+                    {p}
+                  </button>
+                ))}
+                <button type="button" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Next page">
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                <button type="button" onClick={() => setPage(totalPages)} disabled={page === totalPages} className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 disabled:opacity-40 disabled:pointer-events-none transition-colors" aria-label="Last page">
+                  <ChevronsRight className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="text-xs text-center text-muted-foreground">
+                Showing {(page - 1) * ISSUES_PER_PAGE + 1}–{Math.min(page * ISSUES_PER_PAGE, issues.length)} of {issues.length} issues
+              </p>
+            </>
           )}
         </div>
       )}
