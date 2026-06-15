@@ -3,14 +3,15 @@
 /* Hide powered-by attribution — parent is <em>, not <span> */
 em:has(> a[href="https://giscus.app"]) { display: none !important; }
 
-/* Blue sign-in button */
-a[href*="/api/oauth"] {
+/* Blue primary buttons (sign in + comment submit) */
+.btn-primary {
   background-color: hsl(225, 70%, 55%) !important;
   background: hsl(225, 70%, 55%) !important;
   border-color: hsl(225, 70%, 50%) !important;
   color: #fff !important;
 }
-a[href*="/api/oauth"]:hover {
+.btn-primary:hover,
+.btn-primary:focus {
   background-color: hsl(225, 70%, 50%) !important;
   background: hsl(225, 70%, 50%) !important;
 }
