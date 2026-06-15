@@ -1,3 +1,5 @@
+// I set Blog section metadata and wrap all blog pages.
+
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {

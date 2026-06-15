@@ -1,3 +1,5 @@
+// I render the consumed content log - books, articles, videos and podcasts I have read, watched or listened to, organized by month.
+
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import ConsumedContent from "./ConsumedContent"

@@ -29,7 +29,7 @@ export default function OpenGraphImage() {
       </div>
 
       <div tw="flex justify-between items-center text-[30px] text-slate-300">
-        <span>Full-Stack Software • Embedded Systems • IoT</span>
+        <span>Full-Stack Software • Embedded Systems • AI/ML/DS</span>
         <span tw="font-bold text-slate-200">EECS</span>
       </div>
     </div>,

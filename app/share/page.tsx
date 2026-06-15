@@ -1,5 +1,5 @@
-// A minimal share page used purely for social media previews.
-// The OG and Twitter images are versioned with a query string (?v=...) to bust
+// I provide a minimal share page used purely for social media link previews.
+// I version the OG and Twitter images with a query string (?v=...) to bust
 // cached previews on platforms like Twitter/X when the image changes.
 
 import type { Metadata } from "next"

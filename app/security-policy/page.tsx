@@ -1,3 +1,5 @@
+// I publish my coordinated disclosure and security reporting policy for responsible vulnerability disclosure.
+
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
 import { ShieldCheck, Mail, Clock, Eye } from "lucide-react"

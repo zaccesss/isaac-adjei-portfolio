@@ -1,3 +1,5 @@
+// I present the privacy policy explaining what data the site collects, how it is used and how to contact me about it.
+
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"

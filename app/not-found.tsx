@@ -1,5 +1,8 @@
 "use client"
 
+// I render a terminal-style 404 page with animated boot sequence and a live command
+// prompt so visitors can type 'go <page>', 'ls' or 'help' to navigate from here.
+
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"

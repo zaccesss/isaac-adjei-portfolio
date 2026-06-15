@@ -1,3 +1,5 @@
+// I generate per-project OG images with category badge, title, description and tech chips.
+
 import { ImageResponse } from "next/og"
 import { projects } from "@/data/projects"
 

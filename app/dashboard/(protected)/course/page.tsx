@@ -1,3 +1,5 @@
+// I load course data from Supabase and pass it to CourseWrapper for the module progress and grade tracker.
+
 import { supabase } from "@/lib/supabase"
 import CourseWrapper from "./CourseWrapper"
 

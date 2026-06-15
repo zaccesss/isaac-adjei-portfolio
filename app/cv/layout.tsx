@@ -1,3 +1,5 @@
+// I set CV section metadata wrapping the CV picker and cover letter pages.
+
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {

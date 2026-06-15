@@ -1,3 +1,5 @@
+// I configure Tailwind CSS with dark mode strategy, content paths, custom theme tokens and plugins.
+
 import type { Config } from "tailwindcss"
 
 const config: Config = {

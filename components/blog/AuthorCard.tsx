@@ -58,7 +58,7 @@ export default function AuthorCard() {
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-sm leading-snug">Isaac Adjei</p>
         <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-          BEng Electronic Engineering &amp; Computer Science at Aston University · embedded systems, full-stack software and open source
+          BEng Electronic Engineering &amp; Computer Science at Aston University · embedded systems, full-stack software, AI/ML and open source
         </p>
         <div className="flex items-center gap-3 mt-2">
           {LINKS.map(({ href, label, icon: Icon, color }) => (
