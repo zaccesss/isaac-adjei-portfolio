@@ -74,15 +74,15 @@ const COLUMNS: { id: string; label: string; targetStatus: string; statuses: stri
 ]
 
 const COLUMN_COLOURS: Record<string, string> = {
-  wishlist:    "border-t-slate-400",
-  applied:     "border-t-blue-400",
-  assessment:  "border-t-amber-400",
-  interview:   "border-t-purple-400",
-  final_round: "border-t-orange-400",
-  offer:       "border-t-green-400",
-  negotiating: "border-t-teal-400",
-  accepted:    "border-t-emerald-500",
-  closed:      "border-t-red-400",
+  wishlist:    "border-t-yellow-400",   // Interested = yellow
+  applied:     "border-t-blue-400",     // Application Submitted = blue
+  assessment:  "border-t-violet-400",   // Online Assessment = violet
+  interview:   "border-t-amber-400",    // Telephone Interview = amber
+  final_round: "border-t-rose-400",     // Final Round = rose
+  offer:       "border-t-green-400",    // Offer Received = green
+  negotiating: "border-t-teal-400",     // Negotiating = teal
+  accepted:    "border-t-emerald-500",  // Accepted = emerald
+  closed:      "border-t-slate-400",    // Rejected/Ghosted/Withdrawn = slate
 }
 
 function normaliseStatus(raw: string): string {

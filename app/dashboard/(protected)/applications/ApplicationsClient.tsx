@@ -94,10 +94,10 @@ function normaliseStatus(raw: string): string {
 function statusTextClass(status: string): string {
   const s = normaliseStatus(status)
   if (s === "Not Applied")            return "text-red-500 dark:text-red-400"
-  if (s === "Interested")             return "text-cyan-500 dark:text-cyan-400"
+  if (s === "Interested")             return "text-yellow-500 dark:text-yellow-400"
   if (s === "Application Submitted")  return "text-blue-600 dark:text-blue-400"
-  if (s === "Online Assessment")      return "text-indigo-600 dark:text-indigo-400"
-  if (s === "Case Study")             return "text-violet-600 dark:text-violet-400"
+  if (s === "Online Assessment")      return "text-violet-600 dark:text-violet-400"
+  if (s === "Case Study")             return "text-cyan-600 dark:text-cyan-400"
   if (s === "HireVue")                return "text-fuchsia-600 dark:text-fuchsia-400"
   if (s === "Telephone Interview")    return "text-amber-500 dark:text-amber-400"
   if (s === "Video Interview")        return "text-lime-600 dark:text-lime-400"
@@ -107,10 +107,10 @@ function statusTextClass(status: string): string {
   if (s === "Offer Received")         return "text-green-600 dark:text-green-400"
   if (s === "Negotiating")            return "text-teal-600 dark:text-teal-400"
   if (s === "Accepted")               return "text-emerald-600 dark:text-emerald-400 font-semibold"
-  if (s === "Rejected")               return "text-muted-foreground line-through"
-  if (s === "Ghosted")                return "text-slate-400 dark:text-slate-500 line-through"
-  if (s === "Withdrawn")              return "text-slate-500 dark:text-slate-400 italic"
-  if (s === "Not Interested")         return "text-muted-foreground"
+  if (s === "Rejected")               return "text-red-400 dark:text-red-500 line-through"
+  if (s === "Ghosted")                return "text-slate-400 dark:text-slate-500 line-through opacity-60"
+  if (s === "Withdrawn")              return "text-orange-400 dark:text-orange-500 italic"
+  if (s === "Not Interested")         return "text-zinc-400 dark:text-zinc-500"
   return ""
 }
 

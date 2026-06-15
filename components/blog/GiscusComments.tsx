@@ -6,10 +6,10 @@ import { useTheme } from "next-themes"
 export default function GiscusComments() {
   const { resolvedTheme } = useTheme()
 
-  const repoId = process.env.NEXT_PUBLIC_GISCUS_REPO_ID
-  const categoryId = process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID
+  if (process.env.NEXT_PUBLIC_GISCUS_ENABLED?.toLowerCase() === "false") return null
 
-  if (process.env.NEXT_PUBLIC_GISCUS_ENABLED?.toLowerCase() !== "true" || !repoId || !categoryId) return null
+  const repoId = process.env.NEXT_PUBLIC_GISCUS_REPO_ID ?? ""
+  const categoryId = process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID ?? ""
 
   return (
     <Giscus
@@ -22,7 +22,10 @@ export default function GiscusComments() {
       reactionsEnabled="0"
       emitMetadata="0"
       inputPosition="top"
-      theme={resolvedTheme === "dark" ? "dark" : "light"}
+      theme={resolvedTheme === "dark"
+        ? "https://isaacadjei.me/giscus-theme-dark.css"
+        : "https://isaacadjei.me/giscus-theme-light.css"
+      }
       lang="en"
       loading="eager"
     />
