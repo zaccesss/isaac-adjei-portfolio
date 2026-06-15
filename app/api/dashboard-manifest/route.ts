@@ -5,7 +5,7 @@
 export function GET() {
   const manifest = {
     name: "Dashboard | Isaac Adjei",
-    short_name: "Dashboard",
+    short_name: "DIA",
     description: "Isaac Adjei's personal dashboard",
     start_url: "/dashboard",
     scope: "/dashboard",
