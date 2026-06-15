@@ -1,3 +1,7 @@
+# I regenerate all CV artefacts (HTML, PDF, DOCX) from cv.yml on demand via workflow_dispatch.
+# After generation I commit the updated files back to main with [skip ci] so the commit
+# does not trigger another CI run. Only run this after updating cv.yml or cover letter templates.
+
 name: Auto-Generate CVs
 
 on:
@@ -19,6 +23,7 @@ jobs:
         node-version: '22'
         cache: 'npm'
 
+    # Puppeteer needs these system libs to launch a headless Chromium in the CI environment
     - name: Install Chromium dependencies
       run: |
         sudo apt-get update
@@ -31,6 +36,7 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+    # Each script reads cv.yml and writes its artefacts to public/resume/
     - name: Generate HTML CVs
       run: node scripts/generate-cvs.js
 
@@ -40,6 +46,7 @@ jobs:
     - name: Generate DOCX CVs
       run: node scripts/generate-docx.js
 
+    # Skip the commit step entirely if nothing changed to avoid empty commits
     - name: Check for changes
       id: check-changes
       run: |
@@ -55,5 +62,6 @@ jobs:
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add public/resume/cv-*.html public/resume/cv-*.pdf public/resume/cv-*.docx
+        # [skip ci] prevents this commit from triggering another CI run
         git commit -m "Auto-regenerate CVs from cv.yml [skip ci]"
         git push
