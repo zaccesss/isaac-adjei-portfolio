@@ -14,6 +14,8 @@ export default function Footer() {
         <SocialLinks showLabel footerOnly className="justify-center" />
 
         <div className="flex items-center flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link>
+          <span aria-hidden="true">·</span>
           <Link href="/now" className="hover:text-foreground transition-colors">Now</Link>
           <span aria-hidden="true">·</span>
           <Link href="/notes" className="hover:text-foreground transition-colors">Notes</Link>
@@ -22,11 +24,9 @@ export default function Footer() {
           <span aria-hidden="true">·</span>
           <Link href="/uses" className="hover:text-foreground transition-colors">Uses</Link>
           <span aria-hidden="true">·</span>
-          <Link href="/colophon" className="hover:text-foreground transition-colors">Colophon</Link>
-          <span aria-hidden="true">·</span>
           <Link href="/consumed" className="hover:text-foreground transition-colors">Consumed</Link>
           <span aria-hidden="true">·</span>
-          <Link href="/changelog" className="hover:text-foreground transition-colors">Changelog</Link>
+          <Link href="/colophon" className="hover:text-foreground transition-colors">Colophon</Link>
         </div>
 
         <div className="flex flex-col items-center gap-3">
