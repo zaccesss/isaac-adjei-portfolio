@@ -1,3 +1,5 @@
+// I gate every protected dashboard route here with server-side auth and theme sync.
+// This layout is separate from the outer dashboard/layout.tsx so only protected routes carry the auth overhead.
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import DashboardSidebar from "../components/DashboardSidebar"

@@ -65,11 +65,11 @@ git branch -r | grep -v main | grep -v HEAD | sed 's/origin\///' | xargs -I {} g
 
 ## Code comment rules
 
+- Every non-trivial file must have a first-person top-level comment explaining why it exists
 - Write comments in first person: "I use..." not "Uses..."
-- Add comments only where the WHY is non-obvious
-- Be detailed where the reasoning is complex or the decision was deliberate
-- No multi-line block comments for simple things
+- Explain the WHY not the WHAT - multiple lines are fine when the reasoning genuinely needs it
 - No auto-generated docstrings
+- Skip files where a comment would break parsing (JSON, plist files)
 
 ---
 

@@ -1,3 +1,6 @@
+// I mirror the same PIN gate pattern as DiaryWrapper - the Cmd+L shortcut locks the
+// page without opening a new tab, and router.refresh() triggers a server re-render
+// so pinVerified flips to true without a full page navigation.
 "use client"
 
 import { useEffect } from "react"

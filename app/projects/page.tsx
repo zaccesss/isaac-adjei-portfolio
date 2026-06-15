@@ -1,4 +1,4 @@
-// Projects listing page - shows all projects with category filtering via ProjectGrid.
+// I render the projects listing page with category filter and pagination via ProjectGrid.
 
 import type { Metadata } from "next"
 import { projects } from "@/data/projects"

@@ -1,3 +1,5 @@
+// I show an overview of goals grouped by life category (Personal, Academic, Career etc.)
+// and let me navigate into each category to see individual goal cards with progress bars.
 "use client"
 
 import { useState, useTransition } from "react"
@@ -10,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Edit2, Trash2, Target, TrendingUp, BookOpen, Heart, DollarSign, Sparkles } from "lucide-react"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 
 type Goal = {
   id: string
@@ -131,7 +134,7 @@ export function GoalCard({ goal, onEdit, onDelete }: {
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-1 min-w-0">
           <p className="font-medium text-sm leading-snug">{goal.title}</p>
-          {goal.description && <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>}
+          {goal.description && <div className="line-clamp-2"><MarkdownContent compact>{goal.description}</MarkdownContent></div>}
         </div>
         <div className="flex gap-1 shrink-0">
           <button type="button" onClick={() => onEdit(goal)} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" aria-label="Edit goal"><Edit2 className="h-3 w-3" /></button>

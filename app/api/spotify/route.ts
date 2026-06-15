@@ -1,3 +1,7 @@
+// I use the OAuth refresh-token flow (no user-facing login) because my account is
+// the only one this site ever reads. The access token is cached in Redis for 55
+// minutes so cold starts do not trigger an extra token round-trip every request.
+// I use /me/player rather than recently-played so I can detect live playing state.
 import { NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
 

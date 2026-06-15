@@ -1,3 +1,5 @@
+// I present my personal research notes on ocular prosthetics, bionic vision and bio-integrated electronics.
+
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"

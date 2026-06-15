@@ -1,8 +1,11 @@
+// I render the public newsletter landing page with topic cards, a subscribe form and recent issues.
+// I am a server component so the metadata and OG image are available for crawlers without JS.
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
-import { Book, Mail, Zap, BookOpen, Cpu, Globe, Lightbulb } from "lucide-react"
+import { Book, Mail, Zap, BookOpen, Cpu, Globe, Lightbulb, ExternalLink, Clock, FlaskConical, Info, Wrench, Play } from "lucide-react"
 import NewsletterForm from "@/components/shared/NewsletterForm"
 import PastIssues from "@/components/shared/PastIssues"
+import AuthorCard from "@/components/blog/AuthorCard"
 import Link from "next/link"
 
 export const metadata: Metadata = {
@@ -97,6 +100,10 @@ export default function NewsletterPage() {
 
       <Separator />
 
+      <AuthorCard />
+
+      <Separator />
+
       {/* Subscribe form */}
       <section className="space-y-6">
         <div className="space-y-2">
@@ -110,17 +117,18 @@ export default function NewsletterPage() {
         <p className="text-xs text-muted-foreground">
           Every issue includes a one-click unsubscribe link at the bottom. No questions asked.
         </p>
-        <p className="text-xs text-muted-foreground">
-          Already subscribed?{" "}
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-xs text-muted-foreground">Already subscribed?</span>
           <a
-            href="https://newsletter.isaacadjei.me"
+            href="https://newsletter.isaacadjei.me/"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline underline-offset-4 hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-medium text-primary hover:bg-primary/10 hover:border-primary/50 transition-all"
           >
-            Read past issues on Beehiiv
+            <ExternalLink className="h-3.5 w-3.5" />
+            Browse all issues on Beehiiv
           </a>
-        </p>
+        </div>
       </section>
 
       <Separator />
@@ -132,8 +140,7 @@ export default function NewsletterPage() {
       {/* Cross-links */}
       <section className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          While you wait, read some of the write-ups on the blog or check the notes page to see
-          what I am currently working on.
+          While you wait, explore the rest of the site.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link
@@ -149,6 +156,41 @@ export default function NewsletterPage() {
           >
             <Book className="h-4 w-4 text-primary" />
             See my notes
+          </Link>
+          <Link
+            href="/now"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
+          >
+            <Clock className="h-4 w-4 text-primary" />
+            What I am up to now
+          </Link>
+          <Link
+            href="/consumed"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
+          >
+            <Play className="h-4 w-4 text-primary" />
+            Consumed
+          </Link>
+          <Link
+            href="/lab"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
+          >
+            <FlaskConical className="h-4 w-4 text-primary" />
+            Lab
+          </Link>
+          <Link
+            href="/colophon"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
+          >
+            <Info className="h-4 w-4 text-primary" />
+            Colophon
+          </Link>
+          <Link
+            href="/uses"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
+          >
+            <Wrench className="h-4 w-4 text-primary" />
+            Uses
           </Link>
         </div>
       </section>

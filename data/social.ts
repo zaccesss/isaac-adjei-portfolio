@@ -1,20 +1,14 @@
-// The small set of social links that appear in the site footer and hero section.
-// The 'icon' string maps to a component in the iconMap inside SocialLinks.tsx.
+// I define the footer and hero social links - the icon string maps to SocialLinks.tsx.
 
 export interface SocialLink {
   name: string
   url: string
   icon: string
   username?: string
+  footer?: boolean
 }
 
 export const socialLinks: SocialLink[] = [
-  {
-    name: "All Pages",
-    url: "/all-pages",
-    icon: "globe",
-    username: "all-pages",
-  },
   {
     name: "Contact",
     url: "/contact",
@@ -44,5 +38,12 @@ export const socialLinks: SocialLink[] = [
     url: "https://orcid.org/0009-0001-8298-5098",
     icon: "orcid",
     username: "0009-0001-8298-5098",
+  },
+  {
+    name: "Buy Me a Coffee",
+    url: "https://buymeacoffee.com/zaccesss",
+    icon: "buymeacoffee",
+    username: "zaccesss",
+    footer: false,
   },
 ]

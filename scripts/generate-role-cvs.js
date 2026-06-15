@@ -1,3 +1,4 @@
+// I build role-specific CV variants (PDF, DOCX, HTML) by reordering sections from the master cv.html so recruiters see the most relevant experience first.
 const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');

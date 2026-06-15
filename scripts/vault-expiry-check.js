@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// I check passport, warranty, API key and card expiry dates in Supabase and send a Discord alert if anything is due to expire soon, bypassing Cloudflare so the check works in GitHub Actions.
 // Runs vault and inventory expiry checks directly against Supabase and posts
 // a Discord embed if anything is expiring soon. Intended for GitHub Actions —
 // avoids going through the production URL so Cloudflare bot protection is not

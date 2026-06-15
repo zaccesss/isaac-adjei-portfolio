@@ -1,3 +1,5 @@
+// I dispatch the wakatime-sync GitHub Actions workflow on demand so I can pull
+// fresh coding stats without waiting for the scheduled cron run.
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { logActivity } from "@/app/dashboard/actions"

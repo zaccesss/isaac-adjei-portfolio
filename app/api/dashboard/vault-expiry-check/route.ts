@@ -1,3 +1,6 @@
+// Cron endpoint that delegates to lib/vault-expiry-check.ts and sends an email
+// when vault entries or inventory items are approaching their expiry dates.
+// Authenticated by CRON_SECRET so it cannot be triggered by arbitrary HTTP requests.
 import { NextRequest, NextResponse } from "next/server"
 import { checkVaultExpiry } from "@/lib/vault-expiry-check"
 

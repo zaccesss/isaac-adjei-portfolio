@@ -1,3 +1,5 @@
+// I load the 'Us' page data from Supabase and pass it to UsClient - a private page for our relationship vision, mission and shared notes.
+
 import { supabase } from "@/lib/supabase"
 import UsClient from "./UsClient"
 

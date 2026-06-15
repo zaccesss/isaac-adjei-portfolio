@@ -1,6 +1,4 @@
-// Public changelog for isaacadjei.me.
-// I keep this in sync with CHANGELOG.md. Each release is a typed object so
-// the page is always structured and readable rather than raw markdown.
+// I keep the public changelog in sync with CHANGELOG.md, using typed objects so the page is always structured.
 
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"

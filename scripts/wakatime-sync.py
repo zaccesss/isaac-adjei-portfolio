@@ -1,3 +1,4 @@
+# I pull the last 14 days of WakaTime coding stats into Supabase so the dashboard can show charts and totals without hitting the WakaTime API on every page load.
 """
 Fetches WakaTime daily summaries for the last FETCH_DAYS days and upserts
 each day into the wakatime_daily Supabase table.

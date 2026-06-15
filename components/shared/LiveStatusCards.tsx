@@ -1,3 +1,6 @@
+// I poll multiple device-status API routes on a timer and render live cards for
+// each. Spotify progress is ticked forward client-side every second between polls
+// so the progress bar stays smooth without hammering the API.
 "use client"
 
 import { useEffect, useRef, useState } from "react"

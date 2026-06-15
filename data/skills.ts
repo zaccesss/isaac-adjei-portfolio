@@ -1,5 +1,4 @@
-// I use this interface to describe a group of professional or hardware skills.
-// Each group has a label (the heading) and a list of skill names.
+// I group professional and hardware skills into labelled sections for the About page.
 export interface SkillGroup {
   label: string
   skills: string[]

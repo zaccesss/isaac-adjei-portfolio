@@ -1,5 +1,7 @@
 "use client"
 
+// I render the analytics tab on the applications dashboard with charts for status distribution, activity over time and employer breakdown.
+
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,

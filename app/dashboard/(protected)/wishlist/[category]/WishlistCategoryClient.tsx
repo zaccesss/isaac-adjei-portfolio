@@ -1,3 +1,5 @@
+// I show wishlist items for a specific category (or all categories when slug is "all").
+// Items are colour-coded by priority via a left border and can be checked off when obtained.
 "use client"
 
 import { useState, useTransition } from "react"
@@ -11,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Trash2, Edit2, Check, ShoppingBag } from "lucide-react"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { dashboardPage } from "@/lib/animations"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 
 type Item = {
   id: string
@@ -113,7 +116,7 @@ function ItemCard({ item, onEdit, onDelete, onToggleGotIt }: {
       </button>
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-medium ${gotIt ? "line-through text-muted-foreground" : ""}`}>{item.name}</p>
-        {item.notes && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{item.notes}</p>}
+        {item.notes && <div className="mt-0.5 line-clamp-2"><MarkdownContent compact>{item.notes}</MarkdownContent></div>}
         <div className="flex items-center gap-2 mt-1 flex-wrap">
           <span className={`text-xs capitalize px-1.5 py-0.5 rounded ${item.priority === "high" ? "text-red-600 dark:text-red-400" : item.priority === "medium" ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`}>
             {item.priority} priority

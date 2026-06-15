@@ -1,3 +1,6 @@
+// I provide an editable profile page for my personal details - name, DOB, faith, university info,
+// values and interests. Every field is click-to-edit and saves automatically on blur or Enter.
+// I store all fields as a single config blob rather than separate rows to keep the schema simple.
 "use client"
 
 import { useState, useTransition } from "react"
@@ -7,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Edit2, Save, X, Plus, Trash2, ExternalLink, Github, Linkedin, Globe } from "lucide-react"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 
 type Profile = {
   name: string
@@ -54,6 +58,17 @@ function EditableText({ value, onSave, multiline, className }: {
         }
         <button type="button" onClick={save} className="p-1 text-green-600 hover:text-green-700"><Save className="h-3.5 w-3.5" /></button>
         <button type="button" onClick={() => { setDraft(value); setEditing(false) }} className="p-1 text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+      </div>
+    )
+  }
+
+  if (multiline && value) {
+    return (
+      <div
+        className={`cursor-pointer hover:ring-1 hover:ring-border rounded px-1 -mx-1 ${className ?? ""}`}
+        onClick={() => { setDraft(value); setEditing(true) }}
+      >
+        <MarkdownContent compact>{value}</MarkdownContent>
       </div>
     )
   }

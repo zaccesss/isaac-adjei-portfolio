@@ -1,3 +1,6 @@
+// I track daily habit streaks with a GitHub-style 90-day heatmap, current and longest streak counters
+// and activity charts. I compute all streak lengths client-side from the logs array so they stay
+// consistent with local optimistic updates without ever going stale.
 "use client"
 
 import { useState, useTransition } from "react"
@@ -6,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Trash2, Flame, Trophy, Check } from "lucide-react"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, Legend, PieChart, Pie } from "recharts"
 
 type Streak = {
@@ -360,7 +364,7 @@ function StreakCard({ streak, logs, today, onDelete, onCheckIn }: {
           <span className="text-2xl">{streak.icon}</span>
           <div>
             <p className="font-semibold text-sm">{streak.name}</p>
-            {streak.description && <p className="text-xs text-muted-foreground">{streak.description}</p>}
+            {streak.description && <MarkdownContent compact>{streak.description}</MarkdownContent>}
           </div>
         </div>
         <button type="button" onClick={() => onDelete(streak.id)} aria-label="Delete streak"

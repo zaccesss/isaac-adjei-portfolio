@@ -1,3 +1,6 @@
+// I fetch my non-cancelled Linear issues via GraphQL and expose them to the dashboard.
+// I export LinearIssue here because the dashboard client needs the type and importing
+// from the API route keeps the type colocated with the source of truth.
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 

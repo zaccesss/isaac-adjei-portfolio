@@ -1,6 +1,4 @@
-// Twitter/X card image - same layout as the Open Graph image above.
-// Twitter requires its own separate export even though the content is identical,
-// because the two platforms have slightly different image processing pipelines.
+// I export a separate Twitter card image because the platform requires its own file even when the layout matches the OG image.
 
 import { ImageResponse } from "next/og"
 
@@ -29,7 +27,7 @@ export default function TwitterImage() {
       </div>
 
       <div tw="flex justify-between items-center text-[30px] text-slate-300">
-        <span>Full-Stack Software • Embedded Systems • IoT</span>
+        <span>Full-Stack Software • Embedded Systems • AI/ML/DS</span>
         <span tw="font-bold text-slate-200">EECS</span>
       </div>
     </div>,

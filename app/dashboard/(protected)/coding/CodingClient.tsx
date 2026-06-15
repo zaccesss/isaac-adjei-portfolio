@@ -1,3 +1,6 @@
+// I render WakaTime and GitHub contribution data as heatmaps, bar charts and donut
+// charts. All aggregation (language totals, weekday buckets, weekly rollups) happens
+// in this client component so the server only has to pass raw per-day rows.
 "use client"
 
 import { useMemo, useState } from "react"

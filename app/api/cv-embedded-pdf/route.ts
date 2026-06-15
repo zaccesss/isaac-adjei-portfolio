@@ -1,3 +1,4 @@
+// I serve the Embedded Systems CV variant as a PDF download; force-dynamic prevents Next.js caching the binary at the edge.
 import { readFileSync } from "fs"
 import { join } from "path"
 

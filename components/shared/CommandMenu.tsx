@@ -2,7 +2,7 @@
 
 // Keyboard-driven command menu (like Spotlight or VS Code's Ctrl+P).
 // Opens with Ctrl+I or Cmd+I. Selecting an item navigates to that page.
-// Items are split into Navigation (pages), More pages, and searchable Posts and Projects.
+// Posts and Projects are intentionally omitted - they grow unboundedly and make the list unusable.
 // Shortcuts adapt to the user's OS: ⌘H on Mac, Ctrl+H on Windows/Linux.
 
 import { useEffect, useState } from "react"
@@ -18,25 +18,19 @@ import {
 } from "@/components/ui/command"
 import {
   Home, User, Briefcase, Code, Mail, Cpu, BookOpen, Link2, NotebookPen,
-  FlaskConical, FileText, Folder, Clock, Wrench, Info, ScrollText, Trophy, LayoutList,
+  FlaskConical, Clock, Wrench, Info, ScrollText, Trophy, LayoutList, Shield, Rss,
 } from "lucide-react"
 import { DialogTitle } from "@/components/ui/dialog"
 import { useModKey } from "@/hooks/useModKey"
-import { getPublishedPosts } from "@/data/blog"
-import { projects } from "@/data/projects"
-
-const publishedPosts = getPublishedPosts()
 
 export default function CommandMenu() {
   const [open, setOpen] = useState(false)
   const router = useRouter()
-  const { isMac, shortcut } = useModKey()
-  // More group shortcuts show as just ⇧Letter (no Mod required)
+  const { shortcut } = useModKey()
   const shiftShortcut = (key: string) => `⇧${key}`
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      // ⌘I / Ctrl+I toggles the menu open/closed
       if (e.key === "i" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setOpen((o) => !o)
@@ -44,8 +38,7 @@ export default function CommandMenu() {
       }
       if (!open) return
 
-      // Shift-only shortcuts for the More group.
-      // Only fire when the search input is empty so capital-letter typing is unaffected.
+      // Shift-only shortcuts for the More group - only fire when search is empty
       if (e.shiftKey && !e.metaKey && !e.ctrlKey) {
         if (!(document.activeElement as HTMLInputElement)?.value) {
           const shiftShortcuts: Record<string, string> = {
@@ -54,9 +47,10 @@ export default function CommandMenu() {
             o: "/colophon",
             g: "/changelog",
             f: "/hall-of-fame",
-            m: "/newsletter",
             d: "/consumed",
             a: "/all-pages",
+            r: "/privacy",
+            x: "/security-policy",
           }
           const shiftPath = shiftShortcuts[e.key.toLowerCase()]
           if (shiftPath) {
@@ -77,7 +71,8 @@ export default function CommandMenu() {
         e: "/experience",
         s: "/skills",
         b: "/blog",
-        n: "/notes",
+        n: "/newsletter",
+        k: "/notes",
         j: "/lab",
         c: "/contact",
         l: "/links",
@@ -100,7 +95,6 @@ export default function CommandMenu() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      {/* Visible title centred at the top of the menu */}
       <DialogTitle className="px-4 pt-4 pb-0 text-base font-semibold text-center">
         Quick Navigation
       </DialogTitle>
@@ -108,8 +102,13 @@ export default function CommandMenu() {
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
-        {/* Navigation group - the main site pages */}
+        {/* Navigation - main site pages, All Pages first as the directory entry point */}
         <CommandGroup heading="Navigation">
+          <CommandItem value="all pages directory site map" onSelect={() => go("/all-pages")}>
+            <LayoutList className="mr-2 h-4 w-4" />
+            All Pages
+            <CommandShortcut>{shiftShortcut("A")}</CommandShortcut>
+          </CommandItem>
           <CommandItem value="home" onSelect={() => go("/")}>
             <Home className="mr-2 h-4 w-4" />
             Home
@@ -135,55 +134,56 @@ export default function CommandMenu() {
             Skills
             <CommandShortcut>{shortcut("S")}</CommandShortcut>
           </CommandItem>
-          <CommandItem value="blog" onSelect={() => go("/blog")}>
+          <CommandItem value="blog posts writing" onSelect={() => go("/blog")}>
             <BookOpen className="mr-2 h-4 w-4" />
             Blog
             <CommandShortcut>{shortcut("B")}</CommandShortcut>
           </CommandItem>
-          <CommandItem value="notes" onSelect={() => go("/notes")}>
-            <NotebookPen className="mr-2 h-4 w-4" />
-            Notes
+          <CommandItem value="newsletter subscribe issues" onSelect={() => go("/newsletter")}>
+            <Rss className="mr-2 h-4 w-4" />
+            Newsletter
             <CommandShortcut>{shortcut("N")}</CommandShortcut>
           </CommandItem>
-          <CommandItem value="lab" onSelect={() => go("/lab")}>
+          <CommandItem value="notes research" onSelect={() => go("/notes")}>
+            <NotebookPen className="mr-2 h-4 w-4" />
+            Notes
+            <CommandShortcut>{shortcut("K")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="lab experiments" onSelect={() => go("/lab")}>
             <FlaskConical className="mr-2 h-4 w-4" />
             Lab
             <CommandShortcut>{shortcut("J")}</CommandShortcut>
           </CommandItem>
-        </CommandGroup>
-
-        {/* Actions group - contact and external links */}
-        <CommandGroup heading="Actions">
           <CommandItem value="contact" onSelect={() => go("/contact")}>
             <Mail className="mr-2 h-4 w-4" />
             Contact
             <CommandShortcut>{shortcut("C")}</CommandShortcut>
           </CommandItem>
-          <CommandItem value="links" onSelect={() => go("/links")}>
+          <CommandItem value="links socials" onSelect={() => go("/links")}>
             <Link2 className="mr-2 h-4 w-4" />
             Links
             <CommandShortcut>{shortcut("L")}</CommandShortcut>
           </CommandItem>
         </CommandGroup>
 
-        {/* More pages - discoverable but not in the main nav */}
+        {/* More - discoverable pages not in the main navbar */}
         <CommandGroup heading="More">
-          <CommandItem value="now what I am doing" onSelect={() => go("/now")}>
+          <CommandItem value="now what I am doing currently" onSelect={() => go("/now")}>
             <Clock className="mr-2 h-4 w-4" />
             Now
             <CommandShortcut>{shiftShortcut("W")}</CommandShortcut>
           </CommandItem>
-          <CommandItem value="uses hardware software tools setup" onSelect={() => go("/uses")}>
+          <CommandItem value="uses hardware software tools setup gear" onSelect={() => go("/uses")}>
             <Wrench className="mr-2 h-4 w-4" />
             Uses
             <CommandShortcut>{shiftShortcut("U")}</CommandShortcut>
           </CommandItem>
-          <CommandItem value="colophon how the site is built stack" onSelect={() => go("/colophon")}>
+          <CommandItem value="colophon how the site is built stack tech" onSelect={() => go("/colophon")}>
             <Info className="mr-2 h-4 w-4" />
             Colophon
             <CommandShortcut>{shiftShortcut("O")}</CommandShortcut>
           </CommandItem>
-          <CommandItem value="changelog updates history releases" onSelect={() => go("/changelog")}>
+          <CommandItem value="changelog updates history releases versions" onSelect={() => go("/changelog")}>
             <ScrollText className="mr-2 h-4 w-4" />
             Changelog
             <CommandShortcut>{shiftShortcut("G")}</CommandShortcut>
@@ -193,49 +193,21 @@ export default function CommandMenu() {
             Hall of Fame
             <CommandShortcut>{shiftShortcut("F")}</CommandShortcut>
           </CommandItem>
-          <CommandItem value="newsletter subscribe issues" onSelect={() => go("/newsletter")}>
-            <Mail className="mr-2 h-4 w-4" />
-            Newsletter
-            <CommandShortcut>{shiftShortcut("M")}</CommandShortcut>
-          </CommandItem>
-          <CommandItem value="consumed reading watching listening books youtube podcasts" onSelect={() => go("/consumed")}>
+          <CommandItem value="consumed reading watching listening books youtube podcasts media" onSelect={() => go("/consumed")}>
             <BookOpen className="mr-2 h-4 w-4" />
             Consumed
             <CommandShortcut>{shiftShortcut("D")}</CommandShortcut>
           </CommandItem>
-          <CommandItem value="all pages directory site map" onSelect={() => go("/all-pages")}>
-            <LayoutList className="mr-2 h-4 w-4" />
-            All Pages
-            <CommandShortcut>{shiftShortcut("A")}</CommandShortcut>
+          <CommandItem value="privacy policy data" onSelect={() => go("/privacy")}>
+            <Shield className="mr-2 h-4 w-4" />
+            Privacy Policy
+            <CommandShortcut>{shiftShortcut("R")}</CommandShortcut>
           </CommandItem>
-        </CommandGroup>
-
-        {/* Projects group - searchable by title and tech */}
-        <CommandGroup heading="Projects">
-          {projects.map((project) => (
-            <CommandItem
-              key={project.id}
-              value={`${project.title} ${project.technologies.join(" ")} ${project.category}`}
-              onSelect={() => go(`/projects/${project.id}`)}
-            >
-              <Folder className="mr-2 h-4 w-4 shrink-0" />
-              {project.title}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-
-        {/* Posts group - searchable blog post titles and tags */}
-        <CommandGroup heading="Posts">
-          {publishedPosts.map((post) => (
-            <CommandItem
-              key={post.slug}
-              value={`${post.title} ${post.tags.join(" ")}`}
-              onSelect={() => go(`/blog/${post.slug}`)}
-            >
-              <FileText className="mr-2 h-4 w-4 shrink-0" />
-              {post.title}
-            </CommandItem>
-          ))}
+          <CommandItem value="security policy vulnerability disclosure responsible" onSelect={() => go("/security-policy")}>
+            <Shield className="mr-2 h-4 w-4" />
+            Security Policy
+            <CommandShortcut>{shiftShortcut("X")}</CommandShortcut>
+          </CommandItem>
         </CommandGroup>
       </CommandList>
     </CommandDialog>

@@ -1,3 +1,6 @@
+// Dashboard-triggered Discord digest - mirrors trigger-digest but sends to Discord
+// instead of email. I persist the result to the config table so digest-status can
+// report both channels independently.
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import { sendDiscordDigest } from "@/lib/send-discord-digest"

@@ -40,7 +40,9 @@ function buildXml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_UR
       <guid isPermaLink="true">${url}</guid>
       <description><![CDATA[${post.description}]]></description>
       <author>contact@isaacadjei.me (Isaac Adjei)</author>
+      <dc:creator>Isaac Adjei</dc:creator>
       <pubDate>${pubDate}</pubDate>
+      <comments>${url}#comments</comments>
 ${categories}
 ${enclosure}
     </item>`
@@ -49,7 +51,7 @@ ${enclosure}
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 ${includeStylesheet ? '<?xml-stylesheet type="text/xsl" href="/feed.xsl"?>\n' : ''}
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>Isaac Adjei</title>
     <link>${SITE_URL}</link>
@@ -67,13 +69,19 @@ ${items}
 </rss>`
 }
 
-function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_URL) {
+const RSS_PER_PAGE = 7
+
+function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_URL, page = 1) {
+  const totalPages = Math.ceil(posts.length / RSS_PER_PAGE)
+  const currentPage = Math.max(1, Math.min(page, totalPages))
+  const paginated = posts.slice((currentPage - 1) * RSS_PER_PAGE, currentPage * RSS_PER_PAGE)
+
   function resolveLocal(coverImage: string | undefined): string | null {
     if (!coverImage) return null
     if (coverImage.startsWith("http")) return coverImage
     return `${baseUrl}${coverImage}`
   }
-  const items = posts
+  const items = paginated
     .map((post) => {
       const url = `${SITE_URL}/blog/${post.slug}`
       const pubDate = new Date(post.date).toLocaleDateString("en-GB", {
@@ -89,8 +97,15 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_U
         <div class="post-body">
           <div class="post-title"><a href="${url}">${post.title}</a></div>
           <div class="post-desc">${post.description}</div>
-          <div class="post-meta"><span>${pubDate}</span></div>
+          <div class="post-meta">
+            <span>${pubDate}</span>
+            <span class="post-author">Isaac Adjei</span>
+          </div>
           ${tags ? `<div class="tags">${tags}</div>` : ""}
+          <div class="post-actions">
+            <a href="${url}#reactions" class="post-action">&#128077; Reactions</a>
+            <a href="${url}#comments" class="post-action">&#128172; Comments</a>
+          </div>
         </div>
       </div>`
     })
@@ -147,7 +162,11 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_U
       .post-title a { color: inherit; text-decoration: none; }
       .post-title a:hover { color: var(--link); }
       .post-desc { font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem; line-height: 1.5; }
-      .post-meta { font-size: 0.75rem; color: var(--subtle); font-family: monospace; }
+      .post-meta { font-size: 0.75rem; color: var(--subtle); font-family: monospace; display: flex; gap: 1rem; align-items: center; }
+      .post-author { color: var(--muted); font-family: sans-serif; }
+      .post-actions { display: flex; gap: 1rem; margin-top: 0.625rem; }
+      .post-action { font-size: 0.75rem; color: var(--muted); text-decoration: none; }
+      .post-action:hover { color: var(--link); }
       .tags { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-top: 0.5rem; }
       .tag {
         font-size: 0.6875rem; color: var(--muted);
@@ -162,6 +181,17 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_U
         margin-top: 0.75rem;
       }
       .raw-btn:hover { border-color: var(--muted); color: var(--fg); }
+      .pagination { display: flex; align-items: center; justify-content: center; gap: 0.375rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+      .page-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 2rem; height: 2rem; padding: 0 0.5rem;
+        border: 1px solid var(--card-border); border-radius: 0.375rem;
+        background: var(--card); color: var(--btn-fg);
+        font-size: 0.8125rem; text-decoration: none; cursor: pointer;
+      }
+      .page-btn:hover { border-color: var(--muted); color: var(--fg); }
+      .page-btn.active { background: var(--link); border-color: var(--link); color: #fff; }
+      .page-btn.disabled { opacity: 0.4; pointer-events: none; }
       .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--subtle); }
       .footer a { color: var(--link); text-decoration: none; }
     </style>
@@ -187,6 +217,17 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_U
       </div>
       <div class="posts">${items}
       </div>
+      ${totalPages > 1 ? `
+      <div class="pagination">
+        <a href="?page=1" class="page-btn${currentPage === 1 ? " disabled" : ""}">&#171;</a>
+        <a href="?page=${currentPage - 1}" class="page-btn${currentPage === 1 ? " disabled" : ""}">&#8249;</a>
+        ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p =>
+          `<a href="?page=${p}" class="page-btn${p === currentPage ? " active" : ""}">${p}</a>`
+        ).join("")}
+        <a href="?page=${currentPage + 1}" class="page-btn${currentPage === totalPages ? " disabled" : ""}">&#8250;</a>
+        <a href="?page=${totalPages}" class="page-btn${currentPage === totalPages ? " disabled" : ""}">&#187;</a>
+      </div>
+      <p style="text-align:center;font-size:0.75rem;color:var(--muted);margin-top:0.5rem;">Showing ${(currentPage - 1) * RSS_PER_PAGE + 1}&#8211;${Math.min(currentPage * RSS_PER_PAGE, posts.length)} of ${posts.length} posts</p>` : ""}
       <div class="footer">
         <a href="${SITE_URL}">isaacadjei.me</a>
         &#183;
@@ -219,7 +260,8 @@ export function GET(request: Request) {
   }
 
   if (accept.includes("text/html")) {
-    return new Response(buildHtml(posts, baseUrl), {
+    const page = parseInt(url.searchParams.get("page") ?? "1", 10)
+    return new Response(buildHtml(posts, baseUrl, page), {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "public, max-age=3600",

@@ -1,3 +1,5 @@
+// I set Links section metadata wrapping the links directory page.
+
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {

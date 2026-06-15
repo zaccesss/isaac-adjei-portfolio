@@ -1,3 +1,7 @@
+// I read PS5 presence from two Redis keys written by a Cloudflare Worker that polls
+// the PSN API every minute. ps5:status is always present (the worker writes it on
+// every tick) so I use source.online rather than live !== null to determine presence.
+// lastGame is read from ps5:last-known because source.game is null when offline.
 import { NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
 

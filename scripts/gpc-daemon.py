@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# I push live gaming PC stats (CPU, GPU, current game) to Upstash Redis every 30 seconds so my portfolio dashboard can show real-time hardware usage and what game I am playing.
 """
 Gaming PC daemon - writes CPU%, GPU%, current game and timestamp to Upstash Redis every 30s.
 No battery - desktop only. Runs as a Windows service via NSSM.

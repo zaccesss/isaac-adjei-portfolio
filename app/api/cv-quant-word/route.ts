@@ -1,3 +1,4 @@
+// I serve the Quantitative Developer CV variant as a Word (.docx) download; force-dynamic prevents Next.js caching the binary at the edge.
 import { readFileSync } from "fs"
 import { join } from "path"
 

@@ -1,3 +1,6 @@
+// I provide a three-panel notes editor (sidebar, note list and editor/viewer) for a single folder.
+// I handle "all", "hidden" and named folders through the same component - the folder prop drives
+// which notes are shown and what the breadcrumb label says.
 "use client"
 
 import { useState, useTransition } from "react"
@@ -7,9 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
 import { Plus, Pin, PinOff, Lock, Unlock, Search, Folder, Tag, Trash2, Eye, EyeOff, Edit2, Download, X, MoreVertical } from "lucide-react"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 import PinGate from "@/components/dashboard/PinGate"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { dashboardPage } from "@/lib/animations"
@@ -263,8 +265,8 @@ export default function NotesFolderClient({
               </div>
 
               {preview ? (
-                <div className="flex-1 overflow-y-auto prose prose-sm dark:prose-invert max-w-none border border-border rounded-lg p-4">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{draft.content}</ReactMarkdown>
+                <div className="flex-1 overflow-y-auto border border-border rounded-lg p-4">
+                  <MarkdownContent>{draft.content}</MarkdownContent>
                 </div>
               ) : (
                 <Textarea
@@ -321,8 +323,8 @@ export default function NotesFolderClient({
                 <span>{new Date(selected.updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</span>
               </div>
 
-              <div className="flex-1 overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{selected.content}</ReactMarkdown>
+              <div className="flex-1 overflow-y-auto">
+                <MarkdownContent>{selected.content}</MarkdownContent>
               </div>
             </>
           ) : (

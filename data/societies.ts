@@ -1,4 +1,4 @@
-﻿// University society memberships shown on the About page.
+﻿// I list my university society memberships shown on the About page.
 
 export interface Society {
   name: string
