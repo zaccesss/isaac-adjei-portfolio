@@ -1,3 +1,5 @@
+// I show the notes landing page: a grid of folder cards plus an "All notes" card and a "Hidden" card.
+// I derive everything from the notes array passed in by the server component - there is no client fetch.
 "use client"
 
 import Link from "next/link"
@@ -13,6 +15,7 @@ type Note = {
   tags: string[]
   pinned: boolean
   locked: boolean
+  hidden: boolean
   color: string | null
   created_at: string
   updated_at: string
@@ -24,7 +27,7 @@ const toSlug = (s: string) => s.toLowerCase().replace(/\s+/g, "-")
 export default function NotesClient({ notes }: { notes: Note[] }) {
   const visibleNotes = notes.filter((n) => !n.hidden)
   const hiddenNotes = notes.filter((n) => n.hidden)
-  // I derive unique folders from visible notes only — hidden notes live under the Hidden virtual folder
+  // I derive unique folders from visible notes only - hidden notes live under the Hidden virtual folder
   const folders = Array.from(new Set(visibleNotes.map((n) => n.folder).filter(Boolean))).sort()
   const pinnedNotes = visibleNotes.filter((n) => n.pinned)
   const lockedNotes = visibleNotes.filter((n) => n.locked)

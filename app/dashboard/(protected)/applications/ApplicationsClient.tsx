@@ -1,3 +1,6 @@
+// I manage the full job-application tracking workflow: listing, filtering, creating, editing and deleting
+// entries across multiple tabs (Internships, Placements, Graduate Schemes, Spring Weeks, Events, Jobs).
+// I also provide Kanban, Analytics and Linear views, an application funnel chart and auto-detected categories.
 "use client"
 
 // SQL already applied - all new columns are in the applications table.

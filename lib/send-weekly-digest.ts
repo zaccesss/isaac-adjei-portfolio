@@ -1,3 +1,6 @@
+// I build and send a weekly summary email covering goals, applications, streaks and
+// diary mood for the past 7 days. The same function is called by both the weekly
+// cron endpoint and the manual dashboard trigger so the logic stays in one place.
 import { supabase } from "@/lib/supabase"
 
 type Goal = {

@@ -1,3 +1,8 @@
+// I use IntersectionObserver to track which heading is currently in view and
+// highlight the matching TOC entry. rootMargin "-60% bottom" means a heading is
+// considered "active" when it is in the top 40% of the viewport.
+// I suppress the TOC entirely when there are fewer than 3 headings to avoid
+// rendering a one-item list that adds more noise than value.
 "use client"
 
 import { useEffect, useState } from "react"

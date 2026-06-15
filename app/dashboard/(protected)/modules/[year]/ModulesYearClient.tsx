@@ -1,3 +1,6 @@
+// I show all modules for a single academic year with per-module mark tracking, classification
+// grades and charts. I also compute year-level summary stats and show a "what do I need?"
+// panel so I know exactly what to score on upcoming assessments to hit each classification boundary.
 "use client"
 
 import { useState, useTransition } from "react"

@@ -1,3 +1,5 @@
+// I show the detail view for a single inventory item with editable fields and a warranty warning.
+// I live at /dashboard/inventory/[category]/[id] so each item has a bookmarkable URL.
 "use client"
 
 import { useState, useTransition } from "react"
@@ -27,6 +29,9 @@ type Item = {
 
 type SpecRow = { key: string; value: string }
 
+// I try to parse the description as a key-value spec table (one "Key: Value" pair per line).
+// I require at least half the lines to be valid pairs before switching to the table layout -
+// this prevents normal prose descriptions from being incorrectly rendered as specs.
 function parseSpecs(description: string): SpecRow[] | null {
   const lines = description.trim().split("\n").filter(Boolean)
   if (lines.length < 2) return null

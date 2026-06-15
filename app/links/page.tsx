@@ -1,9 +1,8 @@
+// I render a Linktree-style links page grouping all my social and professional profiles by category.
+// I use "use client" because the page has hover animations - there is no client-side data fetching.
+// iconMap translates the icon string from data/links.ts to the correct React icon component.
+// brandClasses applies platform-specific background and icon colours so each link looks distinct.
 "use client"
-
-// Links page - a Linktree-style list of all my profiles grouped by category.
-// iconMap maps the icon string from data/links.ts to a React Icons or Lucide component.
-// brandClasses applies platform-specific background and icon colours so each link
-// looks visually distinct.
 
 import {
   FaGithub,

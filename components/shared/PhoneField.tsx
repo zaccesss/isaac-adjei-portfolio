@@ -1,3 +1,5 @@
+// I wrap react-phone-number-input here so every phone field gets consistent styling that matches shadcn inputs.
+// I use Tailwind attribute selectors on the library's CSS class names because the library injects its own markup.
 "use client"
 
 import PhoneInput from "react-phone-number-input"

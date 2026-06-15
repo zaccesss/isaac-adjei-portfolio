@@ -109,13 +109,67 @@ export default function PrivacyPage() {
         </div>
 
         <div>
+          <h2>Blog comments</h2>
+          <p>
+            Blog posts on this site use{" "}
+            <a
+              href="https://giscus.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+            >
+              Giscus
+            </a>
+            , a comments system powered by GitHub Discussions. If you choose to leave a comment,
+            you will be asked to sign in with your GitHub account. That authentication is handled
+            entirely by GitHub and your credentials are never shared with or stored by this site.
+            Your comments are stored in a public GitHub repository and are subject to{" "}
+            <a
+              href="https://github.com/giscus/giscus/blob/main/PRIVACY-POLICY.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+            >
+              Giscus&apos;s Privacy Policy
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+            >
+              GitHub&apos;s Privacy Statement
+            </a>
+            . You can view or delete your comments directly on GitHub at any time.
+          </p>
+        </div>
+
+        <div>
           <h2>Cookies</h2>
           <p>
-            This site uses a single cookie to remember your theme preference (light or dark mode).
-            The theme preference cookie stores only your chosen display mode and contains no
-            personal information. It is not accessible to any third party. No tracking cookies or
-            advertising cookies are used. You can clear cookies at any time through your browser
-            settings.
+            This site uses a cookie to remember your theme preference (light or dark mode). It
+            stores only your chosen display mode, contains no personal information and is not
+            accessible to any third party. No tracking cookies or advertising cookies are used. If
+            you sign in with GitHub to leave a comment via the embedded{" "}
+            <a
+              href="https://giscus.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+            >
+              Giscus
+            </a>{" "}
+            widget, GitHub may set additional cookies within that widget. Those are governed by{" "}
+            <a
+              href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+            >
+              GitHub&apos;s Privacy Statement
+            </a>
+            , not this one. You can clear cookies at any time through your browser settings.
           </p>
         </div>
 

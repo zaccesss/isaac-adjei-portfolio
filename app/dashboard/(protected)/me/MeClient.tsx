@@ -1,3 +1,6 @@
+// I provide an editable profile page for my personal details - name, DOB, faith, university info,
+// values and interests. Every field is click-to-edit and saves automatically on blur or Enter.
+// I store all fields as a single config blob rather than separate rows to keep the schema simple.
 "use client"
 
 import { useState, useTransition } from "react"

@@ -1,3 +1,6 @@
+// I compose the notes landing page from the "Now" status card and the folder overview grid.
+// I exist as a separate wrapper so the server notes/page.tsx can fetch both notes and now_status
+// in a single Promise.all and pass them down without either child needing to fetch independently.
 "use client"
 
 import NotesClient from "./NotesClient"

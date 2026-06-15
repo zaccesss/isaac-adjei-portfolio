@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// I watch data/cv.yml for changes and regenerate all CV HTML files automatically so I never need to run the generate script manually during development.
 /**
  * CV Watcher - Auto-regenerates CVs when cv.yml changes
  * Run during development: npm run watch-cvs

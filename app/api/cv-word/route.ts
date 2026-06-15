@@ -1,3 +1,4 @@
+// I serve the general software engineering CV as a Word (.docx) download; force-dynamic prevents Next.js caching the binary at the edge.
 // API route that serves the CV as a Word document (.docx) download.
 
 import { readFileSync } from "fs"

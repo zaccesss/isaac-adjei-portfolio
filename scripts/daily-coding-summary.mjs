@@ -1,3 +1,4 @@
+// I send a nightly Discord message comparing today's coding time to my 30-day average so I can track consistency without opening a dashboard.
 /**
  * Fetches today's WakaTime total from Supabase, compares it to the 30-day
  * average, and sends a short summary to Discord via webhook.

@@ -1,3 +1,6 @@
+// I render the public blog index with client-side filtering by post type and pagination.
+// I use "use client" here because the filter and pagination state lives in the browser -
+// all the post data is imported statically so there is no server fetch on load.
 "use client"
 
 import { useState } from "react"
@@ -42,6 +45,7 @@ export default function BlogPage() {
   const totalPages = Math.ceil(filtered.length / POSTS_PER_PAGE)
   const paginated = filtered.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE)
 
+  // I reset to page 1 whenever the filter changes so the user does not land on a non-existent page
   function setFilter(type: PostType | "all") {
     setActiveType(type)
     setPage(1)

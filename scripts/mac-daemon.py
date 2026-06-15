@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# I push my MacBook's battery level, real-time weather and country code to Upstash Redis every 30 seconds so my portfolio dashboard can show a live device widget with weather.
 """
 Mac daemon - writes battery, location and weather to Upstash Redis every 30s.
 Location and weather refresh every 10 cycles (~5 min) to keep API usage low.

@@ -1,3 +1,7 @@
+// I read MacBook status from two Redis keys written by a macOS daemon: macbook:status
+// (600s TTL) for live data and macbook:last-known (no TTL) so the card always renders.
+// Weather and location data come from the daemon's WeatherAPI payload. I override the
+// weather emoji to a moon when is_day === 0 so day/night is visually accurate.
 import { NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
 

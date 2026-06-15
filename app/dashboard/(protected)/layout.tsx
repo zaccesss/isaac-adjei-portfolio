@@ -1,3 +1,7 @@
+// This layout wraps every protected dashboard page and handles the server-side auth
+// check, theme sync and global UI chrome (sidebar, quick capture, toaster).
+// It exists as a separate file from the outer dashboard/layout.tsx so only protected
+// routes carry the auth overhead - the login page uses the outer layout alone.
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import DashboardSidebar from "../components/DashboardSidebar"

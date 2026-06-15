@@ -1,3 +1,6 @@
+// I fetch all notes from Supabase, then filter by the folder slug from the URL before passing them
+// to the client component. I handle the virtual "all" and "hidden" folder slugs here so the client
+// component only ever sees the notes it should display and does not need to re-filter.
 import { supabase } from "@/lib/supabase"
 import NotesFolderClient from "./NotesFolderClient"
 
@@ -22,6 +25,8 @@ export default async function NotesFolderPage({ params }: { params: Promise<{ fo
       ? (notes ?? []).filter((n) => !n.hidden)
       : (notes ?? []).filter((n) => toSlug(n.folder) === folder && !n.hidden)
 
+  // I prefer the actual folder name from the first note rather than capitalising the slug,
+  // because note folders can have mixed casing (e.g. "JavaScript" not "Javascript")
   const displayFolder =
     folder === "hidden"
       ? "Hidden"

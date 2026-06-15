@@ -1,3 +1,5 @@
+// I separate the PIN gate from ModulesClient so the server page can pass pinVerified
+// as a prop without making ModulesClient itself a client component that knows about routing.
 "use client"
 
 import { useRouter } from "next/navigation"

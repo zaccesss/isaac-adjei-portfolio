@@ -1,3 +1,4 @@
+// I perform the one-time Spotify OAuth flow to obtain a long-lived refresh token that the /api/spotify route can use on every request without re-prompting.
 // One-time script to get a Spotify refresh token.
 // Run: node scripts/spotify-auth.mjs
 // Then open the printed URL in your browser, authorise, and paste the full

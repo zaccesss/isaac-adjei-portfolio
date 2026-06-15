@@ -1,3 +1,5 @@
+// I render the public newsletter landing page with topic cards, a subscribe form and past issues.
+// I am a server component so the metadata and OG image are available for crawlers without JS.
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
 import { Book, Mail, Zap, BookOpen, Cpu, Globe, Lightbulb, ExternalLink, Clock, FlaskConical, Info, Wrench, Play } from "lucide-react"

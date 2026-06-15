@@ -1,3 +1,7 @@
+// I generate dynamic Open Graph images on the edge using Satori (via next/og).
+// Title and description come from query params so every page gets a tailored image
+// without storing any image files. I run on the edge runtime so there is no cold-start
+// penalty from the Node.js runtime.
 import { ImageResponse } from "next/og"
 import { NextRequest } from "next/server"
 

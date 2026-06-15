@@ -1,3 +1,5 @@
+// I show wishlist items for a specific category (or all categories when slug is "all").
+// Items are colour-coded by priority via a left border and can be checked off when obtained.
 "use client"
 
 import { useState, useTransition } from "react"

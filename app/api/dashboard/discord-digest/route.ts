@@ -1,3 +1,7 @@
+// Cron-facing endpoint that fires the Discord digest. Authentication is a shared
+// CRON_SECRET header so this can be called by Vercel Cron without a user session.
+// The actual message-building logic lives in lib/send-discord-digest.ts so it can
+// also be triggered manually from the dashboard without going through HTTP.
 import { NextRequest, NextResponse } from "next/server"
 import { sendDiscordDigest } from "@/lib/send-discord-digest"
 

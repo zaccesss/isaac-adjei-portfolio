@@ -1,3 +1,6 @@
+// I track open-source contributions (PRs, issues, merges) in an inline-editable table.
+// I support sorting by any column, filtering by status and search term, bulk delete and CSV export.
+// I use optimistic updates throughout so changes feel instant without waiting for the server.
 "use client"
 
 import { useState, useTransition, useRef } from "react"

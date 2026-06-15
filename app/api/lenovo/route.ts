@@ -1,3 +1,6 @@
+// I read Lenovo laptop status from two Redis keys written by a daemon running on
+// the laptop: lenovo:status (600s TTL) for live data and lenovo:last-known (no TTL)
+// so the card always has something to render even when the laptop is offline.
 import { NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
 

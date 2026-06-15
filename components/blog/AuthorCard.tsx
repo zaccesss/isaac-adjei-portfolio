@@ -1,3 +1,4 @@
+// I show this card at the bottom of every published blog post so readers know who wrote it and can follow up.
 import Image from "next/image"
 import { Mail } from "lucide-react"
 import { FaGithub, FaLinkedin } from "react-icons/fa6"

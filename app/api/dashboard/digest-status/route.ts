@@ -1,3 +1,6 @@
+// I read digest timestamps from the config table so the dashboard settings panel
+// can show when each digest was last sent and whether it succeeded or failed.
+// Both keys are fetched in a single query to keep the round-trip count low.
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { supabase } from "@/lib/supabase"

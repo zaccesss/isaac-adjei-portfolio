@@ -1,3 +1,6 @@
+// I build and post a Discord embed digest covering goals, applications, streaks and
+// diary mood for the last N hours. The same function is called by both the daily
+// cron endpoint and the manual dashboard trigger so the logic stays in one place.
 import { supabase } from "@/lib/supabase"
 
 export type DiscordDigestResult = {

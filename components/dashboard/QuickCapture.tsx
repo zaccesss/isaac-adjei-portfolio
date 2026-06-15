@@ -1,3 +1,6 @@
+// I float a "+" button over every dashboard page so I can quickly log a diary entry,
+// note, goal or application without navigating away from whatever I am looking at.
+// The dialog is opened by the button or by the global Cmd+Shift+N shortcut.
 "use client"
 
 import { useState, useTransition } from "react"

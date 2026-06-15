@@ -1,3 +1,7 @@
+// I use a URL search param (?preview=1) to unlock future months in development so
+// I can preview upcoming entries without changing the published guard logic.
+// Months are hidden until their calendar month begins so past entries always show
+// and upcoming ones stay locked even if the data is already present in the file.
 "use client"
 
 import { useState, useEffect } from "react"

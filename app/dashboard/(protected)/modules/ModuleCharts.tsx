@@ -1,3 +1,7 @@
+// I isolate chart components here so they can be imported only where charts are
+// needed - keeping Recharts out of the module overview page bundle.
+// markColour maps mark percentages to degree classification colours so bars are
+// instantly readable without needing a legend.
 "use client"
 
 import {

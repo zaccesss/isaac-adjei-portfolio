@@ -1,7 +1,8 @@
+// I run this daily via Vercel Cron to permanently remove trash items whose expires_at
+// has passed. The 7-day window is set when items are moved to trash, so this route just
+// deletes whatever the DB says is expired. Authenticated by CRON_SECRET only.
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
-
-// Runs daily via Vercel cron. Permanently removes trash items older than 7 days.
 export async function GET(req: Request) {
   const auth = req.headers.get("Authorization")
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {

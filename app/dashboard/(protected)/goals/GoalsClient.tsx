@@ -1,3 +1,5 @@
+// I show an overview of goals grouped by life category (Personal, Academic, Career etc.)
+// and let me navigate into each category to see individual goal cards with progress bars.
 "use client"
 
 import { useState, useTransition } from "react"

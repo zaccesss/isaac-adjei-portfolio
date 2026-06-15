@@ -1,3 +1,7 @@
+// I expose the last run status of any allow-listed GitHub Actions workflow so the
+// dashboard settings panel can show a health indicator per workflow. I use an
+// allowlist rather than accepting any workflow name to prevent the route becoming
+// a probe for arbitrary repo workflows.
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 

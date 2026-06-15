@@ -1,3 +1,6 @@
+// I dispatch the cv-pdf GitHub Actions workflow on demand so I can regenerate my CV
+// PDFs from the dashboard without pushing a commit. The GH_PAT must have the
+// "workflow" permission scope - the error map below surfaces missing scopes clearly.
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { logActivity } from "@/app/dashboard/actions"

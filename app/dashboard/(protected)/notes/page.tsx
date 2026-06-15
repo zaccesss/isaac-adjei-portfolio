@@ -1,3 +1,5 @@
+// I fetch notes and the "now_status" config in parallel so the notes landing page loads in one round-trip.
+// I separate the data fetch from the UI by delegating to NotesWrapper so the server component stays lean.
 import { supabase } from "@/lib/supabase"
 import NotesWrapper from "./NotesWrapper"
 

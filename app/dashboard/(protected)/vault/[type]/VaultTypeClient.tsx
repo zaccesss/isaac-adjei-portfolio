@@ -1,3 +1,6 @@
+// I show vault entries of a specific type (accounts, secure notes, API keys, cards or identities).
+// I render each entry as a collapsible card with secret fields masked by default and a copy button
+// that never forces the user to reveal a secret just to copy it.
 "use client"
 
 import { useState, useTransition } from "react"

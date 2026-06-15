@@ -1,3 +1,4 @@
+// I list all seven cover letter variants so recruiters or hiring managers can download either a ready-to-send PDF or an editable Word version for each engineering discipline.
 // Cover Letters sub-page - provides tailored cover letter templates
 // Downloadable as Word documents for editing and personalisation
 

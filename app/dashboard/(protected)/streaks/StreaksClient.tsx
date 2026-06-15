@@ -1,3 +1,6 @@
+// I track daily habit streaks with a GitHub-style 90-day heatmap, current and longest streak counters
+// and activity charts. I compute all streak lengths client-side from the logs array so they stay
+// consistent with local optimistic updates without ever going stale.
 "use client"
 
 import { useState, useTransition } from "react"

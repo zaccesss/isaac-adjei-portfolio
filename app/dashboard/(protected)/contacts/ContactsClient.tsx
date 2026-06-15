@@ -1,3 +1,6 @@
+// I let me manage professional and personal contacts: adding names, roles, how I met them,
+// contact details and follow-up flags. I surface a follow-up queue for anyone I have not
+// contacted in over 30 days so important relationships do not go cold.
 "use client"
 
 import { useState } from "react"
@@ -23,6 +26,8 @@ function relativeDate(iso: string): string {
   return `${Math.floor(days / 365)}y ago`
 }
 
+// I append T00:00:00 when parsing the date string so the browser treats it as local midnight
+// rather than UTC midnight, which would cause off-by-one errors on dates near midnight
 function needsFollowUp(contact: Contact): boolean {
   if (!contact.last_contact) return false
   const days = (Date.now() - new Date(contact.last_contact + "T00:00:00").getTime()) / 86400000

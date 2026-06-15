@@ -1,3 +1,5 @@
+// I use this component anywhere user-authored text should render markdown - links always open in a new tab.
+// The compact prop switches between prose-sm (default) and prose-xs for tighter dashboard cards.
 "use client"
 
 import ReactMarkdown from "react-markdown"
