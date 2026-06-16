@@ -28,18 +28,6 @@ export default function ContactCTA() {
             connect, I am always open to a conversation.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button asChild size="lg">
-              <Link href="/contact">
-                Get in touch
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/projects">
-                View My Work
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
             <Button
               asChild
               size="lg"
@@ -49,6 +37,18 @@ export default function ContactCTA() {
                 <Download className="mr-2 h-4 w-4" />
                 Download CV
               </a>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/projects">
+                View My Work
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild size="lg">
+              <Link href="/contact">
+                Get in touch
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </motion.div>
