@@ -94,7 +94,16 @@ html.theme-transitioning *::after {
 
 .animate-fade-up {
   animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
 }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-18px); }
+}
+.animate-float        { animation: float 10s ease-in-out infinite; }
+.animate-float-slow   { animation: float 14s ease-in-out infinite; }
+.animate-float-slower { animation: float 18s ease-in-out infinite; }
 
 @keyframes marquee-scroll {
   0% { transform: translateX(0); }
