@@ -3,14 +3,15 @@
 // showLabel is optional - when true the platform name appears next to the icon.
 
 import Link from "next/link"
-import { Github, Linkedin, Link2, Mail, Newspaper } from "lucide-react"
+import { Link2, Mail, Newspaper } from "lucide-react"
+import { FaGithub, FaLinkedin } from "react-icons/fa6"
 import { SiOrcid, SiBuymeacoffee } from "react-icons/si"
 import { socialLinks } from "@/data/social"
 import { cn } from "@/lib/utils"
 
 const iconMap: Record<string, React.ElementType> = {
-  github: Github,
-  linkedin: Linkedin,
+  github: FaGithub,
+  linkedin: FaLinkedin,
   link: Link2,
   mail: Mail,
   orcid: SiOrcid,
