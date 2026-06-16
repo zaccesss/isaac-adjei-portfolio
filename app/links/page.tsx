@@ -20,6 +20,7 @@ import {
 } from "react-icons/fa6"
 import {
   SiCodeforces,
+  SiDevpost,
   SiKick,
   SiLeetcode,
   SiSubstack,
@@ -59,6 +60,7 @@ const iconMap: Record<string, React.ElementType> = {
   playstation: FaPlaystation,
   leetcode: SiLeetcode,
   codeforces: SiCodeforces,
+  devpost: SiDevpost,
   kick: SiKick,
   linktree: SiLinktree,
   orcid: SiOrcid,
@@ -87,6 +89,7 @@ const brandClasses: Record<string, { bg: string; icon: string }> = {
   playstation: { bg: "bg-[#003791]/10", icon: "text-[#003791] dark:text-[#0072CE]" },
   leetcode: { bg: "bg-[#FFA116]/10", icon: "text-[#FFA116]" },
   codeforces: { bg: "bg-[#1F8ACB]/10", icon: "text-[#1F8ACB]" },
+  devpost: { bg: "bg-[#003E54]/10", icon: "text-[#003E54] dark:text-[#3ab5e6]" },
   kick: { bg: "bg-[#53FC18]/15", icon: "text-[#3AD70A]" },
   linktree: { bg: "bg-[#43E55E]/10", icon: "text-[#43E55E]" },
   orcid: { bg: "bg-[#A6CE39]/10", icon: "text-[#A6CE39]" },

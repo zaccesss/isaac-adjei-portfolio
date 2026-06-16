@@ -107,6 +107,13 @@ export const profileLinks: LinkItem[] = [
     category: "professional",
   },
   {
+    title: "Devpost",
+    description: "Hackathon projects and competition entries",
+    url: "https://devpost.com/zaccesss",
+    icon: "devpost",
+    category: "professional",
+  },
+  {
     title: "Codeforces",
     description: "Competitive programming and contest rating",
     url: "https://codeforces.com/profile/zaccesss",
