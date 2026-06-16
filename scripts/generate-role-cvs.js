@@ -230,8 +230,12 @@ function createRoleCV(roleConfig, roleId) {
 
   // I assemble the final HTML without any JavaScript, inserting publications between
   // experience and volunteering so every role CV has the publication record.
-  let cv = header + '\n' + profileHTML + '\n' + education + '\n' + reorderedSkills + '\n'
-         + reorderedProjects + '\n' + finalExperience + '\n' + publications + '\n' + volunteering + '\n'
+  // reorderEntryBlock strips all HTML comments (to remove PAL Leader placeholder),
+  // so we must re-insert the section delimiter markers that generateCVDocxNative needs.
+  let cv = header + '\n' + profileHTML + '\n' + education + '\n' + reorderedSkills
+         + '\n<!-- PROJECTS -->\n' + reorderedProjects
+         + '\n<!-- EXPERIENCE -->\n' + finalExperience
+         + '\n' + publications + '\n' + volunteering + '\n'
          + languages + '\n</body>\n</html>';
 
   // I inject a font override for tech roles that suit a modern sans-serif look.
