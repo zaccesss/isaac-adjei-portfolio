@@ -3,7 +3,8 @@
 // The IDs are hardcoded in a Set here since the volunteering split is specific to this page.
 
 import type { Metadata } from "next"
-import { Download } from "lucide-react"
+import Link from "next/link"
+import { Download, ArrowRight } from "lucide-react"
 import { experiences } from "@/data/experience"
 import ExperienceTimeline from "@/components/sections/ExperienceTimeline"
 import { Button } from "@/components/ui/button"
@@ -29,19 +30,8 @@ export default function ExperiencePage() {
       <div className="space-y-4">
         <h1 className="text-4xl font-bold tracking-tight">Experience</h1>
         <p className="text-lg text-muted-foreground">
-          Work history, internships and professional programmes.
+          Work history, internships, professional programmes and volunteering.
         </p>
-        <div className="flex items-center gap-2 pt-2">
-          <Button
-            asChild
-            className="bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
-          >
-            <a href="/api/cv-pdf">
-              <Download className="mr-2 h-4 w-4" />
-              Download CV
-            </a>
-          </Button>
-        </div>
       </div>
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold tracking-tight">Professional Experience</h2>
@@ -51,6 +41,31 @@ export default function ExperiencePage() {
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold tracking-tight">Volunteering</h2>
         <ExperienceTimeline experiences={volunteeringExperiences} />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3 pt-4 justify-center">
+        <Button
+          asChild
+          size="lg"
+          className="bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+        >
+          <a href="/api/cv-pdf">
+            <Download className="mr-2 h-4 w-4" />
+            Download CV
+          </a>
+        </Button>
+        <Button asChild size="lg" variant="outline">
+          <Link href="/projects">
+            View My Work
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+        <Button asChild size="lg">
+          <Link href="/contact">
+            Get in touch
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
       </div>
     </div>
   )

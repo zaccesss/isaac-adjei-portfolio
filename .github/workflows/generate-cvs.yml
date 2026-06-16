@@ -36,15 +36,9 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    # Each script reads cv.yml and writes its artefacts to public/resume/
-    - name: Generate HTML CVs
-      run: node scripts/generate-cvs.js
-
-    - name: Generate PDF CVs
-      run: node scripts/generate-pdfs.js
-
-    - name: Generate DOCX CVs
-      run: node scripts/generate-docx.js
+    # Single consolidated script generates all HTML, PDF and DOCX artefacts
+    - name: Generate all CV and cover letter artefacts
+      run: node scripts/generate-role-cvs.js
 
     # Skip the commit step entirely if nothing changed to avoid empty commits
     - name: Check for changes
@@ -61,7 +55,9 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add public/resume/cv-*.html public/resume/cv-*.pdf public/resume/cv-*.docx
+        git add public/resume/cv.html public/resume/cv-*.html public/resume/cv-*.pdf public/resume/cv-*.docx
+        git add public/resume/cover-letter-*.html public/resume/cover-letter-*.pdf public/resume/cover-letter-*.docx
+        git add public/resume/Isaac_Adjei_CV.pdf public/resume/Isaac_Adjei_CV.docx
         # [skip ci] prevents this commit from triggering another CI run
-        git commit -m "Auto-regenerate CVs from cv.yml [skip ci]"
+        git commit -m "Auto-regenerate CVs and cover letters [skip ci]"
         git push

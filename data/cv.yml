@@ -157,6 +157,96 @@ role_profiles:
   
   security: "Engineering student at Aston University (Predicted First Class) with practical experience in secure coding, application security and vulnerability assessment. Implements security controls, audit logging and compliance measures. Seeking cybersecurity and application security internships."
 
+# Role-specific bullet variants for key experience entries.
+# generator reads these and swaps them in per role.
+# match: unique substring from the entry's HTML used to identify it.
+# bullets: list of HTML strings (use <strong> for bold keywords).
+role_experience:
+  - id: ghana_hc
+    match: "Diplomatic, Consular and Estates Intern"
+    roles:
+      software:
+        bullets:
+          - "Processed end-to-end consular document workflows in official diplomatic management systems, coordinating intake, <strong>biometric data capture</strong>, authentication and passport production, supporting <strong>100+ daily client interactions</strong>"
+          - "Maintained structured administrative records across estates documentation, maintenance scheduling and office workflows, supporting coordinated property inspections"
+      embedded:
+        bullets:
+          - "Operated official consular processing systems handling <strong>biometric capture</strong>, document authentication and physical visa and passport production, supporting <strong>100+ daily client interactions</strong>"
+          - "Assisted with <strong>physical site inspections</strong> and facility surveys, maintaining estates and maintenance records and coordinating with officers on operational logistics"
+      data:
+        bullets:
+          - "Processed and authenticated <strong>biometric and document records</strong> through official consular management systems, maintaining accuracy and confidentiality across <strong>100+ daily client interactions</strong>"
+          - "Managed structured records across estates documentation, maintenance schedules and administrative workflows, ensuring data integrity across diplomatic operations"
+      devops:
+        bullets:
+          - "Executed structured consular processing workflows within official diplomatic platforms, handling intake, <strong>biometric capture</strong>, authentication and document production at <strong>100+ daily interactions</strong>"
+          - "Coordinated <strong>diplomatic property operations</strong> and administrative workflows, managing estates records and maintenance scheduling to sustain operational continuity"
+      quant:
+        bullets:
+          - "Operated high-throughput consular workflows processing <strong>100+ daily client interactions</strong> with full accuracy across intake, <strong>biometric data capture</strong>, document authentication and passport production"
+          - "Maintained precise structured records across estates management and maintenance scheduling, applying data discipline in a high-stakes operational environment"
+      security:
+        bullets:
+          - "Operated secure consular processing systems for identity verification, <strong>biometric data capture</strong>, document authentication and controlled visa and passport production at <strong>100+ daily interactions</strong>"
+          - "Maintained sensitive estates documentation and enforced secure record-keeping across diplomatic administrative workflows"
+
+  - id: student_rep
+    match: "Student Representative"
+    roles:
+      software:
+        bullets:
+          - "Represent Electronic Engineering and Computer Science students by gathering and communicating feedback to academic staff through <strong>SSLC, Senate and Council meetings</strong>"
+          - "Drove improvements to <strong>course delivery and software module content</strong> by synthesising student input into structured proposals and following through to resolution"
+      embedded:
+        bullets:
+          - "Represent Electronic Engineering students, conveying technical module feedback to academic staff through <strong>SSLC, Senate and Council meetings</strong>"
+          - "Influenced <strong>electronics and programming curriculum improvements</strong> by gathering cohort feedback and presenting actionable proposals at staff-student forums"
+      data:
+        bullets:
+          - "Collect and structure student feedback and present findings to academic staff through <strong>SSLC, Senate and Council meetings</strong> in a clear and data-informed manner"
+          - "Delivered <strong>course and assessment improvements</strong> by aggregating qualitative feedback, identifying patterns and working with staff to implement changes"
+      devops:
+        bullets:
+          - "Collect and communicate student feedback to academic staff through <strong>SSLC, Senate and Council meetings</strong>, maintaining transparent issue tracking and follow-up"
+          - "Facilitated <strong>course delivery and process improvements</strong> by coordinating between students and academic teams to implement feedback-driven changes"
+      quant:
+        bullets:
+          - "Represent student academic interests through <strong>SSLC, Senate and Council meetings</strong>, rigorously gathering, structuring and communicating feedback to drive improvements"
+          - "Achieved <strong>course and assessment improvements</strong> through disciplined stakeholder engagement and structured communication with academic staff"
+      security:
+        bullets:
+          - "Represent student interests through <strong>SSLC, Senate and Council meetings</strong>, ensuring feedback is accurately captured and addressed through formal academic governance channels"
+          - "Contributed to <strong>academic governance and course quality</strong> improvements through structured reporting and consistent follow-up on agreed actions"
+
+  - id: pal_leader
+    match: "Peer Assisted Learning (PAL) Leader"
+    roles:
+      software:
+        bullets:
+          - "Facilitate weekly <strong>Peer Assisted Learning (PAL)</strong> sessions covering <strong>Python programming</strong> and electronics across multiple student cohorts, preparing curriculum-aligned exercises and supporting peer learning in a structured environment"
+      embedded:
+        bullets:
+          - "Facilitate weekly <strong>Peer Assisted Learning (PAL)</strong> sessions covering <strong>Electronics and Python programming</strong> across multiple student cohorts, designing practical curriculum materials and supporting hardware and software fundamentals"
+      data:
+        bullets:
+          - "Facilitate weekly <strong>Peer Assisted Learning (PAL)</strong> sessions covering <strong>Python programming</strong> and electronics across multiple student cohorts, preparing curriculum-aligned materials that build strong computational and analytical foundations"
+      devops:
+        bullets:
+          - "Facilitate weekly <strong>Peer Assisted Learning (PAL)</strong> sessions covering Python and Electronics across multiple student cohorts, preparing curriculum-aligned materials and fostering a structured and collaborative learning environment"
+      quant:
+        bullets:
+          - "Facilitate weekly <strong>Peer Assisted Learning (PAL)</strong> sessions covering <strong>Python and electronics</strong> across multiple student cohorts, preparing rigorous curriculum-aligned materials to build strong mathematical and computational foundations"
+      security:
+        bullets:
+          - "Facilitate weekly <strong>Peer Assisted Learning (PAL)</strong> sessions covering <strong>Python programming</strong> and electronics across multiple student cohorts, building student confidence in core technical fundamentals and collaborative problem-solving"
+
+  - id: hvac
+    match: "HVAC Technician"
+    roles:
+      embedded:
+        bullets:
+          - "Serviced, installed and maintained <strong>50+ air conditioning units</strong>, applying practical knowledge of <strong>electrical systems</strong>, refrigerant circuits, thermodynamics and diagnostic instrumentation in live field environments"
+
 # Order of sections for each role (customise priority)
 role_section_order:
   software: ["profile", "skills", "projects", "education", "experience"]

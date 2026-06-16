@@ -4,12 +4,22 @@
 // The iframe embeds /resume/cv.html directly - security headers allow same-origin framing.
 // Print opens the HTML in a new tab so the browser's native print dialog works.
 
+import { useRef } from "react"
 import Link from "next/link"
 import { Download, FileText, Printer, ExternalLink, ChevronRight, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import ShareButton from "@/components/shared/ShareButton"
 
 export default function CVPage() {
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  const handleIframeLoad = () => {
+    const iframe = iframeRef.current
+    if (!iframe?.contentDocument?.body) return
+    // Resize to the full document height so the CV is never clipped.
+    iframe.style.height = `${iframe.contentDocument.body.scrollHeight + 32}px`
+  }
+
   const handlePrint = () => {
     // I open the HTML file in a new tab and trigger print from there because
     // calling iframe.contentWindow.print() is blocked by same-origin scripting
@@ -67,9 +77,11 @@ export default function CVPage() {
       <div className="container max-w-5xl py-8 px-4">
         <div className="rounded-lg border bg-white shadow-sm overflow-hidden">
           <iframe
+            ref={iframeRef}
             src="/resume/cv.html"
-            className="w-full h-[800px] md:h-[1000px]"
+            className="w-full min-h-[900px]"
             title="Isaac (Zac) Adjei CV"
+            onLoad={handleIframeLoad}
           />
         </div>
 
