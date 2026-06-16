@@ -143,7 +143,7 @@ const categoryLabel: Record<LinkItem["category"], string> = {
   writing: "Writing",
   academic: "Academic",
   code: "Code",
-  competitive: "Competitive Programming",
+  competitive: "Competitive Programming & Challenges",
   hackathons: "Hackathons",
   social: "Social",
   content: "Content",
@@ -190,17 +190,46 @@ export default function LinksPage() {
           intersection of hardware and software. Open to internships, placements & professional tech
           roles. Follow, connect, subscribe, like, comment and share on all socials!
         </p>
+        <div className="flex items-center justify-center gap-4 pt-1">
+          {([
+            { Icon: FaLinkedin,     href: "https://www.linkedin.com/in/isaacadjei" },
+            { Icon: FaGithub,       href: "https://www.github.com/zaccessss" },
+            { Icon: SiSubstack,     href: "https://substack.com/@zaccess" },
+            { Icon: FaDiscord,      href: "https://discord.gg/habvhrGX4s" },
+            { Icon: FaXTwitter,     href: "https://x.com/zaccessss" },
+            { Icon: SiBuymeacoffee, href: "https://buymeacoffee.com/zaccesss" },
+          ] as const).map(({ Icon, href }) => (
+            <Link
+              key={href}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground hover:scale-125 active:scale-90 transition-all duration-150"
+            >
+              <Icon className="h-5 w-5" />
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Links */}
-      <div className="w-full max-w-md space-y-8 animate-fade-up">
-        {categories.map((category) => {
+      <div className="w-full max-w-md space-y-8">
+        {categories.map((category, catIndex) => {
           const links = profileLinks.filter((l) => l.category === category)
+          const label = categoryLabel[category]
           return (
-            <div key={category} className="space-y-3">
-              <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest px-1">
-                {categoryLabel[category]}
-              </p>
+            <div
+              key={category}
+              className={cn("space-y-3 animate-fade-up", `stagger-${catIndex}`)}
+            >
+              <div className="flex items-center gap-3 px-1">
+                <div className="flex-1 h-px bg-border" />
+                <p className="font-mono text-primary tracking-widest whitespace-nowrap">
+                  <span className="text-base font-black">{label[0]}</span>
+                  <span className="text-sm font-bold">{label.slice(1)}</span>
+                </p>
+                <div className="flex-1 h-px bg-border" />
+              </div>
 
               {links.map((link) => {
                 const Icon = iconMap[link.icon] ?? Globe
@@ -215,13 +244,13 @@ export default function LinksPage() {
                     rel="noopener noreferrer"
                     className={cn(
                       "flex items-center gap-4 w-full rounded-xl border bg-card px-4 py-3.5",
-                      "hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
+                      "hover:shadow-lg hover:shadow-primary/10 hover:border-primary/30 hover:scale-[1.02] active:scale-[0.98]",
                       "transition-all duration-200 group"
                     )}
                   >
                     <div
                       className={cn(
-                        "shrink-0 w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden",
+                        "shrink-0 w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden transition-transform duration-200 group-hover:scale-110",
                         link.iconImage ? "bg-white" : (brand?.bg ?? "bg-primary/10")
                       )}
                     >
