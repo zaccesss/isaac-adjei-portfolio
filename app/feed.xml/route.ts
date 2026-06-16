@@ -248,12 +248,20 @@ export function GET(request: Request) {
 
   const baseUrl = `${url.protocol}//${url.host}`
 
-  // I serve a minimal HTML wrapper for ?raw so the browser shows the correct favicon and
-  // title. The XML is HTML-escaped and dropped into a <pre> - no regex syntax highlighting
-  // (that was what exceeded Cloudflare's CPU limit previously).
+  // I serve a styled HTML wrapper for ?raw so the browser shows the correct favicon,
+  // title and XML syntax colouring. Lightweight regex (no library) to stay within
+  // Cloudflare's CPU budget — the previous syntax highlighter exceeded it.
   if (forceRaw) {
     const xml = buildXml(posts, baseUrl, false)
     const escaped = xml.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    // Minimal XML colouring: processing instructions → pi, comments → comment,
+    // tag names → tag, attribute names → attr, attribute values → value.
+    const highlighted = escaped
+      .replace(/(&lt;\?[\s\S]*?\?&gt;)/g, '<span class="pi">$1</span>')
+      .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="comment">$1</span>')
+      .replace(/(&lt;\/?)([\w:.-]+)/g, '$1<span class="tag">$2</span>')
+      .replace(/ ([\w:.-]+)(=&quot;)/g, ' <span class="attr">$1</span>$2')
+      .replace(/(&quot;)([^&]*)(&quot;)/g, '$1<span class="value">$2</span>$3')
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -263,11 +271,18 @@ export function GET(request: Request) {
   <link rel="icon" type="image/png" href="${SITE_URL}/images/avatar.png" />
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{background:#1e1e1e;color:#d4d4d4;font-family:monospace;font-size:13px;line-height:1.5}
-    pre{padding:1.25rem;white-space:pre-wrap;word-break:break-word}
+    :root{--bg:#ffffff;--fg:#1e1e1e;--tag:#0000cc;--attr:#c00000;--value:#007700;--pi:#888;--comment:#6a9955}
+    @media(prefers-color-scheme:dark){:root{--bg:#1e1e1e;--fg:#d4d4d4;--tag:#569cd6;--attr:#9cdcfe;--value:#ce9178;--pi:#888;--comment:#6a9955}}
+    body{background:var(--bg);color:var(--fg);font-family:monospace;font-size:13px;line-height:1.6;padding:1.25rem}
+    pre{white-space:pre-wrap;word-break:break-word}
+    .tag{color:var(--tag);font-weight:500}
+    .attr{color:var(--attr)}
+    .value{color:var(--value)}
+    .pi{color:var(--pi)}
+    .comment{color:var(--comment);font-style:italic}
   </style>
 </head>
-<body><pre>${escaped}</pre></body>
+<body><pre>${highlighted}</pre></body>
 </html>`
     return new Response(html, {
       headers: {
