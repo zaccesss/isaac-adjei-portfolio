@@ -193,10 +193,10 @@ export default function LinksPage() {
         <div className="flex items-center justify-center gap-4 pt-1">
           {([
             { Icon: FaLinkedin,     href: "https://www.linkedin.com/in/isaacadjei" },
-            { Icon: FaGithub,       href: "https://www.github.com/zaccessss" },
+            { Icon: FaGithub,       href: "https://www.github.com/zaccesss" },
             { Icon: SiSubstack,     href: "https://substack.com/@zaccess" },
-            { Icon: FaDiscord,      href: "https://discord.gg/habvhrGX4s" },
-            { Icon: FaXTwitter,     href: "https://x.com/zaccessss" },
+            { Icon: FaDiscord,      href: "https://discord.com/users/1087417301583790212" },
+            { Icon: FaXTwitter,     href: "https://x.com/zaccesss" },
             { Icon: SiBuymeacoffee, href: "https://buymeacoffee.com/zaccesss" },
           ] as const).map(({ Icon, href }) => (
             <Link
