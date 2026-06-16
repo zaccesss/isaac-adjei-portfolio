@@ -17,18 +17,17 @@ export const experiences: Experience[] = [
   // PAL Leader - uncomment when role begins in September 2026
   // {
   //   id: "pal-leader",
-  //   role: "PAL Leader - Electronics and Programming",
+  //   role: "Peer Assisted Learning (PAL) Leader - Electronics and Programming",
   //   company: "Aston University, Learning Services",
   //   location: "Birmingham, UK",
   //   type: "work" as const,
   //   startDate: "Sep 2026",
   //   endDate: "Present",
-  //   description: "Peer-Assisted Learning Leader supporting first-year Electronic Engineering and Computer Science students with programming fundamentals and course content.",
+  //   description: "Peer Assisted Learning (PAL) Leader at Aston University Learning Services, facilitating structured sessions to help undergraduate students across multiple cohorts build confidence in programming and electronics.",
   //   achievements: [
-  //     "Facilitate weekly PAL sessions helping students understand core programming concepts in Python",
-  //     "Prepare session materials and exercises aligned with the module curriculum",
-  //     "Support peer learning in a collaborative, low-pressure environment",
-  //     "Develop communication, leadership and mentoring skills through structured sessions",
+  //     "Facilitate weekly PAL sessions covering Python programming and electronics for multiple student cohorts, adapting session content to different backgrounds and learning needs",
+  //     "Design and prepare structured session materials and targeted exercises aligned with module curricula, ensuring sessions complement rather than duplicate taught content",
+  //     "Develop communication, mentoring and leadership skills by fostering a low-pressure collaborative environment where students feel comfortable asking questions and working through problems together",
   //   ],
   // },
   {
@@ -99,7 +98,6 @@ export const experiences: Experience[] = [
       "Proposed risk-mitigation strategies for long-lead parts using data-driven forecasting",
       "Developed actionable planning reports aligned with EASA/CAA compliance and sustainability standards",
     ],
-    technologies: ["Excel", "Data Analysis", "Technical Writing", "EASA/CAA Compliance"],
   },
   {
     id: "yunex-traffic-virtual",
@@ -117,39 +115,20 @@ export const experiences: Experience[] = [
       "Created an infographic demonstrating Zephyr® air quality sensors monitoring NO₂, O₃ and PM₁₀ pollution in real time",
       "Gained professional insight into engineering, software and project management roles within Yunex Traffic",
     ],
-    technologies: ["IoT", "Sensor Networks", "Data Visualisation", "Smart City Systems"],
   },
   {
-    id: "ghana-high-commission-consular",
-    role: "Consular Intern",
-    company: "Ghana High Commission",
-    location: "London, UK",
-    type: "internship",
-    startDate: "Jul 2024",
-    endDate: "Aug 2024",
-    description:
-      "Supported the Consular Department in processing passports, visas and travel documents.",
-    achievements: [
-      "Supported passport and visa processing workflows, document verification and client enquiries",
-      "Maintained accurate digital records and handled sensitive information with professionalism and confidentiality",
-      "Developed practical experience in diplomatic services, international relations and cross-border documentation",
-      "Enhanced communication, organisation and public-service professionalism",
-    ],
-  },
-  {
-    id: "ghana-high-commission-admin",
-    role: "Diplomatic Administrative & Estates Intern",
+    id: "ghana-high-commission",
+    role: "Diplomatic, Consular and Estates Intern",
     company: "Ghana High Commission",
     location: "London, UK",
     type: "internship",
     startDate: "Mar 2024",
-    endDate: "Mar 2024",
+    endDate: "Aug 2024",
     description:
-      "Assisted the Administration Section with estates management activities and general administrative operations.",
+      "Internship spanning consular operations and diplomatic estates management at the Ghana High Commission in London.",
     achievements: [
-      "Supported the team with document handling, facilities coordination and office logistics",
-      "Developed skills in professional communication, record management and organisational efficiency",
-      "Gained experience in public sector administration and diplomatic procedures",
+      "Operated end-to-end consular processing workflows using official diplomatic management systems, handling application intake, biometric data capture, document authentication and physical visa and passport production, supporting 100+ daily client interactions",
+      "Coordinated diplomatic property operations by accompanying officers on site inspections and facility surveys, managing estates documentation, maintenance schedules and office workflows",
     ],
   },
   {
@@ -216,6 +195,5 @@ export const experiences: Experience[] = [
       "Applied safety procedures and client etiquette during on-site technical visits",
       "Gained early hands-on technical experience and professional work ethic",
     ],
-    technologies: ["HVAC Systems", "Diagnostic Tools", "Electrical Safety", "On-site Maintenance"],
   },
 ]

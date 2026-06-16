@@ -8,7 +8,7 @@ export function GET() {
     short_name: "DIA",
     description: "Isaac Adjei's personal dashboard",
     start_url: "/dashboard",
-    scope: "/dashboard",
+    scope: "/",
     display: "standalone",
     background_color: "#09090b",
     theme_color: "#09090b",

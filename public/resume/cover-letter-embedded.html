@@ -25,6 +25,7 @@
         .date { margin: 20pt 0; }
         .recipient { margin-bottom: 20pt; }
         .salutation { margin-bottom: 12pt; }
+        .subject { margin-bottom: 12pt; font-weight: 500; }
         .paragraph { margin-bottom: 12pt; text-align: justify; }
         .closing { margin-top: 20pt; }
         .signature { margin-top: 30pt; font-weight: bold; }
@@ -59,6 +60,8 @@
         <span class="placeholder">[Company Address/Location]</span>
     </div>
 
+    <div class="subject"><strong>Re: Application for <span class="placeholder">[Role Title]</span> at <span class="placeholder">[Company Name]</span></strong></div>
+
     <div class="salutation">
         Dear <span class="placeholder">[Hiring Manager Name/Recruitment Team]</span>,
     </div>
@@ -68,7 +71,7 @@
     </div>
 
     <div class="paragraph">
-        My deepest embedded project is PHAEMOS, an end-to-end IoT predictive maintenance platform I designed and built from scratch. The hardware layer spans four microcontroller families: ESP32 nodes posting telemetry over Wi-Fi, STM32 nodes running HAL C with hardware FFT for vibration analysis, Arduino Nano peripherals and a Raspberry Pi Pico 2W gateway. The firmware handles hardware interrupts, ADC sampling, UART and I2C peripherals and non-blocking state machines that keep latency below the 200ms threshold required by the FastAPI backend. Alongside PHAEMOS I wrote avr-zac, 1,200 lines of bare-metal ATmega644P C with zero external libraries: a 9-mode state machine, hardware interrupt-driven events, PWM output, ADC reads and a watchdog timer, all without an OS or HAL abstraction. Other hardware projects include a 4x4x4 NeoPixel LED cube (64 WS2812B LEDs, LDR-adaptive brightness, non-blocking timing) and a CNC control system with an 8-state FSM, hardware E-Stop interrupt, Schmitt trigger debouncing and a watchdog. I am drawn to <span class="placeholder">[Company Name]</span> because of <span class="placeholder">[specific reason]</span> and I am keen to contribute to <span class="placeholder">[specific area or product]</span>.
+        My deepest embedded project is PHAEMOS, an end-to-end IoT predictive maintenance platform I designed and built from scratch. The hardware layer spans four microcontroller families: ESP32 nodes posting telemetry over Wi-Fi, STM32 nodes running HAL C with hardware FFT for vibration analysis, Arduino Nano peripherals and a Raspberry Pi Pico 2W gateway, collectively collecting 18 real-time sensor streams (vibration, IR, gas, RPM, moisture, sound). The firmware handles hardware interrupts, ADC sampling, UART and I2C peripherals and non-blocking state machines that keep latency below the 200ms threshold required by the FastAPI backend. Alongside PHAEMOS I wrote avr-zac, 1,200 lines of bare-metal ATmega644P C with zero external libraries: a 9-mode state machine, hardware interrupt-driven events, PWM output, ADC reads and a watchdog timer, all without an OS or HAL abstraction. Other hardware projects include a 4x4x4 NeoPixel LED cube (64 WS2812B LEDs, LDR-adaptive brightness, non-blocking timing) and a CNC control system with an 8-state FSM, hardware E-Stop interrupt, Schmitt trigger debouncing and a watchdog. I am drawn to <span class="placeholder">[Company Name]</span> because of <span class="placeholder">[specific reason]</span> and I am keen to contribute to <span class="placeholder">[specific area or product]</span>.
     </div>
 
     <div class="paragraph">

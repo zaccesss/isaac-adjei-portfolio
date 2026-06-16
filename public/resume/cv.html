@@ -8,6 +8,8 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <base target="_blank" />
+
     <title>Isaac (Zac) Adjei - CV</title>
 
     <style>
@@ -152,19 +154,41 @@
 
       .section-title {
 
-        font-size: 9.8pt;
+        font-size: 10.2pt;
 
         font-weight: 700;
 
-        font-variant: small-caps;
+        text-transform: uppercase;
 
-        letter-spacing: 0.5px;
-
-        border-bottom: 1px solid #000;
+        letter-spacing: 1px;
 
         margin-bottom: 4px;
 
         padding-bottom: 0;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 6px;
+
+      }
+
+      .section-title span::first-letter {
+
+        font-size: 1.35em;
+
+      }
+
+      .section-title::before,
+
+      .section-title::after {
+
+        content: '';
+
+        flex: 1;
+
+        border-bottom: 1px solid #000;
 
       }
 
@@ -658,7 +682,7 @@
 
     <div class="section">
 
-      <div class="section-title">Profile</div>
+      <div class="section-title"><span>Profile</span></div>
 
       <div class="profile">
 
@@ -676,7 +700,7 @@
 
     <div class="section">
 
-      <div class="section-title">Education</div>
+      <div class="section-title"><span>Education</span></div>
 
 
 
@@ -780,7 +804,7 @@
 
     <div class="section">
 
-      <div class="section-title">Skills (Professional and Technical)</div>
+      <div class="section-title"><span>Skills</span></div>
 
       <div class="skills-block">
 
@@ -827,7 +851,7 @@
 
     <div class="section">
 
-      <div class="section-title">Projects</div>
+      <div class="section-title"><span>Projects</span></div>
 
 
 
@@ -843,49 +867,47 @@
 
         <div class="proj-row2">
 
-          <span class="proj-tech">FastAPI, Python, Next.js 14, PostgreSQL, Redis, scikit-learn, Docker, ESP32, Arduino, STM32</span>
+          <span class="proj-tech">C++ (ESP32, Arduino), C (STM32 HAL), MicroPython (Pico 2W), FastAPI, Next.js 15, PostgreSQL 15, Redis 7, scikit-learn, Docker, Prometheus, Grafana</span>
 
           <span
 
-            ><a href="https://github.com/zaccesss/phaemos" class="proj-link"
+            ><a href="https://phaemos.com" class="proj-link"
+
+              >Website &#8599;</a
+
+            ><span class="proj-link-sep">|</span
+
+            ><a href="https://github.com/zaccesss/phaemos" class="proj-link-second"
 
               >GitHub &#8599;</a
 
             ><span class="proj-link-sep">|</span
 
-            ><a href="https://phaemos.com" class="proj-link-second"
+            ><a href="https://www.isaacadjei.me/projects/phaemos" class="proj-link-second"
 
-              >Website &#8599;</a
+              >Portfolio &#8599;</a
 
             ></span
 
-          >
-
-        </div>
+          ></div>
 
         <ul class="proj-bullets">
 
           <li>
 
-            End-to-end <strong>IoT predictive maintenance platform</strong> (in active development): ESP32, Arduino and STM32 nodes POST sensor telemetry to a FastAPI backend with PostgreSQL and Redis, processed in <strong>under 200ms per request</strong>
+            Architected a <strong>4-node IoT platform</strong> (ESP32, STM32 Black Pill, Arduino Nano, Pico 2W/MicroPython) collecting <strong>18 real-time sensor streams</strong> (vibration, IR, gas, RPM, moisture, sound); <strong>FastAPI + PostgreSQL 15 + Redis 7</strong> backend processing telemetry in under <strong>200ms per request</strong>
 
           </li>
 
           <li>
 
-            Unsupervised Isolation Forest anomaly detection scores every telemetry reading; above
-
-            0.7 triggers an alert and auto-generates a maintenance ticket, above 0.85 attaches a
-
-            diagnostic recommendation
+            <strong>Isolation Forest anomaly detection</strong> on every ingest, auto-generating maintenance tickets with diagnostic recommendations; STM32 runs <strong>100Hz FFT vibration analysis</strong> via ARM CMSIS-DSP (<strong>9x speedup</strong> over naive DFT)
 
           </li>
 
           <li>
 
-            <strong>JWT auth with role-based access control</strong> (Admin, Technician, Viewer) enforced at API and
-
-            UI level with a full <strong>immutable audit log</strong>
+            <strong>JWT refresh flow, Google/GitHub OAuth, TOTP 2FA</strong>, multi-tenant <strong>RBAC</strong>, rate limiting, immutable audit log; <strong>WebSocket</strong> live dashboard; <strong>Prometheus + Grafana</strong> monitoring; deployed on <strong>DigitalOcean VPS + Nginx</strong>
 
           </li>
 
@@ -1011,19 +1033,25 @@
 
           <span
 
-            ><a href="https://github.com/zaccesss/astoncv" class="proj-link">GitHub &#8599;</a
-
-            ><span class="proj-link-sep">|</span
-
-            ><a href="https://astoncv.zacess.com" class="proj-link-second"
+            ><a href="https://astoncv.zacess.com" class="proj-link"
 
               >Website &#8599;</a
 
+            ><span class="proj-link-sep">|</span
+
+            ><a href="https://github.com/zaccesss/astoncv" class="proj-link-second"
+
+              >GitHub &#8599;</a
+
+            ><span class="proj-link-sep">|</span
+
+            ><a href="https://www.isaacadjei.me/projects/astoncv" class="proj-link-second"
+
+              >Portfolio &#8599;</a
+
             ></span
 
-          >
-
-        </div>
+          ></div>
 
         <ul class="proj-bullets">
 
@@ -1146,7 +1174,7 @@
 
     <div class="section">
 
-      <div class="section-title">Experience</div>
+      <div class="section-title"><span>Experience</span></div>
 
 
 
@@ -1155,7 +1183,7 @@
 
         <div class="exp-row1">
 
-          <span class="exp-title">PAL Leader - Electronics and Programming</span>
+          <span class="exp-title">Peer Assisted Learning (PAL) Leader - Electronics and Programming</span>
 
           <span class="exp-company">Aston University, Learning Services, Birmingham, UK</span>
 
@@ -1163,9 +1191,7 @@
 
         <div class="exp-row2">
 
-          <span class="exp-tech"
-            >Python, peer teaching, curriculum design, student support</span
-          >
+          <span class="exp-tech">Python, Electronics, peer teaching, curriculum design, student support</span>
 
           <span class="exp-date">Sep 2026 - Present</span>
 
@@ -1173,13 +1199,7 @@
 
         <ul class="exp-bullets">
 
-          <li>Facilitate weekly PAL sessions helping students understand core programming concepts in Python</li>
-
-          <li>Prepare session materials and exercises aligned with the module curriculum</li>
-
-          <li>Support peer learning in a collaborative, low-pressure environment</li>
-
-          <li>Develop communication, leadership and mentoring skills through structured sessions</li>
+          <li>Facilitate weekly <strong>Peer Assisted Learning (PAL)</strong> sessions covering <strong>Python programming and Electronics</strong> across multiple student cohorts, preparing curriculum-aligned materials and fostering a collaborative low-pressure learning environment</li>
 
         </ul>
 
@@ -1250,13 +1270,7 @@
 
           <li>
 
-            Reviewed A320 maintenance schedules, diagnosed component faults and produced structured <strong>WREQ engineering reports</strong>
-
-          </li>
-
-          <li>
-
-            Developed material forecasts and maintenance planning reports for six aircraft with risk-mitigation recommendations
+            Reviewed A320 maintenance schedules, diagnosed component faults and produced structured <strong>WREQ engineering reports</strong> with material forecasts and risk-mitigation recommendations for six aircraft
 
           </li>
 
@@ -1292,13 +1306,7 @@
 
           <li>
 
-            Examined <strong>intelligent transport systems</strong> and digital solutions to evaluate their impact on air quality and urban mobility efficiency
-
-          </li>
-
-          <li>
-
-            Delivered technical insight outputs based on real-time pollution sensing and smart traffic workflows
+            Examined <strong>intelligent transport systems</strong> and real-time pollution sensing workflows, evaluating digital solutions for their impact on air quality and urban mobility efficiency
 
           </li>
 
@@ -1312,7 +1320,7 @@
 
         <div class="exp-row1">
 
-          <span class="exp-title">Consular Intern</span>
+          <span class="exp-title">Diplomatic, Consular and Estates Intern</span>
 
           <span class="exp-company">Ghana High Commission, London, UK</span>
 
@@ -1320,9 +1328,9 @@
 
         <div class="exp-row2">
 
-          <span class="exp-tech">Consular operations, document processing, client support</span>
+          <span class="exp-tech">Consular operations, diplomatic property, document processing, client support</span>
 
-          <span class="exp-date">Jul 2024 - Aug 2024</span>
+          <span class="exp-date">Mar 2024 - Aug 2024</span>
 
         </div>
 
@@ -1330,39 +1338,9 @@
 
           <li>
 
-            Operated end-to-end consular processing workflows using official diplomatic management systems - handling application intake, biometric data capture, document authentication and physical visa and passport production from print to issuance, supporting <strong>100+ daily client interactions</strong>
+            Operated end-to-end consular processing workflows using official diplomatic management systems - handling application intake, <strong>biometric data capture</strong>, document authentication and physical visa and passport production from print to issuance, supporting <strong>100+ daily client interactions</strong>
 
           </li>
-
-        </ul>
-
-      </div>
-
-
-
-      <div class="exp-entry">
-
-        <div class="exp-row1">
-
-          <span class="exp-title">Diplomatic Administrative &amp; Estates Intern</span>
-
-          <span class="exp-company">Ghana High Commission, London, UK</span>
-
-        </div>
-
-        <div class="exp-row2">
-
-          <span class="exp-tech"
-
-            >Facilities coordination, document handling, office operations</span
-
-          >
-
-          <span class="exp-date">Mar 2024</span>
-
-        </div>
-
-        <ul class="exp-bullets">
 
           <li>
 
@@ -1410,11 +1388,49 @@
 
 
 
+    <!-- PUBLICATIONS -->
+
+    <div class="section">
+
+      <div class="section-title"><span>Research &amp; Publications</span></div>
+
+      <div class="exp-entry">
+
+        <div class="exp-row1">
+
+          <span class="exp-title">git-unlocked: An Open-Source Modular Curriculum for Git and Version Control Education</span>
+
+        </div>
+
+        <div class="exp-row2">
+
+          <span class="exp-tech">I. Adjei &middot; Zenodo &middot; Jun 2026</span>
+
+          <span><a href="https://zenodo.org/records/20694984" class="proj-link">Zenodo &#8599;</a><span class="proj-link-sep"> | </span><a href="https://doi.org/10.5281/zenodo.20694984" class="proj-link-second">DOI &#8599;</a></span>
+
+        </div>
+
+        <ul class="exp-bullets">
+
+          <li>
+
+            Open-source modular curriculum covering <strong>12 thematic sections and 217+ topic files</strong> across Git, GitHub and GitLab; published as a citable research artefact with a permanent DOI
+
+          </li>
+
+        </ul>
+
+      </div>
+
+    </div>
+
+
+
     <!-- VOLUNTEERING -->
 
     <div class="section">
 
-      <div class="section-title">Volunteering</div>
+      <div class="section-title"><span>Volunteering</span></div>
 
 
 
@@ -1476,7 +1492,7 @@
 
     <div class="section">
 
-      <div class="section-title">Spoken Languages</div>
+      <div class="section-title"><span>Spoken Languages</span></div>
 
       <p class="skills-block">
 

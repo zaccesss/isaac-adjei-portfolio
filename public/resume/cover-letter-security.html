@@ -25,6 +25,7 @@
         .date { margin: 20pt 0; }
         .recipient { margin-bottom: 20pt; }
         .salutation { margin-bottom: 12pt; }
+        .subject { margin-bottom: 12pt; font-weight: 500; }
         .paragraph { margin-bottom: 12pt; text-align: justify; }
         .closing { margin-top: 20pt; }
         .signature { margin-top: 30pt; font-weight: bold; }
@@ -59,6 +60,8 @@
         <span class="placeholder">[Company Address/Location]</span>
     </div>
 
+    <div class="subject"><strong>Re: Application for <span class="placeholder">[Role Title]</span> at <span class="placeholder">[Company Name]</span></strong></div>
+
     <div class="salutation">
         Dear <span class="placeholder">[Hiring Manager Name/Recruitment Team]</span>,
     </div>
@@ -72,7 +75,7 @@
     </div>
 
     <div class="paragraph">
-        Security thinking applies differently across the stack but the core question is always the same: what does an attacker gain if this assumption is wrong? I apply that question to auth flows, input validation boundaries, secret management and third-party integrations alike. I also have experience working with IoT attack surfaces: PHAEMOS exposes authenticated FastAPI endpoints to ESP32 nodes, and I designed the JWT validation and anomaly detection alerting to be robust against malformed payloads and replay attempts. My hardware background adds a further layer of perspective: I understand how physical access, firmware update paths and UART debug interfaces create attack surfaces that software-only engineers often overlook.
+        Security thinking applies differently across the stack but the core question is always the same: what does an attacker gain if this assumption is wrong? I apply that question to auth flows, input validation boundaries, secret management and third-party integrations alike. I also have experience working with IoT attack surfaces: PHAEMOS implements a production-grade security stack: JWT refresh token flow, Google and GitHub OAuth, TOTP 2FA, multi-tenant RBAC, per-route rate limiting and an immutable audit log. I designed the endpoint authentication and anomaly detection alerting to be robust against malformed payloads and replay attempts. My hardware background adds a further layer of perspective: I understand how physical access, firmware update paths and UART debug interfaces create attack surfaces that software-only engineers often overlook.
     </div>
 
     <div class="paragraph">
