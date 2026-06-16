@@ -2934,9 +2934,9 @@ void sensor_task(void *pvParameters) {
       },
       {
         type: "video",
-        youtubeId: "Qe_4PAamBO4",
-        title: "Operating Systems - Computerphile",
-        description: "A clear overview of how operating systems manage processes, scheduling and concurrency: the foundational concepts behind every RTOS.",
+        youtubeId: "F321087yYy4",
+        title: "Introduction to RTOS Part 1 - What is a Real-Time Operating System? - Digi-Key Electronics",
+        description: "A clear overview of what a real-time operating system is, how the scheduler works and why timing guarantees matter in embedded systems.",
       },
       {
         type: "ol-links",
