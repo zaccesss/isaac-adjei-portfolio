@@ -192,7 +192,9 @@ export default function LinksPage() {
         </p>
         <div className="flex items-center justify-center gap-4 pt-1">
           {([
+            { Icon: Mail,           href: "mailto:hello@isaacadjei.me" },
             { Icon: FaLinkedin,     href: "https://www.linkedin.com/in/isaacadjei" },
+            { Icon: SiOrcid,        href: "https://orcid.org/0009-0001-8298-5098" },
             { Icon: FaGithub,       href: "https://www.github.com/zaccesss" },
             { Icon: SiSubstack,     href: "https://substack.com/@zaccess" },
             { Icon: FaDiscord,      href: "https://discord.com/users/1087417301583790212" },

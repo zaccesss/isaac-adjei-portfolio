@@ -23,14 +23,14 @@ export const profileLinks: LinkItem[] = [
   // Professional
   {
     title: "Portfolio",
-    description: "Projects, blog and engineering work",
+    description: "Projects, blog, CV and everything me",
     url: "https://www.isaacadjei.me",
     icon: "globe",
     iconImage: "/images/avatar.png",
     category: "professional",
   },
   {
-    title: "My business website",
+    title: "Business Site",
     description: "My business and digital home",
     url: "https://zacess.com",
     icon: "globe",
