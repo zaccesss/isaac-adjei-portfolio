@@ -94,8 +94,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_PAT }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "Isaac Adjei"
+          git config user.email "190771985+zaccesss@users.noreply.github.com"
           git add public/resume/Isaac_Adjei_CV.pdf public/resume/Isaac_Adjei_CV.docx \
                   public/resume/cv-*.pdf public/resume/cv-*.docx public/resume/cv-*.html
           if git diff --staged --quiet; then
