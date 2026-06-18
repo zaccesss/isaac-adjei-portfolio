@@ -3,14 +3,17 @@
 // Two hooks for tracking the user's scroll state.
 // I use the passive event listener flag to avoid blocking the browser's scroll thread.
 
-import { useState, useEffect } from "react"
+import { useState, useLayoutEffect } from "react"
 
 // I return the current vertical scroll offset in pixels
 export function useScrollPosition() {
   const [scrollY, setScrollY] = useState(0)
 
-  useEffect(() => {
+  // useLayoutEffect runs synchronously before paint so the header background
+  // is correct on the first frame even when the browser restores scroll position
+  useLayoutEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY)
+    handleScroll()
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
@@ -22,14 +25,15 @@ export function useScrollPosition() {
 export function useScrollProgress() {
   const [progress, setProgress] = useState(0)
 
-  useEffect(() => {
-    const handleScroll = () => {
+  useLayoutEffect(() => {
+    const calc = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight
       const current = window.scrollY
       setProgress(totalHeight > 0 ? (current / totalHeight) * 100 : 0)
     }
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
+    calc()
+    window.addEventListener("scroll", calc, { passive: true })
+    return () => window.removeEventListener("scroll", calc)
   }, [])
 
   return progress

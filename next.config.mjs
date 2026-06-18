@@ -16,6 +16,8 @@ const nextConfig = {
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
       { protocol: "https", hostname: "www.google.com" },
       { protocol: "https", hostname: "upload.wikimedia.org" },
+      { protocol: "https", hostname: "i.scdn.co" },
+      { protocol: "https", hostname: "mosaic.scdn.co" },
     ],
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
