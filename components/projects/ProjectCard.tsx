@@ -19,9 +19,13 @@ import { type Project } from "@/data/projects"
 
 interface Props {
   project: Project
+  // Set for the first card above the fold so Next.js loads it eagerly instead
+  // of lazily - fixes a Largest Contentful Paint warning, does not affect the
+  // decoded size since sizes/srcset still apply, only when the fetch starts
+  priority?: boolean
 }
 
-export default function ProjectCard({ project }: Props) {
+export default function ProjectCard({ project, priority = false }: Props) {
   return (
     <Card className="flex flex-col h-full hover:shadow-md transition-shadow">
       {project.images[0] && (
@@ -31,6 +35,7 @@ export default function ProjectCard({ project }: Props) {
               src={project.images[0]}
               alt={project.title}
               fill
+              priority={priority}
               sizes="(max-width: 640px) 250px, (max-width: 1024px) 50vw, 33vw"
               className="object-cover sm:transition-transform sm:duration-300 sm:hover:scale-105"
             />

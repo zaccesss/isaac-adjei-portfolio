@@ -904,7 +904,7 @@ export default function LabPage() {
                 src="/Media/giphy.gif"
                 alt="Under construction"
                 width={320}
-                height={200}
+                height={180}
                 className="w-full max-w-[320px] h-auto object-cover"
                 sizes="(max-width: 640px) 100vw, 320px"
                 unoptimized
