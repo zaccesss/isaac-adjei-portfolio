@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 // I show the icon image if a URL is available, otherwise I fall back to the first two letters of the name.
 function SkillCard({ skill }: { skill: Skill }) {
   return (
-    <div className="group flex flex-col items-center gap-2 p-3 w-[70px] sm:w-[88px] rounded-xl border bg-card hover:border-primary/50 hover:shadow-lg sm:hover:-translate-y-1.5 sm:hover:scale-105 transition-all duration-200 cursor-default">
+    <div className="group flex flex-col items-center gap-2 p-3 w-[70px] sm:w-[88px] rounded-xl border bg-card hover:border-primary/50 hover:shadow-lg sm:hover:-translate-y-1.5 sm:hover:scale-105 transition-[border-color,box-shadow] sm:transition-all duration-200 cursor-default">
       {skill.icon ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img

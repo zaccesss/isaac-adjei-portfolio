@@ -226,6 +226,34 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 
 ---
 
+## New public pages and features (June 2026)
+
+- [ ] `/respub` - loads; academic profile links (email, ORCID, Google Scholar, ResearchGate, LinkedIn) show blue label text; icons remain grey; publications list renders
+- [ ] `/til` - loads; entries visible with category badges and dates; search input filters results; category pills filter entries; pagination advances at >10 entries; reading time shown per entry
+- [ ] `/til/[slug]` - a TIL entry with `detail` blocks loads and renders; ShareButton visible; prev/next navigation at bottom
+- [ ] `/til/feed.xml` - browser view shows TIL cards; `?raw` returns raw RSS XML with correct Content-Type
+- [ ] `/tags` - tag cloud renders with counts; search input filters tag names; each pill links to `/tags/[tag]`
+- [ ] `/tags/[tag]` - filtered list loads for at least one tag; Blog Posts, TIL Entries and Projects sections visible where applicable
+- [ ] `/search` - search input visible; typing a query returns results across blog, TIL and projects; count shown per section
+- [ ] `/newsletter/feed.xml` - browser view shows newsletter issue cards; `?raw` returns raw RSS XML
+- [ ] `/blog/feed.xml` - styled HTML view loads; `?raw` returns raw XML; visiting `/feed.xml` redirects to `/blog/feed.xml` with 301
+- [ ] `/consumed/videos/[slug]` - a video item page loads with YouTube embed
+- [ ] `/consumed/books/[slug]` - a book item page loads with title, author and notes
+- [ ] Homepage FeaturedTIL section - visible between Featured Blog Posts and Newsletter; 3 cards; each links to `/til/[slug]`
+- [ ] Blog reactions - emoji reactions appear on a blog post; clicking a reaction increments its count; SmilePlus picker opens additional options
+- [ ] Giscus comments - GitHub Discussions iframe loads on a blog post (requires `NEXT_PUBLIC_GISCUS_ENABLED=true`); dark/light theme matches site
+- [ ] Error page - trigger an error; `app/error.tsx` card renders with "Something went wrong", "Try again" and "Go home" buttons
+- [ ] 404 page - visit `/does-not-exist`; terminal 404 page loads with boot animation, shortcut links and a live command input
+- [ ] Tags and Search in CommandMenu - Cmd+K opens palette; "Tags" and "Search" navigate to correct pages
+- [ ] Tags link in footer secondary nav row - visible and navigates to `/tags`
+- [ ] Dual PWA install - on mobile, public site install prompt uses "Isaac Adjei" name and correct icon
+- [ ] Mobile Safari GPU fix - on iOS Safari, visit `/`, `/projects`, `/skills` and `/links`; confirm no black-screen crash; no hover-scale animations fire on touch
+- [ ] AI bot blocking - visit `/robots.txt`; GPTBot, anthropic-ai and Claude-Web each have `User-agent` blocks with `Disallow: /`
+- [ ] Links page - 10 sections visible; quick icon row under bio; stagger entrance animation on page load
+- [ ] Projects pagination - 9 cards on first page; prev/next navigation works; AI/ML filter pill visible
+
+---
+
 ## Sign-off
 
 **Date:** ___________

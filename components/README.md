@@ -14,5 +14,9 @@ Shared React components. Organised by concern - import from the most specific su
 | `projects/` | Project cards and detail page components |
 | `providers/` | React context providers (theme, session) |
 | `sections/` | Homepage sections: hero, live status grid, social links |
+| `consumed/` | Consumed item card components: BookCard, VideoCard, PodcastsContent, LinkCard, ResourceCard, SpotifyNowPlaying |
+| `search/` | `SearchClient.tsx` - full-text search client component |
 | `shared/` | Cross-page reusable components: breadcrumbs, badges, section wrappers |
+| `tags/` | `TagsClient.tsx` - tag cloud client component with search |
+| `til/` | `TILList.tsx` - TIL list with search, category filter and pagination |
 | `ui/` | shadcn/ui primitives (button, card, dialog, etc.) - auto-generated, do not edit by hand |

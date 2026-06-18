@@ -81,3 +81,35 @@ nssm restart gpc-daemon
 **Cause:** The newer `sb_publishable_` format ANON key does not work with the current Supabase client setup.
 
 **Fix:** Use the legacy `eyJ...` JWT format anon key. Get it from Supabase dashboard > Project Settings > API > Project API keys > `anon` (legacy).
+
+---
+
+## Mobile Safari shows black screen ("A problem repeatedly occurred")
+
+**Cause:** CSS `transition-transform` on any element with `hover:scale` creates a GPU compositing layer on iOS WebKit even if hover never fires. With 50+ skill tiles and project cards loaded simultaneously, this exhausts WebKit's GPU memory budget and kills the renderer process.
+
+**Fix:** Scope all hover transform utilities to `sm:` breakpoint (`sm:transition-transform sm:hover:scale-*`). Touch devices never fire hover events so no GPU layers are created. Fixed in PR #336.
+
+---
+
+## PS5 "last played" game shows wrong title or clears when PS5 is offline
+
+**Cause:** The `ps5:last-known` key was written whenever the PS5 was online, including when sitting on the home screen with `game: null`. This overwrote the previously played game title.
+
+**Fix:** A separate `ps5:last-game` Redis key now only writes when `presence.game` is truthy. The API route reads from this key for the "last played" display. Fixed in PR #336.
+
+---
+
+## Newsletter page shows scheduled issues before their publish date
+
+**Cause:** Beehiiv marks scheduled posts as `confirmed` status but with a future `publish_date` Unix timestamp. The API route was not filtering on this field.
+
+**Fix:** Added a `nowUnix = Math.floor(Date.now() / 1000)` filter in the newsletter issues route. Posts with `publish_date > nowUnix` are excluded. Fixed in PR #335.
+
+---
+
+## Vault expiry check fails - Cloudflare blocks the request
+
+**Cause:** The vault expiry workflow used `curl` to call the Vercel endpoint. Cloudflare's bot protection blocked the request.
+
+**Fix:** Replaced with a Node.js script that calls Supabase directly using the service role key. No `CRON_SECRET` or Vercel URL needed. Updated in PRs #294 and #296.

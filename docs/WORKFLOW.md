@@ -53,6 +53,15 @@ The `.githooks/commit-msg` hook rejects commits that violate these:
 - All private dashboard changes go in `LOG.md` at the repo root.
 - Update `LOG.md` in the same commit as any private dashboard change.
 
+| Change type | Where to document |
+| --- | --- |
+| New public page or feature | `CHANGELOG.md` [Unreleased] |
+| Bug fix visible to public | `CHANGELOG.md` [Unreleased] |
+| Dashboard feature | `LOG.md` only |
+| CV or script change | `LOG.md` only |
+| Dependency bump | Neither (chore commit only) |
+| Infrastructure or workflow | `LOG.md` only |
+
 ---
 
 ## Session end rules

@@ -1,8 +1,10 @@
-// I generate an RSS 2.0 feed for newsletter issues, pulling data from /api/newsletter-issues.
+// I generate an RSS 2.0 feed for newsletter issues.
 // When a browser visits (Accept: text/html) I serve a styled HTML page instead of raw XML.
 // Add ?raw to get the raw XML in Chrome's native tree viewer.
+// I call fetchNewsletterIssues() directly rather than HTTP-fetching /api/newsletter-issues
+// because self-referencing server fetches fail silently in Vercel's serverless runtime.
 
-import type { NewsletterIssue } from "@/app/api/newsletter-issues/route"
+import { fetchNewsletterIssues, type NewsletterIssue } from "@/lib/newsletter"
 
 export const dynamic = "force-dynamic"
 
@@ -14,17 +16,6 @@ function escapeXml(str: string) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-}
-
-async function fetchIssues(baseUrl: string): Promise<NewsletterIssue[]> {
-  try {
-    const res = await fetch(`${baseUrl}/api/newsletter-issues`, { cache: "no-store" })
-    if (!res.ok) return []
-    const data = await res.json()
-    return Array.isArray(data) ? data : []
-  } catch {
-    return []
-  }
 }
 
 function buildXml(issues: NewsletterIssue[], baseUrl: string, includeStylesheet = true) {
@@ -221,7 +212,7 @@ export async function GET(request: Request) {
   const accept = request.headers.get("accept") ?? ""
   const forceRaw = url.searchParams.has("raw")
   const baseUrl = `${url.protocol}//${url.host}`
-  const issues = await fetchIssues(baseUrl)
+  const issues = await fetchNewsletterIssues()
 
   if (forceRaw) {
     return new Response(buildXml(issues, baseUrl, false), {

@@ -40,7 +40,8 @@ Full reference for the Isaac Adjei portfolio and private dashboard. For a high-l
 | `/blog` | Blog listing with type filters (blog, journal, research, report, article, notes, resources) |
 | `/blog/[slug]` | Blog post with reading progress bar, copy buttons, TOC sidebar and project links |
 | `/notes` | Public notebook: live status, current builds, summer plans and upcoming projects |
-| `/consumed` | Monthly content log: YouTube videos, podcasts and books |
+| `/consumed` | Monthly content log with 7 category subpages (videos, podcasts, books, music, articles, resources, others); each category has its own URL and individual item pages at `/consumed/[category]/[slug]` |
+| `/consumed/[category]/[slug]` | 216 individual consumed item pages with embedded players (YouTube for videos, Spotify for podcasts) and prose notes |
 | `/now` | Snapshot of what Isaac is doing right now - updated manually |
 | `/uses` | Hardware, software and tools used day to day |
 | `/colophon` | How the site is built and the stack decisions behind it |
@@ -54,12 +55,23 @@ Full reference for the Isaac Adjei portfolio and private dashboard. For a high-l
 | `/privacy` | Privacy policy |
 | `/security-policy` | Responsible disclosure policy |
 | `/hall-of-fame` | Security researcher acknowledgements |
+| `/respub` | Academic profile, research interests and publications (ORCID, Google Scholar, ResearchGate) |
+| `/til` | Today I Learned: 63 entries across 21 categories; search, category filter and pagination (10 per page) |
+| `/til/[slug]` | Individual TIL entry with block content, ShareButton and optional ToC sidebar |
+| `/til/feed.xml` | TIL RSS feed; HTML browser view; `?raw` for raw XML |
+| `/tags` | Tag cloud from blog, TIL, projects, publications and consumed |
+| `/tags/[tag]` | Content filtered by a single tag across all content types in grouped sections |
+| `/search` | Full-text search across blog, TIL, projects, publications, notes, newsletter and consumed |
+| `/newsletter/feed.xml` | Newsletter RSS feed; HTML browser view; `?raw` for raw XML |
+| `/blog/feed.xml` | Blog RSS feed (canonical); old `/feed.xml` redirects here with 301 |
+| `/cv/cover-letters` | Role-specific cover letter downloads |
+| `/cv/cv-picker` | Role-specific CV picker |
 
 ### Sitemap and robots
 
 `app/sitemap.ts` generates `/sitemap.xml` at build time. It lists only public routes - never `/dashboard` or any private path.
 
-`app/robots.ts` generates `/robots.txt`. Crawlers are allowed on `/` and disallowed on `/dashboard/` and `/api/dashboard/`.
+`app/robots.ts` generates `/robots.txt`. Crawlers are allowed on `/` and disallowed on `/dashboard/` and `/api/dashboard/`. 19 AI crawlers are explicitly blocked (GPTBot, anthropic-ai, Claude-Web and others).
 
 ---
 
@@ -327,7 +339,7 @@ Writes every 30 seconds. Data: battery percentage, charging state and heartbeat 
 
 ### PS5 presence
 
-A Cloudflare Worker (`workers/ps5-presence/`) polls the PlayStation Network API every 60 seconds using the NPSSO session token. It writes current game, online status and busy/available state to Upstash Redis. The `/api/ps5` route reads from Redis with the same live/last-known pattern. The NPSSO token expires periodically - renew it from `playstation.com` cookies when the PS5 card goes stale.
+A Cloudflare Worker (`workers/ps5-presence/`) polls the PlayStation Network API every 2 minutes using the NPSSO session token. It writes to three Upstash Redis keys: `ps5:status` (120s TTL), `ps5:last-known` (no TTL, updated when online) and `ps5:last-game` (no TTL, updated only when a game is actively running). The `/api/ps5` route reads from Redis with the live/last-known fallback pattern. The NPSSO token expires periodically - renew it from `playstation.com` cookies when the PS5 card goes stale.
 
 ---
 
@@ -449,6 +461,8 @@ Create `.env.local` in the project root for local development. All variables are
 | `/api/newsletter-issues` | GET | Fetches past Beehiiv posts for the newsletter page; cached 10 min in Redis |
 | `/api/blog/read-event` | POST | Record a scroll-depth event (25/50/75/100%) for a blog post; rate-limited per IP |
 | `/api/cover-letter/[role]/[format]` | GET | Serve a role-specific cover letter as PDF or DOCX |
+| `/api/live-status/stream` | GET | Edge Runtime SSE endpoint; fetches all 7 live-status APIs in parallel and streams merged updates every 10s |
+| `/api/dashboard-manifest` | GET | Serve the private dashboard PWA manifest |
 
 ### Dashboard (session auth required)
 
@@ -495,8 +509,9 @@ Hosted on **Vercel**. DNS via **Cloudflare**. Every push to `main` triggers an a
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | `ci.yml` | Every PR and push to main | Lint and build check |
-| `gitleaks-scan.yml` | Every push | Secret scanning |
-| `automerge-dependabot.yml` | Dependabot PRs | Auto-merge after CI passes |
+| `gitleaks-scan.yml` | Every push | Credential leak scanning |
+| `update-pr-branches.yml` | Push to main | Auto-rebases open PRs when main changes |
+| `automerge-dependabot.yml` | Dependabot PRs and `automerge`-labelled PRs | Auto-merge after CI passes |
 | `cv-pdf.yml` | Push to `public/resume/cv.html` on main | Regenerate all CV PDFs and DOCX, create auto-merge PR |
 | `job-scraper.yml` | Every 3 days at midnight UTC and manual dispatch | Scrape jobs from all sources and upsert to Supabase |
 | `wakatime-sync.yml` | Daily at 23:30 UTC and manual dispatch | Fetch WakaTime daily summaries, upsert to `wakatime_daily` |
@@ -524,31 +539,44 @@ Both routes verify `Authorization: Bearer <CRON_SECRET>` before executing.
 ```text
 ├── app/
 │   ├── dashboard/          # Private dashboard (auth required, not in sitemap)
-│   ├── about/
+│   ├── (public)/           # All public routes
+│   │   ├── about/, blog/, changelog/, colophon/, consumed/
+│   │   ├── cv/, experience/, lab/, links/, newsletter/
+│   │   ├── notes/, now/, projects/, respub/, search/
+│   │   ├── share/, skills/, tags/, til/, uses/
+│   │   └── page.tsx        # Homepage / Hero
 │   ├── api/                # All API routes
-│   ├── blog/[slug]/
-│   ├── cv/
-│   ├── experience/
-│   ├── projects/[slug]/
-│   ├── skills/
 │   ├── globals.css
 │   ├── layout.tsx          # Root layout: font, theme, header, footer
-│   └── page.tsx            # Homepage / Hero
+│   └── page.tsx            # Root (redirects to public group)
 │
 ├── components/
+│   ├── blog/               # PostCard, ScrollDepthTracker
+│   ├── consumed/           # BookCard, VideoCard, PodcastsContent, etc.
+│   ├── cv/                 # CV viewer component
 │   ├── dashboard/          # Dashboard-only components
+│   ├── forms/              # Contact form, newsletter signup
 │   ├── layout/             # Header, Footer, Navigation, MobileNav, MobileBanner
 │   ├── projects/           # ProjectCard, ProjectDetail, ImageGallery
+│   ├── search/             # SearchClient
 │   ├── sections/           # Hero, FeaturedProjects, ExperienceTimeline, etc.
 │   ├── shared/             # SocialLinks, CommandMenu, ThemeToggle, LiveStatusCards
+│   ├── tags/               # TagsClient
+│   ├── til/                # TILList
 │   └── ui/                 # shadcn/ui primitives
 │
 ├── data/
-│   ├── blog.ts             # Posts, types and helpers
+│   ├── blog/               # index.ts + posts/*.ts (38 files, one per post)
+│   ├── til/                # index.ts + entries/*.ts (63 files, one per entry)
+│   ├── projects/           # index.ts + items/*.ts (11 files, one per project)
+│   ├── respub/             # index.ts + items/*.ts (publications)
+│   ├── consumed/           # index.ts, types.ts, videos/podcasts/books/music/articles/resources/others
 │   ├── cv.yml              # CV source (generates role-specific HTML/PDF/DOCX)
+│   ├── education.ts
 │   ├── experience.ts
-│   ├── projects.ts         # All project entries with images and highlights
+│   ├── links.ts
 │   ├── skills.ts
+│   ├── social.ts
 │   └── societies.ts
 │
 ├── docs/                   # Internal session docs (not served)
@@ -560,7 +588,7 @@ Both routes verify `Authorization: Bearer <CRON_SECRET>` before executing.
 │   └── verification.md     # Pre-deploy checklist
 │
 ├── hooks/                  # Custom React hooks
-├── lib/                    # animations.ts, constants.ts, utils.ts, send-weekly-digest.ts, send-discord-digest.ts
+├── lib/                    # animations.ts, constants.ts, utils.ts, search.ts, tags.ts, send-weekly-digest.ts, send-discord-digest.ts
 ├── public/
 │   ├── images/projects/    # Project photos by slug
 │   ├── resume/             # CV PDFs and DOCX files
@@ -576,7 +604,7 @@ Both routes verify `Authorization: Bearer <CRON_SECRET>` before executing.
 │   ├── daily-coding-summary.ts  # Nightly Discord coding summary (run via GitHub Actions)
 │   └── spotify-auth.ts     # One-time OAuth helper for Spotify refresh token
 └── workers/
-    └── ps5-presence/       # Cloudflare Worker - polls PSN every 60s
+    └── ps5-presence/       # Cloudflare Worker - polls PSN every 2 minutes
 ```
 
 ---
