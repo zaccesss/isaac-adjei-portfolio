@@ -1,22 +1,20 @@
-// I send a nightly Discord message comparing today's coding time to my 30-day average so I can track consistency without opening a dashboard.
-/**
- * Fetches today's WakaTime total from Supabase, compares it to the 30-day
- * average, and sends a short summary to Discord via webhook.
- *
- * Runs via GitHub Actions at 23:55 UTC after the wakatime-sync job has
- * already written today's row.
- */
+// I send a nightly Discord message comparing today's coding time to my 30-day average so I can track consistency without opening the dashboard.
+// Run via GitHub Actions: npx tsx scripts/daily-coding-summary.ts
+
+export {}
+
+type WakaRow = { date: string; total_seconds: number }
 
 const SUPABASE_URL = process.env.SUPABASE_URL
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY
 const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK_URL
 
 if (!SUPABASE_URL || !SUPABASE_KEY || !DISCORD_WEBHOOK) {
-  console.log("Missing env vars — skipping.")
+  console.log("Missing env vars - skipping.")
   process.exit(0)
 }
 
-function fmt(seconds) {
+function fmt(seconds: number): string {
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
   if (h === 0) return `${m}m`
@@ -24,16 +22,16 @@ function fmt(seconds) {
   return `${h}h ${m}m`
 }
 
-async function supabaseGet(path) {
+async function supabaseGet(path: string): Promise<WakaRow[]> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: {
-      apikey: SUPABASE_KEY,
+      apikey: SUPABASE_KEY as string,
       Authorization: `Bearer ${SUPABASE_KEY}`,
       "Content-Type": "application/json",
     },
   })
   if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`)
-  return res.json()
+  return res.json() as Promise<WakaRow[]>
 }
 
 const today = new Date().toISOString().slice(0, 10)
@@ -47,7 +45,7 @@ const todayRow = rows.find((r) => r.date === today)
 const todaySeconds = todayRow?.total_seconds ?? 0
 
 if (todaySeconds === 0) {
-  console.log("No coding today — skipping Discord notification.")
+  console.log("No coding today - skipping Discord notification.")
   process.exit(0)
 }
 
@@ -65,19 +63,19 @@ let emoji = "💻"
 let headline = `Coded for **${fmt(todaySeconds)}** today`
 if (aboveAverage) {
   emoji = pct >= 50 ? "🔥" : "✅"
-  headline += ` — ${pct}% above your 30-day average (${fmt(avgSeconds)})`
+  headline += ` - ${pct}% above your 30-day average (${fmt(avgSeconds)})`
 } else if (avgSeconds > 0) {
-  headline += ` — ${pct}% below your 30-day average (${fmt(avgSeconds)})`
+  headline += ` - ${pct}% below your 30-day average (${fmt(avgSeconds)})`
 }
 
 const payload = {
   content: null,
   embeds: [
     {
-      title: `${emoji} Daily coding summary — ${today}`,
+      title: `${emoji} Daily coding summary - ${today}`,
       description: headline,
       color: aboveAverage ? 0x22c55e : 0x6366f1,
-      footer: { text: "isaacadjei.me dashboard · WakaTime" },
+      footer: { text: "isaacadjei.me dashboard - WakaTime" },
     },
   ],
 }

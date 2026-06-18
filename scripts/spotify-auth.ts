@@ -1,6 +1,5 @@
 // I perform the one-time Spotify OAuth flow to obtain a long-lived refresh token that the /api/spotify route can use on every request without re-prompting.
-// One-time script to get a Spotify refresh token.
-// Run: node scripts/spotify-auth.mjs
+// Run: npx tsx scripts/spotify-auth.ts
 // Then open the printed URL in your browser, authorise, and paste the full
 // redirect URL (it will look like https://isaacadjei.me?code=AQC...) back here.
 
@@ -36,10 +35,10 @@ console.log("3. You will be redirected to isaacadjei.me - the page may not load,
 console.log("4. Copy the FULL URL from your browser address bar and paste it below.\n")
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-rl.question("Paste the redirect URL here: ", async (redirectUrl) => {
+rl.question("Paste the redirect URL here: ", async (redirectUrl: string) => {
   rl.close()
 
-  let code
+  let code: string | null
   try {
     const url = new URL(redirectUrl)
     code = url.searchParams.get("code")
@@ -69,7 +68,7 @@ rl.question("Paste the redirect URL here: ", async (redirectUrl) => {
     }),
   })
 
-  const data = await response.json()
+  const data = await response.json() as Record<string, string>
 
   if (!response.ok) {
     console.error("Error from Spotify:", data)
