@@ -196,11 +196,15 @@ function formatMs(ms: number): string {
   return `${m}:${String(sec).padStart(2, "0")}`
 }
 
-function relativeLastSeen(ts: string | null): { text: string; online: boolean } {
+// onlineThresholdMins should comfortably exceed the source's update interval, or this
+// shows "last seen Xm ago" for a device that is actually online right now. Mac/Lenovo/the
+// gaming PC daemons write every 30s so the 1 minute default covers them; the PS5 worker
+// only runs every 2 minutes via cron, so its call site below passes a longer threshold.
+function relativeLastSeen(ts: string | null, onlineThresholdMins = 1): { text: string; online: boolean } {
   if (!ts) return { text: "offline", online: false }
   const diff = Date.now() - new Date(ts).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return { text: "online now", online: true }
+  if (mins < onlineThresholdMins) return { text: "online now", online: true }
   if (mins < 60) return { text: `last seen ${mins}m ago`, online: mins < 5 }
   const hrs = Math.floor(mins / 60)
   if (hrs < 24) return { text: `last seen ${hrs}h ago`, online: false }
@@ -614,7 +618,9 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
 
         {/* PS5 */}
         {(() => {
-          const { text: pSeenText, online: pOnline } = relativeLastSeen(ps5Data.lastSeen)
+          // The PS5 worker cron runs every 2 minutes, so a 3 minute threshold covers a
+          // missed/delayed tick without showing "last seen Xm ago" while still online
+          const { text: pSeenText, online: pOnline } = relativeLastSeen(ps5Data.lastSeen, 3)
           return (
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">

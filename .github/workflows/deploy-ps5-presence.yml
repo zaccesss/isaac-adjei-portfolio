@@ -1,0 +1,45 @@
+# Deploys the ps5-presence Cloudflare Worker whenever its source changes on main.
+#
+# This worker was deployed manually via `wrangler deploy` and then left untouched for
+# three weeks while a fix to it (the ps5:last-game write logic) sat merged in the repo
+# but never actually shipped to Cloudflare - the bug it fixed stayed live the whole time
+# because nobody remembered to redeploy. Path-filtered to workers/ps5-presence/** so
+# this only runs on the rare push that actually touches this worker, keeping cost near zero.
+#
+# Third-party actions are pinned to a full commit SHA (supply-chain attack prevention).
+
+name: Deploy PS5 presence worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "workers/ps5-presence/**"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        working-directory: workers/ps5-presence
+        run: npm install
+
+      - name: Deploy
+        working-directory: workers/ps5-presence
+        run: npx wrangler deploy --config ./wrangler.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

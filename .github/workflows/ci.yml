@@ -48,6 +48,13 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Catches source images large enough to break Vercel's image optimizer, which
+      # silently falls back to serving the original file untouched on failure instead
+      # of erroring - a 140-megapixel file once got through this way and crashed every
+      # mobile visitor's browser by decoding to ~537MB for a single thumbnail.
+      - name: Check image sizes
+        run: npm run check-image-sizes
+
       # Run Next.js production build - catches TS errors and broken imports
       # Environment variables that the build references must be set here as placeholders.
       # They don't need real values for a build-only check.
