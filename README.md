@@ -94,15 +94,17 @@ SQL for the Supabase database lives in `sql/schema.sql` (fresh install) and `sql
 
 ```text
 .github/
+├── README.md                         Workflow index and conventions
 ├── workflows/
-│   ├── ci.yml                        Lint and build check on every PR
+│   ├── ci.yml                        Lint, build and image-size check on every PR
 │   ├── cv-pdf.yml                    Regenerate CV PDF/DOCX on cv.html push
+│   ├── deploy-ps5-presence.yml       Deploy the PS5 worker on changes to workers/ps5-presence/**
 │   ├── job-scraper.yml               Job scraper - every 3 days at midnight UTC
-│   ├── wakatime-sync.yml             Daily WakaTime coding activity sync (01:00 UTC)
+│   ├── wakatime-sync.yml             Daily WakaTime coding activity sync (23:30 UTC)
 │   ├── vault-expiry-check.yml        Daily vault item expiry check and Discord alert
 │   ├── generate-cvs.yml              Manual CV regeneration trigger
 │   ├── gitleaks-scan.yml             Secret scanning on every push
-│   ├── update-pr-branches.yml        Auto-rebase open PRs when main changes
+│   ├── update-pr-branches.yml        Delete merged branches every 2 hours ("Repo maintenance")
 │   └── automerge-dependabot.yml      Auto-merge Dependabot PRs after CI
 
 app/                                  Next.js App Router
