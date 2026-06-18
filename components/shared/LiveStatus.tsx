@@ -62,39 +62,17 @@ export default function LiveStatus({ variant = "card" }: LiveStatusProps) {
   }, [])
 
   useEffect(() => {
-    async function fetchSpotify() {
+    // I reuse the same SSE stream as LiveStatusCards - the browser multiplexes EventSource connections from the same origin
+    const es = new EventSource("/api/live-status/stream")
+    es.onmessage = (e) => {
       try {
-        const res = await fetch("/api/spotify")
-        if (res.ok) setSpotify(await res.json())
+        const { spotify: s, macbook, github: g } = JSON.parse(e.data)
+        if (s) setSpotify(s)
+        if (macbook) setMac(macbook)
+        if (g) setGithub(g)
       } catch {}
     }
-    fetchSpotify()
-    const id = setInterval(fetchSpotify, 30000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    async function fetchMac() {
-      try {
-        const res = await fetch("/api/macbook")
-        if (res.ok) setMac(await res.json())
-      } catch {}
-    }
-    fetchMac()
-    const id = setInterval(fetchMac, 60000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    async function fetchGithub() {
-      try {
-        const res = await fetch("/api/github-activity")
-        if (res.ok) setGithub(await res.json())
-      } catch {}
-    }
-    fetchGithub()
-    const id = setInterval(fetchGithub, 300000)
-    return () => clearInterval(id)
+    return () => es.close()
   }, [])
 
   const online = isOnline(mac.lastSeen)

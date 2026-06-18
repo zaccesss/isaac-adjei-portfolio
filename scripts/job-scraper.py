@@ -609,7 +609,7 @@ def is_url_alive(url: str) -> bool:
     try:
         resp = requests.head(url, headers=HEADERS, timeout=8,
                              allow_redirects=True)
-        # Some servers don't support HEAD and return 405 — fall back to GET.
+        # Some servers don't support HEAD and return 405 - fall back to GET.
         if resp.status_code == 405:
             resp = requests.get(url, headers=HEADERS, timeout=10,
                                 allow_redirects=True, stream=True)
@@ -1761,7 +1761,7 @@ LEVER_COMPANIES = [
     ("spotify",      "Spotify"),
 ]
 
-# (ashby_slug, display_name) — confirmed against live API.
+# (ashby_slug, display_name) - confirmed against live API.
 ASHBY_COMPANIES = [
     ("linear",          "Linear"),
     ("perplexityai",    "Perplexity AI"),
@@ -2003,7 +2003,7 @@ def scrape_amazon(existing_keys: set) -> int:
                 job_url = f"https://www.amazon.jobs{job_path}" if job_path else ""
                 description_text = job.get("description", "")
                 posted_raw = job.get("posted_date", "")
-                # Amazon returns e.g. "January 15, 2026" — convert to ISO.
+                # Amazon returns e.g. "January 15, 2026" - convert to ISO.
                 opening_date = None
                 if posted_raw:
                     try:

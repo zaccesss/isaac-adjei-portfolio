@@ -8,6 +8,7 @@ import { useState } from "react"
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { type Project } from "@/data/projects"
 import ProjectCard from "./ProjectCard"
+import { relevanceScore } from "@/lib/search"
 import ProjectFilter from "./ProjectFilter"
 
 type Category = Project["category"] | "all"
@@ -20,9 +21,14 @@ interface Props {
 
 export default function ProjectGrid({ projects }: Props) {
   const [filter, setFilter] = useState<Category>("all")
+  const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
 
-  const filtered = filter === "all" ? projects : projects.filter((p) => p.category === filter)
+  const q = search.toLowerCase().trim()
+  const filtered = projects
+    .filter((p) => filter === "all" || p.category === filter)
+    .filter((p) => !q || p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q))
+    .sort((a, b) => q ? relevanceScore(b.title, b.description, q) - relevanceScore(a.title, a.description, q) : 0)
   const totalPages = Math.ceil(filtered.length / PER_PAGE)
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
 
@@ -31,8 +37,20 @@ export default function ProjectGrid({ projects }: Props) {
     setPage(1)
   }
 
+  function handleSearch(value: string) {
+    setSearch(value)
+    setPage(1)
+  }
+
   return (
     <div className="space-y-8">
+      <input
+        type="search"
+        placeholder="Search projects…"
+        value={search}
+        onChange={e => handleSearch(e.target.value)}
+        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+      />
       <ProjectFilter active={filter} onChange={handleFilter} />
 
       {filtered.length === 0 ? (

@@ -261,7 +261,7 @@ async function generatePDF(htmlContent, outputPath) {
 
 // ─── html-to-docx fallback pipeline (kept for reference) ─────────────────────
 
-// HTML named entities that are invalid XML — DOCX is XML so these corrupt the file.
+// HTML named entities that are invalid XML - DOCX is XML so these corrupt the file.
 const HTML_ENTITY_MAP = {
   middot: '·', pound: '£', nbsp: ' ', copy: '©', reg: '®',
   trade: '™', mdash: '—', ndash: '–', lsquo: '‘', rsquo: '’',
@@ -272,7 +272,7 @@ const HTML_ENTITY_MAP = {
 
 function decodeHtmlEntities(html) {
   // Replace HTML named entities with their Unicode equivalents.
-  // &amp; &lt; &gt; &quot; &apos; are valid XML — leave them intact.
+  // &amp; &lt; &gt; &quot; &apos; are valid XML - leave them intact.
   return html.replace(/&([a-zA-Z]+);/g, (match, name) => {
     if (['amp', 'lt', 'gt', 'quot', 'apos'].includes(name)) return match;
     return HTML_ENTITY_MAP[name] || match;
@@ -290,10 +290,10 @@ function cleanForDocx(html) {
   // Convert HTML named entities to Unicode so DOCX XML stays valid
   c = decodeHtmlEntities(c);
 
-  // Strip SVG icons — they don't render in Word
+  // Strip SVG icons - they don't render in Word
   c = c.replace(/<svg[\s\S]*?<\/svg>/gi, '');
 
-  // Convert name div to a centred heading — handles both CV (.header-name) and cover letter (.name)
+  // Convert name div to a centred heading - handles both CV (.header-name) and cover letter (.name)
   c = c.replace(
     /<div class="(?:header-name|name)">([^<]*)<\/div>/,
     '<h1 style="text-align:center;font-size:18pt;font-weight:bold;margin:0 0 4px 0;">$1<\/h1>'
@@ -864,7 +864,7 @@ async function buildAll() {
       console.log(`  ✗ PDF failed: ${e.message}`);
     }
 
-    // Generate DOCX (native docx package — proper Word output)
+    // Generate DOCX (native docx package - proper Word output)
     try {
       const docxPath = path.join(process.cwd(), 'public', 'resume', `cv-${roleId}.docx`);
       await generateCVDocxNative(htmlContent, docxPath);
@@ -882,7 +882,7 @@ async function buildAll() {
     }
   }
 
-  // Cover letters — DOCX (native) and PDF for each role
+  // Cover letters - DOCX (native) and PDF for each role
   console.log('\nBuilding cover letters (DOCX and PDF)...');
   const coverLetterRoles = ['general', 'software', 'embedded', 'devops', 'data', 'quant', 'security'];
   for (const role of coverLetterRoles) {
@@ -905,7 +905,7 @@ async function buildAll() {
     }
   }
 
-  // Main CV DOCX — section-extracted for clean output
+  // Main CV DOCX - section-extracted for clean output
   console.log('\nBuilding main CV DOCX...');
   try {
     const mainDocxPath = path.join(process.cwd(), 'public', 'resume', 'Isaac_Adjei_CV.docx');

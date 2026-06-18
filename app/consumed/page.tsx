@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function ConsumedPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div className="h-64 bg-muted animate-pulse rounded-lg mx-4 mt-12" />}>
       <ConsumedContent />
     </Suspense>
   )

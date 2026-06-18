@@ -92,7 +92,7 @@ export default function ApplicationsAnalytics({ apps }: { apps: Application[] })
   }
   const locBar = Object.entries(locCounts).filter(([, v]) => v > 0).map(([name, value]) => ({ name, value }))
 
-  // ── Weekly trend — last 13 weeks ────────────────────────────────────────────
+  // ── Weekly trend: last 13 weeks ────────────────────────────────────────────
   const today = new Date()
   const weeklyBar: { name: string; value: number }[] = []
   for (let w = 12; w >= 0; w--) {

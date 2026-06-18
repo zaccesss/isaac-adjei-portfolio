@@ -1,7 +1,7 @@
+"use client"
 // I float a "+" button over every dashboard page so I can quickly log a diary entry,
 // note, goal or application without navigating away from whatever I am looking at.
 // The dialog is opened by the button or by the global Cmd+Shift+N shortcut.
-"use client"
 
 import { useState, useTransition } from "react"
 import { Plus } from "lucide-react"
@@ -176,18 +176,18 @@ export default function QuickCapture() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Quick capture"
-        className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all flex items-center justify-center hover:scale-105 active:scale-95"
+        className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-6 z-50 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all flex items-center justify-center hover:scale-105 active:scale-95"
       >
         <Plus className="h-5 w-5" />
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-[min(28rem,calc(100vw-2rem))]">
           <DialogHeader>
             <DialogTitle>Quick capture</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="diary">
-            <TabsList className="w-full grid grid-cols-4">
+            <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4">
               <TabsTrigger value="diary">Diary</TabsTrigger>
               <TabsTrigger value="note">Note</TabsTrigger>
               <TabsTrigger value="goal">Goal</TabsTrigger>

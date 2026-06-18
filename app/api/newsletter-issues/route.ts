@@ -59,10 +59,13 @@ export async function GET() {
     const confirmedData = confirmedRes.ok ? (await confirmedRes.json()).data ?? [] : []
     const archivedData = archivedRes.ok ? (await archivedRes.json()).data ?? [] : []
 
-    const combined = [...confirmedData, ...archivedData].sort(
-      (a: { publish_date?: number }, b: { publish_date?: number }) =>
-        (b.publish_date ?? 0) - (a.publish_date ?? 0)
-    )
+    const nowUnix = Math.floor(Date.now() / 1000)
+    const combined = [...confirmedData, ...archivedData]
+      .filter((post: { publish_date?: number }) => !post.publish_date || post.publish_date <= nowUnix)
+      .sort(
+        (a: { publish_date?: number }, b: { publish_date?: number }) =>
+          (b.publish_date ?? 0) - (a.publish_date ?? 0)
+      )
 
     const issues: NewsletterIssue[] = combined.map((post: {
       id: string

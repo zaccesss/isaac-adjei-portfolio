@@ -399,7 +399,7 @@ Create `.env.local` in the project root for local development. All variables are
 | `UPSTASH_REDIS_REST_TOKEN` | Optional | Upstash Redis REST token. Required alongside the URL |
 | `SPOTIFY_CLIENT_ID` | Optional | Spotify app client ID for the now-playing card. Without it the Spotify card does not render |
 | `SPOTIFY_CLIENT_SECRET` | Optional | Spotify app client secret |
-| `SPOTIFY_REFRESH_TOKEN` | Optional | Spotify long-lived OAuth refresh token. Generate once using `scripts/spotify-auth.mjs` |
+| `SPOTIFY_REFRESH_TOKEN` | Optional | Spotify long-lived OAuth refresh token. Generate once using `scripts/spotify-auth.ts` (`npx tsx scripts/spotify-auth.ts`) |
 | `PSN_NPSSO` | Optional | 64-character NPSSO session token from Sony auth. Used by the Cloudflare Worker to poll PSN presence. Renew from `playstation.com` cookies when the PS5 card goes stale. This variable is set in the Cloudflare Worker environment, not in Vercel |
 
 ### Dashboard (all required for dashboard functionality)
@@ -572,7 +572,9 @@ Both routes verify `Authorization: Bearer <CRON_SECRET>` before executing.
 │   ├── job-scraper.py      # Scrapes job listings from multiple sources
 │   ├── generate-pdfs.js    # Puppeteer: regenerate all role-specific PDFs
 │   ├── generate-docx.js    # Regenerate role-specific Word files from cv.yml
-│   └── spotify-auth.mjs    # One-time OAuth helper for Spotify refresh token
+│   ├── split-data.ts       # One-time utility to split flat data files into per-entry files
+│   ├── daily-coding-summary.ts  # Nightly Discord coding summary (run via GitHub Actions)
+│   └── spotify-auth.ts     # One-time OAuth helper for Spotify refresh token
 └── workers/
     └── ps5-presence/       # Cloudflare Worker - polls PSN every 60s
 ```

@@ -1,7 +1,7 @@
+"use client"
 // I manage the full job-application tracking workflow: listing, filtering, creating, editing and deleting
 // entries across multiple tabs (Internships, Placements, Graduate Schemes, Spring Weeks, Events, Jobs).
 // I also provide Kanban, Analytics and Linear views, an application funnel chart and auto-detected categories.
-"use client"
 
 // SQL already applied - all new columns are in the applications table.
 
@@ -291,7 +291,7 @@ function AppForm({
 
   return (
     <div className="flex flex-col gap-3 max-h-[75vh] overflow-y-auto pr-1">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Company *</label>
           <Input
@@ -307,7 +307,7 @@ function AppForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Type</label>
           <Select value={form.type} onValueChange={(v) => set("type", v)}>
@@ -340,7 +340,7 @@ function AppForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Opening Date</label>
           <Input type="date" value={form.opening_date} onChange={(e) => set("opening_date", e.target.value)} />
@@ -351,7 +351,7 @@ function AppForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Last Year Opening</label>
           <Input type="date" value={form.last_year_opening} onChange={(e) => set("last_year_opening", e.target.value)} />
@@ -362,7 +362,7 @@ function AppForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Find Housing (area)</label>
           <Input
@@ -389,7 +389,7 @@ function AppForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">CV</label>
           <Select value={form.cv_required || "none"} onValueChange={(v) => set("cv_required", v === "none" ? "" : v)}>
@@ -440,7 +440,7 @@ function AppForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Sponsors Visa</label>
           <Select value={form.sponsors_visa || "none"} onValueChange={(v) => set("sponsors_visa", v === "none" ? "" : v)}>
@@ -1198,7 +1198,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         </div>
 
         <Select value={filterMyStatus} onValueChange={setFilterMyStatus}>
-          <SelectTrigger className="h-8 text-xs w-44">
+          <SelectTrigger className="h-8 text-xs min-w-[8rem] flex-1">
             <SelectValue placeholder="Filter by My Status" />
           </SelectTrigger>
           <SelectContent>
@@ -1212,7 +1212,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         </Select>
 
         <Select value={filterOpenStatus} onValueChange={setFilterOpenStatus}>
-          <SelectTrigger className="h-8 text-xs w-36">
+          <SelectTrigger className="h-8 text-xs min-w-[8rem] flex-1">
             <SelectValue placeholder="Open Status" />
           </SelectTrigger>
           <SelectContent>
@@ -1223,7 +1223,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         </Select>
 
         <Select value={filterCoverLetter} onValueChange={setFilterCoverLetter}>
-          <SelectTrigger className="h-8 text-xs w-40">
+          <SelectTrigger className="h-8 text-xs min-w-[8rem] flex-1">
             <SelectValue placeholder="Cover Letter" />
           </SelectTrigger>
           <SelectContent>
@@ -1235,7 +1235,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         </Select>
 
         <Select value={filterLocation} onValueChange={setFilterLocation}>
-          <SelectTrigger className="h-8 text-xs w-44">
+          <SelectTrigger className="h-8 text-xs min-w-[8rem] flex-1">
             <SelectValue placeholder="Location" />
           </SelectTrigger>
           <SelectContent>
@@ -1249,7 +1249,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         </Select>
 
         <Select value={filterKeyword} onValueChange={setFilterKeyword}>
-          <SelectTrigger className="h-8 text-xs w-44">
+          <SelectTrigger className="h-8 text-xs min-w-[8rem] flex-1">
             <SelectValue placeholder="Keyword" />
           </SelectTrigger>
           <SelectContent>

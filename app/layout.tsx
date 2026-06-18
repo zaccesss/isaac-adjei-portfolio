@@ -1,6 +1,6 @@
 // I wrap every page here with global metadata, Geist fonts, ThemeProvider and a floating CommandMenu.
 
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import Script from "next/script"
@@ -31,6 +31,8 @@ const personSchema = {
   },
   sameAs: ["https://github.com/zaccesss", "https://linkedin.com/in/isaacadjei"],
 }
+
+export const viewport: Viewport = { width: "device-width", initialScale: 1 }
 
 export const metadata: Metadata = {
   // Use the live canonical host consistently.
@@ -100,7 +102,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="alternate"
           type="application/rss+xml"
           title="Isaac Adjei"
-          href="/feed.xml"
+          href="/blog/feed.xml"
         />
         <script
           type="application/ld+json"

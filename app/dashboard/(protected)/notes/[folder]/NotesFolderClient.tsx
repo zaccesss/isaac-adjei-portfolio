@@ -1,7 +1,7 @@
+"use client"
 // I provide a three-panel notes editor (sidebar, note list and editor/viewer) for a single folder.
 // I handle "all", "hidden" and named folders through the same component - the folder prop drives
 // which notes are shown and what the breadcrumb label says.
-"use client"
 
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"

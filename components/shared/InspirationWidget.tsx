@@ -15,9 +15,10 @@ export default function InspirationWidget() {
         setQuote(data)
       } catch {}
     }
-    fetchQuote()
+    // I defer the initial fetch slightly so it doesn't compete with the first paint
+    const t = setTimeout(fetchQuote, 80)
     const interval = setInterval(fetchQuote, 30 * 60 * 1000)
-    return () => clearInterval(interval)
+    return () => { clearTimeout(t); clearInterval(interval) }
   }, [])
 
   useEffect(() => {
@@ -28,9 +29,9 @@ export default function InspirationWidget() {
         setBible(data)
       } catch {}
     }
-    fetchVerse()
+    const t = setTimeout(fetchVerse, 80)
     const interval = setInterval(fetchVerse, 30 * 60 * 1000)
-    return () => clearInterval(interval)
+    return () => { clearTimeout(t); clearInterval(interval) }
   }, [])
 
   return (

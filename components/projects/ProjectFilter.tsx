@@ -15,9 +15,11 @@ const categories: { value: Category; label: string }[] = [
   { value: "all", label: "All" },
   { value: "embedded", label: "Embedded" },
   { value: "hardware", label: "Hardware" },
+  { value: "iot", label: "IoT" },
   { value: "software", label: "Software" },
   { value: "web", label: "Web" },
   { value: "cybersecurity", label: "Cybersecurity" },
+  { value: "academic", label: "Academic" },
   { value: "other", label: "Other" },
 ]
 

@@ -1,7 +1,7 @@
+"use client"
 // I render WakaTime and GitHub contribution data as heatmaps, bar charts and donut
 // charts. All aggregation (language totals, weekday buckets, weekly rollups) happens
 // in this client component so the server only has to pass raw per-day rows.
-"use client"
 
 import { useMemo, useState } from "react"
 import { Code2 } from "lucide-react"
@@ -209,7 +209,7 @@ export default function CodingClient({
   )
   const mostActiveLabel = mostActiveRow && mostActiveRow.total_seconds > 0
     ? new Date(mostActiveRow.date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
-    : "—"
+    : "-"
 
   const langMap = new Map<string, number>()
   const projMap = new Map<string, number>()
@@ -248,7 +248,7 @@ export default function CodingClient({
   const totalProjSeconds = topProjs.reduce((acc, [, s]) => acc + s, 0)
   const weekdayData = WEEKDAY_LABELS.map((day, i) => ({ day, seconds: weekdayMap[i] }))
 
-  // Daily coding totals — last 30 days
+  // Daily coding totals: last 30 days
   const dailyCodings = useMemo(() => {
     const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
     const today = new Date()
@@ -265,7 +265,7 @@ export default function CodingClient({
     return result
   }, [rows])
 
-  // Daily GitHub contributions — last 30 days
+  // Daily GitHub contributions: last 30 days
   const dailyGH = useMemo(() => {
     if (!ghDays.length) return []
     const byDate = new Map(ghDays.map((d) => [d.date, d.count]))
@@ -283,7 +283,7 @@ export default function CodingClient({
     return result
   }, [ghDays])
 
-  // Weekly coding totals — last 13 weeks
+  // Weekly coding totals: last 13 weeks
   const weeklyCodings = useMemo(() => {
     const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
     const today = new Date()
@@ -316,7 +316,7 @@ export default function CodingClient({
     : []
   const ghBreakdownTotal = ghBreakdownData.reduce((a, d) => a + d.value, 0)
 
-  // Weekly GitHub contribution totals — last 13 weeks
+  // Weekly GitHub contribution totals: last 13 weeks
   const weeklyGH = useMemo(() => {
     if (!ghDays.length) return []
     const byDate = new Map(ghDays.map((d) => [d.date, d.count]))
@@ -409,7 +409,7 @@ export default function CodingClient({
         </div>
         {tooltip && (
           <div className="mt-2 text-xs text-muted-foreground">
-            {tooltip.date} — {tooltip.seconds > 0 ? formatHours(tooltip.seconds) : "no data"}
+            {tooltip.date}: {tooltip.seconds > 0 ? formatHours(tooltip.seconds) : "no data"}
           </div>
         )}
         <div className="flex items-center gap-1.5 mt-3">
@@ -426,7 +426,7 @@ export default function CodingClient({
         <div className="border border-border rounded-lg p-4 bg-card overflow-x-auto">
           <div className="flex items-center gap-2 mb-3">
             <h2 className="text-sm font-semibold">GitHub Contributions</h2>
-            <span className="text-xs text-muted-foreground">— commits, PRs, issues and reviews</span>
+            <span className="text-xs text-muted-foreground">- commits, PRs, issues and reviews</span>
           </div>
           <div className="flex gap-1 mb-1">
             <div className="w-6 shrink-0" />
@@ -460,7 +460,7 @@ export default function CodingClient({
           </div>
           {ghTooltip && (
             <div className="mt-2 text-xs text-muted-foreground">
-              {ghTooltip.date} — {ghTooltip.count} contribution{ghTooltip.count !== 1 ? "s" : ""}
+              {ghTooltip.date}: {ghTooltip.count} contribution{ghTooltip.count !== 1 ? "s" : ""}
             </div>
           )}
           <div className="flex items-center gap-1.5 mt-3">
@@ -473,10 +473,10 @@ export default function CodingClient({
         </div>
       )}
 
-      {/* Daily coding + GitHub bar charts — last 30 days */}
+      {/* Daily coding + GitHub bar charts: last 30 days */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="border border-border rounded-lg p-4 bg-card">
-          <h2 className="text-sm font-semibold mb-3">Coding — daily (last 30 days)</h2>
+          <h2 className="text-sm font-semibold mb-3">Coding: daily (last 30 days)</h2>
           <ResponsiveContainer width="100%" height={120}>
             <BarChart data={dailyCodings} barSize={6} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
@@ -493,7 +493,7 @@ export default function CodingClient({
         </div>
         {dailyGH.length > 0 && (
           <div className="border border-border rounded-lg p-4 bg-card">
-            <h2 className="text-sm font-semibold mb-3">GitHub — daily (last 30 days)</h2>
+            <h2 className="text-sm font-semibold mb-3">GitHub: daily (last 30 days)</h2>
             <ResponsiveContainer width="100%" height={120}>
               <BarChart data={dailyGH} barSize={6} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
@@ -514,7 +514,7 @@ export default function CodingClient({
       {/* Weekly coding + GitHub contribution bar charts */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="border border-border rounded-lg p-4 bg-card">
-          <h2 className="text-sm font-semibold mb-3">Coding — weekly totals</h2>
+          <h2 className="text-sm font-semibold mb-3">Coding: weekly totals</h2>
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={weeklyCodings} barSize={12} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
@@ -531,7 +531,7 @@ export default function CodingClient({
         </div>
         {weeklyGH.length > 0 && (
           <div className="border border-border rounded-lg p-4 bg-card">
-            <h2 className="text-sm font-semibold mb-3">GitHub — weekly contributions</h2>
+            <h2 className="text-sm font-semibold mb-3">GitHub: weekly contributions</h2>
             <ResponsiveContainer width="100%" height={140}>
               <BarChart data={weeklyGH} barSize={12} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
@@ -554,7 +554,7 @@ export default function CodingClient({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Pie chart */}
           <div className="border border-border rounded-lg p-4 bg-card">
-            <h2 className="text-sm font-semibold mb-2">GitHub breakdown — pie (this year)</h2>
+            <h2 className="text-sm font-semibold mb-2">GitHub breakdown: pie (this year)</h2>
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <div className="shrink-0 w-36">
                 <ResponsiveContainer width="100%" height={150}>
@@ -600,7 +600,7 @@ export default function CodingClient({
           </div>
           {/* Bar chart */}
           <div className="border border-border rounded-lg p-4 bg-card">
-            <h2 className="text-sm font-semibold mb-3">GitHub breakdown — bar (this year)</h2>
+            <h2 className="text-sm font-semibold mb-3">GitHub breakdown: bar (this year)</h2>
             <ResponsiveContainer width="100%" height={150}>
               <BarChart data={ghBreakdownData} barSize={24} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
@@ -618,7 +618,7 @@ export default function CodingClient({
         </div>
       )}
 
-      {/* Languages — horizontal bars */}
+      {/* Languages: horizontal bars */}
       <div className="border border-border rounded-lg p-4 bg-card">
         <h2 className="text-sm font-semibold mb-3">Languages</h2>
         {topLangs.length === 0 ? (

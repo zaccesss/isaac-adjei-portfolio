@@ -14,7 +14,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
   })
 }
 
-// All 8 pinned + 12 picker extras — stored by emoji character
+// All 8 pinned + 12 picker extras - stored by emoji character
 export const PRESET_TYPES = [
   "👍","❤️","🔥","💡","🤯","🎉","💯","🎯",
   "👎","😄","😕","😢","🚀","👀","🙌","😮","💪","🧠","✨","🌟","🙏","😍","🤝","😎","🫶","🥹","🫠","🤌",

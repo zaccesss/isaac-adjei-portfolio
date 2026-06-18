@@ -79,7 +79,7 @@ export default function CVPage() {
           <iframe
             ref={iframeRef}
             src="/resume/cv.html"
-            className="w-full min-h-[900px]"
+            className="w-full min-h-[600px] md:min-h-[900px]"
             title="Isaac (Zac) Adjei CV"
             onLoad={handleIframeLoad}
           />

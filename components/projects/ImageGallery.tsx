@@ -105,6 +105,7 @@ export default function ImageGallery({ images, title }: Props) {
               alt={`${title} - image ${lightboxIndex + 1}`}
               width={1200}
               height={800}
+              sizes="(max-width: 768px) 100vw, 1200px"
               className="object-contain max-h-[90vh] w-full rounded-md"
               priority
             />

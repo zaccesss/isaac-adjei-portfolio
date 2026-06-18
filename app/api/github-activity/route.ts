@@ -54,11 +54,9 @@ export async function GET() {
       }
     )
 
-    console.log("GitHub API status:", res.status, "PAT present:", !!pat)
-
     if (!res.ok) {
       const body = await res.text()
-      console.log("GitHub API error body:", body)
+      console.error("[github-activity] API error:", res.status, body)
       return NextResponse.json(
         { repo: null, pushedAt: null, relativeTime: null },
         { headers: { "Cache-Control": "no-store" } }

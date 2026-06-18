@@ -50,7 +50,7 @@ async function main() {
   }
 
   if (!webhookUrl) {
-    console.log("DISCORD_WEBHOOK_URL not set — skipping (no alert to send)")
+    console.log("DISCORD_WEBHOOK_URL not set - skipping (no alert to send)")
     process.exit(0)
   }
 
@@ -102,21 +102,21 @@ async function main() {
   }
 
   if (expiring.length === 0) {
-    console.log("No expiring items found — nothing to send")
+    console.log("No expiring items found - nothing to send")
     process.exit(0)
   }
 
   expiring.sort((a, b) => a.daysLeft - b.daysLeft)
   console.log(`Found ${expiring.length} expiring item(s):`)
-  expiring.forEach((i) => console.log(`  ${i.name} (${i.type}): ${i.daysLeft}d — ${i.expiresOn}`))
+  expiring.forEach((i) => console.log(`  ${i.name} (${i.type}): ${i.daysLeft}d - ${i.expiresOn}`))
 
   const fields = expiring.map((item) => ({
     name: `${item.name} (${item.type})`,
     value: item.daysLeft < 0
-      ? `Expired ${Math.abs(item.daysLeft)}d ago — ${item.expiresOn}`
+      ? `Expired ${Math.abs(item.daysLeft)}d ago - ${item.expiresOn}`
       : item.daysLeft === 0
-      ? `Expires today — ${item.expiresOn}`
-      : `Expires in ${item.daysLeft}d — ${item.expiresOn}`,
+      ? `Expires today - ${item.expiresOn}`
+      : `Expires in ${item.daysLeft}d - ${item.expiresOn}`,
     inline: false,
   }))
 
@@ -127,7 +127,7 @@ async function main() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       embeds: [{
-        title: `Expiry Alert — ${expiring.length} item${expiring.length === 1 ? "" : "s"} expiring soon`,
+        title: `Expiry Alert - ${expiring.length} item${expiring.length === 1 ? "" : "s"} expiring soon`,
         color: colour,
         fields,
         footer: { text: "isaacadjei.me vault" },

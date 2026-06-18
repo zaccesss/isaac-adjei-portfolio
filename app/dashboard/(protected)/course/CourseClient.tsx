@@ -248,8 +248,8 @@ export default function CourseClient({ modules: initial, config: initialConfig }
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{stage.label}</p>
               <span className="text-xs text-muted-foreground">{stageCredits} credits</span>
             </div>
-            <div className="border border-border rounded-xl bg-card overflow-hidden">
-              <table className="w-full">
+            <div className="border border-border rounded-xl bg-card overflow-x-auto">
+              <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="border-b border-border/50 bg-muted/30 text-xs text-muted-foreground">
                     <th className="text-left px-4 py-2.5 font-normal">Code</th>

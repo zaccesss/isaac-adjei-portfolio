@@ -1,7 +1,7 @@
+"use client"
 // I track daily habit streaks with a GitHub-style 90-day heatmap, current and longest streak counters
 // and activity charts. I compute all streak lengths client-side from the logs array so they stay
 // consistent with local optimistic updates without ever going stale.
-"use client"
 
 import { useState, useTransition } from "react"
 import { createStreak, deleteStreak, checkInStreak, undoStreakCheckIn } from "../../actions"
@@ -136,7 +136,7 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
     return point
   })
 
-  // Daily check-ins — last 30 days
+  // Daily check-ins: last 30 days
   const last30: string[] = []
   for (let i = 29; i >= 0; i--) {
     const d = new Date(today)
@@ -173,7 +173,7 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
 
   return (
     <div className="flex flex-col gap-4 mt-2">
-      {/* Daily check-ins — last 30 days */}
+      {/* Daily check-ins: last 30 days */}
       <div className="border border-border rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-medium">Daily check-ins (last 30 days)</p>
@@ -204,7 +204,7 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
         </ResponsiveContainer>
       </div>
 
-      {/* Daily pie chart — per-streak share over last 30 days */}
+      {/* Daily pie chart: per-streak share over last 30 days */}
       {dailyPieData.length > 0 && (
         <div className="border border-border rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">

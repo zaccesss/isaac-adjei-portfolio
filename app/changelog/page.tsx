@@ -39,10 +39,10 @@ const releases: ChangeEntry[] = [
       "/uses Terminal and shell section: dotfiles entry with cross-platform environment detail and Starship entry with shared config explanation",
       "Skills page Core Tools: Starship added with Simple Icons CDN icon",
       "Project detail page: inline code rendering via backtick syntax so command names render as styled code elements rather than plain text",
-      "14 new blog posts in the pipeline across article, notes, journal and research types; all posts include references, external links and mixed content — publishing automatically from June through September 2026",
-      "New blog post: How to Contribute to Open Source — A Practical Guide; published live 2026-06-13",
+      "14 new blog posts in the pipeline across article, notes, journal and research types; all posts include references, external links and mixed content: publishing automatically from June through September 2026",
+      "New blog post: How to Contribute to Open Source: A Practical Guide; published live 2026-06-13",
       "Blog renderer: Spotify episode embeds and inline [text](url) link rendering in paragraph and list blocks",
-      "All 34 blog posts enriched with references sections, inline links for tools and projects, and plain-English definitions before technical sections",
+      "All 34 blog posts enriched with references sections, inline links for tools and projects and plain-English definitions before technical sections",
       "Dashboard Settings: CV generation and WakaTime sync trigger buttons added alongside the existing job scraper trigger",
     ],
   },
@@ -301,7 +301,7 @@ export default function ChangelogPage() {
             href="https://github.com/zaccesss/isaac-adjei-portfolio/blob/main/CHANGELOG.md"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+            className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
           >
             CHANGELOG.md
           </a>
