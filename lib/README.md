@@ -15,4 +15,6 @@ Shared server and client utilities. Imported across `app/`, `components/` and `s
 | `send-discord-digest.ts` | Sends a formatted embed to a Discord webhook channel |
 | `search.ts` | `fieldScore()` and `relevanceScore()` helpers for the `/search` page |
 | `tags.ts` | `normTag()` tag normaliser and `consumedSlug()` slug helper for `/tags` routes |
+| `newsletter.ts` | Shared `fetchNewsletterIssues()` function used by both the API route and the RSS feed route |
+| `linear-sync.ts` | Linear issue sync helpers for the dashboard applications tracker |
 | `send-weekly-digest.ts` | Builds and sends the weekly summary email via Sendgrid |
