@@ -23,9 +23,13 @@ export default function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-200 border-b",
+        "sticky top-0 z-50 w-full transition-colors duration-200 border-b",
+        // backdrop-blur is one of the most GPU-expensive compositing features on
+        // mobile WebKit/Blink - desktop only gets the blur, mobile gets a plain
+        // opaque background so the sticky header doesn't repaint a blur layer
+        // on every scroll frame
         isScrolled
-          ? "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          ? "bg-background/95 sm:backdrop-blur sm:supports-[backdrop-filter]:bg-background/60"
           : "bg-transparent"
       )}
     >
