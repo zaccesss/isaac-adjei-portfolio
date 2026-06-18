@@ -57,8 +57,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- Mobile Safari renderer crash ("A problem repeatedly occurred") on `/`, `/projects`, `/skills` and `/links`: hover transforms scoped to `sm:` so no GPU layers are created on touch devices
-- PS5 "last played" game now persists correctly when offline via the `ps5:last-game` Redis key
+- Mobile Safari and Chrome renderer crash ("A problem repeatedly occurred") on `/` and `/projects`: a single oversized project thumbnail was decoding to over 500MB in browser memory; hover transforms also scoped to `sm:` and the header's blur effect scoped to desktop so no GPU layers are created on touch devices
+- PS5 "last played" game now persists correctly when offline
+- PS5 status no longer shows a stale "last seen" time while actively online
 - Giscus comment iframe not loading: `giscus.app` added to CSP `frame-src` allowlist
 - RSS `?raw` query param now serves `Content-Type: application/xml` for Chrome native XML viewer
 - Newsletter page showing scheduled issues before their publish date

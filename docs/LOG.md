@@ -4,6 +4,33 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-06-18 (PRs #339-350) - mobile crash root cause and CI/automerge overhaul
+
+### Mobile crash investigation
+
+- PR #339/#342 fixed a real but secondary issue: `ProjectCard`/`FeaturedBlogPosts` `sizes` attribute was requesting 1920w images on 3x DPR mobile instead of 750w
+- PR #346 fixed a second secondary issue: Header's `backdrop-blur` + `transition-all` created an expensive GPU compositing layer recomposited on every scroll frame; scoped blur to `sm:` and up
+- Crash still reproduced after both fixes - confirmed in a clean Safari private-mode test, then on three separate physical phones, ruling out device/cache as the cause
+- Actual root cause (PR #349): `public/images/projects/git-unlocked/github-logo-3d.webp` was 14467x9744px (140 megapixels) - an unprocessed 3D render export. Vercel's image optimizer silently falls back to serving the original file untouched when it fails to resize a source image at this scale, confirmed by directly requesting `/_next/image?...&w=750` and getting back the full original regardless of requested width. Decoded in browser memory that's ~537MB for a single thumbnail - crashes any mobile browser on any device instantly, which is why it reproduced everywhere and was unaffected by the sizes/backdrop-blur fixes. Found by running the live site through a real browser engine and inspecting actual transferred bytes, not just the HTML
+- Downscaled to 1600x1077 (13KB) via cwebp
+- Added `scripts/check-image-sizes.ts`, wired into CI: fails the build if any image in `public/images` exceeds 50 megapixels
+
+### PS5 fixes
+
+- `ps5:last-game` write logic (added weeks ago) never actually shipped - the Cloudflare Worker's last deployment was 2026-05-29, three weeks before the fix was written. Deployed current worker source via `wrangler deploy --config ./wrangler.toml` (the bundled wrangler v3 picks the wrong project without an explicit `--config`); confirmed `lastGame` now populates correctly during a live game session
+- Added `deploy-ps5-presence.yml`: auto-deploys the worker on any future push touching `workers/ps5-presence/**`, path-filtered so it costs near-zero Actions minutes
+- `relativeLastSeen()` showed "last seen Xm ago" for PS5 while actively online roughly half the time - its "online now" threshold was 1 minute but the worker's cron only updates every 2 minutes. Added a per-call threshold parameter; PS5 now passes 3 minutes, Mac/Lenovo/gaming PC keep the 1 minute default (those daemons write every 30s)
+
+### CI/automerge infrastructure (the actual story behind today's repeated friction)
+
+- `gh pr merge --auto --delete-branch` only reliably deletes a branch when gh performs an *immediate* merge (checks already green at invocation). When checks are still pending - the common case, since the workflow fires on every push - gh just registers auto-merge intent with GitHub and exits; nothing client-side is left running to perform the deletion when the merge completes later. This is why branches sporadically went undeleted before today and consistently failed once multiple PRs were open at once (PRs #337, #343 attempted fixes that didn't address this)
+- GitHub does not trigger other workflows' `push` or `pull_request` events for actions performed using a workflow's own `GITHUB_TOKEN` (anti-recursion safeguard). Confirmed via run history: every `automerge-dependabot.yml` run was `event: pull_request_target`, never `pull_request` or `push` - so event-based branch-deletion/PR-update triggers silently never fired for bot-driven merges
+- Replaced event triggers with a scheduled `Repo maintenance` workflow (PR #347, corrected for cost in #348) - schedule triggers fire independently of what authored the previous event. Single job (not two), `0 */2 * * *` cron (~360 min/month) - GitHub bills per job rounded up to the nearest minute regardless of actual duration, so merging two jobs into one halves the cost
+- Actual root cause of today's "needs manual approval" loop: the branch ruleset had `strict_required_status_checks_policy` enabled, requiring every PR to be up to date with main before merging. Once multiple PRs were open, each merge knocked others "behind"; the maintenance workflow pushed an `update-branch` commit authored by `github-actions[bot]` to fix that; GitHub then held the resulting CI run for manual approval because it was triggered by a bot-authored push rather than a human. Removed `strict_required_status_checks_policy` from the ruleset directly via the API (PR #350) - each PR now merges as soon as its own checks pass, matching how the repo behaved before today. The maintenance workflow no longer touches open PR branches at all, only deletes already-merged ones
+- Added `CLOUDFLARE_API_TOKEN` repo secret (Edit Cloudflare Workers template, scoped to account + isaacadjei.me zone) for the new PS5 worker auto-deploy workflow
+
+---
+
 ## 2026-06-15 to 2026-06-18 (PRs #285-337)
 
 ### Public pages and features
