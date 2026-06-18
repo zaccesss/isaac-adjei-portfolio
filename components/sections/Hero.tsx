@@ -16,7 +16,7 @@ export default function Hero() {
   const { modLabel } = useModKey()
 
   return (
-    <section className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-6 py-24">
+    <section className="relative min-h-[calc(100dvh-4rem)] flex items-center justify-center px-6 py-24">
       <motion.div
         className="max-w-4xl mx-auto text-center space-y-8"
         variants={staggerContainer}
@@ -26,15 +26,16 @@ export default function Hero() {
         <motion.div variants={fadeUp} className="space-y-4">
           <div className="w-24 h-24 rounded-full border-2 border-primary/30 overflow-hidden mx-auto">
             <Image
-              src="/images/zac_profile.jpg"
+              src="/images/zac_profile.webp"
               alt="Isaac Adjei"
               width={96}
               height={96}
+              sizes="96px"
               className="object-cover w-full h-full"
               priority
             />
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight">Isaac Adjei</h1>
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight">Isaac Adjei</h1>
           <p className="text-sm font-mono text-primary uppercase tracking-widest">
             Electronic Engineering &amp; Computer Science
           </p>

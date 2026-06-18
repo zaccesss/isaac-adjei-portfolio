@@ -1,6 +1,6 @@
+"use client"
 ﻿// I provide a private diary with mood tracking, hidden/pinned/locked entries and a 30-day mood chart.
 // This page is only accessible from within the authenticated dashboard.
-"use client"
 
 import { useState, useTransition } from "react"
 import { createDiaryEntry, updateDiaryEntry, deleteDiaryEntry, toggleDiaryHidden, toggleDiaryPinned, toggleDiaryLocked } from "../../actions"

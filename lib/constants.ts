@@ -20,10 +20,12 @@ export const ROUTES = {
   newsletter: "/newsletter",
   hallOfFame: "/hall-of-fame",
   allPages: "/all-pages",
+  researchPublications: "/respub",
+  til: "/til",
 } as const
 
 // The label + href for each item shown in the nav bar.
-// Lab, Notes and Now are removed from the primary nav — discoverable via /all-pages and the command menu.
+// Lab, Notes and Now are removed from the primary nav - discoverable via /all-pages and the command menu.
 export const NAV_LINKS = [
   { label: "About", href: ROUTES.about },
   { label: "Experience", href: ROUTES.experience },

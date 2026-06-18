@@ -1,7 +1,7 @@
+"use client"
 // I render a specific health section (gym, running or nutrition) within the dashboard.
 // A single component handles all three because the data shapes are similar enough
 // that splitting them would create more duplication than it saves.
-"use client"
 
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"

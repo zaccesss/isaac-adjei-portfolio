@@ -56,7 +56,7 @@ const sections: Array<{
       },
       {
         name: "ATmega644P development board",
-        icon: "/images/atmelavr.png",
+        icon: "/images/atmelavr.webp",
         href: "https://www.microchip.com/en-us/product/atmega644p",
         detail: "The microcontroller at the heart of the avr-zac project. I use it to practise bare metal AVR C: GPIO, interrupts, PWM, ADC, UART and a nine-mode state machine, all written directly against the datasheet with no RTOS or HAL.",
       },
@@ -237,7 +237,7 @@ const sections: Array<{
       },
       {
         name: "Proteus",
-        icon: "/images/proteus.jpg",
+        icon: "/images/proteus.webp",
         href: "https://www.labcenter.com",
         detail: "Circuit simulation and microcontroller firmware simulation. Useful for validating circuit behaviour and testing firmware logic before committing to hardware, especially helpful for timing-critical embedded code.",
       },
@@ -352,7 +352,7 @@ export default function UsesPage() {
             href="https://uses.tech"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+            className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
           >
             uses.tech
           </a>
@@ -389,7 +389,7 @@ export default function UsesPage() {
                         href={href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm font-medium text-foreground hover:text-primary hover:underline underline-offset-4 transition-colors"
+                        className="text-sm font-medium text-primary hover:text-primary/80 underline underline-offset-4 transition-colors"
                       >
                         {name}
                       </a>

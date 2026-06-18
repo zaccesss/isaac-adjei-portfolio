@@ -138,7 +138,7 @@ export default function ApplicationsKanban({ applications: initial }: { applicat
   const tracked = apps.filter((a) => a.type !== "Full-time Job" && a.status !== "scraped")
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 min-h-[500px]">
+    <div className="flex gap-3 overflow-x-auto pb-2">
       {COLUMNS.map((col) => {
         const cards = tracked.filter((a) => col.statuses.includes(a.status))
         const isOver = over === col.id

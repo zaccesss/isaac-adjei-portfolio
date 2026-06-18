@@ -49,7 +49,7 @@ export default function NowPage() {
             href="https://nownownow.com/about"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+            className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
           >
             Derek Sivers
           </a>
@@ -58,7 +58,7 @@ export default function NowPage() {
             href="https://nownownow.com/p/n4lZ"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+            className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
           >
             nownownow.com
           </a>
@@ -105,7 +105,7 @@ export default function NowPage() {
               href="https://github.com/zaccesss/ba-from-data-to-decisions"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
             >
               as I go
             </a>
@@ -168,8 +168,24 @@ export default function NowPage() {
           <div className="space-y-1">
             <p className="font-medium text-foreground">This site</p>
             <p className="leading-relaxed">
-              The live multi-device status widget is shipped. Focused on content updates
-              and polish now - pages like this one.
+              Several new pages shipped recently:{" "}
+              <Link href="/til" className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
+                /til
+              </Link>{" "}
+              for short daily learnings,{" "}
+              <Link href="/respub" className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
+                /respub
+              </Link>{" "}
+              for research and publications,{" "}
+              <Link href="/search" className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
+                /search
+              </Link>{" "}
+              and{" "}
+              <Link href="/tags" className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
+                /tags
+              </Link>{" "}
+              across all content. Consumed items now have individual subpages too. Focused on finishing
+              the remaining steps before the PR.
             </p>
           </div>
         </div>
@@ -188,7 +204,7 @@ export default function NowPage() {
           personal research interest that has shaped a lot of how I think about accessible and
           bio-integrated technology.
           I keep a running log of books and content on the{" "}
-          <Link href="/consumed" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
+          <Link href="/consumed" className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
             /consumed
           </Link>{" "}
           page.
@@ -257,7 +273,7 @@ export default function NowPage() {
 
       <p className="text-xs text-muted-foreground font-mono">
         Want to reach me?{" "}
-        <Link href="/contact" className="text-foreground hover:text-primary transition-colors underline underline-offset-4">
+        <Link href="/contact" className="text-primary hover:text-primary/80 transition-colors underline underline-offset-4">
           Contact page
         </Link>{" "}
         or{" "}
@@ -265,7 +281,7 @@ export default function NowPage() {
           href="https://www.linkedin.com/in/isaacadjei"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-0.5 text-foreground hover:text-primary transition-colors underline underline-offset-4"
+          className="inline-flex items-center gap-0.5 text-primary hover:text-primary/80 transition-colors underline underline-offset-4"
         >
           LinkedIn
           <ArrowUpRight className="h-3 w-3" />

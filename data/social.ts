@@ -29,21 +29,14 @@ export const socialLinks: SocialLink[] = [
   },
   {
     name: "GitHub",
-    url: "https://github.com/zaccesss",
+    url: "https://github.com/zaccessss",
     icon: "github",
-    username: "@zaccesss",
+    username: "@zaccessss",
   },
   {
     name: "ORCID",
     url: "https://orcid.org/0009-0001-8298-5098",
     icon: "orcid",
     username: "0009-0001-8298-5098",
-  },
-  {
-    name: "Buy Me a Coffee",
-    url: "https://buymeacoffee.com/zaccesss",
-    icon: "buymeacoffee",
-    username: "zaccesss",
-    footer: false,
   },
 ]

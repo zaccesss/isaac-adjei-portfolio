@@ -26,7 +26,7 @@ export const profileLinks: LinkItem[] = [
     description: "Projects, blog, CV and everything me",
     url: "https://www.isaacadjei.me",
     icon: "globe",
-    iconImage: "/images/avatar.png",
+    iconImage: "/images/avatar.webp",
     category: "professional",
   },
   {
@@ -34,7 +34,7 @@ export const profileLinks: LinkItem[] = [
     description: "My business and digital home",
     url: "https://zacess.com",
     icon: "globe",
-    iconImage: "/images/zacess_logo.png",
+    iconImage: "/images/zacess_logo.webp",
     category: "professional",
   },
   {
@@ -58,21 +58,13 @@ export const profileLinks: LinkItem[] = [
     icon: "wellfound",
     category: "professional",
   },
-  // Stack Overflow - add real profile URL once account is created (format: stackoverflow.com/users/<numeric-id>/zaccesss)
-  // {
-  //   title: "Stack Overflow",
-  //   description: "Developer Q&A and community answers",
-  //   url: "https://stackoverflow.com/users/TODO/zaccesss",
-  //   icon: "stackoverflow",
-  //   category: "professional",
-  // },
   // Writing
   {
     title: "Newsletter",
     description: "Weekly engineering, tech and ideas",
     url: "https://newsletter.isaacadjei.me/",
     icon: "newspaper",
-    iconImage: "/images/brands/beehiiv.png",
+    iconImage: "/images/brands/beehiiv.webp",
     category: "writing",
   },
   {
@@ -115,21 +107,28 @@ export const profileLinks: LinkItem[] = [
   {
     title: "GitHub",
     description: "Code, projects and open source",
-    url: "https://www.github.com/zaccesss",
+    url: "https://www.github.com/zaccessss",
     icon: "github",
+    category: "code",
+  },
+  {
+    title: "Stack Overflow",
+    description: "Developer Q&A and community answers",
+    url: "https://stackoverflow.com/users/32850859/zaccessss",
+    icon: "stackoverflow",
     category: "code",
   },
   {
     title: "GitLab",
     description: "Mirror repositories and pipeline configs",
-    url: "https://gitlab.com/zaccesss",
+    url: "https://gitlab.com/zaccessss",
     icon: "gitlab",
     category: "code",
   },
   {
     title: "Codeberg",
     description: "Open source forks and contributions",
-    url: "https://codeberg.org/zaccesss",
+    url: "https://codeberg.org/zaccessss",
     icon: "codeberg",
     category: "code",
   },
@@ -143,7 +142,7 @@ export const profileLinks: LinkItem[] = [
   {
     title: "Hackster",
     description: "Hardware projects and maker community",
-    url: "https://www.hackster.io/zaccesss",
+    url: "https://www.hackster.io/zaccessss",
     icon: "hackster",
     category: "code",
   },
@@ -160,7 +159,7 @@ export const profileLinks: LinkItem[] = [
     description: "Structured roadmap and solved problems",
     url: "https://neetcode.io/profile/zaccess",
     icon: "neetcode",
-    iconImage: "/images/brands/neetcode.ico",
+    iconImage: "/images/brands/neetcode.webp",
     category: "competitive",
   },
   {
@@ -168,7 +167,7 @@ export const profileLinks: LinkItem[] = [
     description: "Competitive programming and algorithm contests",
     url: "https://atcoder.jp/users/zaccesss",
     icon: "atcoder",
-    iconImage: "/images/brands/atcoder.png",
+    iconImage: "/images/brands/atcoder.webp",
     category: "competitive",
   },
   {
@@ -219,7 +218,7 @@ export const profileLinks: LinkItem[] = [
     description: "Hackathon portfolio and project showcase",
     url: "https://devfolio.co/@zaccesss",
     icon: "devfolio",
-    iconImage: "/images/brands/devfolio.png",
+    iconImage: "/images/brands/devfolio.webp",
     category: "hackathons",
   },
   // Social

@@ -64,16 +64,14 @@ export default function GitHubStats() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch("/api/github-stats")
-      .then((r) => r.json())
-      .then((data) => setStats(data))
-      .catch(() => {})
-      .finally(() => setLoading(false))
-
-    fetch("/api/github-activity")
-      .then((r) => r.json())
-      .then((data) => setLastPush(data))
-      .catch(() => {})
+    // I fire both fetches together so the card doesn't render a loading shimmer twice as long as needed
+    Promise.all([
+      fetch("/api/github-stats").then((r) => r.json()).catch(() => null),
+      fetch("/api/github-activity").then((r) => r.json()).catch(() => null),
+    ]).then(([statsData, activityData]) => {
+      if (statsData) setStats(statsData)
+      if (activityData) setLastPush(activityData)
+    }).finally(() => setLoading(false))
   }, [])
 
   return (
@@ -130,7 +128,7 @@ export default function GitHubStats() {
           )}
 
           {/* Profile stats */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
               { icon: BookOpen, label: "repos", value: stats.publicRepos },
               { icon: Users, label: "followers", value: stats.followers },
@@ -156,7 +154,7 @@ export default function GitHubStats() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {[
                   { icon: GitCommitHorizontal, label: "commits", value: stats.contributions.commits },
                   { icon: GitPullRequest, label: "pull requests", value: stats.contributions.pullRequests },

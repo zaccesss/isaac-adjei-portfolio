@@ -1,7 +1,7 @@
+"use client"
 // I poll multiple device-status API routes on a timer and render live cards for
 // each. Spotify progress is ticked forward client-side every second between polls
 // so the progress bar stays smooth without hammering the API.
-"use client"
 
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
@@ -278,111 +278,36 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
   }, [])
 
   useEffect(() => {
-    async function fetch_() {
+    // I replace all individual polling intervals with one SSE connection so the browser
+    // holds a single persistent stream instead of 7 independent fetch timers
+    const es = new EventSource("/api/live-status/stream")
+    es.onmessage = (e) => {
       try {
-        const res = await fetch("/api/spotify")
-        if (res.ok) setSpotify(await res.json())
-      } catch {}
-    }
-    fetch_()
-    // I poll every 10s - Spotify updates its playing state roughly that fast and polling more often wastes API quota
-    const id = setInterval(fetch_, 10000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    async function fetch_() {
-      try {
-        const res = await fetch("/api/macbook")
-        if (res.ok) setMac(await res.json())
-      } catch {}
-    }
-    fetch_()
-    // I poll every 60s - battery and location change slowly so a tighter interval would just burn Vercel invocations
-    const id = setInterval(fetch_, 60000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    async function fetch_() {
-      try {
-        const res = await fetch("/api/lenovo")
-        if (res.ok) setLenovo(await res.json())
-      } catch {}
-    }
-    fetch_()
-    // Lenovo battery changes slowly - 60s matches the macbook poll cadence
-    const id = setInterval(fetch_, 60000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    async function fetch_() {
-      try {
-        const res = await fetch("/api/gpc")
-        if (res.ok) {
-          const data = await res.json()
+        const { spotify: s, macbook, lenovo, gpc, ps5, github, lanyard: l } = JSON.parse(e.data)
+        if (s) setSpotify(s)
+        if (macbook) setMac(macbook)
+        if (lenovo) setLenovo(lenovo)
+        if (gpc) {
           setGamingPC({
-            online:      data.online,
-            lastSeen:    data.lastSeen,
-            device:      data.device,
+            online:      gpc.online,
+            lastSeen:    gpc.lastSeen,
+            device:      gpc.device,
             // I format the percentages here because the API returns raw numbers and the card needs the % suffix
-            cpu:         data.cpu !== null ? `${data.cpu}%` : null,
-            gpu:         data.gpu !== null ? `${data.gpu}%` : null,
-            currentGame: data.game,
-            gameImage:   data.game_image ?? null,
+            cpu:         gpc.cpu !== null ? `${gpc.cpu}%` : null,
+            gpu:         gpc.gpu !== null ? `${gpc.gpu}%` : null,
+            currentGame: gpc.game,
+            gameImage:   gpc.game_image ?? null,
           })
         }
-      } catch {}
-    }
-    fetch_()
-    // I poll every 30s - the GPC daemon writes every ~10s so 30s gives a fresh-enough online signal without excess calls
-    const id = setInterval(fetch_, 30000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    async function fetch_() {
-      try {
-        const res = await fetch("/api/github-activity")
-        if (res.ok) setGithub(await res.json())
-      } catch {}
-    }
-    fetch_()
-    const id = setInterval(fetch_, 300000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    async function fetch_() {
-      try {
-        const res = await fetch("/api/ps5")
-        if (res.ok) setPs5Data(await res.json())
-      } catch {}
-    }
-    fetch_()
-    // I poll every 60s - matches the daemon write interval so data is always within one cycle of fresh
-    const id = setInterval(fetch_, 60000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    async function fetch_() {
-      try {
-        const res = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_USER_ID}`)
-        if (res.ok) {
-          const json = await res.json() as { success: boolean; data: LanyardData }
-          if (json.success) {
-          setLanyard(json.data)
-          if (json.data.discord_status !== "offline") setLanyardLastOnline(Date.now())
-        }
+        if (ps5) setPs5Data(ps5)
+        if (github) setGithub(github)
+        if (l?.success) {
+          setLanyard(l.data)
+          if (l.data.discord_status !== "offline") setLanyardLastOnline(Date.now())
         }
       } catch {}
     }
-    fetch_()
-    // I poll every 30s - Lanyard updates presence within a few seconds of Discord broadcasting it
-    const id = setInterval(fetch_, 30000)
-    return () => clearInterval(id)
+    return () => es.close()
   }, [])
 
   useEffect(() => {
@@ -462,8 +387,8 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                   alt={spotify.track ?? "Album art"}
                   width={56}
                   height={56}
+                  sizes="56px"
                   className="rounded-lg shrink-0 shadow-sm"
-                  unoptimized
                 />
               ) : (
                 <div className="w-14 h-14 rounded-lg bg-muted shrink-0 flex items-center justify-center">
@@ -521,8 +446,8 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                   alt={spotify.lastPlayed.track}
                   width={56}
                   height={56}
+                  sizes="56px"
                   className="rounded-lg shrink-0 shadow-sm grayscale"
-                  unoptimized
                 />
               ) : (
                 <div className="w-14 h-14 rounded-lg bg-muted shrink-0 flex items-center justify-center">
@@ -563,7 +488,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
       </div>
 
       {/* 2x2 device grid */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 items-start">
 
         {/* MacBook */}
         <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">

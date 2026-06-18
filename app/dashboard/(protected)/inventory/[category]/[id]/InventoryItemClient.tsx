@@ -1,6 +1,6 @@
+"use client"
 // I show the detail view for a single inventory item with editable fields and a warranty warning.
 // I live at /dashboard/inventory/[category]/[id] so each item has a bookmarkable URL.
-"use client"
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
@@ -237,7 +237,7 @@ export default function InventoryItemClient({
     ...(item.purchase_date ? [{ label: "Purchased", value: formatMonthYear(item.purchase_date) }] : []),
     ...(item.warranty_expiry ? [{
       label: "Warranty",
-      value: <span className={warrantyExpiring ? "text-amber-500 font-medium" : undefined}>{formatMonthYear(item.warranty_expiry)}{warrantyExpiring ? " — expiring soon" : ""}</span>
+      value: <span className={warrantyExpiring ? "text-amber-500 font-medium" : undefined}>{formatMonthYear(item.warranty_expiry)}{warrantyExpiring ? ": expiring soon" : ""}</span>
     }] : []),
     ...(item.serial_number ? [{ label: "Serial / model", value: <span className="font-mono text-xs">{item.serial_number}</span> }] : []),
   ]

@@ -19,6 +19,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  console.log(`[trash-cleanup] deleted ${count ?? 0} expired item(s)`)
   return NextResponse.json({ deleted: count ?? 0 })
 }

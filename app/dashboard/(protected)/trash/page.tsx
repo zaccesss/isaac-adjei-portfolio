@@ -41,7 +41,7 @@ function getDisplayName(item: { display_name: string | null; table_name: string;
   return (
     (d.title as string) ??
     (d.name as string) ??
-    (d.company ? `${d.company} – ${d.role ?? ""}` : null) ??
+    (d.company ? `${d.company} - ${d.role ?? ""}` : null) ??
     (d.pr_title as string) ??
     "Untitled"
   )

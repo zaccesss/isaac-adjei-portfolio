@@ -1,6 +1,6 @@
+"use client"
 // I render the dashboard home overview. All data is passed in as a single Summary
 // prop computed server-side so this component stays pure client-side presentation.
-"use client"
 
 import Link from "next/link"
 import { motion } from "framer-motion"

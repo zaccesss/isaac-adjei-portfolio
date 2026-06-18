@@ -1,7 +1,7 @@
+"use client"
 // I store and display our relationship covenant: vision, mission, routines, pledges, rules
 // and traditions for me and Pam. Every section is click-to-edit and persists as a single
 // config blob so the schema stays flat and the whole document is always in sync.
-"use client"
 
 import { useState, useTransition } from "react"
 import { setConfig } from "@/app/dashboard/actions"

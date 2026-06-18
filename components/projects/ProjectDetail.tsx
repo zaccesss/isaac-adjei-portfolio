@@ -144,6 +144,7 @@ export default function ProjectDetail({ project }: Props) {
           </motion.div>
         </>
       )}
+
     </motion.div>
   )
 }

@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation"
 const BOOT_LINES = [
   { text: "isaacadjei-lab v2.0.0", delay: 0 },
   { text: "resolving path...", delay: 60 },
-  { text: "error: 404 — page not found", delay: 150, error: true },
+  { text: "error: 404: page not found", delay: 150, error: true },
   { text: "", delay: 210 },
   { text: "$ ls /pages", delay: 270, cmd: true },
   {
@@ -90,7 +90,7 @@ export default function NotFound() {
         { text: "  whoami      find out who you are", muted: true },
         { text: "  clear       clear terminal history", muted: true },
         { text: "", muted: true },
-        { text: "shortcut links above are also clickable — just click 'go home', 'go blog', etc.", tip: true },
+        { text: "shortcut links above are also clickable: just click 'go home', 'go blog', etc.", tip: true },
       ])
       return
     }
@@ -154,7 +154,7 @@ export default function NotFound() {
           <span className="w-3 h-3 rounded-full bg-red-500/80" />
           <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
           <span className="w-3 h-3 rounded-full bg-green-500/80" />
-          <span className="ml-auto text-xs text-zinc-500">isaacadjei@portfolio — not-found</span>
+          <span className="ml-auto text-xs text-zinc-500">isaacadjei@portfolio: not-found</span>
         </div>
 
         {/* Boot output */}
@@ -172,7 +172,7 @@ export default function NotFound() {
             </p>
           ))}
 
-          {/* Clickable shortcuts — shown after boot, with clear visual cue */}
+          {/* Clickable shortcuts: shown after boot, with clear visual cue */}
           {ready && (
             <div className="pt-3 pb-1 space-y-0.5">
               {PAGES.slice(0, 8).map((page) => (
@@ -235,12 +235,21 @@ export default function NotFound() {
         </div>
       </div>
 
-      <p className="mt-6 text-center text-xs text-muted-foreground">
-        Lost?{" "}
-        <Link href="/" className="underline underline-offset-4 hover:text-foreground transition-colors">
-          Go home
-        </Link>
-      </p>
+      <div className="mt-6 text-center text-xs text-muted-foreground space-y-1">
+        <p>
+          Lost?{" "}
+          <Link href="/" className="underline underline-offset-4 hover:text-foreground transition-colors">
+            Go home
+          </Link>
+        </p>
+        <p>
+          If this page should exist,{" "}
+          <Link href="/contact" className="underline underline-offset-4 hover:text-foreground transition-colors">
+            let me know
+          </Link>
+          .
+        </p>
+      </div>
     </div>
   )
 }

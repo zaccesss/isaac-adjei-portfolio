@@ -67,6 +67,16 @@ export default function NotesPage() {
         {/* I replaced the full live status cards with a slim teaser that links to /now
             to keep the notes page focused on content rather than a dashboard */}
         <Link
+          href="/til"
+          className="group flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 hover:border-primary/40 transition-colors w-fit"
+        >
+          <Lightbulb className="h-4 w-4 text-primary shrink-0" />
+          <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+            Shorter, faster notes live on the <span className="text-primary font-medium">TIL page</span>: snippets from things I discover day to day.
+          </span>
+          <ArrowRight className="h-3.5 w-3.5 text-primary/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
+        </Link>
+        <Link
           href="/now"
           className="group flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 hover:border-primary/30 transition-colors w-fit"
         >

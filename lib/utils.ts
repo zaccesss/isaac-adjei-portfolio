@@ -9,3 +9,17 @@ import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+// I estimate reading time from an array of content blocks at 200 wpm, minimum 1 minute.
+export function computeReadingTime(blocks: { type: string; text?: string; code?: string; items?: (string | { text: string })[] }[]): number {
+  const words = blocks.reduce((acc, block) => {
+    if (block.text) return acc + block.text.split(/\s+/).filter(Boolean).length
+    if (block.code) return acc + block.code.split(/\s+/).filter(Boolean).length
+    if (block.items) {
+      const flat = block.items.map((i) => (typeof i === "string" ? i : i.text)).join(" ")
+      return acc + flat.split(/\s+/).filter(Boolean).length
+    }
+    return acc
+  }, 0)
+  return Math.max(1, Math.round(words / 200))
+}

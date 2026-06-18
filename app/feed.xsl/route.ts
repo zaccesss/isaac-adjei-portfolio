@@ -14,7 +14,7 @@ export function GET() {
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title><xsl:value-of select="/rss/channel/title" /> - RSS Feed</title>
-        <link rel="icon" type="image/png" href="/images/avatar.png" />
+        <link rel="icon" type="image/png" href="/images/avatar.webp" />
         <style>
           *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
           :root {
@@ -73,7 +73,7 @@ export function GET() {
         <div class="container">
           <div class="header">
             <div class="header-top">
-              <img class="avatar" src="/images/avatar.png" alt="Isaac Adjei" />
+              <img class="avatar" src="/images/avatar.webp" alt="Isaac Adjei" />
               <div>
                 <div class="site-name"><xsl:value-of select="/rss/channel/title" /></div>
                 <div class="site-desc"><xsl:value-of select="/rss/channel/description" /></div>
@@ -82,7 +82,7 @@ export function GET() {
             <div class="subscribe-box">
               <span class="rss-icon">&#9656;</span>
               This is an RSS feed. Subscribe using your feed reader at
-              <a href="/feed.xml">isaacadjei.me/feed.xml</a>
+              <a href="/blog/feed.xml">isaacadjei.me/blog/feed.xml</a>
               or visit the <a href="/blog">blog</a>.
             </div>
           </div>

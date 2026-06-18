@@ -159,7 +159,7 @@ export const skillCategories: SkillCategory[] = [
       { name: "Jupyter", icon: `${DEV}/jupyter/jupyter-original.svg` },
       { name: "OpenCV", icon: `${DEV}/opencv/opencv-original.svg` },
       { name: "Matplotlib", icon: `${WIKI}/8/84/Matplotlib_icon.svg` },
-      { name: "CUDA", icon: "/images/Nvidia_CUDA_Logo.jpg" },
+      { name: "CUDA", icon: "/images/Nvidia_CUDA_Logo.webp" },
     ],
   },
   {
@@ -237,16 +237,16 @@ export const skillCategories: SkillCategory[] = [
     category: "Embedded & Hardware",
     columns: 6,
     skills: [
-      { name: "Atmel AVR", icon: "/images/atmelavr.png" },
+      { name: "Atmel AVR", icon: "/images/atmelavr.webp" },
       { name: "Arduino", icon: `${DEV}/arduino/arduino-original.svg` },
       { name: "Raspberry Pi", icon: `${DEV}/raspberrypi/raspberrypi-original.svg` },
       { name: "Embedded C", icon: `${DEV}/embeddedc/embeddedc-original.svg` },
       { name: "KiCad", icon: `${WIKI}/5/59/KiCad-Logo.svg` },
       { name: "Eagle", icon: "https://cdn.simpleicons.org/eagle" },
-      { name: "Proteus", icon: "/images/proteus.jpg" },
-      { name: "Microchip Studio", icon: "/images/brands/microchip_studio.png" },
+      { name: "Proteus", icon: "/images/proteus.webp" },
+      { name: "Microchip Studio", icon: "/images/brands/microchip_studio.webp" },
       { name: "PlatformIO", icon: "https://cdn.simpleicons.org/platformio" },
-      { name: "SolidWorks", icon: "/images/solidworks.png" },
+      { name: "SolidWorks", icon: "/images/solidworks.webp" },
       {
         name: "Simulink",
         icon: "https://upload.wikimedia.org/wikipedia/commons/3/36/Simulink_Logo_%28non-wordmark%29.png",
@@ -264,7 +264,7 @@ export const skillCategories: SkillCategory[] = [
       { name: "ROS", icon: `${DEV}/ros/ros-original.svg` },
       { name: "NVIDIA Jetson", icon: "https://cdn.simpleicons.org/nvidia" },
       { name: "Gazebo", icon: `${DEV}/gazebo/gazebo-original.svg` },
-      { name: "PyBullet", icon: "/images/pybullet.png" },
+      { name: "PyBullet", icon: "/images/pybullet.webp" },
     ],
   },
   {

@@ -11,7 +11,7 @@ export default function LoginPage() {
       <div className="border rounded-xl p-8 shadow-sm bg-card flex flex-col items-center gap-6 max-w-sm w-full">
         {/* Avatar */}
         <Image
-          src="/images/avatar.png"
+          src="/images/avatar.webp"
           alt="Isaac Adjei"
           width={64}
           height={64}

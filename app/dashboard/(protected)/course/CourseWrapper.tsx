@@ -1,7 +1,7 @@
+"use client"
 // I use a thin wrapper here because the server page passes config as
 // Record<string, unknown> (the generic Supabase JSON type) and CourseClient expects
 // a typed CourseConfig. The cast lives here to keep it out of the server page.
-"use client"
 
 import CourseClient from "./CourseClient"
 

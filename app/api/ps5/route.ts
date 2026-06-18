@@ -67,7 +67,7 @@ export async function GET() {
         lastGame:      lastKnown?.game       ?? null,
         lastGameImage: lastKnown?.game_image ?? null,
       },
-      { headers: { "Cache-Control": "no-store" } }
+      { headers: { "Cache-Control": "public, max-age=10, stale-while-revalidate=20" } }
     )
   } catch {
     return NextResponse.json(

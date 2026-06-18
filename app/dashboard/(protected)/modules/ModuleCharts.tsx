@@ -1,8 +1,8 @@
+"use client"
 // I isolate chart components here so they can be imported only where charts are
 // needed - keeping Recharts out of the module overview page bundle.
 // markColour maps mark percentages to degree classification colours so bars are
 // instantly readable without needing a legend.
-"use client"
 
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -107,8 +107,8 @@ type GradeSlice = { name: string; value: number; colour: string }
 export function ModuleGradePieChart({ marks }: { marks: (number | null)[] }) {
   const buckets: GradeSlice[] = [
     { name: "First ≥80%", value: 0, colour: "#22c55e" },
-    { name: "2:1 60–79%", value: 0, colour: "#3b82f6" },
-    { name: "2:2 40–59%", value: 0, colour: "#f59e0b" },
+    { name: "2:1 60-79%", value: 0, colour: "#3b82f6" },
+    { name: "2:2 40-59%", value: 0, colour: "#f59e0b" },
     { name: "Fail <40%",  value: 0, colour: "#ef4444" },
   ]
   for (const m of marks) {

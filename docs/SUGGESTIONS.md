@@ -32,25 +32,6 @@ To add more games: add the exe name to `KNOWN_GAMES` in `scripts/gpc-daemon.py`.
 
 ---
 
-## Public Pages — Blog and Portfolio
-
-**Blog post table of contents improvements**
-The ToC currently only renders h2/h3 from the `content` array. Add smooth scroll + active heading highlighting as you scroll down the page — highlight whichever heading is currently at the top of the viewport.
-
-**Blog search / full-text filter on listing page**
-The blog listing page has type/category filters but no keyword search. Add a search box that filters by title and description client-side. Could also add a search page at `/blog/search`.
-
-**Portfolio project detail pages — live demo embeds**
-For projects like AstonCV, Git Unlocked and Phaemos that have live URLs, embed a small iframe or screenshot carousel on the project page so visitors can see the project running without leaving the site.
-
-**Projects page sorting and filtering**
-Add a tag-based filter to `/projects` matching the blog listing filter pattern. Let visitors filter by: Embedded, Web, Software, IoT, Academic etc.
-
-**Reading time accuracy**
-Current reading time is hardcoded in `data/blog.ts`. Replace with a computed value from content length: count words across all `text` and `code` blocks, divide by 200 (average reading speed). Update on every build.
-
----
-
 ## Dashboard Enhancements
 
 **Application timeline / deadline view**
@@ -69,7 +50,7 @@ The settings page can clear all jobs but there is no way to delete or edit a sin
 Connect to a Notion database with columns: Title, Author, Status (Reading / Want to Read / Finished), Cover URL, Rating, Notes. Show a "Currently Reading" widget on the dashboard home and a full reading list page with filters. The Notion API key already has a slot in `.env.example`.
 
 **Contacts follow-up automation**
-Extend the contacts page: when `last_contact` is older than 30 days, include the contact in the daily Discord coding summary as a "follow-up reminder" item. Zero new infrastructure needed — just amend `scripts/daily-coding-summary.mjs`.
+Extend the contacts page: when `last_contact` is older than 30 days, include the contact in the daily Discord coding summary as a "follow-up reminder" item. Zero new infrastructure needed - just amend `scripts/daily-coding-summary.ts`.
 
 **Dashboard home: more summary widgets**
 The home page currently shows 4-5 stat cards. Add: upcoming application deadlines (within 7 days), contacts needing follow-up count, streak summary (longest current streak) and a "last login" timestamp from the activity log.

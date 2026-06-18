@@ -72,10 +72,17 @@ export default function FeaturedNewsletterIssues() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch("/api/newsletter-issues")
-      .then((r) => r.json())
-      .then((data) => { setIssues(Array.isArray(data) ? data.slice(0, 2) : []); setLoading(false) })
-      .catch(() => setLoading(false))
+    ;(async () => {
+      try {
+        const r = await fetch("/api/newsletter-issues")
+        const data = await r.json()
+        setIssues(Array.isArray(data) ? data.slice(0, 2) : [])
+      } catch {
+        setIssues([])
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [])
 
   // In production: hide the section entirely if no issues so the homepage stays clean.

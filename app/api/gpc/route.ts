@@ -58,7 +58,7 @@ export async function GET() {
         // game is detected by the Windows daemon watching foreground process names
         game:      online ? (source.game ?? null) : null,
       },
-      { headers: { "Cache-Control": "no-store" } }
+      { headers: { "Cache-Control": "public, max-age=10, stale-while-revalidate=20" } }
     )
   } catch {
     return NextResponse.json(

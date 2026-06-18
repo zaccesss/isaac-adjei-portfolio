@@ -140,12 +140,6 @@ export async function POST(request: Request) {
     // Resend is optional in dev: without a key we log the payload and return success so local testing still works.
     const apiKey = process.env.RESEND_API_KEY
     if (!apiKey) {
-      console.log("Contact form submission (no RESEND_API_KEY):", {
-        safeName,
-        safeEmail,
-        safeSubject,
-        safeMessage,
-      })
       return json({ success: true })
     }
 

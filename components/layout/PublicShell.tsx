@@ -15,7 +15,7 @@ export default function PublicShell({ children }: { children: React.ReactNode })
   if (isDashboard) return <>{children}</>
 
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="relative flex min-h-dvh flex-col">
       <Header />
       <MobileBanner />
       <main className="flex-1">{children}</main>
