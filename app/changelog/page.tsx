@@ -81,7 +81,8 @@ const releases: ChangeEntry[] = [
       "RSS ?raw query param now serves Content-Type: application/xml for Chrome native XML viewer",
       "Newsletter page showing scheduled issues before their publish date",
       "First project card on /projects and first post cover on /blog now load eagerly instead of lazily, fixing a slower Largest Contentful Paint for the above-the-fold image on each page",
-      "/lab under-construction GIF reduced from 1.6MB to 833KB via recompression with no visible quality loss",
+      "/lab under-construction GIF reduced from 1.6MB to 833KB via recompression with no visible quality loss; also now loads eagerly to fix a Largest Contentful Paint warning",
+      "/lab terminal maximise button left a 31px gap below the header instead of sitting flush against it",
     ],
   },
   {
