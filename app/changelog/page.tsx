@@ -28,7 +28,7 @@ type ChangeEntry = {
 // I list releases newest-first.
 const releases: ChangeEntry[] = [
   {
-    version: "Unreleased",
+    version: "v2.9.0",
     date: "2026-06-18",
     added: [
       "/respub - academic profile page: research interests, external links (ORCID, Google Scholar, ResearchGate, Academia.edu) and publications list",
@@ -74,8 +74,9 @@ const releases: ChangeEntry[] = [
       "Removed: BuyMeACoffee from hero and contact social link rows (remains in /links Support section and blog AuthorCard)",
     ],
     fixed: [
-      "Mobile Safari renderer crash (A problem repeatedly occurred) on /, /projects, /skills and /links: hover transforms scoped to sm: so no GPU layers are created on touch devices",
-      "PS5 last played game now persists correctly when offline via the ps5:last-game Redis key",
+      "Mobile Safari and Chrome renderer crash (A problem repeatedly occurred) on / and /projects: a single oversized project thumbnail was decoding to over 500MB in browser memory; hover transforms also scoped to sm: and the header's blur effect scoped to desktop so no GPU layers are created on touch devices",
+      "PS5 last played game now persists correctly when offline",
+      "PS5 status no longer shows a stale last seen time while actively online",
       "Giscus comment iframe blocked by CSP: giscus.app added to frame-src allowlist",
       "RSS ?raw query param now serves Content-Type: application/xml for Chrome native XML viewer",
       "Newsletter page showing scheduled issues before their publish date",
