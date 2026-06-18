@@ -94,7 +94,7 @@ SQL for the Supabase database lives in `sql/schema.sql` (fresh install) and `sql
 
 ```text
 .github/
-├── README.md                         Workflow index and conventions
+├── WORKFLOWS.md                      Workflow index and conventions
 ├── workflows/
 │   ├── ci.yml                        Lint, build and image-size check on every PR
 │   ├── cv-pdf.yml                    Regenerate CV PDF/DOCX on cv.html push
