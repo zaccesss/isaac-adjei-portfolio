@@ -211,7 +211,7 @@ const sections: { icon: React.ElementType; heading: string; items: ColophonItem[
       },
       {
         name: "Lenovo and Gaming PC daemons",
-        detail: <>Python scripts managed by <A href="https://nssm.cc">NSSM (Non-Sucking Service Manager)</A> as proper Windows services - they start on boot, restart on crash and run without a visible terminal. The Gaming PC daemon also reads GPU utilisation via <A href="https://pypi.org/project/pynvml/">pynvml</A> (NVIDIA&apos;s Python library) and detects the currently running game through five escalating tiers: a hardcoded map of known games, the <A href="https://developer.valvesoftware.com/wiki/Steam_Web_API">Steam Web API</A>, Epic Games local manifest files, EA App manifest files and finally process-name fuzzy matching against <A href="https://www.igdb.com">IGDB</A>'s game database. Cover art is fetched from IGDB on first detection and cached for the session.</>,
+        detail: <>Python scripts managed by <A href="https://nssm.cc">NSSM (Non-Sucking Service Manager)</A> as proper Windows services - they start on boot, restart on crash and run without a visible terminal. The Gaming PC daemon also reads GPU utilisation via <A href="https://pypi.org/project/pynvml/">pynvml</A> (NVIDIA&apos;s Python library) and detects the currently running game through five escalating tiers: a hardcoded map of known games, the <A href="https://developer.valvesoftware.com/wiki/Steam_Web_API">Steam Web API</A>, Epic Games local manifest files, EA App manifest files and finally process-name fuzzy matching against <A href="https://www.igdb.com">IGDB</A>&apos;s game database. Cover art is fetched from IGDB on first detection and cached for the session.</>,
       },
       {
         name: "Spotify",
