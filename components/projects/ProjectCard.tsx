@@ -31,7 +31,7 @@ export default function ProjectCard({ project }: Props) {
               src={project.images[0]}
               alt={project.title}
               fill
-              sizes="(max-width: 640px) 600px, (max-width: 1024px) 50vw, 33vw"
+              sizes="(max-width: 640px) 250px, (max-width: 1024px) 50vw, 33vw"
               className="object-cover sm:transition-transform sm:duration-300 sm:hover:scale-105"
             />
           </div>

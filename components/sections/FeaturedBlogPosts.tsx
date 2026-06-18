@@ -55,7 +55,7 @@ function FeaturedPostCard({ post }: { post: BlogPost }) {
             alt={post.title}
             fill
             className="object-cover sm:group-hover:scale-105 sm:transition-transform sm:duration-300"
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="(max-width: 640px) 250px, 50vw"
           />
         </div>
       )}
