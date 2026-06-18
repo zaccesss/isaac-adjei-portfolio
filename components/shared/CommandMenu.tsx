@@ -19,6 +19,7 @@ import {
 import {
   Home, User, Briefcase, Code, Mail, Cpu, BookOpen, Link2, NotebookPen,
   FlaskConical, Clock, Wrench, Info, ScrollText, Trophy, LayoutList, Shield, Rss,
+  GraduationCap, Lightbulb, Tag, SearchIcon,
 } from "lucide-react"
 import { DialogTitle } from "@/components/ui/dialog"
 import { useModKey } from "@/hooks/useModKey"
@@ -51,6 +52,10 @@ export default function CommandMenu() {
             a: "/all-pages",
             r: "/privacy",
             x: "/security-policy",
+            p: "/respub",
+            t: "/til",
+            z: "/tags",
+            s: "/search",
           }
           const shiftPath = shiftShortcuts[e.key.toLowerCase()]
           if (shiftPath) {
@@ -144,16 +149,6 @@ export default function CommandMenu() {
             Newsletter
             <CommandShortcut>{shortcut("N")}</CommandShortcut>
           </CommandItem>
-          <CommandItem value="notes research" onSelect={() => go("/notes")}>
-            <NotebookPen className="mr-2 h-4 w-4" />
-            Notes
-            <CommandShortcut>{shortcut("K")}</CommandShortcut>
-          </CommandItem>
-          <CommandItem value="lab experiments" onSelect={() => go("/lab")}>
-            <FlaskConical className="mr-2 h-4 w-4" />
-            Lab
-            <CommandShortcut>{shortcut("J")}</CommandShortcut>
-          </CommandItem>
           <CommandItem value="contact" onSelect={() => go("/contact")}>
             <Mail className="mr-2 h-4 w-4" />
             Contact
@@ -166,12 +161,37 @@ export default function CommandMenu() {
           </CommandItem>
         </CommandGroup>
 
-        {/* More - discoverable pages not in the main navbar */}
+        {/* More - matches /all-pages "More" order, All Pages first */}
         <CommandGroup heading="More">
+          <CommandItem value="notes research" onSelect={() => go("/notes")}>
+            <NotebookPen className="mr-2 h-4 w-4" />
+            Notes
+            <CommandShortcut>{shortcut("K")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="til today i learned notes short snippets discoveries" onSelect={() => go("/til")}>
+            <Lightbulb className="mr-2 h-4 w-4" />
+            TIL
+            <CommandShortcut>{shiftShortcut("T")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="research publications academic papers zenodo orcid" onSelect={() => go("/respub")}>
+            <GraduationCap className="mr-2 h-4 w-4" />
+            Research &amp; Publications
+            <CommandShortcut>{shiftShortcut("P")}</CommandShortcut>
+          </CommandItem>
           <CommandItem value="now what I am doing currently" onSelect={() => go("/now")}>
             <Clock className="mr-2 h-4 w-4" />
             Now
             <CommandShortcut>{shiftShortcut("W")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="consumed reading watching listening books youtube podcasts media" onSelect={() => go("/consumed")}>
+            <BookOpen className="mr-2 h-4 w-4" />
+            Consumed
+            <CommandShortcut>{shiftShortcut("D")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="lab experiments" onSelect={() => go("/lab")}>
+            <FlaskConical className="mr-2 h-4 w-4" />
+            Lab
+            <CommandShortcut>{shortcut("J")}</CommandShortcut>
           </CommandItem>
           <CommandItem value="uses hardware software tools setup gear" onSelect={() => go("/uses")}>
             <Wrench className="mr-2 h-4 w-4" />
@@ -193,10 +213,15 @@ export default function CommandMenu() {
             Hall of Fame
             <CommandShortcut>{shiftShortcut("F")}</CommandShortcut>
           </CommandItem>
-          <CommandItem value="consumed reading watching listening books youtube podcasts media" onSelect={() => go("/consumed")}>
-            <BookOpen className="mr-2 h-4 w-4" />
-            Consumed
-            <CommandShortcut>{shiftShortcut("D")}</CommandShortcut>
+          <CommandItem value="tags topics categories browse" onSelect={() => go("/tags")}>
+            <Tag className="mr-2 h-4 w-4" />
+            Tags
+            <CommandShortcut>{shiftShortcut("Z")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="search find blog til newsletter" onSelect={() => go("/search")}>
+            <SearchIcon className="mr-2 h-4 w-4" />
+            Search
+            <CommandShortcut>{shiftShortcut("S")}</CommandShortcut>
           </CommandItem>
           <CommandItem value="privacy policy data" onSelect={() => go("/privacy")}>
             <Shield className="mr-2 h-4 w-4" />

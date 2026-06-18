@@ -6,8 +6,10 @@ import AboutPreview from "@/components/sections/AboutPreview"
 import FeaturedProjects from "@/components/sections/FeaturedProjects"
 import FeaturedBlogPosts from "@/components/sections/FeaturedBlogPosts"
 import FeaturedNewsletterIssues from "@/components/sections/FeaturedNewsletterIssues"
+import FeaturedTIL from "@/components/sections/FeaturedTIL"
 import SkillsOverview from "@/components/sections/SkillsOverview"
 import ContactCTA from "@/components/sections/ContactCTA"
+import SectionErrorBoundary from "@/components/shared/SectionErrorBoundary"
 
 export const metadata: Metadata = {
   alternates: {
@@ -25,7 +27,8 @@ export default function Home() {
       <AboutPreview />
       <FeaturedProjects />
       <FeaturedBlogPosts />
-      <FeaturedNewsletterIssues />
+      <FeaturedTIL />
+      <SectionErrorBoundary><FeaturedNewsletterIssues /></SectionErrorBoundary>
       <SkillsOverview />
       <ContactCTA />
     </>

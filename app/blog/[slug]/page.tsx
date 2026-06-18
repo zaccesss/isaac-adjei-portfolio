@@ -30,7 +30,7 @@ function renderInline(text: string): React.ReactNode {
           key={i}
           href={match[2]}
           {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-          className="underline underline-offset-2 decoration-primary/50 hover:decoration-primary transition-colors"
+          className="text-primary underline underline-offset-2 hover:opacity-80 transition-opacity"
         >
           {match[1]}
         </a>
@@ -165,7 +165,7 @@ function renderBlock(block: ContentBlock, i: number, headingIds?: Map<number, st
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-primary transition-colors underline underline-offset-4"
+                    className="text-primary underline underline-offset-4 hover:opacity-80 transition-opacity"
                   >
                     {item.text}
                   </a>
@@ -185,6 +185,7 @@ function renderBlock(block: ContentBlock, i: number, headingIds?: Map<number, st
             alt={block.alt}
             width={900}
             height={500}
+            sizes="(max-width: 768px) 100vw, 900px"
             className="rounded-lg border border-border/60 w-full h-auto"
           />
           {block.caption && (
@@ -386,7 +387,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         )}
 
         {post.cover_image && (
-          <div className="relative w-full aspect-[21/9] overflow-hidden rounded-xl mt-4">
+          <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] md:aspect-[21/9] overflow-hidden rounded-xl mt-4">
             <Image
               src={post.cover_image}
               alt={post.title}

@@ -48,7 +48,7 @@ export default function AuthorCard() {
     <div className="flex items-center gap-4 rounded-xl border border-border bg-muted/20 px-5 py-4">
       <div className="shrink-0 w-12 h-12 rounded-full overflow-hidden border border-border">
         <Image
-          src="/images/avatar.png"
+          src="/images/avatar.webp"
           alt="Isaac Adjei"
           width={48}
           height={48}

@@ -16,17 +16,21 @@ export default function Footer() {
         <div className="flex items-center flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link>
           <span aria-hidden="true">·</span>
+          <Link href="/til" className="hover:text-foreground transition-colors">TIL</Link>
+          <span aria-hidden="true">·</span>
           <Link href="/now" className="hover:text-foreground transition-colors">Now</Link>
           <span aria-hidden="true">·</span>
           <Link href="/notes" className="hover:text-foreground transition-colors">Notes</Link>
           <span aria-hidden="true">·</span>
-          <Link href="/lab" className="hover:text-foreground transition-colors">Lab</Link>
+          <Link href="/respub" className="hover:text-foreground transition-colors">Research</Link>
           <span aria-hidden="true">·</span>
-          <Link href="/uses" className="hover:text-foreground transition-colors">Uses</Link>
+          <Link href="/lab" className="hover:text-foreground transition-colors">Lab</Link>
           <span aria-hidden="true">·</span>
           <Link href="/consumed" className="hover:text-foreground transition-colors">Consumed</Link>
           <span aria-hidden="true">·</span>
-          <Link href="/colophon" className="hover:text-foreground transition-colors">Colophon</Link>
+          <Link href="/tags" className="hover:text-foreground transition-colors">Tags</Link>
+          <span aria-hidden="true">·</span>
+          <Link href="/search" className="hover:text-foreground transition-colors">Search</Link>
         </div>
 
         <div className="flex flex-col items-center gap-3">

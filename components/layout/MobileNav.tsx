@@ -24,10 +24,10 @@ export default function MobileNav() {
 
       {open && (
         <>
-          {/* Backdrop sits at z-40 so the panel at z-50 always renders above it */}
-          <div className="fixed inset-0 top-16 z-40 bg-black/60" onClick={() => setOpen(false)} />
+          {/* Backdrop sits at z-[55] so the panel at z-[60] always renders above it */}
+          <div className="fixed inset-0 top-16 z-[55] bg-black/60" onClick={() => setOpen(false)} />
           {/* Menu panel */}
-          <div className="fixed inset-x-0 top-16 z-50 bg-background border-t shadow-xl">
+          <div className="fixed inset-x-0 top-16 z-[60] bg-background border-t shadow-xl">
             <nav className="container flex flex-col gap-1 py-6">
               {NAV_LINKS.map((link) => (
                 <Link

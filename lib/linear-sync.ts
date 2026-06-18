@@ -76,7 +76,7 @@ export async function syncApplicationToLinear(app: {
     return app.linear_issue_id
   }
 
-  const title = `${app.company} — ${app.role}`
+  const title = `${app.company} - ${app.role}`
   const description = app.url ? `[View posting](${app.url})\n\nType: ${app.type}` : `Type: ${app.type}`
 
   const result = await gql(apiKey, `

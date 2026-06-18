@@ -71,6 +71,13 @@ export default function PrivacyPage() {
             The purpose is solely to understand which parts of the site are useful and to improve
             the content accordingly.
           </p>
+          <p className="mt-3">
+            Blog posts also record anonymous scroll-depth events at the 25%, 50%, 75% and 100%
+            read marks. These are stored alongside a one-way hashed representation of the visitor
+            IP address so that duplicate events from the same session are not counted. No raw IP
+            address is retained. This data is used only to understand which posts are read in full
+            and to guide future writing.
+          </p>
         </div>
 
         <div>
@@ -88,6 +95,29 @@ export default function PrivacyPage() {
               Resend Privacy Policy
             </a>
             ) and is not stored in any database on my end. It is not shared with any other party.
+          </p>
+          <p className="mt-3">
+            The contact form is also protected by{" "}
+            <a
+              href="https://www.cloudflare.com/products/turnstile/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+            >
+              Cloudflare Turnstile
+            </a>
+            , a silent bot-detection service. Turnstile analyses browser signals to determine
+            whether a submission is from a human. No personal data is collected by this check and
+            it is governed by{" "}
+            <a
+              href="https://www.cloudflare.com/privacypolicy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+            >
+              Cloudflare&apos;s Privacy Policy
+            </a>
+            .
           </p>
         </div>
 
