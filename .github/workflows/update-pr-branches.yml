@@ -9,6 +9,11 @@
 #
 # A `schedule` trigger does not depend on what authored the previous event, so it is
 # the only reliable way to keep this working regardless of who/what performed the merge.
+#
+# Both maintenance tasks run as steps in a single job rather than separate jobs -
+# GitHub bills Actions minutes per job rounded up to the nearest minute, so two jobs
+# per run would cost double even though each step finishes in a few seconds. At every
+# 2 hours this costs roughly 360 minutes/month (12 runs/day x 30 days x 1 billed minute).
 
 name: Repo maintenance
 
@@ -16,8 +21,9 @@ on:
   push:
     branches: [main]
   schedule:
-    # Every 10 minutes - catches anything a GITHUB_TOKEN-authored push didn't trigger
-    - cron: "*/10 * * * *"
+    # Every 2 hours - cheap enough to stay well within the monthly Actions minutes
+    # budget while still resolving stuck PRs/branches well within the same day
+    - cron: "0 */2 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -25,7 +31,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  update-branches:
+  maintain-branches:
     runs-on: ubuntu-latest
     steps:
       - name: Update open PRs with auto-merge enabled
@@ -45,9 +51,6 @@ jobs:
             done
           fi
 
-  delete-merged-branches:
-    runs-on: ubuntu-latest
-    steps:
       - name: Delete head branches of merged PRs that still exist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
