@@ -205,7 +205,7 @@ export default function LinksPage() {
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground sm:hover:scale-125 active:scale-90 transition-all duration-150"
+              className="text-muted-foreground hover:text-foreground sm:hover:scale-125 sm:active:scale-90 transition-[color] sm:transition-all duration-150"
             >
               <Icon className="h-5 w-5" />
             </Link>
@@ -245,8 +245,8 @@ export default function LinksPage() {
                     rel="noopener noreferrer"
                     className={cn(
                       "flex items-center gap-4 w-full rounded-xl border bg-card px-4 py-3.5",
-                      "hover:shadow-lg hover:shadow-primary/10 hover:border-primary/30 sm:hover:scale-[1.02] active:scale-[0.98]",
-                      "transition-all duration-200 group"
+                      "hover:shadow-lg hover:shadow-primary/10 hover:border-primary/30 sm:hover:scale-[1.02] sm:active:scale-[0.98]",
+                      "transition-[border-color,box-shadow] sm:transition-all duration-200 group"
                     )}
                   >
                     <div

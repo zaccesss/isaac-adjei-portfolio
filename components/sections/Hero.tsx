@@ -84,7 +84,7 @@ export default function Hero() {
                 I
               </kbd>
             </span>
-            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight className="h-3 w-3 sm:transition-transform sm:group-hover:translate-x-0.5" />
           </button>
         </motion.div>
       </motion.div>

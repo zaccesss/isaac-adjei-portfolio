@@ -45,6 +45,10 @@ Personal portfolio at [isaacadjei.me](https://isaacadjei.me). Built with Next.js
 | `/now` | Current life snapshot |
 | `/newsletter` | Newsletter signup and past issues via Beehiiv |
 | `/links` | All social and professional links |
+| `/respub` | Academic profile, research interests and publications |
+| `/til` | Today I Learned: short-form knowledge entries by category |
+| `/search` | Full-text search across all content types |
+| `/tags` | Tag cloud across blog, TIL, projects and consumed |
 | `/changelog` | Public version history |
 | `/colophon` | How the site is built |
 | `/uses` | Hardware, software and tools I use day to day |
@@ -53,7 +57,7 @@ Personal portfolio at [isaacadjei.me](https://isaacadjei.me). Built with Next.js
 
 ## Live status
 
-The homepage, `/now` and `/lab` show a live status grid. `/notes` shows a slim teaser strip.
+The homepage, `/now` and `/lab` show a live status grid. `/notes` shows a slim teaser strip. All 7 sources stream via a single SSE connection at `/api/live-status/stream` instead of per-source polling.
 
 | Card | What it shows |
 | --- | --- |

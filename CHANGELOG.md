@@ -9,46 +9,65 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- sql/ folder with schema.sql (full DROP+CREATE for fresh installs) and migrations/001-007 (incremental, safe to re-run); replaces root supabase-schema.sql
-- sql/README.md and sql/migrations/README.md explaining when to run each file and the fresh-install guide
-- Per-folder README files in sql/, sql/migrations/, docs/, app/, app/api/, app/dashboard/, lib/, data/, components/, workers/, hooks/, types/, public/, public/resume/; scripts/README.md updated to add wakatime-sync.py and remove deleted scripts
-- Root README.md updated to phaemos/dotfiles style: CI badges for all 5 workflows (CI, CV PDF, Job Scraper, WakaTime Sync, Vault Expiry), Quick navigation anchors, Dashboard section, CV system section, full repository structure tree, GitHub Actions workflows table
-- WAKATIME_API_KEY added to .env.example with explanation that it is a GitHub Actions secret only (not Vercel)
-- Dashboard Me page: "View CV" link added next to social links, opens /cv in a new tab
-- Cover letter PDFs added to generate-pdfs.js so all 7 cover letters are rendered to PDF alongside the CVs
-- /links page: new Support section at the bottom with Patreon and Buy Me a Coffee links
-- /links page: GitLab and Codeberg profile links added under Professional, each with platform brand colours
-- README: GitLab and Codeberg profile badges added alongside the existing GitHub badge
-- dotfiles project added to /projects: full detail page with overview, 8 highlights, tech stack and 2-image gallery (welcome banner and cmds output); covers 59 numbered topic files, cross-platform alias consistency, accessibility colour scheme, 3-platform git mirroring, nvm lazy-load and Starship integration
-- /uses Terminal and shell section: dotfiles entry with cross-platform environment detail and Starship entry with shared config explanation
-- Skills page Core Tools: Starship added with Simple Icons CDN icon
-- Project detail page: inline code rendering via backtick syntax so command names render as styled `code` elements rather than plain text
-- 14 new blog posts scheduled to publish automatically from June through September 2026 across article, notes, journal and research types; all posts include references, external links and mixed content types (prose, code, video embeds, reference lists)
-- New blog post "How to Contribute to Open Source: A Practical Guide" published live (2026-06-13) with 14-minute read time covering issue discovery, forking, git workflow, PR etiquette, code review and post-merge steps
-- Spotify embed support in blog renderer: new spotify ContentBlock type with episode iframe, loading lazy and optional figcaption
-- Inline link rendering in blog renderer: [text](url) markdown syntax in p, ul and ol blocks now renders as clickable links; external URLs open in new tab with noopener noreferrer; internal links use Next.js routing
-- All 34 blog posts (20 published, 14 draft) enriched with references sections (6-13 items each), inline links for tools and projects mentioned by name, and plain-English definitions before technical deep dives
-- Dashboard Settings: CV generation trigger button - fires cv-pdf.yml workflow via GitHub Actions dispatch; WakaTime sync trigger button - fires wakatime-sync.yml workflow on demand
+- `/respub` - Academic profile page: research interests, external links (ORCID, Google Scholar, ResearchGate, Academia.edu) and publications list
+- `/til` - Today I Learned: 63 short-form entries across 21 categories (C, Embedded, Git, CSS, Next.js, TypeScript, Algorithms, Security, Hardware, AI/ML, Python, Linux, Architecture, Database, Web, Music, Fitness, Cooking, Faith, Life, Culture); search, category filter and pagination (10 per page); reading time per entry; RSS feed at `/til/feed.xml`
+- `/til/[slug]` - Individual TIL entry pages with full content blocks, ShareButton, optional ToC sidebar and prev/next navigation
+- `/tags` - Tag cloud aggregating tags from blog, TIL, projects, publications and consumed content; client-side search
+- `/tags/[tag]` - Content filtered by a single tag across all content types in grouped sections (Blog Posts, TIL Entries, Projects, Publications, Consumed)
+- `/search` - Unified full-text search across blog, TIL, projects, publications, notes, newsletter and consumed; results ranked by relevance score; debounced input
+- `/consumed/[category]/[slug]` - 216 individual consumed item detail pages; embedded YouTube player for videos, Spotify embed for podcasts, prose notes for books; breadcrumb navigation
+- `/newsletter/feed.xml` - Newsletter RSS feed with HTML browser view (styled issue cards) and `?raw` for raw XML
+- `/blog/feed.xml` - Blog RSS feed at its canonical URL; old `/feed.xml` permanently redirects here
+- FeaturedTIL section on homepage: 3 most recent published TIL entries between Featured Blog Posts and Newsletter sections; each card links to `/til/[slug]`
+- Root-level error boundary (`app/error.tsx`): calm card with "Something went wrong", "Try again" reset button and "Go home" link; distinct from the terminal-style 404
+- Custom 404 page: interactive terminal with boot animation, clickable shortcut links (projects, blog, notes, lab) and a live command input; footer links for lost visitors and for reporting missing pages
+- Giscus comment system on all blog posts: GitHub Discussions-powered; dark/light theme matches site; gated behind `NEXT_PUBLIC_GISCUS_ENABLED` env var
+- Blog reactions: GitHub-standard 8 emoji (thumbs-up, thumbs-down, laugh, hooray, confused, heart, rocket, eyes) plus extended picker (28 additional reactions via SmilePlus); counts shown inline; stored per-post per-user
+- Blog cover images added to all 20 published posts; RSS feeds include `<enclosure>` thumbnails for feed reader thumbnail previews
+- Tags link in footer secondary nav row; Tags and Search added to CommandMenu (Cmd+K)
+- Secondary footer nav row added: Now, Notes, Lab, Uses, Colophon, Changelog
+- Notes page: TIL callout card (Lightbulb icon) linking to `/til`
+- Lab terminal new commands: `til` (5 most recent entries), `respub` (publications list), `rss` (all three feed URLs), `blogfeed`, `tilfeed`, `newsletterfeed` (open feed in new tab), `playing` (async: Spotify now playing), `lastgame` (async: PS5 current or last game), `pushed` (async: last repo pushed)
+- Newsletter "While you wait" cross-links: TIL and Research and publications pills added
+- Dual PWA manifests: separate manifest for the public portfolio and for the dashboard with distinct icons, names and start URLs
+- Links page: restructured from 4 to 10 sections (Professional, Writing, Academic, Code, Competitive Programming, Hackathons, Social, Content, Support, Other); 12 new platforms added (HackerRank, CodeChef, Hackster, Stack Overflow, Bitbucket, AtCoder, Kaggle, TryHackMe, Devfolio, ResearchGate, Wellfound, dev.to); quick social icon row added under bio; stagger entrance animations and card hover effects
+- Stack Overflow added to /links and the icon row
+- Projects pagination: 9 per page with prev/next navigation; AI/ML added as a project category
+- dotfiles project added to /projects: full detail page with overview, 8 highlights, tech stack and 2-image gallery; covers 59 topic files, cross-platform aliases, accessibility colour scheme, 3-platform git mirroring and Starship integration
+- /uses Terminal and shell section: dotfiles entry and Starship entry with shared config explanation
+- Skills page Core Tools: Starship added
+- Project detail page: inline code rendering via backtick syntax so command names render as styled `code` elements
+- 14 new blog posts scheduled to publish automatically from June through September 2026 across article, notes, journal and research types; all posts include references and inline links
+- New blog post "How to Contribute to Open Source: A Practical Guide" published live (2026-06-13, 14-minute read)
+- Spotify embed support in blog renderer: new `spotify` ContentBlock type with episode iframe and optional caption
+- Inline link rendering in blog renderer: `[text](url)` syntax in p, ul and ol blocks renders as clickable links; external URLs open in new tab with noopener noreferrer
+- All 34 blog posts enriched with references sections (6-13 items each) and inline links for tools and projects mentioned
 
 ### Changed
 
-- Job scraper browser-sources job runner changed from ubuntu-latest (24.04) to ubuntu-22.04 to fix Playwright libasound2 installation failure on Noble
-- DOCUMENTATION.md moved from repo root to docs/DOCUMENTATION.md
-- docs/DASHBOARD.md: added rows for /dashboard/opensource, /dashboard/blog-analytics and /dashboard/coding; updated Supabase schema reference from supabase-schema.sql to sql/schema.sql
-- docs/WORKFLOW.md: added WAKATIME_API_KEY to environment variables table
-- docs/verification.md: added new dashboard pages verification section (opensource, blog-analytics, coding, scroll events, wakatime sync)
-- .gitignore: updated session-logs/ entry to docs/session-logs/ to match new location; removed /docs/cv-redesign-ideas.md entry (file deleted)
-- Main CV font updated from Cambria/Georgia serif to Inter (Google Fonts) via @import in cv.html; all role CVs inherit this via generate-role-cvs.js
-- All 7 cover letters rewritten with full project list (portfolio dashboard, PHAEMOS, AstonCV, avr-zac, NeoPixel LED cube, two-stage amplifier, git-unlocked, dotfiles, zacess.com, CNC control, CAD portfolio), per-role project ordering, CI/CD automation and bespoke closing paragraphs per role
-- generate-pdfs.js updated to also generate cover-letter-*.pdf for all 7 roles
+- Blog RSS canonical URL moved from `/feed.xml` to `/blog/feed.xml`; old URL serves a 301 redirect with query-param forwarding
+- Projects: phaemos recategorised to IoT; cad-portfolio and git-unlocked recategorised to Academic; filter bar gains IoT and Academic buttons
+- Blog inline links now styled `text-primary` (blue) across blog slug, colophon, consumed, now and uses pages
+- `/respub` academic profile links (email, ORCID, Google Scholar, ResearchGate, LinkedIn): label text in `text-primary` blue; icons remain muted
+- `ps5:last-game` Redis key: only written when a game is actively running so sitting at the home screen no longer overwrites the last played title
+- All `hover:scale` and `hover:-translate-y` CSS transforms scoped to `sm:` breakpoint to prevent GPU compositing layer exhaustion on iOS Safari
+- Social icons on hero and contact page standardised to react-icons/fa6 (GitHub and LinkedIn)
+- Consumed overview page: interactive Year and Month filter labels added; Category label above tabs; all category subpages gain Year filter
+- Newsletter issues API now filters out scheduled posts with a future `publish_date` before returning the response
+
+### Fixed
+
+- Mobile Safari renderer crash ("A problem repeatedly occurred") on `/`, `/projects`, `/skills` and `/links`: hover transforms scoped to `sm:` so no GPU layers are created on touch devices
+- PS5 "last played" game now persists correctly when offline via the `ps5:last-game` Redis key
+- Giscus comment iframe not loading: `giscus.app` added to CSP `frame-src` allowlist
+- RSS `?raw` query param now serves `Content-Type: application/xml` for Chrome native XML viewer
+- Newsletter page showing scheduled issues before their publish date
+- `ws` package CVE (CVSS 7.5 - memory exhaustion DoS) resolved via `>=8.21.0` override
 
 ### Removed
 
-- scripts/build-role-cvs.js (superseded by generate-role-cvs.js)
-- scripts/fix-docx.py (one-off script, never wired to CI)
-- public/resume/fix_cv.py (temporary HTML cleanup script, wrong directory)
-- supabase-schema.sql at repo root (replaced by sql/schema.sql)
-- docs/cv-redesign-ideas.md (fully implemented)
+- BuyMeACoffee from hero and contact social link rows (remains in /links Support section and blog AuthorCard)
+- BuyMeACoffee button from the hero and contact pages (remains in /links Support section and blog AuthorCard)
 
 ---
 

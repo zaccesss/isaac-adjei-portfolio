@@ -41,6 +41,16 @@ All rules that apply to every session. No exceptions.
 7. After merge: `git checkout main && git pull && git branch -d branch-name && git remote prune origin`
 8. Never commit directly to main. Never force push. Never skip hooks.
 
+---
+
+## CHANGELOG rules
+
+- CHANGELOG.md is strictly PUBLIC facing. It covers what changes for a visitor to isaacadjei.me.
+- NEVER add to CHANGELOG.md: dashboard features, CV changes, scripts, workflows, infrastructure, dependencies, migrations, refactors or internal tooling.
+- All private and internal changes go in LOG.md only.
+- If in doubt: if a visitor would not notice the change from the public site, it belongs in LOG.md not CHANGELOG.md.
+- "Last updated" dates on public pages use month and year only - never include the day.
+
 ## Session end cleanup
 
 Delete all local branches except main:
@@ -94,3 +104,12 @@ git branch -r | grep -v main | grep -v HEAD | sed 's/origin\///' | xargs -I {} g
 - Do not over-abstract
 - Do not skip updating LOG.md at session end
 - Do not touch public pages when working on dashboard tasks
+- Do not add "Generated with Claude Code", "Made with Claude" or any AI tool attribution to commits, PRs or any file
+- Do not add Co-Authored-By lines to commits - the `.githooks/commit-msg` hook will hard-reject them
+- Do not use `git add .` or `git add -A` - always stage specific files by name
+- Do not use `--no-verify` to bypass hooks - fix the underlying issue instead
+- Do not add dashboard changes to CHANGELOG.md - those go in LOG.md only
+- Do not add CV changes, script changes or workflow changes to CHANGELOG.md
+- Do not mention Isaac's age, year at university or any other sensitive personal detail in any file
+- Do not mention the job scraper or dashboard in any public-facing content
+- Do not give clues that a dashboard exists - visitors should not know it is there

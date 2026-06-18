@@ -8,6 +8,22 @@ metadata:
 
 # Future Additions and Suggestions
 
+## Public Site Completions
+
+**Public stats page (`/stats`)**
+A live counter page showing: total blog posts, TIL entries, projects, consumed items, total tags and coding hours this year. Data sourced from static counts at build time plus WakaTime API. No sensitive information - just the numbers that make the portfolio feel alive to visitors.
+
+**`/notes` research subpages - expand content**
+The two notes subpages (`/notes/prosthetics-health-tech`, `/notes/world-cup-ai-predictor`) exist as routes but have minimal content. Expand each into a proper long-form research note with sections, references and images.
+
+**Consumed music subpages**
+`/consumed/music` shows Spotify embedded playlists. Add individual playlist pages at `/consumed/music/[slug]` following the same pattern as videos and podcasts.
+
+**Newsletter search**
+The main `/newsletter` page only lists issues chronologically. Add the same inline search from `RecentIssues` so visitors can find past issues by keyword from the main page.
+
+---
+
 ## When Back at Uni (Requires GPC Access)
 
 **Gaming PC Game Cover Art - READY, IGDB integrated, restart daemon + set env vars**

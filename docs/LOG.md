@@ -4,6 +4,72 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-06-15 to 2026-06-18 (PRs #285-337)
+
+### Public pages and features
+
+- `/respub`: academic profile page with research interests, publications list and external profile links (ORCID, Google Scholar, ResearchGate, Academia.edu); link label text styled `text-primary` blue
+- `/til`: Today I Learned - 63 entries across 21 categories; search, category filter, pagination (10/page); reading time per entry; RSS feed at `/til/feed.xml`; individual pages at `/til/[slug]` with prev/next navigation, ShareButton and optional ToC sidebar
+- `/tags`: tag cloud aggregating blog, TIL, projects, publications and consumed; client-side search; individual tag pages at `/tags/[tag]` with grouped content sections
+- `/search`: unified full-text search with fieldScore/relevanceScore ranking across all content types
+- `/consumed/[category]/[slug]`: 216 individual consumed item pages with YouTube embeds for videos, Spotify for podcasts, breadcrumb navigation
+- `/newsletter/feed.xml` and `/blog/feed.xml`: RSS feeds with styled HTML browser view and `?raw` raw XML; old `/feed.xml` redirects to `/blog/feed.xml` with 301
+- FeaturedTIL homepage section: 3 most recent TIL entries between Featured Blog Posts and Newsletter
+- Custom 404 terminal page with boot animation and live command input
+- Root error boundary (`app/error.tsx`) with "Try again" and "Go home" buttons
+- Giscus comments on all blog posts (GitHub Discussions; gated behind `NEXT_PUBLIC_GISCUS_ENABLED`; dark/light theme)
+- Blog reactions: 8 standard emoji plus SmilePlus extended picker; counts per post per user
+- Blog cover images on all 20 published posts; RSS `<enclosure>` thumbnails added
+- Tags and Search added to CommandMenu (Cmd+K) and footer secondary nav row
+- Secondary footer nav row: Now, Notes, Lab, Uses, Colophon, Changelog
+- Notes page TIL callout card
+- Lab terminal new commands: til, respub, rss, blogfeed, tilfeed, newsletterfeed, playing, lastgame, pushed
+- Newsletter "While you wait" cross-links to TIL and respub
+- Dual PWA manifests: separate manifests for public portfolio and dashboard
+- Links page restructured from 4 to 10 sections; 12 new platforms added; quick social icon row; stagger animations
+- Projects pagination (9/page) and AI/ML category added
+- Mobile Safari GPU crash fix: all hover transforms scoped to `sm:` breakpoint
+- Social icons standardised to react-icons/fa6 for GitHub and LinkedIn
+
+### Dashboard
+
+- Linear two-way sync: migration 014 adds `linear_issue_id`; statuses mapped bidirectionally between Supabase and Linear
+- Applications tracker new statuses: Final Round, Negotiating, Accepted, Ghosted, Withdrawn; Kanban columns updated
+- Contacts tracker phone and github_url fields (migration 013)
+- Trash/recycle bin with restore and 30-day auto-cleanup (migration 010)
+- Activity log expanded: vault, wishlist, inventory, streaks, opensource and login events now tracked (migrations 009, 012)
+- Dashboard home new stat cards
+- Modules detail view: grade distribution pie chart and progress trend line chart
+- Settings page: workflow status badges for WakaTime/CV/scraper; CV generation and WakaTime sync trigger buttons
+
+### Infrastructure
+
+- `gitleaks-scan.yml`: credential leak scanning on every push
+- `update-pr-branches.yml`: auto-rebases open PRs when main changes
+- `automerge-dependabot.yml` updated with `--delete-branch` flag (PR #337)
+- Vault expiry check rewritten from curl to Node.js (Cloudflare was blocking curl requests)
+- esbuild CVE patched via `>=0.25.2` override; ws CVE (CVSS 7.5) patched via `>=8.21.0` override
+- CV workflow commits now use "Isaac Adjei" git identity
+
+### Data
+
+- `data/blog.ts` split into `data/blog/index.ts` + `data/blog/posts/*.ts` (38 files)
+- `data/projects.ts` split into `data/projects/index.ts` + `data/projects/items/*.ts`
+- New `data/til/`, `data/respub/` and `data/consumed/` sub-directories created
+- `scripts/split-data.ts` one-off migration script (kept for reference)
+
+### Migrations (001-015)
+
+- 009: ensure activity_log table
+- 010: trash table
+- 011: contacts table
+- 012: detail column on activity_log
+- 013: phone and github_url on contacts
+- 014: linear_issue_id on applications
+- 015: markdown column comments
+
+---
+
 ## 2026-06-13 (feat/cv-refresh)
 
 Branch: `feat/cv-refresh`
