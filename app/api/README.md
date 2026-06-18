@@ -1,6 +1,6 @@
 # app/api/
 
-Next.js Route Handler API endpoints. All routes are server-side; none are edge runtime.
+Next.js Route Handler API endpoints. Most routes are standard Node.js runtime; `/api/live-status/stream` runs on the Edge Runtime.
 
 ## Routes
 
@@ -39,3 +39,6 @@ Next.js Route Handler API endpoints. All routes are server-side; none are edge r
 | `/api/spotify` | GET | None | Spotify now-playing (or last-played fallback) |
 | `/api/quote` | GET | None | Bible verse of the day |
 | `/api/bible-verse` | GET | None | Bible verse (alternative route) |
+| `/api/live-status/stream` | GET | None | Edge Runtime SSE; fetches all 7 live-status APIs in parallel and streams merged updates every 10s |
+| `/api/cover-letter/[role]/[format]` | GET | None | Stream a role-specific cover letter as PDF or DOCX |
+| `/api/dashboard-manifest` | GET | None | Serve the private dashboard PWA manifest |

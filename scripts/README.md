@@ -16,7 +16,9 @@ Python daemons, CV generation scripts and utility scripts.
 | `gpc-daemon.py` | Python | Windows Gaming PC daemon - CPU, GPU usage and IGDB game art → Redis |
 | `lenovo-daemon.py` | Python | Windows Lenovo laptop battery daemon - writes to Upstash Redis |
 | `ps5-daemon.py` | Python | Legacy PS5 polling script (superseded by Cloudflare Worker) |
-| `spotify-auth.mjs` | Node.js | One-time Spotify OAuth helper to obtain refresh token |
+| `daily-coding-summary.ts` | Node.js | Nightly Discord summary of coding activity (GitHub Actions) |
+| `spotify-auth.ts` | Node.js | One-time Spotify OAuth helper to obtain refresh token |
+| `split-data.ts` | Node.js | One-time migration script that split `blog.ts` and `projects.ts` into per-entry files; kept for reference |
 | `requirements.txt` | - | Python dependencies for all daemons |
 
 ---

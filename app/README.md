@@ -12,7 +12,9 @@ Next.js 16 App Router. Every folder here is either a route segment or a route gr
 
 ## Public routes
 
-`about`, `blog`, `changelog`, `colophon`, `consumed`, `cv`, `experience`, `lab`, `links`, `newsletter`, `notes`, `now`, `projects`, `skills`, `uses` - all live under `(public)/`.
+`about`, `blog`, `changelog`, `colophon`, `consumed`, `cv`, `experience`, `lab`, `links`, `newsletter`, `notes`, `now`, `projects`, `respub`, `search`, `share`, `skills`, `tags`, `til`, `uses` - all live under `(public)/`.
+
+`consumed` has category subpages (`consumed/[category]`) and individual item pages (`consumed/[category]/[slug]`, 216 pages). `til` has individual entry pages (`til/[slug]`) and an RSS feed (`til/feed.xml`). `tags` has per-tag pages (`tags/[tag]`).
 
 The homepage (`page.tsx`) is at the `app/` root.
 

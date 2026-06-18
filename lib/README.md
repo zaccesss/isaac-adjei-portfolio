@@ -13,4 +13,6 @@ Shared server and client utilities. Imported across `app/`, `components/` and `s
 | `pin.ts` | Dashboard PIN lock - stores and validates a hashed PIN in a cookie |
 | `vault-expiry-check.ts` | Logic to query vault items nearing or past expiry; called by the vault-expiry-check workflow |
 | `send-discord-digest.ts` | Sends a formatted embed to a Discord webhook channel |
+| `search.ts` | `fieldScore()` and `relevanceScore()` helpers for the `/search` page |
+| `tags.ts` | `normTag()` tag normaliser and `consumedSlug()` slug helper for `/tags` routes |
 | `send-weekly-digest.ts` | Builds and sends the weekly summary email via Sendgrid |
