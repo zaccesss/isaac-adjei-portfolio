@@ -33,7 +33,7 @@ jobs:
 
           # Enable for Dependabot PRs or any PR labelled "automerge"
           if [ "$PR_AUTHOR" = "dependabot[bot]" ] || echo "$PR_LABELS" | grep -Eq '(^|,)automerge(,|$)'; then
-            gh pr merge --auto --squash "$PR_URL"
+            gh pr merge --auto --squash --delete-branch "$PR_URL"
           else
             echo "Auto-merge not enabled - add the automerge label for non-Dependabot PRs"
           fi
