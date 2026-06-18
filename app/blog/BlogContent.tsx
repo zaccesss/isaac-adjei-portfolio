@@ -114,7 +114,7 @@ export default function BlogPage() {
       {/* Post grid */}
       {filtered.length > 0 ? (
         <div className="space-y-6">
-          {paginated.map((post) => {
+          {paginated.map((post, i) => {
             return (
             <Link
               key={post.slug}
@@ -127,8 +127,9 @@ export default function BlogPage() {
                     src={post.cover_image}
                     alt={post.title}
                     fill
+                    priority={page === 1 && i === 0}
                     className="object-cover sm:group-hover:scale-105 sm:transition-transform sm:duration-300"
-                    sizes="(max-width: 768px) 100vw, 700px"
+                    sizes="(max-width: 640px) 250px, 700px"
                   />
                 </div>
               )}

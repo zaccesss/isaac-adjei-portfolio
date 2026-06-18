@@ -58,8 +58,8 @@ export default function ProjectGrid({ projects }: Props) {
       ) : (
         <>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {paginated.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+            {paginated.map((project, i) => (
+              <ProjectCard key={project.id} project={project} priority={page === 1 && i === 0} />
             ))}
           </div>
 

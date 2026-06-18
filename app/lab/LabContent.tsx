@@ -904,9 +904,10 @@ export default function LabPage() {
                 src="/Media/giphy.gif"
                 alt="Under construction"
                 width={320}
-                height={200}
+                height={180}
                 className="w-full max-w-[320px] h-auto object-cover"
                 sizes="(max-width: 640px) 100vw, 320px"
+                priority
                 unoptimized
               />
             </div>
@@ -919,7 +920,11 @@ export default function LabPage() {
           aria-label="Interactive terminal"
           className={
             isMaximized
-              ? "fixed top-16 inset-x-0 bottom-0 z-50 flex flex-col font-mono"
+              // !mt-0 overrides the parent's space-y-8 margin-top - that margin still applies
+              // even with position: fixed, stacking on top of top-16 and creating a visible gap.
+              // A plain mt-0 isn't enough: space-y-8's ":not([hidden]) ~ :not([hidden])" selector
+              // has higher specificity than a single utility class, so this needs !important.
+              ? "fixed top-16 inset-x-0 bottom-0 z-50 flex flex-col font-mono !mt-0"
               : "rounded-lg border border-zinc-700 overflow-hidden shadow-xl font-mono"
           }
         >
