@@ -2,20 +2,17 @@
 # the "automerge" label. Draft PRs are skipped. This keeps dependency updates flowing
 # without manual intervention while still requiring CI to pass before the merge lands.
 #
-# gh's `--delete-branch` flag only reliably deletes the branch when it performs an
-# immediate merge. When checks are still pending (the common case - this workflow
-# fires on every `synchronize` push), gh just enables auto-merge intent and the
-# branch deletion does not always happen when the merge completes later. The
-# second job below deletes the branch explicitly once GitHub reports the PR as
-# merged, independent of how the merge itself was triggered.
+# Branch deletion and keeping other automerge PRs up to date with main are handled by
+# the scheduled "Repo maintenance" workflow instead of an event trigger here - GitHub
+# does not fire other workflows' `push`/`pull_request` events for actions performed
+# with this workflow's own GITHUB_TOKEN, so a `pull_request: closed` trigger on this
+# merge would never actually run. See update-pr-branches.yml for details.
 
 name: Auto-merge Dependabot
 
 on:
   pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review, labeled]
-  pull_request:
-    types: [closed]
 
 permissions:
   contents: write
@@ -23,7 +20,6 @@ permissions:
 
 jobs:
   enable-automerge:
-    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
 
     steps:
@@ -47,22 +43,3 @@ jobs:
           else
             echo "Auto-merge not enabled - add the automerge label for non-Dependabot PRs"
           fi
-
-  delete-merged-branch:
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Delete the head branch now that the PR is merged
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          BRANCH: ${{ github.event.pull_request.head.ref }}
-        run: |
-          # Skip branches from forks - we can't delete those, and they aren't ours anyway
-          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "$REPO" ]; then
-            echo "Head branch is on a fork - skipping"
-            exit 0
-          fi
-
-          gh api -X DELETE "repos/$REPO/git/refs/heads/$BRANCH" || echo "Branch already gone"

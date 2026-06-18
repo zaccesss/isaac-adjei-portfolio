@@ -1,12 +1,24 @@
-# I fire on every push to main and bring all open PRs with auto-merge enabled up to date
-# with the base branch. This prevents the "branch behind main" stall that blocks auto-merge
-# when a Dependabot PR (or any other PR) merges to main while another PR is open.
+# Keeps automerge PRs moving and cleans up after them.
+#
+# GitHub does not trigger other workflows' `push` or `pull_request` events when the
+# action was performed using the workflow's own GITHUB_TOKEN (this prevents recursive
+# workflow loops). Our automerge job in automerge-dependabot.yml merges PRs via the
+# GITHUB_TOKEN, so neither this workflow's old `push: main` trigger nor the
+# `pull_request: closed` trigger in automerge-dependabot.yml ever fired for bot-driven
+# merges - PRs sat permanently "behind" main and merged branches were never deleted.
+#
+# A `schedule` trigger does not depend on what authored the previous event, so it is
+# the only reliable way to keep this working regardless of who/what performed the merge.
 
-name: Update PR branches
+name: Repo maintenance
 
 on:
   push:
     branches: [main]
+  schedule:
+    # Every 10 minutes - catches anything a GITHUB_TOKEN-authored push didn't trigger
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -25,10 +37,36 @@ jobs:
           prs=$(gh api repos/$REPO/pulls --jq '[.[] | select(.state=="open" and .auto_merge != null) | .number] | .[]')
           if [ -z "$prs" ]; then
             echo "No open PRs with auto-merge enabled"
+          else
+            for pr in $prs; do
+              echo "Updating branch for PR #$pr"
+              # The API returns 422 if the branch is already up to date - treat that as success
+              gh api repos/$REPO/pulls/$pr/update-branch --method PUT || echo "PR #$pr already up to date"
+            done
+          fi
+
+  delete-merged-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete head branches of merged PRs that still exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Look at recently merged PRs - their head branch should have been deleted
+          # at merge time but the GITHUB_TOKEN restriction above means that often didn't fire
+          merged_branches=$(gh api "repos/$REPO/pulls?state=closed&sort=updated&direction=desc&per_page=30" \
+            --jq '[.[] | select(.merged_at != null and .head.repo.full_name == "'"$REPO"'") | .head.ref] | .[]')
+
+          if [ -z "$merged_branches" ]; then
+            echo "No recently merged PRs found"
             exit 0
           fi
-          for pr in $prs; do
-            echo "Updating branch for PR #$pr"
-            # The API returns 422 if the branch is already up to date - treat that as success
-            gh api repos/$REPO/pulls/$pr/update-branch --method PUT || echo "PR #$pr already up to date"
-          done
+
+          while read -r branch; do
+            [ "$branch" = "main" ] && continue
+            if gh api "repos/$REPO/branches/$branch" >/dev/null 2>&1; then
+              echo "Deleting stale merged branch: $branch"
+              gh api -X DELETE "repos/$REPO/git/refs/heads/$branch" || echo "Failed to delete $branch - may already be gone"
+            fi
+          done <<< "$merged_branches"
