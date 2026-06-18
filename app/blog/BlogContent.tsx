@@ -127,7 +127,7 @@ export default function BlogPage() {
                     src={post.cover_image}
                     alt={post.title}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-cover sm:group-hover:scale-105 sm:transition-transform sm:duration-300"
                     sizes="(max-width: 768px) 100vw, 700px"
                   />
                 </div>

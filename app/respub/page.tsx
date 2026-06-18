@@ -104,8 +104,8 @@ export default async function ResearchPublicationsPage({
             href="mailto:academic@isaacadjei.me"
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            <Mail className="h-5 w-5" />
-            academic@isaacadjei.me
+            <Mail className="h-5 w-5 shrink-0" />
+            <span className="text-primary hover:underline">academic@isaacadjei.me</span>
           </a>
           {([
             { Icon: SiOrcid,        label: "ORCID",         href: "https://orcid.org/0009-0001-8298-5098" },
@@ -120,8 +120,8 @@ export default async function ResearchPublicationsPage({
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Icon className="h-5 w-5" />
-              {label}
+              <Icon className="h-5 w-5 shrink-0" />
+              <span className="text-primary hover:underline">{label}</span>
             </Link>
           ))}
         </div>

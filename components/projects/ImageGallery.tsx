@@ -58,7 +58,7 @@ export default function ImageGallery({ images, title }: Props) {
               src={src}
               alt={`${title} - image ${i + 1}`}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-110"
+              className="object-cover sm:transition-transform sm:duration-300 sm:group-hover:scale-110"
               sizes="(max-width: 640px) 50vw, 33vw"
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />

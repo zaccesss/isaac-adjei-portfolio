@@ -280,6 +280,12 @@ export default {
     // reflects when it was genuinely active - not just when the cron last ran while offline.
     if (presence.online) {
       await upstash(env, ["SET", "ps5:last-known", payload])
+      // I track last-game separately so sitting on the home screen (game: null) does not
+      // overwrite the previously played title. last-known handles the lastSeen timestamp;
+      // last-game handles the "last played" display.
+      if (presence.game) {
+        await upstash(env, ["SET", "ps5:last-game", payload])
+      }
     }
 
     console.log(`[${presence.lastSeen.slice(0, 19)}] ${presence.status} - ${presence.game ?? "no game"}`)
