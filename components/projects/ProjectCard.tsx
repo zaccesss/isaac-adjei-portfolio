@@ -32,7 +32,7 @@ export default function ProjectCard({ project }: Props) {
               alt={project.title}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover transition-transform duration-300 hover:scale-105"
+              className="object-cover sm:transition-transform sm:duration-300 sm:hover:scale-105"
             />
           </div>
         </Link>

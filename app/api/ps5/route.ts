@@ -32,9 +32,10 @@ export async function GET() {
       )
     }
 
-    const [live, lastKnown] = await Promise.all([
+    const [live, lastKnown, lastGame] = await Promise.all([
       redis.get<PS5Payload>("ps5:status"),
       redis.get<PS5Payload>("ps5:last-known"),
+      redis.get<PS5Payload>("ps5:last-game"),
     ])
 
     // I use the payload's online field, not live !== null - the worker always runs every minute
@@ -61,11 +62,10 @@ export async function GET() {
         status:     online ? source.status : "Offline",
         game:       online ? (source.game ?? null) : null,
         gameImage:  online ? (source.game_image ?? null) : null,
-        // I read lastGame from lastKnown, not source - source.game is null when offline
-        // because the worker writes game: null to ps5:status every cron tick.
-        // lastKnown only updates when the PS5 is genuinely online, so it always has the last real game.
-        lastGame:      lastKnown?.game       ?? null,
-        lastGameImage: lastKnown?.game_image ?? null,
+        // I read lastGame from ps5:last-game, which only updates when a game is actively running.
+        // This prevents sitting on the home screen (game: null) from overwriting the last played title.
+        lastGame:      lastGame?.game       ?? null,
+        lastGameImage: lastGame?.game_image ?? null,
       },
       { headers: { "Cache-Control": "public, max-age=10, stale-while-revalidate=20" } }
     )

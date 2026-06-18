@@ -30,7 +30,7 @@ function IssueCard({ issue }: { issue: NewsletterIssue }) {
           <img
             src={issue.thumbnailUrl}
             alt=""
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover sm:group-hover:scale-105 sm:transition-transform sm:duration-300"
             loading="lazy"
           />
         </div>
