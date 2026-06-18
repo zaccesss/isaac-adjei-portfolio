@@ -19,7 +19,7 @@ export function useScrollPosition() {
       cancelAnimationFrame(rafId)
       rafId = requestAnimationFrame(() => setScrollY(window.scrollY))
     }
-    setScrollY(window.scrollY)
+    handleScroll()
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => {
       window.removeEventListener("scroll", handleScroll)
