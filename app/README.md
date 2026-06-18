@@ -6,13 +6,13 @@ Next.js 16 App Router. Every folder here is either a route segment or a route gr
 
 | Directory | Type | Description |
 | --- | --- | --- |
-| `(public)/` | Route group | Public-facing pages - no auth required |
+| (public page directories) | Routes | Public-facing pages - no auth required; live directly under `app/` |
 | `api/` | API routes | Server-side endpoints (REST + Next.js route handlers) |
 | `dashboard/` | Route group | Private dashboard (GitHub OAuth via NextAuth) |
 
 ## Public routes
 
-`about`, `blog`, `changelog`, `colophon`, `consumed`, `cv`, `experience`, `lab`, `links`, `newsletter`, `notes`, `now`, `projects`, `respub`, `search`, `share`, `skills`, `tags`, `til`, `uses` - all live under `(public)/`.
+`about`, `all-pages`, `blog`, `changelog`, `colophon`, `consumed`, `contact`, `cv`, `experience`, `hall-of-fame`, `lab`, `links`, `newsletter`, `notes`, `now`, `privacy`, `projects`, `respub`, `search`, `security-policy`, `share`, `skills`, `tags`, `til`, `uses` - all live directly under `app/`.
 
 `consumed` has category subpages (`consumed/[category]`) and individual item pages (`consumed/[category]/[slug]`, 216 pages). `til` has individual entry pages (`til/[slug]`) and an RSS feed (`til/feed.xml`). `tags` has per-tag pages (`tags/[tag]`).
 

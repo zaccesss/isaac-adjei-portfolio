@@ -97,26 +97,35 @@ SQL for the Supabase database lives in `sql/schema.sql` (fresh install) and `sql
 ├── workflows/
 │   ├── ci.yml                        Lint and build check on every PR
 │   ├── cv-pdf.yml                    Regenerate CV PDF/DOCX on cv.html push
-│   ├── job-scraper.yml               Job scraper — every 3 days at midnight UTC
-│   ├── wakatime-sync.yml             Daily WakaTime coding activity sync
+│   ├── job-scraper.yml               Job scraper - every 3 days at midnight UTC
+│   ├── wakatime-sync.yml             Daily WakaTime coding activity sync (01:00 UTC)
 │   ├── vault-expiry-check.yml        Daily vault item expiry check and Discord alert
 │   ├── generate-cvs.yml              Manual CV regeneration trigger
 │   ├── gitleaks-scan.yml             Secret scanning on every push
+│   ├── update-pr-branches.yml        Auto-rebase open PRs when main changes
 │   └── automerge-dependabot.yml      Auto-merge Dependabot PRs after CI
 
 app/                                  Next.js App Router
-├── (public)/                         Public-facing pages (no auth required)
-│   ├── about/, blog/, changelog/, colophon/, consumed/, cv/, experience/
-│   ├── lab/, links/, newsletter/, notes/, now/, projects/, skills/, uses/
-│   └── page.tsx                      Homepage
+├── about/, all-pages/, blog/         Public-facing pages
+├── changelog/, colophon/, consumed/
+├── contact/, cv/, experience/
+├── hall-of-fame/, lab/, links/
+├── newsletter/, notes/, now/
+├── privacy/, projects/, respub/
+├── search/, security-policy/, share/
+├── skills/, tags/, til/, uses/
+├── page.tsx                          Homepage
 ├── api/                              API routes
 │   ├── auth/                         NextAuth GitHub OAuth handler
 │   ├── blog/                         Blog reactions and scroll-depth events
 │   ├── contact/                      Sendgrid contact form handler
+│   ├── cover-letter/[role]/[format]/ Role-specific cover letter stream
 │   ├── cv-*/                         CV PDF and DOCX generation (role-specific)
 │   ├── dashboard/                    GitHub stats and activity
+│   ├── dashboard-manifest/           Private dashboard PWA manifest
 │   ├── github-*/                     GitHub presence integrations
 │   ├── gpc/, lenovo/, macbook/       Device daemon endpoints (Redis writes)
+│   ├── live-status/stream/           Edge SSE: all 7 live sources merged, every 10s
 │   ├── newsletter*/                  Beehiiv newsletter endpoints
 │   ├── og/                           Open Graph image generation
 │   ├── ps5/, spotify/                Live presence integrations
@@ -133,46 +142,75 @@ app/                                  Next.js App Router
 
 components/
 ├── blog/                             Blog post components (ScrollDepthTracker, TOC)
+├── consumed/                         Consumed item cards (BookCard, VideoCard, PodcastsContent)
 ├── cv/                               CV viewer component
 ├── dashboard/                        Dashboard widgets and cards
 ├── forms/                            Contact and newsletter forms
 ├── layout/                           Header, footer, nav
 ├── projects/                         Project cards and detail components
+├── providers/                        Context providers (theme, session)
+├── search/                           SearchClient full-text search component
 ├── sections/                         Homepage sections (hero, status, socials)
-├── shared/                           Cross-page components (breadcrumbs, badges)
+├── shared/                           Cross-page components (breadcrumbs, badges, ShareButton)
+├── tags/                             TagsClient tag cloud component
+├── til/                              TILList with search, filter and pagination
 └── ui/                               shadcn/ui primitives
 
 data/
-├── blog.ts                           Blog post metadata
+├── blog/
+│   ├── index.ts                      Blog helpers and type exports
+│   └── posts/                        One .ts file per blog post (~38 files)
+├── consumed/
+│   ├── index.ts                      Re-exports from all category files
+│   ├── types.ts                      Shared consumed types
+│   ├── articles.ts, books.ts, music.ts, others.ts, podcasts.ts, resources.ts, videos.ts
+├── projects/
+│   ├── index.ts                      Project helpers and type exports
+│   └── items/                        One .ts file per project (11 files)
+├── respub/
+│   ├── index.ts                      Publications array and type exports
+│   └── items/                        One .ts file per publication
+├── til/
+│   ├── index.ts                      TIL helpers: getPublishedTILEntries(), getTILBySlug()
+│   └── entries/                      One .ts file per TIL entry (~63 files)
 ├── cv.yml                            Structured CV data (parsed by generate-role-cvs.js)
 ├── education.ts                      Education and awards
 ├── experience.ts                     Work experience and internships
 ├── links.ts                          Social and professional links
-├── projects.ts                       Project metadata (11 projects)
 ├── skills.ts                         Tech stack grouped by category
-└── social.ts                         Social profiles
+├── social.ts                         Social profiles
+└── societies.ts                      University societies and committees
 
 docs/
 ├── DASHBOARD.md                      Dashboard route list and Supabase schema overview
 ├── DOCUMENTATION.md                  Full technical reference
-├── PROJECT.md                        Session and feature history
+├── LOG.md                            Private session and feature history (all changes)
+├── PROJECT.md                        Legacy session log (pre-June 2026)
 ├── RULES.md                          Code conventions for this repo
 ├── SUGGESTIONS.md                    Deferred feature ideas
-├── TROUBLESHOOTING.md               Known issues and fixes
+├── TROUBLESHOOTING.md                Known issues and fixes
 ├── WORKFLOW.md                       Branching, PR and deployment workflow
 └── verification.md                   Manual verification checklist
 
 hooks/
-├── use-mobile.ts                     Responsive breakpoint hook
-└── use-debounce.ts                   Debounce utility hook
+├── useCommandMenu.ts                 CommandMenu open/close state
+├── useDashboardShortcuts.ts          Dashboard keyboard shortcuts
+├── useMediaQuery.ts                  Responsive breakpoint hook
+├── useModKey.ts                      Cmd/Ctrl key label for current OS
+├── useScrollPosition.ts              Scroll position tracker
+└── useTheme.ts                       Theme toggle hook
 
 lib/
 ├── animations.ts                     Framer Motion animation variants
 ├── constants.ts                      Shared constants (site URL, nav items)
+├── linear-sync.ts                    Linear issue sync helpers
+├── newsletter.ts                     Shared fetchNewsletterIssues() (used by API + RSS feed)
 ├── pin.ts                            Dashboard PIN lock
+├── search.ts                         fieldScore() and relevanceScore() for /search
 ├── send-discord-digest.ts            Discord webhook digest helper
 ├── send-weekly-digest.ts             Weekly email digest helper
 ├── supabase.ts                       Supabase client (safe placeholder fallbacks)
+├── tags.ts                           normTag() and consumedSlug() for /tags routes
 ├── utils.ts                          cn() and other utilities
 └── vault-expiry-check.ts             Vault item expiry logic
 
@@ -181,20 +219,27 @@ public/
 └── resume/
     ├── cv.html                       Master CV source (never edit manually for role CVs)
     ├── cv-*.html                     Role-specific CVs (auto-generated)
-    ├── cover-letter-*.html           Cover letters (software, embedded, devops, data, quant, security, general)
+    ├── cover-letter-*.html           Cover letters (software, embedded, devops, data, quant, security)
     ├── Isaac_Adjei_CV.pdf            Main CV PDF (auto-regenerated by cv-pdf.yml)
     ├── Isaac_Adjei_CV.docx           Main CV DOCX (auto-regenerated by cv-pdf.yml)
     └── cv-*.pdf / cv-*.docx          Role CV artefacts (auto-generated)
 
 scripts/
-├── generate-role-cvs.js             Assembles 6 role CVs from cv.html sections
+├── generate-role-cvs.js             Assembles role-specific CV HTML from cv.html sections
+├── generate-cvs.js                  Unified CV generation entry point
 ├── generate-pdfs.js                 Puppeteer: renders all HTML CVs to PDF
 ├── generate-docx.js                 html-to-docx: converts CVs to DOCX
+├── watch-cvs.js                     File-watcher: re-runs role CV generation on cv.html change
 ├── job-scraper.py                   Multi-source job scraper (Playwright + REST APIs)
 ├── wakatime-sync.py                 Syncs WakaTime daily stats to Supabase
 ├── gpc-daemon.py                    Windows daemon: GPU/CPU usage + IGDB game art → Redis
-├── macbook-daemon.py                macOS daemon: battery state → Redis
-└── lenovo-daemon.py                 Windows daemon: Lenovo battery state → Redis
+├── mac-daemon.py                    macOS daemon: battery state → Redis
+├── lenovo-daemon.py                 Windows daemon: Lenovo battery state → Redis
+├── ps5-daemon.py                    Legacy PS5 polling script (superseded by Cloudflare Worker)
+├── daily-coding-summary.ts          Nightly Discord summary of coding activity (GitHub Actions)
+├── spotify-auth.ts                  One-time Spotify OAuth helper to obtain refresh token
+├── split-data.ts                    One-time data migration: split blog.ts / projects.ts into per-entry files
+└── vault-expiry-check.js            Node.js vault expiry checker (calls Supabase directly)
 
 sql/
 ├── schema.sql                       Full DROP+CREATE schema for fresh Supabase installs
@@ -206,11 +251,19 @@ sql/
     ├── 005_add_blog_read_events.sql  Blog scroll-depth events table + unique index
     ├── 006_add_wakatime_daily.sql    WakaTime daily coding activity table
     ├── 007_add_blog_read_funnel_function.sql blog_read_funnel() RPC function
-    └── 008_add_inventory_url.sql    inventory_items.url column
+    ├── 008_add_inventory_url.sql     inventory_items.url column
+    ├── 008_add_wakatime_os.sql       WakaTime OS breakdown columns
+    ├── 009_ensure_activity_log.sql   Activity log table and indexes
+    ├── 010_add_trash_table.sql       Trash/recycle bin table
+    ├── 011_add_contacts_table.sql    Contacts tracker table
+    ├── 012_add_detail_to_activity_log.sql  Detail column on activity log
+    ├── 013_add_contacts_phone_github.sql   Phone and github_url on contacts
+    ├── 014_add_linear_issue_id.sql   linear_issue_id on jobs table
+    └── 015_add_markdown_column_comments.sql  Markdown column for comments
 
 types/                                TypeScript type definitions
 workers/
-└── ps5-presence/                    Cloudflare Worker: PSN polling → Upstash Redis
+└── ps5-presence/                    Cloudflare Worker: PSN polling → Upstash Redis (every 2 min)
 ```
 
 ---
