@@ -49,12 +49,10 @@ export default function DashboardSidebar({
   })
   const [mobileOpen, setMobileOpen] = useState(false)
 
-
   function toggleCollapse() {
     const next = !collapsed
     setCollapsed(next)
-    // I persist the new state so it is restored on the next page load
-    localStorage.setItem("nexus_sidebar_collapsed", String(next))
+    try { localStorage.setItem("nexus_sidebar_collapsed", String(next)) } catch {}
   }
 
   const sidebarContent = (
@@ -163,7 +161,7 @@ export default function DashboardSidebar({
     <>
       {/* Desktop sidebar */}
       <aside
-        className={`hidden md:flex flex-col border-r border-border bg-muted/30 p-3 gap-3 min-h-screen sticky top-0 h-screen transition-all duration-200 ${
+        className={`hidden md:flex flex-col border-r border-border bg-muted/30 p-3 gap-3 sticky top-0 h-screen transition-all duration-200 ${
           collapsed ? "w-14" : "w-52"
         }`}
       >
@@ -185,7 +183,7 @@ export default function DashboardSidebar({
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <aside className="relative flex flex-col w-64 bg-background border-r border-border p-3 gap-3 h-full overflow-y-auto z-10">
+          <aside className="relative flex flex-col w-64 max-w-[85vw] bg-background border-r border-border p-3 gap-3 h-full overflow-y-auto z-10">
             <div className="flex items-center justify-between pb-1">
               <div className="flex items-center gap-2">
                 {user.image && (

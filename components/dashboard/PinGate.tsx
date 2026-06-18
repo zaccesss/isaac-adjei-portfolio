@@ -1,7 +1,7 @@
+"use client"
 // I render the PIN prompt that gates Diary, Vault and Modules. Verification is done
 // server-side so the hash never reaches the browser. A successful unlock sets an
 // httpOnly cookie (via /api/dashboard/verify-pin) that persists for 4 hours.
-"use client"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -76,7 +76,7 @@ export default function PinGate({ pageName, onUnlock }: Props) {
 
   if (showChange) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-6 max-w-sm w-full">
           <div className="flex flex-col items-center gap-2 text-center">
             <KeyRound className="h-10 w-10 text-muted-foreground" />

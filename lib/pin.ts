@@ -1,5 +1,6 @@
 // I import bcrypt server-side only - it must never be bundled into the browser because it exposes the hash logic
 import bcrypt from "bcryptjs"
+import { timingSafeEqual } from "crypto"
 import { supabase } from "@/lib/supabase"
 
 // I use 12 rounds - high enough to be slow for brute-force but fast enough for interactive use
@@ -26,7 +27,9 @@ export async function verifyPin(pin: string): Promise<boolean> {
   const envPin = process.env.AUTH_SECONDARY_PIN
   if (!envPin) return false
 
-  const match = pin === envPin
+  const a = Buffer.from(pin)
+  const b = Buffer.from(envPin)
+  const match = a.length === b.length && timingSafeEqual(a, b)
   if (match) {
     const hash = await hashPin(pin)
     await supabase

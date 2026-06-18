@@ -1,6 +1,6 @@
+"use client"
 // I show the notes landing page: a grid of folder cards plus an "All notes" card and a "Hidden" card.
 // I derive everything from the notes array passed in by the server component - there is no client fetch.
-"use client"
 
 import Link from "next/link"
 import { motion } from "framer-motion"

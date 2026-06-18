@@ -1,7 +1,7 @@
+"use client"
 // I let me manage professional and personal contacts: adding names, roles, how I met them,
 // contact details and follow-up flags. I surface a follow-up queue for anyone I have not
 // contacted in over 30 days so important relationships do not go cold.
-"use client"
 
 import { useState } from "react"
 import { Users, Plus, X, ExternalLink, Mail, Phone, Bell, BellOff, Pencil, Github } from "lucide-react"

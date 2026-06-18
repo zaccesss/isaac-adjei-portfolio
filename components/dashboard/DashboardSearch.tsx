@@ -1,7 +1,7 @@
+"use client"
 // I fetch search data once on first open and cache it in component state for the
 // session - the data changes infrequently enough that a stale-for-session approach
 // is fine and avoids repeated server action calls while the user types.
-"use client"
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"

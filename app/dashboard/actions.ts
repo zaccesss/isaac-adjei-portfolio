@@ -5,7 +5,7 @@
 // I use server actions rather than direct client-side Supabase calls so the service key never ships to the browser.
 // Every action here is intentionally thin - validate, write, revalidate. No business logic lives here.
 import { supabase } from "@/lib/supabase"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
 import { syncApplicationToLinear } from "@/lib/linear-sync"
 
 // I fire-and-forget activity logs so a logging failure never blocks the actual action.
@@ -230,7 +230,7 @@ export async function createAssessment(data: {
 
 export async function updateAssessmentMark(id: string, mark: number | null) {
   // I expose this as a dedicated action because mark entry is the most frequent operation
-  // in the modules view - students click a row, type a number, and hit Enter
+  // in the modules view - students click a row, type a number and hit Enter
   if (!validId(id)) return INVALID
   if (mark !== null && !validNum(mark, 0, 200)) return INVALID
   await supabase.from("assessments").update({ mark_achieved: mark }).eq("id", id)
@@ -756,11 +756,20 @@ export async function getConfig(key: string) {
   return data?.value ?? null
 }
 
+// I cache the theme preference for 5 minutes so every protected dashboard page navigation
+// doesn't fire a Supabase round trip. revalidateTag("config-theme") in setConfig clears this immediately on change.
+export const getCachedTheme = unstable_cache(
+  () => getConfig("theme_preference"),
+  ["theme_preference"],
+  { revalidate: 300, tags: ["config-theme"] }
+)
+
 export async function setConfig(key: string, value: unknown) {
   if (!validStr(key)) return INVALID
   // I upsert on the key column so the first write creates the row and subsequent ones update it
   // - no separate "does this key exist?" check needed, which would waste a round trip
   await supabase.from("config").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" })
+  if (key === "theme_preference") revalidateTag("config-theme", "default")
 }
 
 export async function updateNowStatus(data: {

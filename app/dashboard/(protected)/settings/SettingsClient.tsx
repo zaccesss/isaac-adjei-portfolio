@@ -1,7 +1,7 @@
+"use client"
 // I provide the dashboard settings page: PIN management, theme toggle, job-scraper controls,
 // WakaTime sync, CV regeneration, weekly and Discord digest triggers and data management.
 // I fetch workflow and scraper statuses on mount so I can show the last-run time and success state.
-"use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -453,7 +453,7 @@ export default function SettingsClient() {
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-medium">Run job scraper</span>
               <p className="text-xs text-muted-foreground">
-                Triggers the job-scraper workflow — scrapes new listings and syncs them to the applications table
+                Triggers the job-scraper workflow: scrapes new listings and syncs them to the applications table
               </p>
             </div>
             {scraperStatus.hasToken ? (
@@ -500,7 +500,7 @@ export default function SettingsClient() {
         <div className="flex flex-col gap-0.5">
           <span className="text-sm font-medium">Sync coding activity</span>
           <p className="text-xs text-muted-foreground">
-            Triggers the wakatime-sync.yml workflow — pulls the last 7 days of coding data into the heatmap
+            Triggers the wakatime-sync.yml workflow: pulls the last 7 days of coding data into the heatmap
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
@@ -540,7 +540,7 @@ export default function SettingsClient() {
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-medium">Regenerate all CVs</span>
             <p className="text-xs text-muted-foreground">
-              Triggers the cv-pdf.yml workflow — rebuilds all 7 role PDFs and DOCX files from the HTML source
+              Triggers the cv-pdf.yml workflow: rebuilds all 7 role PDFs and DOCX files from the HTML source
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">

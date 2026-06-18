@@ -1,6 +1,6 @@
+"use client"
 // I show an overview of goals grouped by life category (Personal, Academic, Career etc.)
 // and let me navigate into each category to see individual goal cards with progress bars.
-"use client"
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
@@ -86,7 +86,7 @@ export function GoalForm({ initial, onSave, onCancel }: {
         <label className="text-sm font-medium">Description</label>
         <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={2} placeholder="More detail..." />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Category</label>
           <Select value={form.category} onValueChange={(v) => set("category", v)}>
@@ -106,7 +106,7 @@ export function GoalForm({ initial, onSave, onCancel }: {
           </Select>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Target date</label>
           <Input type="date" value={form.target_date} onChange={(e) => set("target_date", e.target.value)} />
