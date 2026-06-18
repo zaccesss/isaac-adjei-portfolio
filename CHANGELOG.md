@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [v2.9.0] - 2026-06-18
+
 ### Added
 
 - `/respub` - Academic profile page: research interests, external links (ORCID, Google Scholar, ResearchGate, Academia.edu) and publications list
