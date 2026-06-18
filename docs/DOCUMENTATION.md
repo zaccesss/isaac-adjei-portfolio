@@ -508,14 +508,17 @@ Hosted on **Vercel**. DNS via **Cloudflare**. Every push to `main` triggers an a
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| `ci.yml` | Every PR and push to main | Lint and build check |
+| `ci.yml` | Every PR and push to main | Lint, build, and `check-image-sizes` (fails if any image in `public/images` exceeds 50 megapixels) |
 | `gitleaks-scan.yml` | Every push | Credential leak scanning |
-| `update-pr-branches.yml` | Push to main | Auto-rebases open PRs when main changes |
-| `automerge-dependabot.yml` | Dependabot PRs and `automerge`-labelled PRs | Auto-merge after CI passes |
+| `update-pr-branches.yml` ("Repo maintenance") | Every 2 hours, push to main, manual dispatch | Deletes head branches of already-merged PRs - `gh pr merge --delete-branch` only deletes reliably when checks are already green at invocation, so this is the dependable backstop |
+| `automerge-dependabot.yml` | Dependabot PRs and `automerge`-labelled PRs | Enables GitHub auto-merge (squash) after CI passes |
+| `deploy-ps5-presence.yml` | Push touching `workers/ps5-presence/**`, manual dispatch | Deploys the PS5 presence Cloudflare Worker |
 | `cv-pdf.yml` | Push to `public/resume/cv.html` on main | Regenerate all CV PDFs and DOCX, create auto-merge PR |
 | `job-scraper.yml` | Every 3 days at midnight UTC and manual dispatch | Scrape jobs from all sources and upsert to Supabase |
 | `wakatime-sync.yml` | Daily at 23:30 UTC and manual dispatch | Fetch WakaTime daily summaries, upsert to `wakatime_daily` |
 | `vault-expiry-check.yml` | Daily at 08:00 UTC and manual dispatch | Check vault item expiry, send Discord alert if any are near or past |
+
+The branch ruleset on `main` does not require PRs to be up to date with main before merging - each PR merges as soon as its own checks pass. See `docs/TROUBLESHOOTING.md` for why this matters.
 
 ### Vercel cron jobs
 

@@ -90,6 +90,8 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 - [ ] PS5 IGDB cover art - when PS5 is online and in a game, the cover art shown is the IGDB image (not the PSN promotional conceptIconUrl)
 - [ ] PS5 lastSeen reflects genuine last-online time - compare card's "last seen" time to when the PS5 was actually switched off; it should not show the cron polling time
 - [ ] PS5 cron cadence - confirm in Cloudflare dashboard that the worker cron is set to `*/2 * * * *` (every 2 minutes); KV write count should be ~720/day, not ~1,440
+- [ ] PS5 worker deployment is current - run `npx wrangler deployments list --config workers/ps5-presence/wrangler.toml` and confirm the latest deployment timestamp is recent, not weeks old (caught a 3-week-stale deployment on 2026-06-18 where a merged fix never actually shipped)
+- [ ] PS5 "online now" instead of stale "last seen Xm ago" - while actively playing or online, the card should not show "last seen 1m ago"/"2m ago" text; it should show "online now" for the full ~2 minute window between cron ticks
 - [ ] GPC 5-tier known-games - a game in the KNOWN_GAMES dict (e.g. EA FC) is detected when the process is running
 - [ ] GPC 5-tier Steam - a Steam game not in KNOWN_GAMES is detected via Steam Web API when STEAM_API_KEY is set in NSSM
 - [ ] GPC env vars complete - IGDB_CLIENT_ID, IGDB_CLIENT_SECRET, STEAM_API_KEY and STEAM_ID are all set in NSSM AppEnvironmentExtra; verify with `nssm get gpc-daemon AppEnvironmentExtra`

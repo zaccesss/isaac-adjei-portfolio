@@ -33,6 +33,22 @@ gh pr merge --squash --delete-branch --auto
 
 Total time from commit to live: about 3-5 minutes.
 
+`gh pr merge --auto --delete-branch` does not reliably delete the branch itself - it only does
+so as a client-side action if gh is still running at the exact moment the merge completes,
+which is rare since `--auto` defers the merge until checks pass and exits immediately. The
+"Repo maintenance" workflow (`.github/workflows/update-pr-branches.yml`, every 2 hours plus
+push-to-main and manual `workflow_dispatch`) deletes already-merged branches as a reliable
+backstop - if a branch sits around longer than that, trigger it manually:
+`gh workflow run "Repo maintenance"`.
+
+The branch ruleset on `main` does **not** require PRs to be up to date with main before
+merging (`strict_required_status_checks_policy` is off) - each PR merges as soon as its own
+checks pass, independent of what else merges around it. This was deliberately removed on
+2026-06-18: requiring it caused a bad loop with multiple PRs open at once (merge knocks others
+behind -> bot pushes an update-branch commit -> GitHub holds the resulting CI run for manual
+approval since it was triggered by a bot-authored push). Do not re-enable it without also
+solving that problem - see docs/TROUBLESHOOTING.md.
+
 ---
 
 ## Commit message rules

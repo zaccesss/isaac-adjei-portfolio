@@ -86,17 +86,39 @@ nssm restart gpc-daemon
 
 ## Mobile Safari shows black screen ("A problem repeatedly occurred")
 
-**Cause:** CSS `transition-transform` on any element with `hover:scale` creates a GPU compositing layer on iOS WebKit even if hover never fires. With 50+ skill tiles and project cards loaded simultaneously, this exhausts WebKit's GPU memory budget and kills the renderer process.
+**Cause (partial, PR #336):** CSS `transition-transform` on any element with `hover:scale` creates a GPU compositing layer on iOS WebKit even if hover never fires. Fixed by scoping hover transform utilities to `sm:` breakpoint.
 
-**Fix:** Scope all hover transform utilities to `sm:` breakpoint (`sm:transition-transform sm:hover:scale-*`). Touch devices never fire hover events so no GPU layers are created. Fixed in PR #336.
+**Cause (partial, PR #346):** Header's `backdrop-blur` + `transition-all` recomposited an expensive GPU layer on every scroll frame. Fixed by scoping the blur to `sm:` and up, and narrowing the transition to `transition-colors`.
+
+**Actual root cause (PR #349):** Neither fix above stopped the crash - confirmed in a clean private-mode test and on three separate physical phones. `public/images/projects/git-unlocked/github-logo-3d.webp` was 14467x9744px (140 megapixels), an unprocessed 3D render export. Vercel's image optimizer silently falls back to serving the original file untouched when it fails to resize a source image at this scale, regardless of the requested width - decoded in browser memory that's ~537MB for a single thumbnail, enough to crash any mobile browser instantly. Confirmed by requesting `/_next/image?...&w=750` directly and getting back the full 14467x9744 original.
+
+**Fix:** Downscale the source image (here: to 1600x1077 via `cwebp`). Run `npm run check-image-sizes` before committing new images - CI now fails the build if anything in `public/images` exceeds 50 megapixels (`scripts/check-image-sizes.ts`).
 
 ---
 
-## PS5 "last played" game shows wrong title or clears when PS5 is offline
+## PS5 "last played" game shows wrong title, clears when PS5 is offline, or never shows at all
 
-**Cause:** The `ps5:last-known` key was written whenever the PS5 was online, including when sitting on the home screen with `game: null`. This overwrote the previously played game title.
+**Cause (PR #336):** The `ps5:last-known` key was written whenever the PS5 was online, including when sitting on the home screen with `game: null`. This overwrote the previously played game title. Fixed with a separate `ps5:last-game` Redis key that only writes when `presence.game` is truthy.
 
-**Fix:** A separate `ps5:last-game` Redis key now only writes when `presence.game` is truthy. The API route reads from this key for the "last played" display. Fixed in PR #336.
+**Cause (found 2026-06-18, three weeks later):** The PR #336 fix above was correct but never actually went live - the `ps5-presence` Cloudflare Worker's last deployment was 2026-05-29, before that fix was written. Source code and deployed code had silently diverged with no CI step to catch it.
+
+**Fix:** Deploy with `npx wrangler deploy --config ./wrangler.toml` from `workers/ps5-presence/` (the explicit `--config` flag matters - the bundled wrangler v3 resolves the wrong project without it, since this repo also has a root-level `wrangler.jsonc` for the main site's Cloudflare deployment). `deploy-ps5-presence.yml` now auto-deploys on every push touching `workers/ps5-presence/**` so this can't go stale again.
+
+---
+
+## PS5 card shows "last seen Xm ago" while actively online
+
+**Cause:** `relativeLastSeen()`'s "online now" threshold was 1 minute, but the PS5 worker's cron only updates its timestamp every 2 minutes - so for roughly half of any 2-minute window it showed stale-looking text despite being online. Mac/Lenovo/the gaming PC daemons write every 30s, so the 1 minute default was fine for them but not for PS5.
+
+**Fix:** Added a per-call `onlineThresholdMins` parameter to `relativeLastSeen()` in `LiveStatusCards.tsx`; the PS5 call site passes 3 minutes, everything else keeps the 1 minute default.
+
+---
+
+## PRs stuck "behind" main, needing manual approval to run CI
+
+**Cause:** The branch ruleset had `strict_required_status_checks_policy` enabled, requiring every open PR to be up to date with main before merging. With multiple PRs open at once, each merge knocked the others "behind"; a maintenance workflow pushed an `update-branch` commit authored by `github-actions[bot]` to fix that, and GitHub held the resulting CI run for manual approval because it was triggered by a bot-authored push rather than a human.
+
+**Fix:** Removed `strict_required_status_checks_policy` from the main branch ruleset (via `gh api -X PUT repos/{owner}/{repo}/rulesets/{id}`). Each PR now merges as soon as its own checks pass, independent of what else merges around it.
 
 ---
 
