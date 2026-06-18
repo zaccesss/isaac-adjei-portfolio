@@ -1,6 +1,6 @@
 {
   "name": "isaacadjei-portfolio",
-  "version": "1.0.0",
+  "version": "2.9.0",
   "private": true,
   "scripts": {
     "build": "next build",

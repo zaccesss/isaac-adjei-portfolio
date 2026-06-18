@@ -3,10 +3,28 @@ name: suggestions
 description: "Future feature ideas and enhancements — not yet implemented"
 metadata:
   type: project
-  updated: 2026-06-14
+  updated: 2026-06-18
 ---
 
 # Future Additions and Suggestions
+
+## Tech Debt / Dependency Upgrades
+
+**Major version dependency upgrades - do one at a time, dedicated session each**
+`npm outdated` (2026-06-18) shows these major versions available, all currently excluded from Dependabot via the ignore rule in `.github/dependabot.yml` since automatic major bumps are too likely to break things:
+
+- React 18.3.1 -> 19.2.7 (plus `@types/react`, `@types/react-dom`) - Next.js 16 and every Radix UI/Framer Motion dependency needs to confirm React 19 compatibility first
+- Tailwind CSS 3.4.19 -> 4.3.1 - near-total config rewrite (CSS-based config replaces `tailwind.config.ts`), breaking changes to several utility classes
+- TypeScript 5.9.3 -> 6.0.3 - new type-checking rules can surface errors across the codebase
+- ESLint 9.39.4 -> 10.5.0 - new lint rules, same risk
+- framer-motion 11.18.2 -> 12.40.0 - animation prop API changes
+- lucide-react 0.577.0 -> 1.21.0 - icon export API changes
+- tailwind-merge 2.6.1 -> 3.6.0
+- @sparticuz/chromium, puppeteer-core, chokidar - used by CV generation/screenshot scripts only, lower risk but still untested
+
+Recommended approach: one major upgrade per PR, fully tested across affected pages, not bundled together - if something breaks, it should be obvious which upgrade caused it.
+
+---
 
 ## Public Site Completions
 
