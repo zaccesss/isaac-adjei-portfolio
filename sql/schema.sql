@@ -246,6 +246,8 @@ create table activity_log (
   created_at timestamptz not null default now()
 );
 
+create index if not exists activity_log_created_at_idx on activity_log (created_at);
+
 create table habits (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz default now(),
