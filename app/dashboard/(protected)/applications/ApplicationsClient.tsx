@@ -12,12 +12,14 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp, BarChart2, Layers, Archive, ArchiveRestore } from "lucide-react"
+import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp, BarChart2, Layers, Archive, ArchiveRestore, CalendarDays } from "lucide-react"
 import ApplicationsKanban from "./ApplicationsKanban"
 import ApplicationsAnalytics from "./ApplicationsAnalytics"
 import LinearView from "./LinearView"
+import TimelineView from "./TimelineView"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import { APPLICATION_STATUSES, normaliseStatus, statusTextClass, computeFunnelCounts, isInPipeline } from "@/lib/application-status"
+import { ProgressBar } from "@/components/analytics"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -755,10 +757,10 @@ function ApplicationsFunnel({ apps }: { apps: Application[] }) {
   const { applied, assessment, interview, offer } = computeFunnelCounts(apps.map((a) => a.status))
 
   const stages = [
-    { label: "Applied", count: applied, color: "bg-blue-500" },
-    { label: "Assessment", count: assessment, color: "bg-violet-500" },
-    { label: "Interview", count: interview, color: "bg-amber-500" },
-    { label: "Offer", count: offer, color: "bg-green-500" },
+    { label: "Applied",    count: applied,    colorClassName: "bg-blue-500" },
+    { label: "Assessment", count: assessment, colorClassName: "bg-violet-500" },
+    { label: "Interview",  count: interview,  colorClassName: "bg-amber-500" },
+    { label: "Offer",      count: offer,      colorClassName: "bg-green-500" },
   ]
   const max = applied || 1
 
@@ -770,17 +772,13 @@ function ApplicationsFunnel({ apps }: { apps: Application[] }) {
       </div>
       <div className="flex flex-col gap-2">
         {stages.map((stage, i) => {
-          const pct = Math.round((stage.count / max) * 100)
           const prev = stages[i - 1]
           const convRate = prev ? (prev.count > 0 ? Math.round((stage.count / prev.count) * 100) : 0) : null
           return (
             <div key={stage.label} className="flex items-center gap-3">
               <span className="text-xs text-muted-foreground w-20 shrink-0">{stage.label}</span>
-              <div className="flex-1 bg-muted rounded-full h-1.5">
-                <div
-                  className={`${stage.color} h-1.5 rounded-full transition-all duration-500`}
-                  style={{ width: `${pct}%` }}
-                />
+              <div className="flex-1">
+                <ProgressBar value={stage.count} max={max} colorClassName={stage.colorClassName} />
               </div>
               <span className="text-xs font-semibold w-5 text-right tabular-nums">{stage.count}</span>
               <span className="text-xs text-muted-foreground w-10 text-right tabular-nums">
@@ -805,7 +803,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const [filterMyStatus, setFilterMyStatus] = useState("All")
   const [filterLocation, setFilterLocation] = useState("All")
   const [filterKeyword, setFilterKeyword] = useState("All")
-  const [view, setView] = useState<"table" | "kanban" | "analytics" | "linear">("table")
+  const [view, setView] = useState<"table" | "kanban" | "analytics" | "linear" | "timeline">("table")
   const [showArchived, setShowArchived] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const [editApp, setEditApp] = useState<Application | null>(null)
@@ -1078,6 +1076,14 @@ export default function ApplicationsClient({ applications: initial }: { applicat
             </button>
             <button
               type="button"
+              onClick={() => setView("timeline")}
+              title="Timeline"
+              className={`p-1.5 transition-colors ${view === "timeline" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <CalendarDays className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
               onClick={() => setView("analytics")}
               title="Analytics"
               className={`p-1.5 transition-colors ${view === "analytics" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
@@ -1255,6 +1261,11 @@ export default function ApplicationsClient({ applications: initial }: { applicat
 
       {/* Linear */}
       {view === "linear" && <LinearView />}
+
+      {/* Timeline */}
+      {view === "timeline" && (
+        <TimelineView apps={apps.filter((a) => appBelongsToTab(a, activeTab) && !a.archived)} />
+      )}
 
       {/* Table */}
       {view === "table" && <div className="flex-1 overflow-auto min-h-0 px-4 pb-4">
