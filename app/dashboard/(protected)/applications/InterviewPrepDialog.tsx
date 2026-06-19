@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Plus, Trash2, CheckSquare, Square, Save } from "lucide-react"
 import { updateInterviewPrep } from "../../actions"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 
 type Question = { id: string; text: string; done: boolean }
 
@@ -17,6 +18,9 @@ export type InterviewPrep = {
 }
 
 const EMPTY_PREP: InterviewPrep = { notes: "", questions: [], company_research: "" }
+
+const RESEARCH_LIMIT = 2000
+const NOTES_LIMIT = 3000
 
 function parsePrep(raw: unknown): InterviewPrep {
   if (!raw || typeof raw !== "object") return EMPTY_PREP
@@ -30,6 +34,56 @@ function parsePrep(raw: unknown): InterviewPrep {
       : [],
     company_research: typeof r.company_research === "string" ? r.company_research : "",
   }
+}
+
+function MarkdownField({
+  value,
+  onChange,
+  placeholder,
+  rows,
+  limit,
+}: {
+  value: string
+  onChange: (v: string) => void
+  placeholder: string
+  rows: number
+  limit: number
+}) {
+  const [editing, setEditing] = useState(false)
+  const remaining = limit - value.length
+  const nearLimit = remaining < limit * 0.1
+
+  if (editing) {
+    return (
+      <div className="flex flex-col gap-1">
+        <Textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value.slice(0, limit))}
+          rows={rows}
+          placeholder={placeholder}
+          className="text-sm resize-none"
+          autoFocus
+          onBlur={() => setEditing(false)}
+        />
+        <p className={`text-xs text-right ${nearLimit ? "text-amber-500" : "text-muted-foreground"}`}>
+          {remaining} / {limit}
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      onClick={() => setEditing(true)}
+      className="min-h-[72px] cursor-text rounded-md border border-input bg-background px-3 py-2 hover:border-ring transition-colors"
+    >
+      {value ? (
+        <MarkdownContent compact>{value}</MarkdownContent>
+      ) : (
+        <span className="text-sm text-muted-foreground">{placeholder}</span>
+      )}
+    </div>
+  )
 }
 
 export default function InterviewPrepDialog({
@@ -92,7 +146,7 @@ export default function InterviewPrepDialog({
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-base">
-            Interview Prep — {company}
+            Interview Prep: {company}
             <span className="text-muted-foreground font-normal text-sm ml-1.5">/ {role}</span>
           </DialogTitle>
         </DialogHeader>
@@ -101,12 +155,12 @@ export default function InterviewPrepDialog({
           {/* Company research */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Company research</label>
-            <Textarea
+            <MarkdownField
               value={prep.company_research}
-              onChange={(e) => setResearch(e.target.value)}
+              onChange={setResearch}
+              placeholder="Products, recent news, mission, values, competitors... (supports Markdown)"
               rows={3}
-              placeholder="Products, recent news, mission, values, competitors…"
-              className="text-sm resize-none"
+              limit={RESEARCH_LIMIT}
             />
           </div>
 
@@ -130,6 +184,7 @@ export default function InterviewPrepDialog({
                       onClick={() => toggleQuestion(q.id)}
                       className="mt-0.5 shrink-0 text-muted-foreground hover:text-foreground transition-colors"
                       aria-label={q.done ? "Mark incomplete" : "Mark done"}
+                      title={q.done ? "Mark incomplete" : "Mark done"}
                     >
                       {q.done
                         ? <CheckSquare className="h-4 w-4 text-green-500" />
@@ -143,6 +198,7 @@ export default function InterviewPrepDialog({
                       onClick={() => removeQuestion(q.id)}
                       className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
                       aria-label="Remove question"
+                      title="Remove question"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -156,7 +212,7 @@ export default function InterviewPrepDialog({
                 value={newQ}
                 onChange={(e) => setNewQ(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addQuestion() } }}
-                placeholder="Add a question or talking point…"
+                placeholder="Add a question or talking point..."
                 className="h-8 text-sm"
               />
               <Button type="button" variant="outline" size="sm" onClick={addQuestion} className="h-8 px-2 shrink-0">
@@ -168,12 +224,12 @@ export default function InterviewPrepDialog({
           {/* Notes */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Notes</label>
-            <Textarea
+            <MarkdownField
               value={prep.notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={setNotes}
+              placeholder="Interview notes, feedback, follow-ups, links... (supports Markdown)"
               rows={4}
-              placeholder="Interview notes, feedback, follow-ups…"
-              className="text-sm resize-none"
+              limit={NOTES_LIMIT}
             />
           </div>
         </div>

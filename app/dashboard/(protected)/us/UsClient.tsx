@@ -74,7 +74,7 @@ function EditableList({ items, onSave }: { items: string[]; onSave: (items: stri
         <div key={i} className="flex gap-2 items-start">
           <span className="text-foreground/30 shrink-0 mt-1">-</span>
           <Input value={item} onChange={(e) => update(i, e.target.value)} className="flex-1 h-7 text-sm" />
-          <button type="button" onClick={() => remove(i)} aria-label="Remove" className="p-1 text-muted-foreground hover:text-destructive shrink-0"><Trash2 className="h-3.5 w-3.5" /></button>
+          <button type="button" onClick={() => remove(i)} aria-label="Remove" title="Remove" className="p-1 text-muted-foreground hover:text-destructive shrink-0"><Trash2 className="h-3.5 w-3.5" /></button>
         </div>
       ))}
       <div className="flex gap-2">
@@ -109,7 +109,7 @@ function EditablePledgeList({ items, onSave }: { items: Pledge[]; onSave: (items
               ))}
             </div>
           </div>
-          <button type="button" onClick={() => remove(i)} aria-label="Remove" className="p-1 text-muted-foreground hover:text-destructive shrink-0 mt-1"><Trash2 className="h-3.5 w-3.5" /></button>
+          <button type="button" onClick={() => remove(i)} aria-label="Remove" title="Remove" className="p-1 text-muted-foreground hover:text-destructive shrink-0 mt-1"><Trash2 className="h-3.5 w-3.5" /></button>
         </div>
       ))}
       <div className="flex gap-2">
@@ -140,7 +140,7 @@ function EditableRoutine({ items, onSave }: { items: RoutineItem[]; onSave: (ite
         <div key={i} className="flex gap-2 items-center">
           <Input value={item.time} onChange={(e) => update(i, "time", e.target.value)} className="w-20 h-7 text-xs" />
           <Input value={item.activity} onChange={(e) => update(i, "activity", e.target.value)} className="flex-1 h-7 text-sm" />
-          <button type="button" onClick={() => remove(i)} aria-label="Remove" className="p-1 text-muted-foreground hover:text-destructive shrink-0"><Trash2 className="h-3 w-3" /></button>
+          <button type="button" onClick={() => remove(i)} aria-label="Remove" title="Remove" className="p-1 text-muted-foreground hover:text-destructive shrink-0"><Trash2 className="h-3 w-3" /></button>
         </div>
       ))}
       <div className="flex gap-2">

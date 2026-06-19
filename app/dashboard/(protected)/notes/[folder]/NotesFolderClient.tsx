@@ -254,7 +254,7 @@ export default function NotesFolderClient({
                 {draft.tags.map((t) => (
                   <span key={t} className="flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full">
                     #{t}
-                    <button type="button" onClick={() => setDraft((d) => ({ ...d, tags: d.tags.filter((x) => x !== t) }))} aria-label="Remove tag" className="text-muted-foreground hover:text-foreground"><X className="h-2.5 w-2.5" /></button>
+                    <button type="button" onClick={() => setDraft((d) => ({ ...d, tags: d.tags.filter((x) => x !== t) }))} aria-label="Remove tag" title="Remove tag" className="text-muted-foreground hover:text-foreground"><X className="h-2.5 w-2.5" /></button>
                   </span>
                 ))}
                 <label className="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer">
@@ -288,7 +288,7 @@ export default function NotesFolderClient({
                 <h2 className="font-semibold text-lg leading-snug">{selected.title}</h2>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button type="button" aria-label="Note options" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                    <button type="button" aria-label="Note options" title="Note options" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0">
                       <MoreVertical className="h-3.5 w-3.5" />
                     </button>
                   </DropdownMenuTrigger>

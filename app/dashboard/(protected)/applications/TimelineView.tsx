@@ -90,7 +90,7 @@ function TimelineEntry({ app }: { app: Application }) {
             ) : (
               <span className="font-medium text-sm truncate">{app.company}</span>
             )}
-            <span className="text-muted-foreground text-xs shrink-0">— {app.role}</span>
+            <span className="text-muted-foreground text-xs shrink-0">/ {app.role}</span>
           </div>
           <span className={`text-xs font-medium shrink-0 ${statusCls}`}>{status}</span>
         </div>

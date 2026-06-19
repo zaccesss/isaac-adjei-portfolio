@@ -113,8 +113,8 @@ function AssessmentRow({ a, onEdit, onDelete }: {
       <td className="py-2 pr-3 text-right text-xs text-muted-foreground">{weighted ?? "-"}</td>
       <td className="py-2 text-right">
         <div className="flex gap-1 justify-end">
-          <button type="button" onClick={() => onEdit(a)} aria-label="Edit assessment" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Edit2 className="h-3 w-3" /></button>
-          <button type="button" onClick={() => onDelete(a.id)} aria-label="Delete assessment" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+          <button type="button" onClick={() => onEdit(a)} aria-label="Edit assessment" title="Edit assessment" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><Edit2 className="h-3 w-3" /></button>
+          <button type="button" onClick={() => onDelete(a.id)} aria-label="Delete assessment" title="Delete assessment" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
         </div>
       </td>
     </tr>
@@ -292,7 +292,7 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
   return (
     <div className="flex flex-col gap-5 max-w-3xl">
       <div className="flex items-center gap-2">
-        <button type="button" onClick={onBack} aria-label="Back to modules" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><ChevronLeft className="h-4 w-4" /></button>
+        <button type="button" onClick={onBack} aria-label="Back to modules" title="Back to modules" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><ChevronLeft className="h-4 w-4" /></button>
         <div className="flex flex-col gap-0.5 min-w-0">
           {editingModule ? (
             // I show an inline edit row so renaming does not navigate away from the detail view
@@ -306,7 +306,7 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono text-xs text-muted-foreground">{mod.code}</span>
               <h2 className="font-semibold text-lg">{mod.name}</h2>
-              <button type="button" onClick={() => setEditingModule(true)} aria-label="Edit module" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></button>
+              <button type="button" onClick={() => setEditingModule(true)} aria-label="Edit module" title="Edit module" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></button>
             </div>
           )}
           <p className="text-xs text-muted-foreground">{mod.credits} credits</p>
@@ -639,7 +639,7 @@ export default function ModulesYearClient({
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 -rotate-90" />
               </button>
-              <button type="button" onClick={() => handleDeleteModule(mod.id)} aria-label="Delete module" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors shrink-0">
+              <button type="button" onClick={() => handleDeleteModule(mod.id)} aria-label="Delete module" title="Delete module" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors shrink-0">
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
             </div>
