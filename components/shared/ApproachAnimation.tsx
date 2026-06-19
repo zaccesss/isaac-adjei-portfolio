@@ -18,11 +18,15 @@ const LINES = [
   "thrive();         // Embrace growth",
   "succeed();        // Achieve the goal",
   'printf("Mission accomplished.\\n");  // Celebrate victory',
+  "// $ nohup hustle && disown impostor_syndrome",
 ]
 
 type Phase = "typing" | "holding" | "clearing" | "pausing"
 
 function tokenise(line: string): { text: string; cls: string }[] {
+  if (line.startsWith("// $")) {
+    return [{ text: line, cls: "text-primary font-semibold" }]
+  }
   if (line.startsWith("//")) {
     return [{ text: line, cls: "text-muted-foreground" }]
   }
@@ -148,7 +152,7 @@ export default function ApproachAnimation() {
 
   return (
     <div
-      className="rounded-xl border border-border/60 bg-muted/50 dark:bg-zinc-900/60 p-5 overflow-x-auto h-[180px] sm:h-[240px] overflow-y-hidden"
+      className="rounded-xl border border-border/60 bg-muted/50 dark:bg-zinc-900/60 p-5 overflow-x-auto h-[200px] sm:h-[260px] overflow-y-hidden"
       aria-label="My approach - a code philosophy"
     >
       <div className="font-mono text-xs leading-relaxed">

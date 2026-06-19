@@ -160,8 +160,8 @@ const sections: { icon: React.ElementType; heading: string; items: ColophonItem[
     heading: "Notable pages and features",
     items: [
       {
-        name: "/lab - interactive terminal",
-        detail: "An in-browser terminal built from scratch with a custom command parser. Type 'help' to see the full command list. Navigation commands open pages directly from the prompt. Content commands let you browse recent content without leaving the terminal: til shows the five most recent TIL entries, blog lists recent posts and respub lists research publications. Feed commands (blogfeed, tilfeed, newsletterfeed) open the respective RSS feeds in a new tab. The rss command lists all three feed URLs at once. Live commands fetch real-time data on demand: playing shows what is currently on Spotify (or the last track if nothing is playing), lastgame shows the last PS5 game detected and pushed shows the most recent GitHub push with a relative timestamp. On mobile the terminal is accessible via a floating button. Type man <command> for detailed help on any command.",
+        name: "/lab - interactive terminal, GitHub stats, live coding stats, Spotify visualiser and PCB viewer",
+        detail: "An in-browser terminal with 30+ commands spanning navigation, content, live stats and personality. Several commands animate theatrically line by line. The coding stats panel has a period selector, stat cards, daily trend line, 7x24 interactive heatmap, charts and hour-of-day bars. A Spotify visualiser shows radial bars pulsing outward from a circular album art thumbnail with a sine wave beneath, reacting live to energy and tempo from the audio features API. An interactive PCB viewer shows two panels - 3D render and copper layer views of a real audio amplifier board built in first year electronics - drag to orbit, scroll to zoom, preset angle buttons mirroring the Proteus 3D viewer.",
       },
       {
         name: "/blog - block-based post renderer",
