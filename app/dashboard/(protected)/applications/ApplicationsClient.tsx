@@ -12,11 +12,12 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp, BarChart2, Layers, Archive, ArchiveRestore, CalendarDays, ClipboardList } from "lucide-react"
+import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp, BarChart2, Layers, Archive, ArchiveRestore, CalendarDays, ClipboardList, DollarSign } from "lucide-react"
 import ApplicationsKanban from "./ApplicationsKanban"
 import ApplicationsAnalytics from "./ApplicationsAnalytics"
 import LinearView from "./LinearView"
 import TimelineView from "./TimelineView"
+import SalaryComparisonView from "./SalaryComparisonView"
 import InterviewPrepDialog, { type InterviewPrep } from "./InterviewPrepDialog"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import { APPLICATION_STATUSES, normaliseStatus, statusTextClass, computeFunnelCounts, isInPipeline, classifyFunnelStage } from "@/lib/application-status"
@@ -823,7 +824,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const [filterMyStatus, setFilterMyStatus] = useState("All")
   const [filterLocation, setFilterLocation] = useState("All")
   const [filterKeyword, setFilterKeyword] = useState("All")
-  const [view, setView] = useState<"table" | "kanban" | "analytics" | "linear" | "timeline">("table")
+  const [view, setView] = useState<"table" | "kanban" | "analytics" | "linear" | "timeline" | "salary">("table")
   const [showArchived, setShowArchived] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const [editApp, setEditApp] = useState<Application | null>(null)
@@ -1112,6 +1113,14 @@ export default function ApplicationsClient({ applications: initial }: { applicat
             </button>
             <button
               type="button"
+              onClick={() => setView("salary")}
+              title="Salary comparison"
+              className={`p-1.5 transition-colors ${view === "salary" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <DollarSign className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
               onClick={() => setView("analytics")}
               title="Analytics"
               className={`p-1.5 transition-colors ${view === "analytics" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
@@ -1293,6 +1302,11 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       {/* Timeline */}
       {view === "timeline" && (
         <TimelineView apps={apps.filter((a) => appBelongsToTab(a, activeTab) && !a.archived)} />
+      )}
+
+      {/* Salary comparison */}
+      {view === "salary" && (
+        <SalaryComparisonView apps={apps.filter((a) => appBelongsToTab(a, activeTab) && !a.archived)} />
       )}
 
       {/* Table */}
