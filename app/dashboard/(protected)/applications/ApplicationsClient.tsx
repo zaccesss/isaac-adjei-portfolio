@@ -17,6 +17,7 @@ import ApplicationsKanban from "./ApplicationsKanban"
 import ApplicationsAnalytics from "./ApplicationsAnalytics"
 import LinearView from "./LinearView"
 import MarkdownContent from "@/components/shared/MarkdownContent"
+import { APPLICATION_STATUSES, normaliseStatus, statusTextClass, computeFunnelCounts, isInPipeline } from "@/lib/application-status"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -46,77 +47,6 @@ type Application = {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const MY_STATUSES = [
-  "Not Applied",
-  "Interested",
-  "Application Submitted",
-  "Online Assessment",
-  "Case Study",
-  "HireVue",
-  "Telephone Interview",
-  "Video Interview",
-  "Face-to-face Interview",
-  "Assessment Centre",
-  "Final Round",
-  "Offer Received",
-  "Negotiating",
-  "Accepted",
-  "Rejected",
-  "Ghosted",
-  "Withdrawn",
-  "Not Interested",
-] as const
-
-// I normalise legacy DB values so the UI always works with the current status labels regardless
-// of when the row was written - the job scraper and early manual entries used different keys
-function normaliseStatus(raw: string): string {
-  const map: Record<string, string> = {
-    scraped: "Not Applied",
-    applied: "Application Submitted",
-    oa: "Online Assessment",
-    case_study: "Case Study",
-    phone_screen: "Telephone Interview",
-    face_to_face: "Face-to-face Interview",
-    assessment_centre: "Assessment Centre",
-    offer: "Offer Received",
-    not_interested: "Not Interested",
-    // Normalise old labels that match directly
-    interested: "Interested",
-    hirevue: "HireVue",
-    rejected: "Rejected",
-    video_interview: "Video Interview",
-    final_round: "Final Round",
-    negotiating: "Negotiating",
-    accepted: "Accepted",
-    ghosted: "Ghosted",
-    withdrawn: "Withdrawn",
-  }
-  return map[raw] ?? raw
-}
-
-function statusTextClass(status: string): string {
-  const s = normaliseStatus(status)
-  if (s === "Not Applied")            return "text-red-500 dark:text-red-400"
-  if (s === "Interested")             return "text-yellow-500 dark:text-yellow-400"
-  if (s === "Application Submitted")  return "text-blue-600 dark:text-blue-400"
-  if (s === "Online Assessment")      return "text-violet-600 dark:text-violet-400"
-  if (s === "Case Study")             return "text-cyan-600 dark:text-cyan-400"
-  if (s === "HireVue")                return "text-fuchsia-600 dark:text-fuchsia-400"
-  if (s === "Telephone Interview")    return "text-amber-500 dark:text-amber-400"
-  if (s === "Video Interview")        return "text-lime-600 dark:text-lime-400"
-  if (s === "Face-to-face Interview") return "text-orange-500 dark:text-orange-400"
-  if (s === "Assessment Centre")      return "text-pink-600 dark:text-pink-400"
-  if (s === "Final Round")            return "text-rose-600 dark:text-rose-400"
-  if (s === "Offer Received")         return "text-green-600 dark:text-green-400"
-  if (s === "Negotiating")            return "text-teal-600 dark:text-teal-400"
-  if (s === "Accepted")               return "text-emerald-600 dark:text-emerald-400 font-semibold"
-  if (s === "Rejected")               return "text-red-400 dark:text-red-500 line-through"
-  if (s === "Ghosted")                return "text-slate-400 dark:text-slate-500 line-through opacity-60"
-  if (s === "Withdrawn")              return "text-orange-400 dark:text-orange-500 italic"
-  if (s === "Not Interested")         return "text-zinc-400 dark:text-zinc-500"
-  return ""
-}
 
 const CATEGORIES = [
   "FAANG+",
@@ -330,7 +260,7 @@ function AppForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {MY_STATUSES.map((s) => (
+              {APPLICATION_STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>
                   {s}
                 </SelectItem>
@@ -584,7 +514,7 @@ function AppRow({
           aria-label="My Status"
           className={`bg-transparent border-none outline-none cursor-pointer text-xs font-medium w-full ${statusCls}`}
         >
-          {MY_STATUSES.map((s) => (
+          {APPLICATION_STATUSES.map((s) => (
             <option key={s} value={s} className="text-foreground bg-background">
               {s}
             </option>
@@ -788,19 +718,7 @@ function CategoryGroup({
 // ─── Funnel chart ─────────────────────────────────────────────────────────────
 
 function ApplicationsFunnel({ apps }: { apps: Application[] }) {
-  const statuses = apps.map((a) => normaliseStatus(a.status))
-
-  const applied = statuses.filter(
-    (s) => !["Not Applied", "Interested", "Not Interested"].includes(s)
-  ).length
-  const assessment = statuses.filter((s) =>
-    ["Online Assessment", "Case Study", "HireVue", "Telephone Interview", "Video Interview",
-      "Face-to-face Interview", "Assessment Centre", "Offer Received"].includes(s)
-  ).length
-  const interview = statuses.filter((s) =>
-    ["Telephone Interview", "Video Interview", "Face-to-face Interview", "Assessment Centre", "Offer Received"].includes(s)
-  ).length
-  const offer = statuses.filter((s) => s === "Offer Received").length
+  const { applied, assessment, interview, offer } = computeFunnelCounts(apps.map((a) => a.status))
 
   const stages = [
     { label: "Applied", count: applied, color: "bg-blue-500" },
@@ -919,9 +837,8 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   })
 
   // Stats (based on filtered)
-  const activeStatuses = ["Not Applied", "Interested", "Application Submitted", "Online Assessment", "Case Study", "HireVue", "Telephone Interview", "Video Interview", "Face-to-face Interview", "Assessment Centre", "Final Round", "Offer Received", "Negotiating"]
   const statsTotal = filtered.length
-  const statsPipeline = filtered.filter((a) => activeStatuses.includes(normaliseStatus(a.status))).length
+  const statsPipeline = filtered.filter((a) => isInPipeline(a.status)).length
   const statsOffers = filtered.filter((a) => ["Offer Received", "Negotiating", "Accepted"].includes(normaliseStatus(a.status))).length
   const statsRejected = filtered.filter((a) => ["Rejected", "Ghosted", "Withdrawn"].includes(normaliseStatus(a.status))).length
 
@@ -1203,7 +1120,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="All">All Statuses</SelectItem>
-            {MY_STATUSES.map((s) => (
+            {APPLICATION_STATUSES.map((s) => (
               <SelectItem key={s} value={s}>
                 {s}
               </SelectItem>

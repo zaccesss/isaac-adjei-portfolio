@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { updateApplication } from "../../actions"
 import { ExternalLink } from "lucide-react"
+import { normaliseStatus, isTrackedApplication, KANBAN_COLUMNS as COLUMNS } from "@/lib/application-status"
 
 type Application = {
   id: string
@@ -14,64 +15,6 @@ type Application = {
   location: string | null
   starred: boolean
 }
-
-// Kanban columns - each maps to a display status and a target status to write on drop
-const COLUMNS: { id: string; label: string; targetStatus: string; statuses: string[] }[] = [
-  {
-    id: "wishlist",
-    label: "Wishlist",
-    targetStatus: "Interested",
-    statuses: ["Not Applied", "Interested"],
-  },
-  {
-    id: "applied",
-    label: "Applied",
-    targetStatus: "Application Submitted",
-    statuses: ["Application Submitted"],
-  },
-  {
-    id: "assessment",
-    label: "Assessment",
-    targetStatus: "Online Assessment",
-    statuses: ["Online Assessment", "HireVue", "Case Study"],
-  },
-  {
-    id: "interview",
-    label: "Interview",
-    targetStatus: "Video Interview",
-    statuses: ["Telephone Interview", "Video Interview", "Face-to-face Interview", "Assessment Centre"],
-  },
-  {
-    id: "final_round",
-    label: "Final Round",
-    targetStatus: "Final Round",
-    statuses: ["Final Round"],
-  },
-  {
-    id: "offer",
-    label: "Offer",
-    targetStatus: "Offer Received",
-    statuses: ["Offer Received"],
-  },
-  {
-    id: "negotiating",
-    label: "Negotiating",
-    targetStatus: "Negotiating",
-    statuses: ["Negotiating"],
-  },
-  {
-    id: "accepted",
-    label: "Accepted",
-    targetStatus: "Accepted",
-    statuses: ["Accepted"],
-  },
-  {
-    id: "closed",
-    label: "Closed",
-    targetStatus: "Rejected",
-    statuses: ["Rejected", "Ghosted", "Withdrawn", "Not Interested"],
-  },
-]
 
 const COLUMN_COLOURS: Record<string, string> = {
   wishlist:    "border-t-yellow-400",   // Interested = yellow
@@ -85,34 +28,12 @@ const COLUMN_COLOURS: Record<string, string> = {
   closed:      "border-t-slate-400",    // Rejected/Ghosted/Withdrawn = slate
 }
 
-function normaliseStatus(raw: string): string {
-  const map: Record<string, string> = {
-    "not_applied": "Not Applied",
-    "interested": "Interested",
-    "applied": "Application Submitted",
-    "application_submitted": "Application Submitted",
-    "oa": "Online Assessment",
-    "online_assessment": "Online Assessment",
-    "hirevue": "HireVue",
-    "case_study": "Case Study",
-    "telephone_interview": "Telephone Interview",
-    "video_interview": "Video Interview",
-    "face_to_face_interview": "Face-to-face Interview",
-    "assessment_centre": "Assessment Centre",
-    "offer_received": "Offer Received",
-    "rejected": "Rejected",
-    "not_interested": "Not Interested",
-    "final_round": "Final Round",
-    "negotiating": "Negotiating",
-    "accepted": "Accepted",
-    "ghosted": "Ghosted",
-    "withdrawn": "Withdrawn",
-  }
-  return map[raw.toLowerCase().replace(/ /g, "_")] ?? raw
-}
-
 export default function ApplicationsKanban({ applications: initial }: { applications: Application[] }) {
-  const [apps, setApps] = useState<Application[]>(initial.map((a) => ({ ...a, status: normaliseStatus(a.status) })))
+  // Filter on the raw (pre-normalised) status first, so the auto-scraped Jobs tab and untouched
+  // scraped rows never reach the board - matching pre-normalised data is the actual fix here.
+  const [apps, setApps] = useState<Application[]>(
+    initial.filter(isTrackedApplication).map((a) => ({ ...a, status: normaliseStatus(a.status) }))
+  )
   const [dragging, setDragging] = useState<string | null>(null)
   const [over, setOver] = useState<string | null>(null)
   const [, startTransition] = useTransition()
@@ -134,13 +55,10 @@ export default function ApplicationsKanban({ applications: initial }: { applicat
     setOver(null)
   }
 
-  // I filter out scraped/job tab entries - Kanban only makes sense for manually tracked roles
-  const tracked = apps.filter((a) => a.type !== "Full-time Job" && a.status !== "scraped")
-
   return (
     <div className="flex gap-3 overflow-x-auto pb-2">
       {COLUMNS.map((col) => {
-        const cards = tracked.filter((a) => col.statuses.includes(a.status))
+        const cards = apps.filter((a) => (col.statuses as string[]).includes(a.status))
         const isOver = over === col.id
         return (
           <div
