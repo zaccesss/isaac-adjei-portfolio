@@ -1558,6 +1558,186 @@ export async function deleteBodyMetric(id: string) {
   void logActivity("body_metric.delete", id)
 }
 
+// ─── University ──────────────────────────────────────────────
+
+export async function createUniModule(data: {
+  code: string; name: string; credits: number; year: number
+  semester: number; target_grade?: string; color?: string; order_index?: number
+}) {
+  if (!validStr(data.code) || !validStr(data.name)) return INVALID
+  if (!validNum(data.credits, 1, 240) || !validNum(data.year, 1, 10) || !validNum(data.semester, 1, 4)) return INVALID
+  const { error } = await supabase.from("uni_modules").insert({
+    code: data.code.trim(), name: data.name.trim(),
+    credits: data.credits, year: data.year, semester: data.semester,
+    target_grade: data.target_grade?.trim() || null,
+    color: data.color ?? "#6366f1", order_index: data.order_index ?? 0,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.module.create", data.code)
+}
+
+export async function deleteUniModule(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_modules", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.module.delete", id)
+}
+
+export async function updateUniModule(id: string, data: Partial<{
+  code: string; name: string; credits: number; target_grade: string | null
+  color: string; active: boolean; order_index: number
+}>) {
+  if (!validId(id)) return INVALID
+  const { error } = await supabase.from("uni_modules").update(data).eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.module.update", id)
+}
+
+export async function createUniDeadline(data: {
+  module_id?: string; title: string; type: string
+  due_date: string; weight_pct?: number; notes?: string; semester?: number
+}) {
+  if (!validStr(data.title) || !validStr(data.type) || !validStr(data.due_date)) return INVALID
+  if (!optStr(data.notes) || !optNum(data.weight_pct, 0, 100)) return INVALID
+  const { error } = await supabase.from("uni_deadlines").insert({
+    module_id: data.module_id || null, title: data.title.trim(), type: data.type,
+    due_date: data.due_date, weight_pct: data.weight_pct ?? null,
+    notes: data.notes?.trim() || null, semester: data.semester ?? 1, status: "not_started",
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.deadline.create", data.title)
+}
+
+export async function updateUniDeadline(id: string, data: Partial<{
+  status: string; submitted_at: string | null; grade_received: string | null; notes: string | null
+  title: string; due_date: string; weight_pct: number | null
+}>) {
+  if (!validId(id)) return INVALID
+  const { error } = await supabase.from("uni_deadlines").update(data).eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.deadline.update", id)
+}
+
+export async function deleteUniDeadline(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_deadlines", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.deadline.delete", id)
+}
+
+export async function createUniSubmission(data: {
+  deadline_id?: string; module_id?: string; title: string
+  file_name?: string; file_url?: string; notes?: string
+}) {
+  if (!validStr(data.title)) return INVALID
+  if (!optStr(data.file_name) || !optStr(data.file_url) || !optStr(data.notes)) return INVALID
+  const { error } = await supabase.from("uni_submissions").insert({
+    deadline_id: data.deadline_id || null, module_id: data.module_id || null,
+    title: data.title.trim(), file_name: data.file_name || null,
+    file_url: data.file_url || null, notes: data.notes?.trim() || null,
+    submitted_at: new Date().toISOString(),
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.submission.create", data.title)
+}
+
+export async function deleteUniSubmission(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_submissions", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.submission.delete", id)
+}
+
+export async function createUniNote(data: {
+  module_id?: string; title: string; content?: string; type?: string; tags?: string[]
+}) {
+  if (!validStr(data.title)) return INVALID
+  if (!optStr(data.content, MAX_NOTE_TEXT) || !optStr(data.type)) return INVALID
+  const { error } = await supabase.from("uni_notes").insert({
+    module_id: data.module_id || null, title: data.title.trim(),
+    content: data.content?.trim() || "", type: data.type ?? "lecture",
+    tags: data.tags ?? [], pinned: false,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.note.create", data.title)
+}
+
+export async function updateUniNote(id: string, data: Partial<{
+  title: string; content: string; module_id: string | null; type: string; tags: string[]; pinned: boolean
+}>) {
+  if (!validId(id)) return INVALID
+  const { error } = await supabase.from("uni_notes").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.note.update", id)
+}
+
+export async function deleteUniNote(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_notes", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.note.delete", id)
+}
+
+export async function createUniResource(data: {
+  module_id?: string; title: string; url?: string; type?: string; notes?: string; semester?: number
+}) {
+  if (!validStr(data.title)) return INVALID
+  if (!optStr(data.url) || !optStr(data.notes) || !optStr(data.type)) return INVALID
+  const { error } = await supabase.from("uni_resources").insert({
+    module_id: data.module_id || null, title: data.title.trim(),
+    url: data.url?.trim() || null, type: data.type ?? "link",
+    notes: data.notes?.trim() || null, semester: data.semester ?? 1,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.resource.create", data.title)
+}
+
+export async function deleteUniResource(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_resources", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.resource.delete", id)
+}
+
+export async function createLibraryBook(data: {
+  title: string; author?: string; isbn?: string; module_id?: string
+  borrowed_at: string; due_date: string; notes?: string
+}) {
+  if (!validStr(data.title) || !validStr(data.borrowed_at) || !validStr(data.due_date)) return INVALID
+  if (!optStr(data.author) || !optStr(data.isbn) || !optStr(data.notes)) return INVALID
+  const { error } = await supabase.from("uni_library_books").insert({
+    title: data.title.trim(), author: data.author?.trim() || null,
+    isbn: data.isbn?.trim() || null, module_id: data.module_id || null,
+    borrowed_at: data.borrowed_at, due_date: data.due_date,
+    notes: data.notes?.trim() || null,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.library.create", data.title)
+}
+
+export async function returnLibraryBook(id: string) {
+  if (!validId(id)) return INVALID
+  await supabase.from("uni_library_books").update({ returned_at: new Date().toISOString().split("T")[0] }).eq("id", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.library.return", id)
+}
+
+export async function deleteLibraryBook(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_library_books", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.library.delete", id)
+}
+
 // ─── Faith ───────────────────────────────────────────────────
 
 export async function createFaithEntry(data: {
