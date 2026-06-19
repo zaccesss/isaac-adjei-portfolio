@@ -28,6 +28,20 @@ type ChangeEntry = {
 // I list releases newest-first.
 const releases: ChangeEntry[] = [
   {
+    version: "v2.10.0",
+    date: "2026-06-19",
+    added: [
+      "/lab: WakaTime coding dashboard - period selector (24h/7d/30d/90d/1y/all), stat cards, daily trend line chart, 7x24 interactive coding heatmap, language and project progress bars, language and editor pie charts, weekday and hour-of-day bar charts, all with hover tooltips",
+      "/lab: 20+ new terminal commands including stats, streak, today, languages, vscode, os (live WakaTime data), posts (most-read blog and TIL), grade, uptime, now, mottos, hire, cv, decrypt, matrix, make",
+      "/lab: theatrical command animations - hack, coffee, decrypt, matrix, make, sudo and zac now play out line by line with real delays",
+      "/lab: clickable link line type in the terminal - URLs render as primary-coloured anchor tags",
+      "/lab: TypingMotto component - types out bash-style commands character by character, pauses then loops; used under the GitHub stats panel and the coding dashboard",
+      "/lab: Spotify visualiser - radial bars pulsing outward from a circular album art thumbnail, sine wave flowing beneath, blurred album art as card background; reacts live to energy and tempo from the audio features API",
+      "/lab: interactive PCB viewer - two panels (3D view and copper layers) each showing front and back faces of the audio amplifier board; drag to orbit on X and Y axes, scroll to zoom, preset angle buttons (iso, top, front, right, left, flip, bottom); built from real Proteus renders",
+      "/about: approach code animation now ends with a highlighted primary-blue motto line - nohup hustle && disown impostor_syndrome",
+    ],
+  },
+  {
     version: "v2.9.0",
     date: "2026-06-18",
     added: [
