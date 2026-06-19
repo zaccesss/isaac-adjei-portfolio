@@ -1,13 +1,13 @@
 # I fetch the latest WakaTime coding stats and upsert them into the wakatime_daily
 # Supabase table so the dashboard coding page always reflects up-to-date data.
-# Runs nightly at 23:30 UTC and can be triggered manually from the Settings dashboard page.
+# Runs nightly at 23:00 UTC and can be triggered manually from the Settings dashboard page.
 
 name: WakaTime Sync
 
 on:
   schedule:
-    # I run at 23:30 UTC daily so the previous day's data is fully settled before fetch.
-    - cron: "30 23 * * *"
+    # I run at 23:00 UTC daily so the previous day's data is fully settled before fetch.
+    - cron: "0 23 * * *"
   workflow_dispatch:
 
 concurrency:
