@@ -244,6 +244,34 @@ export default function WakatimeStats() {
     colour: COLOURS[i % COLOURS.length],
   }))
 
+  const projPie = (stats?.projects ?? []).slice(0, 6).map((p, i) => ({
+    name: p.name,
+    value: +(p.total_seconds / 3600).toFixed(1),
+    colour: COLOURS[i % COLOURS.length],
+  }))
+
+  // weekdayData is already Mon-Sun; slice 0-4 = weekdays, 5-6 = weekends
+  const weekVsWeekendPie = stats
+    ? [
+        {
+          name: "Weekdays",
+          value: +weekdayData.slice(0, 5).reduce((a, d) => a + d.hours, 0).toFixed(1),
+          colour: COLOURS[0],
+        },
+        {
+          name: "Weekends",
+          value: +weekdayData.slice(5).reduce((a, d) => a + d.hours, 0).toFixed(1),
+          colour: COLOURS[3],
+        },
+      ]
+    : []
+
+  const editorBarData = (stats?.editors ?? []).slice(0, 6).map((e, i) => ({
+    name: e.name,
+    hours: +(e.total_seconds / 3600).toFixed(1),
+    colour: COLOURS[i % COLOURS.length],
+  }))
+
   return (
     <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-5 space-y-6">
       {/* Header */}
@@ -390,41 +418,31 @@ export default function WakatimeStats() {
             </div>
           )}
 
-          {/* Projects */}
+          {/* Projects: progress bars + pie */}
           {stats.projects.length > 0 && (
             <div className="space-y-3">
               <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">projects</p>
-              <ProgressBars items={stats.projects} total={projTotal} />
-            </div>
-          )}
-
-          {/* Editors + day of week */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {editorPie.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">editors</p>
-                <ResponsiveContainer width="100%" height={160}>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                <ProgressBars items={stats.projects} total={projTotal} />
+                <ResponsiveContainer width="100%" height={180}>
                   <PieChart>
                     <Pie
-                      data={editorPie}
+                      data={projPie}
                       dataKey="value"
                       nameKey="name"
                       cx="40%"
                       cy="50%"
-                      innerRadius={38}
-                      outerRadius={60}
+                      innerRadius={45}
+                      outerRadius={72}
                       paddingAngle={2}
                     >
-                      {editorPie.map((entry, i) => <Cell key={i} fill={entry.colour} />)}
+                      {projPie.map((entry, i) => <Cell key={i} fill={entry.colour} />)}
                     </Pie>
-                    <Tooltip
-                      contentStyle={TOOLTIP_STYLE}
-                      formatter={(v) => [`${v}h`, ""]}
-                    />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v}h`, ""]} />
                     <Legend
                       iconType="circle"
                       iconSize={7}
-                      wrapperStyle={{ fontSize: 10, paddingLeft: 8 }}
+                      wrapperStyle={{ fontSize: 10, paddingLeft: 12 }}
                       layout="vertical"
                       align="right"
                       verticalAlign="middle"
@@ -432,20 +450,69 @@ export default function WakatimeStats() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-            )}
+            </div>
+          )}
 
-            {weekdayData.some((d) => d.hours > 0) && (
-              <div className="space-y-2">
-                <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">by day of week</p>
+          {/* Editors: donut + horizontal bar chart */}
+          {editorPie.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">editors</p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie
+                      data={editorPie}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="40%"
+                      cy="50%"
+                      innerRadius={45}
+                      outerRadius={72}
+                      paddingAngle={2}
+                    >
+                      {editorPie.map((entry, i) => <Cell key={i} fill={entry.colour} />)}
+                    </Pie>
+                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v}h`, ""]} />
+                    <Legend
+                      iconType="circle"
+                      iconSize={7}
+                      wrapperStyle={{ fontSize: 10, paddingLeft: 12 }}
+                      layout="vertical"
+                      align="right"
+                      verticalAlign="middle"
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart
+                    data={editorBarData}
+                    layout="vertical"
+                    margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} width={72} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v}h`, ""]} />
+                    <Bar dataKey="hours" radius={[0, 3, 3, 0]}>
+                      {editorBarData.map((entry, i) => <Cell key={i} fill={entry.colour} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Day of week: bar chart + weekday vs weekend pie */}
+          {weekdayData.some((d) => d.hours > 0) && (
+            <div className="space-y-3">
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">by day of week</p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
                 <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={weekdayData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                     <XAxis dataKey="day" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} />
                     <YAxis tick={{ fontSize: 9 }} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <Tooltip
-                      contentStyle={TOOLTIP_STYLE}
-                      formatter={(v) => [`${v}h`, "Coding"]}
-                    />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v}h`, "Coding"]} />
                     <Bar dataKey="hours" radius={[3, 3, 0, 0]}>
                       {weekdayData.map((entry, i) => (
                         <Cell key={i} fill={entry.day === "Sat" || entry.day === "Sun" ? COLOURS[3] : COLOURS[0]} />
@@ -453,9 +520,34 @@ export default function WakatimeStats() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                <ResponsiveContainer width="100%" height={160}>
+                  <PieChart>
+                    <Pie
+                      data={weekVsWeekendPie}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="40%"
+                      cy="50%"
+                      innerRadius={38}
+                      outerRadius={60}
+                      paddingAngle={3}
+                    >
+                      {weekVsWeekendPie.map((entry, i) => <Cell key={i} fill={entry.colour} />)}
+                    </Pie>
+                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v}h`, ""]} />
+                    <Legend
+                      iconType="circle"
+                      iconSize={7}
+                      wrapperStyle={{ fontSize: 10, paddingLeft: 12 }}
+                      layout="vertical"
+                      align="right"
+                      verticalAlign="middle"
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Hour of day bar */}
           {hourData.some((d) => d.hours > 0) && (
