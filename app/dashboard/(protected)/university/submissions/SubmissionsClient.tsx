@@ -131,7 +131,7 @@ export default function SubmissionsClient({ submissions, modules, deadlines }: {
                 </a>
               )}
               <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity shrink-0"
-                onClick={() => startTransition(() => deleteUniSubmission(s.id))} disabled={isPending}>
+                onClick={() => startTransition(async () => { await deleteUniSubmission(s.id) })} disabled={isPending}>
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>

@@ -97,7 +97,7 @@ export default function StudyClient({ sessions, today }: { sessions: Session[]; 
   }
 
   function handleDelete(id: string) {
-    startTransition(() => deleteStudySession(id))
+    startTransition(async () => { await deleteStudySession(id) })
   }
 
   const subjects = [...new Set(sessions.map((s) => s.subject))].sort()
@@ -278,7 +278,7 @@ export default function StudyClient({ sessions, today }: { sessions: Session[]; 
                   formatter={(v) => [fmtMinutes(Number(v)), "studied"]}
                   labelFormatter={(l) => bySubject.find((b) => b.subject === l)?.fullSubject ?? l}
                 />
-                <Bar dataKey="minutes" radius={[0, 3, 3, 0]} layout="vertical">
+                <Bar dataKey="minutes" radius={[0, 3, 3, 0]}>
                   {bySubject.slice(0, 6).map((_, i) => (
                     <Cell key={i} fill={colours[i % colours.length]} fillOpacity={0.8} />
                   ))}

@@ -73,7 +73,7 @@ export default function BodyMetricsClient({ metrics }: { metrics: Metric[] }) {
   }
 
   function handleDelete(id: string) {
-    startTransition(() => deleteBodyMetric(id))
+    startTransition(async () => { await deleteBodyMetric(id) })
   }
 
   const allMetricTypes = [...new Set(metrics.map((m) => m.metric))]

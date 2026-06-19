@@ -111,7 +111,7 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
   }
 
   function handleDelete(id: string) {
-    startTransition(() => deleteFaithEntry(id))
+    startTransition(async () => { await deleteFaithEntry(id) })
   }
 
   const todayEntries = entries.filter((e) => e.date === today)

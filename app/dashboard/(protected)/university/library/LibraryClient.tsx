@@ -122,11 +122,11 @@ export default function LibraryClient({ books, modules }: { books: Book[]; modul
                 </div>
                 <div className="flex gap-1 shrink-0">
                   {!b.returned_at && (
-                    <Button size="sm" variant="outline" className="h-7 text-xs gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => startTransition(() => returnLibraryBook(b.id))} disabled={isPending}>
+                    <Button size="sm" variant="outline" className="h-7 text-xs gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => startTransition(async () => { await returnLibraryBook(b.id) })} disabled={isPending}>
                       <Check className="h-3 w-3" />Return
                     </Button>
                   )}
-                  <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity" onClick={() => startTransition(() => deleteLibraryBook(b.id))} disabled={isPending}>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity" onClick={() => startTransition(async () => { await deleteLibraryBook(b.id) })} disabled={isPending}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>

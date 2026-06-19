@@ -54,7 +54,7 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
   }
 
   function togglePin(n: UniNote) {
-    startTransition(() => updateUniNote(n.id, { pinned: !n.pinned }))
+    startTransition(async () => { await updateUniNote(n.id, { pinned: !n.pinned }) })
   }
 
   const moduleIds = [...new Set(notes.filter((n) => n.uni_modules).map((n) => n.uni_modules!.code))]
@@ -145,7 +145,7 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={(e) => e.stopPropagation()}>
                   <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => togglePin(n)} disabled={isPending}><Pin className="h-3 w-3" /></Button>
                   <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEdit(n)}><Pencil className="h-3 w-3" /></Button>
-                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => startTransition(() => deleteUniNote(n.id))} disabled={isPending}><Trash2 className="h-3 w-3" /></Button>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => startTransition(async () => { await deleteUniNote(n.id) })} disabled={isPending}><Trash2 className="h-3 w-3" /></Button>
                 </div>
               </div>
               {n.content && <p className="text-xs text-muted-foreground line-clamp-3 whitespace-pre-wrap">{n.content}</p>}
