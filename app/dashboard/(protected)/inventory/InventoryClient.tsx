@@ -22,7 +22,7 @@ type Item = {
 const toSlug = (s: string) => s.toLowerCase().replace(/\s+/g, "-")
 
 // I map known category names to icons so the overview cards are visually distinct
-const CATEGORY_ICONS: Record<string, React.ElementType> = {
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "Tech and Devices": Cpu,
   "Engineering and Components": Cpu,
   "Health and Fitness Equipment": Dumbbell,
