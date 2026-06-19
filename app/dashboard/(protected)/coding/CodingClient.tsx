@@ -11,7 +11,7 @@ import {
 } from "recharts"
 import type { WakatimeDayRow, GitHubDay, GitHubContribTotals } from "@/app/dashboard/actions"
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -81,7 +81,7 @@ function buildGHGrid(days: GitHubDay[]): GHCell[][] {
   const byDate = new Map(days.map((d) => [d.date, d.count]))
   const today = new Date()
   const startOfLastWeek = new Date(today)
-  startOfLastWeek.setDate(today.getDate() - today.getDay() + 7 - 52 * 7)
+  startOfLastWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) + 7 - 52 * 7)
   startOfLastWeek.setHours(0, 0, 0, 0)
   const weeks: GHCell[][] = []
   const cursor = new Date(startOfLastWeek)
@@ -110,7 +110,7 @@ function buildGrid(rows: WakatimeDayRow[]): GridCell[][] {
   const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
   const today = new Date()
   const startOfLastWeek = new Date(today)
-  startOfLastWeek.setDate(today.getDate() - today.getDay() + 7 - 52 * 7)
+  startOfLastWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) + 7 - 52 * 7)
   startOfLastWeek.setHours(0, 0, 0, 0)
 
   const weeks: GridCell[][] = []
