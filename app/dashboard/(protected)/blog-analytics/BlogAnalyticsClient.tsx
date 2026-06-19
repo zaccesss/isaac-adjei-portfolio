@@ -1,17 +1,69 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { BookOpen } from "lucide-react"
-import type { BlogReadFunnelRow } from "@/app/dashboard/actions"
-import { StatCard, DEFAULT_CHART_COLOURS } from "@/components/analytics"
+import type { BlogReadFunnelRow, PostsHeatmapCell } from "@/app/dashboard/actions"
+import {
+  StatCard,
+  DEFAULT_CHART_COLOURS,
+  BarChart,
+  PieChart,
+} from "@/components/analytics"
 
 type SortKey = keyof BlogReadFunnelRow
 type SortDir = "asc" | "desc"
 
-export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[] }) {
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+const HOURS = Array.from({ length: 24 }, (_, i) => `${i}`)
+
+const FUNNEL_COLOURS = [
+  DEFAULT_CHART_COLOURS[1],
+  DEFAULT_CHART_COLOURS[2],
+  DEFAULT_CHART_COLOURS[4],
+  DEFAULT_CHART_COLOURS[0],
+]
+
+const INTENSITY_CLASS = [
+  "bg-muted",
+  "bg-primary/20",
+  "bg-primary/45",
+  "bg-primary/70",
+  "bg-primary",
+]
+
+function intensityIndex(count: number, max: number) {
+  if (max === 0 || count === 0) return 0
+  const ratio = count / max
+  if (ratio < 0.15) return 1
+  if (ratio < 0.35) return 2
+  if (ratio < 0.65) return 3
+  return 4
+}
+
+function funnelWidth(count: number, base: number) {
+  if (base === 0) return "0%"
+  return `${Math.round((count / base) * 100)}%`
+}
+
+function fmt(n: number) {
+  const h = Math.floor(n / 3600)
+  const m = Math.floor((n % 3600) / 60)
+  if (h > 0) return `${h}h ${m}m`
+  return `${m}m`
+}
+
+export default function BlogAnalyticsClient({
+  rows,
+  heatmap,
+}: {
+  rows: BlogReadFunnelRow[]
+  heatmap: PostsHeatmapCell[]
+}) {
   const [search, setSearch] = useState("")
+  const [typeFilter, setTypeFilter] = useState<"all" | "blog" | "til">("all")
   const [sortKey, setSortKey] = useState<SortKey>("reached_25")
   const [sortDir, setSortDir] = useState<SortDir>("desc")
+  const [hoveredCell, setHoveredCell] = useState<{ day: number; hour: number } | null>(null)
 
   const totalPosts = rows.length
   const totalReads = rows.reduce((acc, r) => acc + r.reached_25, 0)
@@ -21,13 +73,66 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
       : Math.round(
           (rows.reduce((acc, r) => acc + (r.completion_rate ?? 0), 0) / rows.length) * 100,
         )
+  const blogCount = rows.filter((r) => r.post_type === "blog").length
+  const tilCount = rows.filter((r) => r.post_type === "til").length
+
+  // 7 (Mon-Sun) × 24 (hours) matrix of read event counts
+  const weekdayHourMatrix = useMemo(() => {
+    const matrix: number[][] = Array.from({ length: 7 }, () => new Array(24).fill(0))
+    for (const cell of heatmap) {
+      // PostgreSQL DOW: 0=Sun,1=Mon..6=Sat → convert to Mon-first index
+      const idx = cell.dow === 0 ? 6 : cell.dow - 1
+      matrix[idx][cell.hour] += cell.count
+    }
+    return matrix
+  }, [heatmap])
+
+  const weekdayHourMax = useMemo(
+    () => Math.max(0, ...weekdayHourMatrix.flat()),
+    [weekdayHourMatrix],
+  )
+
+  const hasHeatmapData = weekdayHourMax > 0
+
+  const funnelChartData = useMemo(() => {
+    const visible = typeFilter === "all" ? rows : rows.filter((r) => r.post_type === typeFilter)
+    return [
+      { name: "25%", readers: visible.reduce((s, r) => s + r.reached_25, 0) },
+      { name: "50%", readers: visible.reduce((s, r) => s + r.reached_50, 0) },
+      { name: "75%", readers: visible.reduce((s, r) => s + r.reached_75, 0) },
+      { name: "100%", readers: visible.reduce((s, r) => s + r.reached_100, 0) },
+    ]
+  }, [rows, typeFilter])
+
+  const topPostsData = useMemo(() => {
+    const visible = typeFilter === "all" ? rows : rows.filter((r) => r.post_type === typeFilter)
+    return [...visible]
+      .sort((a, b) => b.reached_25 - a.reached_25)
+      .slice(0, 10)
+      .map((r) => ({
+        name: r.slug.length > 28 ? r.slug.slice(0, 28) + "…" : r.slug,
+        readers: r.reached_25,
+      }))
+  }, [rows, typeFilter])
+
+  const typeBreakdownData = useMemo(
+    () => [
+      { name: "Blog", value: blogCount },
+      { name: "TIL", value: tilCount },
+    ],
+    [blogCount, tilCount],
+  )
 
   const filtered = rows
+    .filter((r) => typeFilter === "all" || r.post_type === typeFilter)
     .filter((r) => !search || r.slug.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
       const va = a[sortKey] ?? 0
       const vb = b[sortKey] ?? 0
-      const cmp = typeof va === "string" ? String(va).localeCompare(String(vb)) : (va as number) - (vb as number)
+      const cmp =
+        typeof va === "string"
+          ? String(va).localeCompare(String(vb))
+          : (va as number) - (vb as number)
       return sortDir === "asc" ? cmp : -cmp
     })
 
@@ -45,45 +150,149 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
     return sortDir === "asc" ? " ↑" : " ↓"
   }
 
-  function funnelWidth(count: number, base: number) {
-    if (base === 0) return "0%"
-    return `${Math.round((count / base) * 100)}%`
-  }
-
-  const FUNNEL_COLOURS = [
-    DEFAULT_CHART_COLOURS[1], // green
-    DEFAULT_CHART_COLOURS[2], // amber
-    DEFAULT_CHART_COLOURS[4], // purple
-    DEFAULT_CHART_COLOURS[0], // primary
-  ]
-
   return (
     <div className="flex flex-col gap-6">
 
       <div className="flex items-center gap-3">
         <BookOpen className="h-6 w-6 text-muted-foreground" />
         <div>
-          <h1 className="text-xl font-semibold leading-tight">Blog Analytics</h1>
+          <h1 className="text-xl font-semibold leading-tight">Posts Analytics</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Scroll-depth funnel for every published post. Each row counts unique visitors per depth threshold.
+            Scroll-depth funnel across all published posts (blog + TIL). Each visitor is counted once per depth threshold per post.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="Posts tracked" value={totalPosts} />
         <StatCard label="Total opens (25%+)" value={totalReads} />
         <StatCard label="Avg completion" value={avgCompletion !== null ? `${avgCompletion}%` : "-"} />
+        <StatCard label="Blog / TIL" value={`${blogCount} / ${tilCount}`} />
       </div>
 
-      <input
-        type="search"
-        placeholder="Filter by slug…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="border border-border rounded-md px-3 py-1.5 text-sm bg-background max-w-sm"
-      />
+      {/* Charts row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <p className="text-xs font-medium text-muted-foreground mb-3">Post type</p>
+          {totalPosts > 0 ? (
+            <PieChart
+              data={typeBreakdownData}
+              height={160}
+              colours={[DEFAULT_CHART_COLOURS[0], DEFAULT_CHART_COLOURS[1]]}
+            />
+          ) : (
+            <p className="text-xs text-muted-foreground pt-6 text-center">No data yet.</p>
+          )}
+        </div>
 
+        <div className="border border-border rounded-lg p-4 bg-card col-span-1 sm:col-span-2">
+          <p className="text-xs font-medium text-muted-foreground mb-3">Aggregate scroll-depth funnel</p>
+          {totalReads > 0 ? (
+            <BarChart
+              data={funnelChartData}
+              dataKey="readers"
+              xKey="name"
+              height={160}
+              colour={DEFAULT_CHART_COLOURS[0]}
+              valueFormatter={(v) => `${v} readers`}
+            />
+          ) : (
+            <p className="text-xs text-muted-foreground pt-6 text-center">No read events recorded yet.</p>
+          )}
+        </div>
+      </div>
+
+      {topPostsData.length > 0 && (
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <p className="text-xs font-medium text-muted-foreground mb-3">Top posts by readers (25%+)</p>
+          <BarChart
+            data={topPostsData}
+            dataKey="readers"
+            xKey="name"
+            height={180}
+            colour={DEFAULT_CHART_COLOURS[1]}
+            valueFormatter={(v) => `${v} readers`}
+          />
+        </div>
+      )}
+
+      {/* When posts are read — hour × day heatmap */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <p className="text-xs font-medium text-muted-foreground mb-3">When posts are read</p>
+        {hasHeatmapData ? (
+          <div className="overflow-x-auto">
+            <div className="min-w-[480px]">
+              <div className="flex gap-1 mb-1 ml-8">
+                {HOURS.map((h) => (
+                  <div key={h} className="flex-1 text-[9px] text-muted-foreground text-center">
+                    {parseInt(h) % 4 === 0 ? `${h}h` : ""}
+                  </div>
+                ))}
+              </div>
+              {DAYS.map((day, di) => (
+                <div key={day} className="flex items-center gap-1 mb-1">
+                  <span className="text-[10px] text-muted-foreground w-7 shrink-0">{day}</span>
+                  {HOURS.map((_, hi) => {
+                    const count = weekdayHourMatrix[di][hi]
+                    const cls = INTENSITY_CLASS[intensityIndex(count, weekdayHourMax)]
+                    const isHovered = hoveredCell?.day === di && hoveredCell?.hour === hi
+                    return (
+                      <div
+                        key={hi}
+                        className={`flex-1 h-4 rounded-[2px] cursor-default transition-opacity ${cls} ${isHovered ? "ring-1 ring-primary" : ""}`}
+                        onMouseEnter={() => setHoveredCell({ day: di, hour: hi })}
+                        onMouseLeave={() => setHoveredCell(null)}
+                        title={count > 0 ? `${day} ${hi}:00 — ${count} read${count !== 1 ? "s" : ""}` : undefined}
+                      />
+                    )
+                  })}
+                </div>
+              ))}
+              {hoveredCell && (
+                <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                  {DAYS[hoveredCell.day]} {hoveredCell.hour}:00 —{" "}
+                  {weekdayHourMatrix[hoveredCell.day][hoveredCell.hour]} read
+                  {weekdayHourMatrix[hoveredCell.day][hoveredCell.hour] !== 1 ? "s" : ""}
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground text-center py-4">
+            Heatmap data will appear once read events are recorded.
+          </p>
+        )}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="search"
+          placeholder="Filter by slug…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border border-border rounded-md px-3 py-1.5 text-sm bg-background max-w-sm"
+        />
+        <div className="flex gap-1">
+          {(["all", "blog", "til"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTypeFilter(t)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                typeFilter === t
+                  ? "bg-primary text-primary-foreground"
+                  : "border border-border hover:bg-muted"
+              }`}
+            >
+              {t === "all" ? "All" : t === "blog" ? "Blog" : "TIL"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Funnel table */}
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-sm">
           <thead>
@@ -92,7 +301,13 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
                 className="px-3 py-2 cursor-pointer select-none hover:text-foreground"
                 onClick={() => handleSort("slug")}
               >
-                Post slug{sortIndicator("slug")}
+                Post{sortIndicator("slug")}
+              </th>
+              <th
+                className="px-3 py-2 cursor-pointer select-none hover:text-foreground"
+                onClick={() => handleSort("post_type")}
+              >
+                Type{sortIndicator("post_type")}
               </th>
               {(["reached_25", "reached_50", "reached_75", "reached_100"] as SortKey[]).map((col) => (
                 <th
@@ -109,21 +324,33 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
               >
                 Completion{sortIndicator("completion_rate")}
               </th>
-              <th className="px-3 py-2">Drop-off visualisation</th>
+              <th className="px-3 py-2">Drop-off</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-3 py-10 text-center text-muted-foreground text-sm">
+                <td colSpan={8} className="px-3 py-10 text-center text-muted-foreground text-sm">
                   No read events recorded yet.
                 </td>
               </tr>
             ) : (
               filtered.map((row) => (
-                <tr key={row.slug} className="border-b border-border even:bg-muted/20 hover:bg-muted/40 transition-colors">
-                  <td className="px-3 py-2 font-mono text-xs max-w-[200px] truncate">
-                    {row.slug}
+                <tr
+                  key={`${row.post_type}/${row.slug}`}
+                  className="border-b border-border even:bg-muted/20 hover:bg-muted/40 transition-colors"
+                >
+                  <td className="px-3 py-2 font-mono text-xs max-w-[200px] truncate">{row.slug}</td>
+                  <td className="px-3 py-2">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                        row.post_type === "til"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                          : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                      }`}
+                    >
+                      {row.post_type.toUpperCase()}
+                    </span>
                   </td>
                   <td className="px-3 py-2 tabular-nums">{row.reached_25}</td>
                   <td className="px-3 py-2 tabular-nums">{row.reached_50}</td>
@@ -134,20 +361,21 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
                       ? `${Math.round(row.completion_rate * 100)}%`
                       : "-"}
                   </td>
-                  <td className="px-3 py-2 min-w-[160px]">
+                  <td className="px-3 py-2 min-w-[120px]">
                     <div className="flex flex-col gap-0.5">
                       {(["reached_25", "reached_50", "reached_75", "reached_100"] as const).map(
                         (key, idx) => (
-                          <div key={key} className="flex items-center gap-1.5">
-                            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full"
-                                style={{
-                                  width: funnelWidth(row[key], row.reached_25),
-                                  background: FUNNEL_COLOURS[idx],
-                                }}
-                              />
-                            </div>
+                          <div
+                            key={key}
+                            className="w-full h-1.5 bg-muted rounded-full overflow-hidden"
+                          >
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                width: funnelWidth(row[key], row.reached_25),
+                                background: FUNNEL_COLOURS[idx],
+                              }}
+                            />
                           </div>
                         ),
                       )}
