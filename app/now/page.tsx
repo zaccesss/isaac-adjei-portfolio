@@ -264,8 +264,7 @@ export default function NowPage() {
           <h2 className="text-base font-semibold">Listening</h2>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Whatever Spotify decides I need that day. Heavy rotation of Afrobeats and Afropop at the
-          moment. You can see what I am playing right now above in the live status section.
+          Whatever Spotify decides I need that day. Heavy rotation of Afrobeats and Afropop at the moment. You can see what I am playing right now in the live status section above.
         </p>
       </section>
 

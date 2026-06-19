@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, GitBranch, Monitor, Github, ExternalLink } from "lucide-react"
+import SpotifyBars from "@/components/shared/SpotifyBars"
 import { SiPlaystation, SiDiscord, SiSpotify } from "react-icons/si"
 import { cn } from "@/lib/utils"
 
@@ -27,6 +28,7 @@ interface SpotifyData {
   progressMs?: number
   durationMs?: number
   device?: string | null
+  audioFeatures?: { energy: number; tempo: number; valence: number; danceability: number } | null
   lastPlayed?: LastPlayed | null
 }
 
@@ -368,68 +370,81 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
       {/* Spotify card */}
       <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
         {hasTrack ? (
-          <div className="p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <SiSpotify className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-blue-500 flex-1 truncate">
-                {spotifyLabel}
-              </p>
-              <a
-                href="https://open.spotify.com/user/zaccesss"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Spotify profile"
-                className="text-foreground/60 hover:text-foreground transition-colors shrink-0"
-              >
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-            <div className="flex items-center gap-3">
-              {spotify.albumArt ? (
-                <Image
-                  src={spotify.albumArt}
-                  alt={spotify.track ?? "Album art"}
-                  width={56}
-                  height={56}
-                  sizes="56px"
-                  className="rounded-lg shrink-0 shadow-sm"
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-lg bg-muted shrink-0 flex items-center justify-center">
-                  <span className="text-2xl">♫</span>
-                </div>
-              )}
-              <div className="flex-1 min-w-0 relative">
-                <MarqueeText text={spotify.track ?? ""} active={spotify.playing} className="font-semibold text-sm leading-tight" />
-                <p className="text-xs text-muted-foreground truncate mt-0.5">{spotify.artist}</p>
+          <div className="relative overflow-hidden">
+            {/* Blurred album art background tint */}
+            {spotify.albumArt && (
+              <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+                <img src={spotify.albumArt} alt="" className="w-full h-full object-cover blur-3xl scale-125 opacity-[0.15]" />
               </div>
-              {spotify.paused && (
-                <span className="text-xs text-muted-foreground font-mono shrink-0">
-                  &#9646;&#9646; paused
-                </span>
-              )}
-            </div>
-            <div className="space-y-1">
-              <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-all",
-                    spotify.playing ? "bg-blue-500" : "bg-muted-foreground/40"
+            )}
+            <div className="relative p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <SiSpotify className="h-3.5 w-3.5 text-primary shrink-0" />
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-primary flex-1 truncate">
+                  {spotifyLabel}
+                </p>
+                <a
+                  href="https://open.spotify.com/user/zaccesss"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Spotify profile"
+                  className="text-foreground/60 hover:text-foreground transition-colors shrink-0"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+              <div className="flex items-center gap-3">
+                {/* Spinning disc — replaces the static square artwork */}
+                <div className={`relative w-14 h-14 rounded-full shrink-0 ${spotify.playing ? "animate-spin [animation-duration:6s]" : ""}`}>
+                  <div className="absolute inset-0 rounded-full border-2 border-border/40" />
+                  {spotify.albumArt ? (
+                    <img src={spotify.albumArt} alt="" className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-muted flex items-center justify-center text-muted-foreground/40 text-lg">♫</div>
                   )}
-                  style={{ width: `${progress * 100}%` }}
-                />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-2.5 h-2.5 rounded-full bg-card/80 border border-border/60" />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 relative">
+                  <MarqueeText text={spotify.track ?? ""} active={spotify.playing} className="font-semibold text-sm leading-tight" />
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">{spotify.artist}</p>
+                </div>
+                {spotify.paused && (
+                  <span className="text-xs text-muted-foreground font-mono shrink-0">
+                    &#9646;&#9646; paused
+                  </span>
+                )}
               </div>
-              <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
-                <span>{formatMs(liveProgressMs)}</span>
-                <span>{formatMs(spotify.durationMs ?? 0)}</span>
+              <div className="space-y-1">
+                <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all",
+                      spotify.playing ? "bg-primary" : "bg-muted-foreground/40"
+                    )}
+                    style={{ width: `${progress * 100}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+                  <span>{formatMs(liveProgressMs)}</span>
+                  <span>{formatMs(spotify.durationMs ?? 0)}</span>
+                </div>
               </div>
+              {/* Visualiser bars + sine wave — embedded directly in this card */}
+              <SpotifyBars
+                playing={spotify.playing}
+                albumArt={spotify.albumArt}
+                energy={spotify.audioFeatures?.energy}
+                tempo={spotify.audioFeatures?.tempo}
+              />
             </div>
           </div>
         ) : spotify.lastPlayed ? (
           // I render last_played at reduced opacity with a grayscale thumbnail to signal the track is not currently active
           <div className="p-4 space-y-3 opacity-50">
             <div className="flex items-center gap-2">
-              <SiSpotify className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+              <SiSpotify className="h-3.5 w-3.5 text-primary shrink-0" />
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground flex-1">
                 Last Played
               </p>
@@ -471,7 +486,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <SiSpotify className="h-3 w-3 text-blue-500 shrink-0" />
+                <SiSpotify className="h-3 w-3 text-primary shrink-0" />
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
                   Spotify
                 </p>
@@ -503,7 +518,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
           <div className="space-y-1.5">
             <div className="flex items-center gap-1.5">
               {online ? (
-                <Wifi className="h-3 w-3 text-blue-500 shrink-0" />
+                <Wifi className="h-3 w-3 text-primary shrink-0" />
               ) : (
                 <WifiOff className="h-3 w-3 text-muted-foreground/40 shrink-0" />
               )}
@@ -515,7 +530,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
               <div className="flex items-center gap-1.5">
                 {/* I suppress the charging indicator when lastSeen > 5 min - the cable may have been unplugged since the last ping */}
                 {mac.charging && !isStale(mac.lastSeen) ? (
-                  <BatteryCharging className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                  <BatteryCharging className="h-3.5 w-3.5 text-primary shrink-0" />
                 ) : (
                   <Battery className={cn("h-3.5 w-3.5 shrink-0", mac.battery <= 20 ? "text-red-500" : "text-muted-foreground")} />
                 )}
@@ -542,7 +557,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5">
                   {lOnline ? (
-                    <Wifi className="h-3 w-3 text-blue-500 shrink-0" />
+                    <Wifi className="h-3 w-3 text-primary shrink-0" />
                   ) : (
                     <WifiOff className="h-3 w-3 text-muted-foreground/40 shrink-0" />
                   )}
@@ -553,7 +568,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                 {lenovo.battery !== null ? (
                   <div className="flex items-center gap-1.5">
                     {lenovo.charging && !isStale(lenovo.lastSeen) ? (
-                      <BatteryCharging className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                      <BatteryCharging className="h-3.5 w-3.5 text-primary shrink-0" />
                     ) : (
                       <Battery className={cn("h-3.5 w-3.5 shrink-0", lenovo.battery <= 20 ? "text-red-500" : "text-muted-foreground")} />
                     )}
@@ -582,7 +597,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5">
                   {gOnline ? (
-                    <Wifi className="h-3 w-3 text-blue-500 shrink-0" />
+                    <Wifi className="h-3 w-3 text-primary shrink-0" />
                   ) : (
                     <WifiOff className="h-3 w-3 text-muted-foreground/30 shrink-0" />
                   )}
@@ -630,7 +645,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5">
                   {pOnline ? (
-                    <Wifi className="h-3 w-3 text-blue-500 shrink-0" />
+                    <Wifi className="h-3 w-3 text-primary shrink-0" />
                   ) : (
                     <WifiOff className="h-3 w-3 text-muted-foreground/30 shrink-0" />
                   )}
