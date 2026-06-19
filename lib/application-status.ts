@@ -155,7 +155,7 @@ export function computeFunnelCounts(statuses: string[]): {
 
 // Kanban column definitions: each maps to a display status and a target status to write on drop.
 export const KANBAN_COLUMNS: { id: string; label: string; targetStatus: ApplicationStatus; statuses: ApplicationStatus[] }[] = [
-  { id: "wishlist",    label: "Wishlist",    targetStatus: "Interested",            statuses: ["Not Applied", "Interested"] },
+  { id: "wishlist",    label: "Wishlist",    targetStatus: "Interested",            statuses: ["Interested"] },
   { id: "applied",     label: "Applied",     targetStatus: "Application Submitted", statuses: ["Application Submitted"] },
   { id: "assessment",  label: "Assessment",  targetStatus: "Online Assessment",     statuses: ["Online Assessment", "HireVue", "Case Study"] },
   { id: "interview",   label: "Interview",   targetStatus: "Video Interview",       statuses: ["Telephone Interview", "Video Interview", "Face-to-face Interview", "Assessment Centre"] },

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { ExternalLink, AlertCircle, Loader2 } from "lucide-react"
+import { ExternalLink, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react"
 import type { LinearIssue } from "@/app/api/dashboard/linear/route"
 
 type Response = { configured: boolean; issues: LinearIssue[]; error?: string; detail?: string }
@@ -44,6 +44,7 @@ function relativeDate(iso: string): string {
 export default function LinearView() {
   const [data, setData] = useState<Response | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showBacklog, setShowBacklog] = useState(false)
   // eslint-disable-next-line react-hooks/purity
   const sevenDaysFromNow = useMemo(() => new Date(Date.now() + 7 * 86400000), [])
 
@@ -106,9 +107,16 @@ export default function LinearView() {
     )
   }
 
+  // Exclude backlog/unstarted issues unless the toggle is on
+  const visibleIssues = showBacklog
+    ? data.issues
+    : data.issues.filter((i) => i.state.type !== "backlog" && i.state.type !== "unstarted")
+
+  const hiddenCount = data.issues.length - visibleIssues.length
+
   // Group by project (fallback to team)
   const groups = new Map<string, { colour: string; issues: LinearIssue[] }>()
-  for (const issue of data.issues) {
+  for (const issue of visibleIssues) {
     const key = issue.project?.name ?? issue.team.name
     const colour = issue.project?.color ?? "#94a3b8"
     if (!groups.has(key)) groups.set(key, { colour, issues: [] })
@@ -118,18 +126,31 @@ export default function LinearView() {
   return (
     <div className="flex-1 overflow-auto min-h-0 p-4 space-y-4">
       {/* Summary row */}
-      <div className="flex gap-3 flex-wrap">
-        {[
-          { label: "Total", value: data.issues.length },
-          { label: "Urgent / High", value: data.issues.filter((i) => i.priority <= 2 && i.priority > 0).length },
-          { label: "Due soon", value: data.issues.filter((i) => i.dueDate && new Date(i.dueDate) <= sevenDaysFromNow).length },
-          { label: "Projects", value: groups.size },
-        ].map((s) => (
-          <div key={s.label} className="border border-border rounded-lg p-3 bg-card min-w-[90px]">
-            <p className="text-lg font-bold tabular-nums">{s.value}</p>
-            <p className="text-xs text-muted-foreground">{s.label}</p>
-          </div>
-        ))}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex gap-3 flex-wrap">
+          {[
+            { label: "Active", value: visibleIssues.length },
+            { label: "Urgent / High", value: visibleIssues.filter((i) => i.priority <= 2 && i.priority > 0).length },
+            { label: "Due soon", value: visibleIssues.filter((i) => i.dueDate && new Date(i.dueDate) <= sevenDaysFromNow).length },
+            { label: "Projects", value: groups.size },
+          ].map((s) => (
+            <div key={s.label} className="border border-border rounded-lg p-3 bg-card min-w-[90px]">
+              <p className="text-lg font-bold tabular-nums">{s.value}</p>
+              <p className="text-xs text-muted-foreground">{s.label}</p>
+            </div>
+          ))}
+        </div>
+        {hiddenCount > 0 || showBacklog ? (
+          <button
+            type="button"
+            onClick={() => setShowBacklog((v) => !v)}
+            title={showBacklog ? "Hide backlog and saved issues" : "Show backlog and saved issues"}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1"
+          >
+            {showBacklog ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+            {showBacklog ? "Hide backlog" : `Show backlog (${hiddenCount})`}
+          </button>
+        ) : null}
       </div>
 
       {/* Issues by project */}
