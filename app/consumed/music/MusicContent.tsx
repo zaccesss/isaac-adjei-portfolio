@@ -3,6 +3,7 @@ import Link from "next/link"
 import { ArrowLeft, Music2, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { artists, genres } from "@/data/consumed"
+import { consumedSlug } from "@/lib/tags"
 import { SpotifyNowPlaying } from "@/components/consumed/SpotifyNowPlaying"
 import { Separator } from "@/components/ui/separator"
 
@@ -36,26 +37,22 @@ export default function MusicContent() {
         <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Artists</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {artists.map((a) => (
-            <div key={a.name} className="rounded-xl border border-border/60 bg-card p-4 space-y-1.5">
+            <Link
+              key={a.name}
+              href={`/consumed/music/${consumedSlug(a.name)}`}
+              className="group rounded-xl border border-border/60 bg-card p-4 space-y-1.5 block hover:border-primary/40 transition-colors"
+            >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{a.name}</p>
+                  <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{a.name}</p>
                   <p className="text-xs text-muted-foreground">{a.genre}</p>
                 </div>
                 {a.youtubeId && (
-                  <a
-                    href={`https://www.youtube.com/watch?v=${a.youtubeId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Watch ${a.name} on YouTube`}
-                    className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
+                  <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
                 )}
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">{a.note}</p>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

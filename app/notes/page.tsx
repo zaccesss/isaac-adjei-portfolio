@@ -213,6 +213,35 @@ export default function NotesPage() {
               <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-1" />
             </div>
           </Link>
+
+          <Link
+            href="/notes/codeforces-auto-push"
+            className="group block rounded-lg border border-border/60 bg-muted/20 px-6 py-5 hover:border-primary/40 hover:bg-muted/30 transition-all"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-2 flex-1">
+                <h3 className="font-semibold group-hover:text-primary transition-colors">
+                  Auto-Push CP Solutions to GitHub
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Mapping the landscape of tools that sync competitive programming solutions to
+                  GitHub - what exists for LeetCode, Codeforces and AtCoder, where TryHackMe has
+                  nothing, and the unified extension I want to build.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {["Chrome Extension", "Competitive Programming", "GitHub", "Codeforces", "AtCoder", "Automation"].map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-1" />
+            </div>
+          </Link>
         </div>
       </section>
 

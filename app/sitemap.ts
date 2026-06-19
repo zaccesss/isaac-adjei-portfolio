@@ -6,7 +6,7 @@ import { getPublishedPosts } from "@/data/blog"
 import { getPublishedTILEntries } from "@/data/til"
 import { projects } from "@/data/projects"
 import { publications } from "@/data/respub"
-import { books, videos, podcasts, articles, resources, others } from "@/data/consumed"
+import { books, videos, podcasts, articles, resources, others, artists } from "@/data/consumed"
 import { normTag, consumedSlug } from "@/lib/tags"
 import { SITE_URL } from "@/lib/constants"
 
@@ -31,6 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/notes`,                         lastModified: new Date("2026-05-29"), changeFrequency: "monthly", priority: 0.6  },
     { url: `${SITE_URL}/notes/world-cup-ai-predictor`,  lastModified: new Date("2026-03-01"), changeFrequency: "monthly", priority: 0.5  },
     { url: `${SITE_URL}/notes/prosthetics-health-tech`, lastModified: new Date("2026-03-01"), changeFrequency: "monthly", priority: 0.5  },
+    { url: `${SITE_URL}/notes/codeforces-auto-push`,    lastModified: new Date("2026-06-19"), changeFrequency: "monthly", priority: 0.5  },
     { url: `${SITE_URL}/lab`,                           lastModified: new Date("2026-05-15"), changeFrequency: "monthly", priority: 0.5  },
     { url: `${SITE_URL}/newsletter`,                    lastModified: new Date("2026-05-29"), changeFrequency: "yearly",  priority: 0.5  },
     { url: `${SITE_URL}/now`,                           lastModified: new Date("2026-05-29"), changeFrequency: "weekly",  priority: 0.7  },
@@ -104,6 +105,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...articles.map((a) => ({ url: `${SITE_URL}/consumed/articles/${consumedSlug(a.title)}`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.4 })),
     ...resources.map((r) => ({ url: `${SITE_URL}/consumed/resources/${consumedSlug(r.title)}`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.4 })),
     ...others.map((o) => ({ url: `${SITE_URL}/consumed/others/${consumedSlug(o.title)}`,     lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.4 })),
+    ...artists.map((a) => ({ url: `${SITE_URL}/consumed/music/${consumedSlug(a.name)}`,      lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.4 })),
   ]
 
   return [...staticRoutes, ...projectRoutes, ...blogRoutes, ...tilRoutes, ...tagRoutes, ...consumedItemRoutes]
