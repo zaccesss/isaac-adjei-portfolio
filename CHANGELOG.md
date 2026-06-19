@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Applications: added `lib/application-status.ts` as the single source of truth for status normalisation, funnel classification and pipeline state, replacing three drifted copies of `normaliseStatus()` in Kanban, Analytics and the Table view (closes #365, closes #374)
+- Applications Kanban: scraped/untouched job entries no longer leak onto the board - the active-tracking filter now runs against the raw status before normalisation instead of after, which is what let the check silently stop matching anything
+- Applications funnel chart: Assessment and Interview stages no longer double-count the same entries
+
 ---
 
 ## [v2.9.0] - 2026-06-18
