@@ -14,6 +14,7 @@ import ShareButton from "@/components/shared/ShareButton"
 import TableOfContents, { type TocHeading } from "@/components/shared/TableOfContents"
 import { CATEGORY_STYLES } from "@/components/til/TILList"
 import { cn } from "@/lib/utils"
+import ScrollDepthTracker from "@/components/blog/ScrollDepthTracker"
 
 function renderInline(text: string): React.ReactNode {
   const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g)
@@ -183,6 +184,7 @@ export default async function TILSlugPage({
 
   return (
     <div className={cn("container py-24", showToC ? "max-w-2xl xl:max-w-5xl" : "max-w-2xl")}>
+      {entry.published && !isFuture && <ScrollDepthTracker slug={entry.id} postType="til" />}
       {/* Future-dated banner (dev only) */}
       {isFuture && (
         <div className="rounded-md border border-amber-400/40 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 mb-8">

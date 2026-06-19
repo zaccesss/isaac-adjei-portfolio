@@ -1254,21 +1254,30 @@ export async function bulkDeleteOpenSourceContributions(ids: string[]) {
 // fully typed without importing from Supabase-generated types.
 export type BlogReadFunnelRow = {
   slug: string
-  // I return the count of unique ip_hash values that reached each depth threshold.
+  post_type: string
   reached_25: number
   reached_50: number
   reached_75: number
   reached_100: number
-  // I derive a simple completion rate from reached_100 / reached_25.
   completion_rate: number | null
 }
 
 export async function getBlogReadFunnel(): Promise<BlogReadFunnelRow[]> {
-  // I aggregate event counts per slug and depth from blog_read_events so the
-  // dashboard shows a funnel without having to query 4 separate tables.
   const { data, error } = await supabase.rpc("blog_read_funnel")
   if (error || !data) return []
   return data as BlogReadFunnelRow[]
+}
+
+export type PostsHeatmapCell = {
+  dow: number
+  hour: number
+  count: number
+}
+
+export async function getPostsReadHeatmap(): Promise<PostsHeatmapCell[]> {
+  const { data, error } = await supabase.rpc("posts_read_heatmap")
+  if (error || !data) return []
+  return data as PostsHeatmapCell[]
 }
 
 // ─── WakaTime Heatmap ────────────────────────────────────────────────────────

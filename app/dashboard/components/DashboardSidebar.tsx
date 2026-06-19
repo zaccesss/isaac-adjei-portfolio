@@ -29,7 +29,7 @@ const nav = [
   { href: "/dashboard/streaks", label: "Streaks", icon: Flame },
   { href: "/dashboard/activity", label: "Activity log", icon: Activity },
   { href: "/dashboard/opensource", label: "Open Source", icon: Github },
-  { href: "/dashboard/blog-analytics", label: "Blog Analytics", icon: BarChart2 },
+  { href: "/dashboard/blog-analytics", label: "Posts Analytics", icon: BarChart2 },
   { href: "/dashboard/coding", label: "Coding Activity", icon: Code2 },
   { href: "/dashboard/contacts", label: "Contacts", icon: Users },
   { href: "/dashboard/trash", label: "Trash", icon: Trash2 },
