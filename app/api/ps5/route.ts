@@ -3,6 +3,7 @@
 // every tick) so I use source.online rather than live !== null to determine presence.
 // lastGame is read from ps5:last-known because source.game is null when offline.
 import { NextResponse } from "next/server"
+import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 import { Redis } from "@upstash/redis"
 
 let redis: Redis | null = null
@@ -23,7 +24,10 @@ type PS5Payload = {
   lastSeen: string
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!await checkRateLimit(publicApiLimiter, getIp(req))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
   try {
     if (!redis) {
       return NextResponse.json(

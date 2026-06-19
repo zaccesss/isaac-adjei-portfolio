@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 
 // AI assistant tools whose time counts in totals but must never surface as a
 // named editor - same list as CodingClient.tsx on the dashboard.
@@ -48,6 +49,9 @@ function periodCutoff(period: string): string | null {
 }
 
 export async function GET(req: Request) {
+  if (!await checkRateLimit(publicApiLimiter, getIp(req))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
   const { searchParams } = new URL(req.url)
   const period = searchParams.get("period") ?? "30d"
   const cutoff = periodCutoff(period)
