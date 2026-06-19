@@ -52,7 +52,7 @@ import { profileLinks, type LinkItem } from "@/data/links"
 import { cn } from "@/lib/utils"
 import ShareButton from "@/components/shared/ShareButton"
 
-const iconMap: Record<string, React.ElementType> = {
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   globe: Globe,
   linkedin: FaLinkedin,
   github: FaGithub,

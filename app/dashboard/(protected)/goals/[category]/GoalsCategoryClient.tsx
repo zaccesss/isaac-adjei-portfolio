@@ -30,7 +30,7 @@ const emptyForm = {
   progress: 0,
 }
 
-const CATEGORY_ICONS: Record<string, React.ElementType> = {
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Personal: Sparkles,
   Academic: BookOpen,
   Career: TrendingUp,

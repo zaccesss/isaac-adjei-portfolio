@@ -41,7 +41,7 @@ const STATUS_COLOURS: Record<string, string> = {
   abandoned: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 }
 
-const CATEGORY_ICONS: Record<string, React.ElementType> = {
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Personal: Sparkles,
   Academic: BookOpen,
   Career: TrendingUp,

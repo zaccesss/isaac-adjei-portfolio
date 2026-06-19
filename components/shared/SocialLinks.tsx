@@ -9,7 +9,7 @@ import { SiOrcid, SiBuymeacoffee } from "react-icons/si"
 import { socialLinks } from "@/data/social"
 import { cn } from "@/lib/utils"
 
-const iconMap: Record<string, React.ElementType> = {
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   github: FaGithub,
   linkedin: FaLinkedin,
   link: Link2,
