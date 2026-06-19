@@ -1,46 +1,66 @@
 "use client"
-// I render WakaTime and GitHub contribution data as heatmaps, bar charts and donut
-// charts. All aggregation (language totals, weekday buckets, weekly rollups) happens
-// in this client component so the server only has to pass raw per-day rows.
 
 import { useMemo, useState } from "react"
 import { Code2 } from "lucide-react"
 import {
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  BarChart as RBarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts"
+import {
+  StatCard,
+  DEFAULT_CHART_COLOURS,
+  AnalyticsPeriodProvider,
+  PeriodSelector,
+  useAnalyticsPeriod,
+  periodStartDate,
+  type AnalyticsPeriod,
+} from "@/components/analytics"
 import type { WakatimeDayRow, GitHubDay, GitHubContribTotals } from "@/app/dashboard/actions"
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+const HOURS = Array.from({ length: 24 }, (_, i) => `${i}`)
 
 // AI assistant tools/IDEs whose time counts in totals but must never surface as a named
 // editor in the chart - all such time is attributed to the developer, not the AI tool.
 const AI_EDITORS = new Set([
-  "Claude Code",                          // Anthropic
-  "Codex", "OpenAI",                      // OpenAI
-  "Cursor",                               // Anysphere
-  "GitHub Copilot", "Copilot",            // GitHub
-  "Codeium", "Windsurf",                  // Codeium / Windsurf IDE
-  "Tabnine",                              // Tabnine
-  "Amazon Q", "Amazon Q Developer",       // Amazon
-  "Gemini", "Gemini Code Assist",         // Google
-  "Cody",                                 // Sourcegraph
-  "Continue",                             // Continue.dev
-  "Supermaven",                           // Supermaven
-  "Aider",                                // Aider CLI
-  "Cline", "Roo Code", "Roo-Code",        // Cline / Roo Code (VS Code extensions)
+  "Claude Code",                            // Anthropic
+  "Codex", "OpenAI",                        // OpenAI
+  "Cursor",                                 // Anysphere
+  "GitHub Copilot", "Copilot",              // GitHub
+  "Codeium", "Windsurf",                    // Codeium / Windsurf IDE
+  "Tabnine",                                // Tabnine
+  "Amazon Q", "Amazon Q Developer",         // Amazon
+  "Gemini", "Gemini Code Assist",           // Google
+  "Cody",                                   // Sourcegraph
+  "Continue",                               // Continue.dev
+  "Supermaven",                             // Supermaven
+  "Aider",                                  // Aider CLI
+  "Cline", "Roo Code", "Roo-Code",          // Cline / Roo Code (VS Code extensions)
   "JetBrains AI", "JetBrains AI Assistant", // JetBrains
-  "Avante",                               // Avante (Neovim)
-  "Replit AI", "Ghostwriter",             // Replit
+  "Avante",                                 // Avante (Neovim)
+  "Replit AI", "Ghostwriter",               // Replit
 ])
 
-const CHART_COLORS = [
-  "hsl(var(--primary))",
-  "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6",
-  "#06b6d4", "#f97316", "#ec4899", "#14b8a6",
-]
+const PERIOD_STAT_LABEL: Record<AnalyticsPeriod, string> = {
+  "24h": "Today",
+  "7d": "Last 7 days",
+  "30d": "Last 30 days",
+  "90d": "Last 90 days",
+  "1y": "This year",
+  all: "All time",
+}
+
+// How many days to show in the daily bar chart per period
+const PERIOD_CHART_DAYS: Record<AnalyticsPeriod, number> = {
+  "24h": 7,
+  "7d": 7,
+  "30d": 30,
+  "90d": 90,
+  "1y": 30,
+  all: 30,
+}
 
 function formatHours(seconds: number) {
   const h = Math.floor(seconds / 3600)
@@ -67,24 +87,42 @@ const INTENSITY_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
 }
 
 type GridCell = { date: string; seconds: number; level: 0 | 1 | 2 | 3 | 4 }
-type GHCell = { date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }
+type GHCell  = { date: string; count: number;   level: 0 | 1 | 2 | 3 | 4 }
 
 function ghIntensity(count: number): 0 | 1 | 2 | 3 | 4 {
   if (count === 0) return 0
-  if (count < 3) return 1
-  if (count < 6) return 2
+  if (count < 3)  return 1
+  if (count < 6)  return 2
   if (count < 10) return 3
   return 4
+}
+
+// Relative intensity for the hour×day heatmap (scaled to matrix max)
+function relativeIntensity(seconds: number, max: number): 0 | 1 | 2 | 3 | 4 {
+  if (seconds === 0 || max === 0) return 0
+  const r = seconds / max
+  if (r < 0.15) return 1
+  if (r < 0.35) return 2
+  if (r < 0.65) return 3
+  return 4
+}
+
+const GH_INTENSITY_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
+  0: "bg-muted",
+  1: "bg-blue-200 dark:bg-blue-900",
+  2: "bg-blue-400 dark:bg-blue-700",
+  3: "bg-blue-500 dark:bg-blue-500",
+  4: "bg-blue-700 dark:bg-blue-300",
 }
 
 function buildGHGrid(days: GitHubDay[]): GHCell[][] {
   const byDate = new Map(days.map((d) => [d.date, d.count]))
   const today = new Date()
-  const startOfLastWeek = new Date(today)
-  startOfLastWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) + 7 - 52 * 7)
-  startOfLastWeek.setHours(0, 0, 0, 0)
+  const start = new Date(today)
+  start.setDate(today.getDate() - ((today.getDay() + 6) % 7) + 7 - 52 * 7)
+  start.setHours(0, 0, 0, 0)
   const weeks: GHCell[][] = []
-  const cursor = new Date(startOfLastWeek)
+  const cursor = new Date(start)
   for (let w = 0; w < 52; w++) {
     const week: GHCell[] = []
     for (let d = 0; d < 7; d++) {
@@ -98,23 +136,14 @@ function buildGHGrid(days: GitHubDay[]): GHCell[][] {
   return weeks
 }
 
-const GH_INTENSITY_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: "bg-muted",
-  1: "bg-blue-200 dark:bg-blue-900",
-  2: "bg-blue-400 dark:bg-blue-700",
-  3: "bg-blue-500 dark:bg-blue-500",
-  4: "bg-blue-700 dark:bg-blue-300",
-}
-
 function buildGrid(rows: WakatimeDayRow[]): GridCell[][] {
   const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
   const today = new Date()
-  const startOfLastWeek = new Date(today)
-  startOfLastWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7) + 7 - 52 * 7)
-  startOfLastWeek.setHours(0, 0, 0, 0)
-
+  const start = new Date(today)
+  start.setDate(today.getDate() - ((today.getDay() + 6) % 7) + 7 - 52 * 7)
+  start.setHours(0, 0, 0, 0)
   const weeks: GridCell[][] = []
-  const cursor = new Date(startOfLastWeek)
+  const cursor = new Date(start)
   for (let w = 0; w < 52; w++) {
     const week: GridCell[] = []
     for (let d = 0; d < 7; d++) {
@@ -134,15 +163,7 @@ function monthLabel(week: GridCell[]): string | null {
   return null
 }
 
-function DonutPanel({
-  title,
-  data,
-  total,
-}: {
-  title: string
-  data: { name: string; value: number }[]
-  total: number
-}) {
+function DonutPanel({ title, data, total }: { title: string; data: { name: string; value: number }[]; total: number }) {
   if (data.length === 0) {
     return (
       <div className="border border-border rounded-lg p-4 bg-card">
@@ -156,40 +177,24 @@ function DonutPanel({
       <h2 className="text-sm font-semibold mb-2">{title}</h2>
       <ResponsiveContainer width="100%" height={150}>
         <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={40}
-            outerRadius={60}
-            dataKey="value"
-            paddingAngle={2}
-          >
+          <Pie data={data} cx="50%" cy="50%" innerRadius={40} outerRadius={60} dataKey="value" paddingAngle={2}>
             {data.map((_, i) => (
-              <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+              <Cell key={i} fill={DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length]} />
             ))}
           </Pie>
-          <Tooltip
-            formatter={(v) => [typeof v === "number" ? formatHours(v) : v, ""]}
-            contentStyle={{ fontSize: "11px" }}
-          />
+          <Tooltip formatter={(v) => [typeof v === "number" ? formatHours(v) : v, ""]} contentStyle={{ fontSize: "11px" }} />
         </PieChart>
       </ResponsiveContainer>
       <div className="flex flex-col gap-1 mt-1">
         {data.map((item, i) => (
           <div key={item.name} className="flex items-center justify-between text-xs gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span
-                className="h-2 w-2 rounded-full shrink-0"
-                style={{ background: CHART_COLORS[i % CHART_COLORS.length] }}
-              />
+              <span className="h-2 w-2 rounded-full shrink-0" style={{ background: DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length] }} />
               <span className="text-muted-foreground truncate">{item.name}</span>
             </div>
             <div className="flex items-center gap-1.5 shrink-0 tabular-nums">
               <span>{formatHours(item.value)}</span>
-              <span className="text-muted-foreground">
-                {total > 0 ? `${Math.round((item.value / total) * 100)}%` : ""}
-              </span>
+              <span className="text-muted-foreground">{total > 0 ? `${Math.round((item.value / total) * 100)}%` : ""}</span>
             </div>
           </div>
         ))}
@@ -198,7 +203,7 @@ function DonutPanel({
   )
 }
 
-export default function CodingClient({
+function CodingInner({
   rows,
   ghDays = [],
   ghTotals,
@@ -207,41 +212,59 @@ export default function CodingClient({
   ghDays?: GitHubDay[]
   ghTotals?: GitHubContribTotals
 }) {
-  const [tooltip, setTooltip] = useState<{ date: string; seconds: number } | null>(null)
+  const [tooltip, setTooltip]     = useState<{ date: string; seconds: number } | null>(null)
   const [ghTooltip, setGhTooltip] = useState<{ date: string; count: number } | null>(null)
-  const grid = useMemo(() => buildGrid(rows), [rows])
+  const [hdTooltip, setHdTooltip] = useState<{ day: string; hour: number; seconds: number } | null>(null)
+  const { period } = useAnalyticsPeriod()
+
+  // Full-year grids for the 52-week heatmaps (calendar views, always unfiltered)
+  const grid   = useMemo(() => buildGrid(rows), [rows])
   const ghGrid = useMemo(() => buildGHGrid(ghDays), [ghDays])
 
-  const totalSecondsYear = rows.reduce((acc, r) => acc + r.total_seconds, 0)
-  const lastWeek = grid[grid.length - 1] ?? []
-  const totalSecondsWeek = lastWeek.reduce((acc, c) => acc + c.seconds, 0)
-  const activeDays = rows.filter((r) => r.total_seconds > 0).length
-  const avgSeconds = activeDays > 0 ? Math.floor(totalSecondsYear / activeDays) : 0
+  // Period-filtered rows: stats, aggregate charts, and hour×day matrix
+  const periodRows = useMemo(() => {
+    const start = periodStartDate(period)
+    if (!start) return rows
+    const startDate = start.toISOString().slice(0, 10)
+    return rows.filter((r) => r.date >= startDate)
+  }, [rows, period])
 
-  const mostActiveRow = rows.reduce<WakatimeDayRow | null>(
-    (best, r) => (!best || r.total_seconds > best.total_seconds ? r : best),
-    null
+  const periodGhDays = useMemo(() => {
+    const start = periodStartDate(period)
+    if (!start) return ghDays
+    const startDate = start.toISOString().slice(0, 10)
+    return ghDays.filter((d) => d.date >= startDate)
+  }, [ghDays, period])
+
+  // --- Stat cards (period-aware) ---
+  const totalSeconds      = periodRows.reduce((acc, r) => acc + r.total_seconds, 0)
+  const lastWeek          = grid[grid.length - 1] ?? []
+  const totalSecondsWeek  = lastWeek.reduce((acc, c) => acc + c.seconds, 0)
+  const activeDays        = periodRows.filter((r) => r.total_seconds > 0).length
+  const avgSeconds        = activeDays > 0 ? Math.floor(totalSeconds / activeDays) : 0
+  const mostActiveRow     = periodRows.reduce<WakatimeDayRow | null>(
+    (best, r) => (!best || r.total_seconds > best.total_seconds ? r : best), null
   )
-  const mostActiveLabel = mostActiveRow && mostActiveRow.total_seconds > 0
+  const mostActiveLabel   = mostActiveRow?.total_seconds
     ? new Date(mostActiveRow.date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
     : "-"
 
-  const langMap = new Map<string, number>()
-  const projMap = new Map<string, number>()
-  const editMap = new Map<string, number>()
-  const osMap = new Map<string, number>()
+  // --- Aggregate maps (period-aware) ---
+  const langMap    = new Map<string, number>()
+  const projMap    = new Map<string, number>()
+  const editMap    = new Map<string, number>()
+  const osMap      = new Map<string, number>()
   const weekdayMap = [0, 0, 0, 0, 0, 0, 0]
 
-  for (const row of rows) {
+  for (const row of periodRows) {
     for (const l of row.languages ?? []) langMap.set(l.name, (langMap.get(l.name) ?? 0) + l.total_seconds)
-    for (const p of row.projects ?? []) projMap.set(p.name, (projMap.get(p.name) ?? 0) + p.total_seconds)
+    for (const p of row.projects ?? [])  projMap.set(p.name, (projMap.get(p.name) ?? 0) + p.total_seconds)
     for (const e of row.editors ?? []) {
       if (AI_EDITORS.has(e.name)) continue
       editMap.set(e.name, (editMap.get(e.name) ?? 0) + e.total_seconds)
     }
     for (const o of row.operating_systems ?? []) osMap.set(o.name, (osMap.get(o.name) ?? 0) + o.total_seconds)
     if (row.total_seconds > 0) {
-      // JS getDay: 0=Sun, map to Mon-Sun index
       const dow = new Date(row.date + "T00:00:00").getDay()
       const idx = dow === 0 ? 6 : dow - 1
       weekdayMap[idx] += row.total_seconds
@@ -251,76 +274,98 @@ export default function CodingClient({
   const topLangs = [...langMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
   const topProjs = [...projMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
   const topEdits = [...editMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
-  const topOs = [...osMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
+  const topOs    = [...osMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
   const totalLangSeconds = topLangs.reduce((acc, [, s]) => acc + s, 0)
   const totalEditSeconds = topEdits.reduce((acc, [, s]) => acc + s, 0)
-  const totalOsSeconds = topOs.reduce((acc, [, s]) => acc + s, 0)
-
+  const totalOsSeconds   = topOs.reduce((acc, [, s]) => acc + s, 0)
+  const totalProjSeconds = topProjs.reduce((acc, [, s]) => acc + s, 0)
   const langPieData = topLangs.map(([name, value]) => ({ name, value }))
   const projPieData = topProjs.map(([name, value]) => ({ name, value }))
   const editPieData = topEdits.map(([name, value]) => ({ name, value }))
-  const osPieData = topOs.map(([name, value]) => ({ name, value }))
-  const totalProjSeconds = topProjs.reduce((acc, [, s]) => acc + s, 0)
+  const osPieData   = topOs.map(([name, value]) => ({ name, value }))
   const weekdayData = WEEKDAY_LABELS.map((day, i) => ({ day, seconds: weekdayMap[i] }))
 
-  // Daily coding totals: last 30 days
+  // --- Hour × Day-of-week matrix (7 rows × 24 cols) from rows.hours ---
+  const weekdayHourMatrix = useMemo(() => {
+    const matrix: number[][] = Array.from({ length: 7 }, () => new Array(24).fill(0))
+    for (const row of periodRows) {
+      if (!row.hours || row.hours.length !== 24) continue
+      const dow = new Date(row.date + "T00:00:00").getDay()
+      const idx = dow === 0 ? 6 : dow - 1
+      for (let h = 0; h < 24; h++) matrix[idx][h] += row.hours[h]
+    }
+    return matrix
+  }, [periodRows])
+
+  const weekdayHourMax = useMemo(() => {
+    let max = 0
+    for (const row of weekdayHourMatrix) for (const v of row) if (v > max) max = v
+    return max
+  }, [weekdayHourMatrix])
+
+  const hasHourData = weekdayHourMax > 0
+
+  // --- Daily chart (period-aware number of days) ---
+  const numDays = PERIOD_CHART_DAYS[period]
+
   const dailyCodings = useMemo(() => {
     const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
     const today = new Date()
-    const result: { label: string; seconds: number }[] = []
-    for (let i = 29; i >= 0; i--) {
+    return Array.from({ length: numDays }, (_, i) => {
       const d = new Date(today)
-      d.setDate(today.getDate() - i)
+      d.setDate(today.getDate() - (numDays - 1 - i))
       const iso = d.toISOString().slice(0, 10)
-      result.push({
-        label: d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
-        seconds: byDate.get(iso) ?? 0,
-      })
-    }
-    return result
-  }, [rows])
+      return { name: d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), seconds: byDate.get(iso) ?? 0 }
+    })
+  }, [rows, numDays])
 
-  // Daily GitHub contributions: last 30 days
   const dailyGH = useMemo(() => {
     if (!ghDays.length) return []
     const byDate = new Map(ghDays.map((d) => [d.date, d.count]))
     const today = new Date()
-    const result: { label: string; count: number }[] = []
-    for (let i = 29; i >= 0; i--) {
+    return Array.from({ length: numDays }, (_, i) => {
       const d = new Date(today)
-      d.setDate(today.getDate() - i)
+      d.setDate(today.getDate() - (numDays - 1 - i))
       const iso = d.toISOString().slice(0, 10)
-      result.push({
-        label: d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
-        count: byDate.get(iso) ?? 0,
-      })
-    }
-    return result
-  }, [ghDays])
+      return { name: d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), count: byDate.get(iso) ?? 0 }
+    })
+  }, [ghDays, numDays])
 
-  // Weekly coding totals: last 13 weeks
+  // --- Weekly charts (always last 13 weeks — independent period, gives stable trend) ---
   const weeklyCodings = useMemo(() => {
     const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
     const today = new Date()
-    const result: { label: string; seconds: number }[] = []
-    for (let w = 12; w >= 0; w--) {
+    return Array.from({ length: 13 }, (_, w) => {
       const end = new Date(today)
-      end.setDate(today.getDate() - w * 7)
+      end.setDate(today.getDate() - (12 - w) * 7)
       let total = 0
       for (let d = 6; d >= 0; d--) {
         const day = new Date(end)
         day.setDate(end.getDate() - d)
         total += byDate.get(day.toISOString().slice(0, 10)) ?? 0
       }
-      result.push({
-        label: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
-        seconds: total,
-      })
-    }
-    return result
+      return { name: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), seconds: total }
+    })
   }, [rows])
 
-  // GitHub breakdown pie data
+  const weeklyGH = useMemo(() => {
+    if (!ghDays.length) return []
+    const byDate = new Map(ghDays.map((d) => [d.date, d.count]))
+    const today = new Date()
+    return Array.from({ length: 13 }, (_, w) => {
+      const end = new Date(today)
+      end.setDate(today.getDate() - (12 - w) * 7)
+      let total = 0
+      for (let d = 6; d >= 0; d--) {
+        const day = new Date(end)
+        day.setDate(end.getDate() - d)
+        total += byDate.get(day.toISOString().slice(0, 10)) ?? 0
+      }
+      return { name: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), count: total }
+    })
+  }, [ghDays])
+
+  // --- GitHub breakdown uses server-fetched totals (full-year aggregate) ---
   const ghBreakdownData = ghTotals && (ghTotals.commits + ghTotals.pullRequests + ghTotals.reviews + ghTotals.issues) > 0
     ? [
         { name: "Commits",       value: ghTotals.commits },
@@ -331,66 +376,33 @@ export default function CodingClient({
     : []
   const ghBreakdownTotal = ghBreakdownData.reduce((a, d) => a + d.value, 0)
 
-  // Weekly GitHub contribution totals: last 13 weeks
-  const weeklyGH = useMemo(() => {
-    if (!ghDays.length) return []
-    const byDate = new Map(ghDays.map((d) => [d.date, d.count]))
-    const today = new Date()
-    const result: { label: string; count: number }[] = []
-    for (let w = 12; w >= 0; w--) {
-      const end = new Date(today)
-      end.setDate(today.getDate() - w * 7)
-      let total = 0
-      for (let d = 6; d >= 0; d--) {
-        const day = new Date(end)
-        day.setDate(end.getDate() - d)
-        total += byDate.get(day.toISOString().slice(0, 10)) ?? 0
-      }
-      result.push({
-        label: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
-        count: total,
-      })
-    }
-    return result
-  }, [ghDays])
-
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <Code2 className="h-6 w-6 text-muted-foreground" />
-        <div>
-          <h1 className="text-xl font-semibold leading-tight">Coding Activity</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Daily coding time from WakaTime across all devices and editors.
-          </p>
+
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Code2 className="h-6 w-6 text-muted-foreground" />
+          <div>
+            <h1 className="text-xl font-semibold leading-tight">Coding Activity</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Daily coding time from WakaTime across all devices and editors.
+            </p>
+          </div>
         </div>
+        <PeriodSelector />
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="border border-border rounded-lg p-4 bg-card">
-          <p className="text-xs text-muted-foreground">This year</p>
-          <p className="text-2xl font-bold mt-1">{formatHours(totalSecondsYear)}</p>
-        </div>
-        <div className="border border-border rounded-lg p-4 bg-card">
-          <p className="text-xs text-muted-foreground">This week</p>
-          <p className="text-2xl font-bold mt-1">{formatHours(totalSecondsWeek)}</p>
-        </div>
-        <div className="border border-border rounded-lg p-4 bg-card">
-          <p className="text-xs text-muted-foreground">Active days</p>
-          <p className="text-2xl font-bold mt-1">{activeDays}</p>
-        </div>
-        <div className="border border-border rounded-lg p-4 bg-card">
-          <p className="text-xs text-muted-foreground">Daily average</p>
-          <p className="text-2xl font-bold mt-1">{formatHours(avgSeconds)}</p>
-        </div>
-        <div className="border border-border rounded-lg p-4 bg-card sm:col-span-1 col-span-2">
-          <p className="text-xs text-muted-foreground">Most active day</p>
-          <p className="text-lg font-bold mt-1 leading-tight">{mostActiveLabel}</p>
-        </div>
+        <StatCard label={PERIOD_STAT_LABEL[period]} value={formatHours(totalSeconds)} />
+        <StatCard label="This week"    value={formatHours(totalSecondsWeek)} />
+        <StatCard label="Active days"  value={activeDays} />
+        <StatCard label="Daily average" value={formatHours(avgSeconds)} />
+        <StatCard label="Most active day" value={mostActiveLabel} accentClassName="sm:col-span-1 col-span-2" />
       </div>
 
-      {/* Heatmap */}
+      {/* WakaTime 52-week contribution heatmap */}
       <div className="border border-border rounded-lg p-4 bg-card overflow-x-auto">
         <div className="flex gap-1 mb-1">
           <div className="w-6 shrink-0" />
@@ -403,9 +415,7 @@ export default function CodingClient({
         <div className="flex gap-1">
           <div className="flex flex-col gap-1 w-6 shrink-0">
             {DAYS.map((d, i) => (
-              <div key={d} className={`h-3 text-[9px] text-muted-foreground leading-3 ${i % 2 === 0 ? "opacity-0" : ""}`}>
-                {d}
-              </div>
+              <div key={d} className={`h-3 text-[9px] text-muted-foreground leading-3 ${i % 2 === 0 ? "opacity-0" : ""}`}>{d}</div>
             ))}
           </div>
           {grid.map((week, wi) => (
@@ -436,6 +446,61 @@ export default function CodingClient({
         </div>
       </div>
 
+      {/* Hour × Day-of-week heatmap (7 rows × 24 cols, from /durations data) */}
+      <div className="border border-border rounded-lg p-4 bg-card overflow-x-auto">
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className="text-sm font-semibold">When I code</h2>
+          <span className="text-xs text-muted-foreground">- hour of day (UTC) × day of week</span>
+        </div>
+        {hasHourData ? (
+          <>
+            <div className="flex gap-1 mb-1">
+              <div className="w-6 shrink-0" />
+              {HOURS.map((h) => (
+                <div key={h} className={`w-3 shrink-0 text-[8px] text-muted-foreground text-center ${parseInt(h) % 3 !== 0 ? "opacity-0" : ""}`}>
+                  {h}
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-1">
+              {DAYS.map((day, di) => (
+                <div key={day} className="flex gap-1 items-center">
+                  <div className="w-6 shrink-0 text-[9px] text-muted-foreground">{day}</div>
+                  {weekdayHourMatrix[di].map((secs, hi) => {
+                    const lvl = relativeIntensity(secs, weekdayHourMax)
+                    return (
+                      <div
+                        key={hi}
+                        className={`h-3 w-3 rounded-sm cursor-default transition-opacity hover:opacity-80 ${INTENSITY_CLASS[lvl]}`}
+                        onMouseEnter={() => setHdTooltip({ day, hour: hi, seconds: secs })}
+                        onMouseLeave={() => setHdTooltip(null)}
+                        title={`${day} ${hi}:00 — ${secs > 0 ? formatHours(secs) : "no data"}`}
+                      />
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
+            {hdTooltip && (
+              <div className="mt-2 text-xs text-muted-foreground">
+                {hdTooltip.day} {hdTooltip.hour}:00 — {hdTooltip.seconds > 0 ? formatHours(hdTooltip.seconds) : "no data"}
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 mt-3">
+              <span className="text-xs text-muted-foreground">Less</span>
+              {([0, 1, 2, 3, 4] as const).map((lvl) => (
+                <div key={lvl} className={`h-3 w-3 rounded-sm ${INTENSITY_CLASS[lvl]}`} />
+              ))}
+              <span className="text-xs text-muted-foreground">More</span>
+            </div>
+          </>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Hourly data will appear after the next WakaTime sync.
+          </p>
+        )}
+      </div>
+
       {/* GitHub contributions heatmap */}
       {ghDays.length > 0 && (
         <div className="border border-border rounded-lg p-4 bg-card overflow-x-auto">
@@ -454,9 +519,7 @@ export default function CodingClient({
           <div className="flex gap-1">
             <div className="flex flex-col gap-1 w-6 shrink-0">
               {DAYS.map((d, i) => (
-                <div key={d} className={`h-3 text-[9px] text-muted-foreground leading-3 ${i % 2 === 0 ? "opacity-0" : ""}`}>
-                  {d}
-                </div>
+                <div key={d} className={`h-3 text-[9px] text-muted-foreground leading-3 ${i % 2 === 0 ? "opacity-0" : ""}`}>{d}</div>
               ))}
             </div>
             {ghGrid.map((week, wi) => (
@@ -488,77 +551,61 @@ export default function CodingClient({
         </div>
       )}
 
-      {/* Daily coding + GitHub bar charts: last 30 days */}
+      {/* Daily coding + GitHub bar charts */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="border border-border rounded-lg p-4 bg-card">
-          <h2 className="text-sm font-semibold mb-3">Coding: daily (last 30 days)</h2>
+          <h2 className="text-sm font-semibold mb-3">Coding: daily (last {numDays} days)</h2>
           <ResponsiveContainer width="100%" height={120}>
-            <BarChart data={dailyCodings} barSize={6} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+            <RBarChart data={dailyCodings} barSize={6} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 8 }} tickLine={false} axisLine={false} interval={4} />
+              <XAxis dataKey="name" tick={{ fontSize: 8 }} tickLine={false} axisLine={false} interval={Math.max(1, Math.floor(numDays / 7) - 1)} />
               <YAxis hide />
-              <Tooltip
-                formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]}
-                contentStyle={{ fontSize: "11px" }}
-                cursor={{ fill: "hsl(var(--muted))" }}
-              />
+              <Tooltip formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]} contentStyle={{ fontSize: "11px" }} cursor={{ fill: "hsl(var(--muted))" }} />
               <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
-            </BarChart>
+            </RBarChart>
           </ResponsiveContainer>
         </div>
         {dailyGH.length > 0 && (
           <div className="border border-border rounded-lg p-4 bg-card">
-            <h2 className="text-sm font-semibold mb-3">GitHub: daily (last 30 days)</h2>
+            <h2 className="text-sm font-semibold mb-3">GitHub: daily (last {numDays} days)</h2>
             <ResponsiveContainer width="100%" height={120}>
-              <BarChart data={dailyGH} barSize={6} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+              <RBarChart data={dailyGH} barSize={6} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 8 }} tickLine={false} axisLine={false} interval={4} />
+                <XAxis dataKey="name" tick={{ fontSize: 8 }} tickLine={false} axisLine={false} interval={Math.max(1, Math.floor(numDays / 7) - 1)} />
                 <YAxis hide />
-                <Tooltip
-                  formatter={(v) => [v, "Contributions"]}
-                  contentStyle={{ fontSize: "11px" }}
-                  cursor={{ fill: "hsl(var(--muted))" }}
-                />
+                <Tooltip formatter={(v) => [v, "Contributions"]} contentStyle={{ fontSize: "11px" }} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Bar dataKey="count" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-              </BarChart>
+              </RBarChart>
             </ResponsiveContainer>
           </div>
         )}
       </div>
 
-      {/* Weekly coding + GitHub contribution bar charts */}
+      {/* Weekly bar charts */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="border border-border rounded-lg p-4 bg-card">
           <h2 className="text-sm font-semibold mb-3">Coding: weekly totals</h2>
           <ResponsiveContainer width="100%" height={140}>
-            <BarChart data={weeklyCodings} barSize={12} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+            <RBarChart data={weeklyCodings} barSize={12} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} interval={2} />
+              <XAxis dataKey="name" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} interval={2} />
               <YAxis hide />
-              <Tooltip
-                formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]}
-                contentStyle={{ fontSize: "11px" }}
-                cursor={{ fill: "hsl(var(--muted))" }}
-              />
+              <Tooltip formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]} contentStyle={{ fontSize: "11px" }} cursor={{ fill: "hsl(var(--muted))" }} />
               <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
-            </BarChart>
+            </RBarChart>
           </ResponsiveContainer>
         </div>
         {weeklyGH.length > 0 && (
           <div className="border border-border rounded-lg p-4 bg-card">
             <h2 className="text-sm font-semibold mb-3">GitHub: weekly contributions</h2>
             <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={weeklyGH} barSize={12} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+              <RBarChart data={weeklyGH} barSize={12} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} interval={2} />
+                <XAxis dataKey="name" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} interval={2} />
                 <YAxis hide />
-                <Tooltip
-                  formatter={(v) => [v, "Contributions"]}
-                  contentStyle={{ fontSize: "11px" }}
-                  cursor={{ fill: "hsl(var(--muted))" }}
-                />
+                <Tooltip formatter={(v) => [v, "Contributions"]} contentStyle={{ fontSize: "11px" }} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Bar dataKey="count" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-              </BarChart>
+              </RBarChart>
             </ResponsiveContainer>
           </div>
         )}
@@ -567,24 +614,15 @@ export default function CodingClient({
       {/* GitHub contribution breakdown */}
       {ghBreakdownData.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Pie chart */}
           <div className="border border-border rounded-lg p-4 bg-card">
             <h2 className="text-sm font-semibold mb-2">GitHub breakdown: pie (this year)</h2>
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <div className="shrink-0 w-36">
                 <ResponsiveContainer width="100%" height={150}>
                   <PieChart>
-                    <Pie
-                      data={ghBreakdownData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={38}
-                      outerRadius={58}
-                      dataKey="value"
-                      paddingAngle={2}
-                    >
+                    <Pie data={ghBreakdownData} cx="50%" cy="50%" innerRadius={38} outerRadius={58} dataKey="value" paddingAngle={2}>
                       {ghBreakdownData.map((_, i) => (
-                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                        <Cell key={i} fill={DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length]} />
                       ))}
                     </Pie>
                     <Tooltip formatter={(v) => [v, ""]} contentStyle={{ fontSize: "11px" }} />
@@ -595,14 +633,12 @@ export default function CodingClient({
                 {ghBreakdownData.map((item, i) => (
                   <div key={item.name} className="flex items-center justify-between text-xs gap-2">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="h-2 w-2 rounded-full shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                      <span className="h-2 w-2 rounded-full shrink-0" style={{ background: DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length] }} />
                       <span className="text-muted-foreground">{item.name}</span>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0 tabular-nums">
                       <span>{item.value}</span>
-                      <span className="text-muted-foreground">
-                        {ghBreakdownTotal > 0 ? `${Math.round((item.value / ghBreakdownTotal) * 100)}%` : ""}
-                      </span>
+                      <span className="text-muted-foreground">{ghBreakdownTotal > 0 ? `${Math.round((item.value / ghBreakdownTotal) * 100)}%` : ""}</span>
                     </div>
                   </div>
                 ))}
@@ -613,27 +649,26 @@ export default function CodingClient({
               </div>
             </div>
           </div>
-          {/* Bar chart */}
           <div className="border border-border rounded-lg p-4 bg-card">
             <h2 className="text-sm font-semibold mb-3">GitHub breakdown: bar (this year)</h2>
             <ResponsiveContainer width="100%" height={150}>
-              <BarChart data={ghBreakdownData} barSize={24} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+              <RBarChart data={ghBreakdownData} barSize={24} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                 <YAxis hide />
                 <Tooltip formatter={(v) => [v, "Count"]} contentStyle={{ fontSize: "11px" }} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                   {ghBreakdownData.map((_, i) => (
-                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                    <Cell key={i} fill={DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length]} />
                   ))}
                 </Bar>
-              </BarChart>
+              </RBarChart>
             </ResponsiveContainer>
           </div>
         </div>
       )}
 
-      {/* Languages: horizontal bars */}
+      {/* Languages: horizontal progress bars */}
       <div className="border border-border rounded-lg p-4 bg-card">
         <h2 className="text-sm font-semibold mb-3">Languages</h2>
         {topLangs.length === 0 ? (
@@ -648,13 +683,11 @@ export default function CodingClient({
                     className="h-full rounded-full"
                     style={{
                       width: `${Math.round((secs / (totalLangSeconds || 1)) * 100)}%`,
-                      background: CHART_COLORS[i % CHART_COLORS.length],
+                      background: DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length],
                     }}
                   />
                 </div>
-                <span className="text-xs tabular-nums text-muted-foreground w-14 text-right">
-                  {formatHours(secs)}
-                </span>
+                <span className="text-xs tabular-nums text-muted-foreground w-14 text-right">{formatHours(secs)}</span>
               </div>
             ))}
           </div>
@@ -663,16 +696,14 @@ export default function CodingClient({
 
       {/* Donut charts row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <DonutPanel title="Languages" data={langPieData} total={totalLangSeconds} />
-        <DonutPanel title="Editors" data={editPieData} total={totalEditSeconds} />
+        <DonutPanel title="Languages"  data={langPieData} total={totalLangSeconds} />
+        <DonutPanel title="Editors"    data={editPieData} total={totalEditSeconds} />
         {osPieData.length > 0 ? (
           <DonutPanel title="Operating Systems" data={osPieData} total={totalOsSeconds} />
         ) : (
           <div className="border border-border rounded-lg p-4 bg-card">
             <h2 className="text-sm font-semibold mb-2">Operating Systems</h2>
-            <p className="text-xs text-muted-foreground">
-              Data will appear after the next WakaTime sync.
-            </p>
+            <p className="text-xs text-muted-foreground">Data will appear after the next WakaTime sync.</p>
           </div>
         )}
       </div>
@@ -687,25 +718,32 @@ export default function CodingClient({
           <p className="text-xs text-muted-foreground">No data yet.</p>
         ) : (
           <ResponsiveContainer width="100%" height={140}>
-            <BarChart data={weekdayData} barSize={18}>
+            <RBarChart data={weekdayData} barSize={18}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis
-                dataKey="day"
-                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                axisLine={false}
-                tickLine={false}
-              />
+              <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
               <YAxis hide />
-              <Tooltip
-                formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]}
-                contentStyle={{ fontSize: "11px" }}
-                cursor={{ fill: "hsl(var(--muted))" }}
-              />
+              <Tooltip formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]} contentStyle={{ fontSize: "11px" }} cursor={{ fill: "hsl(var(--muted))" }} />
               <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
-            </BarChart>
+            </RBarChart>
           </ResponsiveContainer>
         )}
       </div>
     </div>
+  )
+}
+
+export default function CodingClient({
+  rows,
+  ghDays = [],
+  ghTotals,
+}: {
+  rows: WakatimeDayRow[]
+  ghDays?: GitHubDay[]
+  ghTotals?: GitHubContribTotals
+}) {
+  return (
+    <AnalyticsPeriodProvider defaultPeriod="1y">
+      <CodingInner rows={rows} ghDays={ghDays} ghTotals={ghTotals} />
+    </AnalyticsPeriodProvider>
   )
 }
