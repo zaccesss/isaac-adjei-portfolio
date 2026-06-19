@@ -419,9 +419,11 @@ alter table applications add column if not exists written_answers       text;
 alter table applications add column if not exists sponsors_visa         text;
 alter table applications add column if not exists category              text default 'Software Engineering';
 alter table applications add column if not exists last_scraped_at       timestamptz;
+alter table applications add column if not exists archived               boolean not null default false;
 
 -- Ensure the unique index on URL exists for upsert deduplication.
 create unique index if not exists applications_url_unique on applications (url);
+create index if not exists applications_archived_idx on applications (archived);
 
 
 -- ============================================================

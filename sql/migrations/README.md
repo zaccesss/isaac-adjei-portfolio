@@ -16,7 +16,16 @@ All files use `IF NOT EXISTS`, `CREATE OR REPLACE`, or `DO` blocks so they are s
 | 006 | `006_add_wakatime_daily.sql` | wakatime_daily table with RLS | Both |
 | 007 | `007_add_blog_read_funnel_function.sql` | blog_read_funnel() RPC function (requires migration 005) | Both |
 | 008 | `008_add_inventory_url.sql` | url column on inventory_items table | Both |
+| 008 | `008_add_wakatime_os.sql` | os column on wakatime_daily table | Both |
+| 009 | `009_ensure_activity_log.sql` | Ensures activity_log table exists with RLS | Both |
+| 010 | `010_add_trash_table.sql` | trash table with RLS | Both |
+| 011 | `011_add_contacts_table.sql` | contacts table with RLS | Both |
+| 012 | `012_add_detail_to_activity_log.sql` | detail column on activity_log table | Both |
+| 013 | `013_add_contacts_phone_github.sql` | phone/github columns on contacts table | Both |
+| 014 | `014_add_linear_issue_id.sql` | linear_issue_id column on applications table | Both |
+| 015 | `015_add_markdown_column_comments.sql` | PostgreSQL column comments marking markdown-storing columns | Both |
+| 016 | `016_add_applications_archived.sql` | archived flag + index on applications table | Both |
 
 ## Run order
 
-Paste each file into the Supabase **SQL Editor** and execute in order 001 → 008. Skip any that are already applied.
+Paste each file into the Supabase **SQL Editor** and execute in order 001 → 016. Skip any that are already applied.
