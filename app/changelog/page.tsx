@@ -31,7 +31,7 @@ const releases: ChangeEntry[] = [
     version: "v2.10.0",
     date: "2026-06-19",
     added: [
-      "/lab: WakaTime coding dashboard - period selector (24h/7d/30d/90d/1y/all), stat cards, daily trend line chart, 7x24 interactive coding heatmap, language and project progress bars, language and editor pie charts, weekday and hour-of-day bar charts, all with hover tooltips",
+      "/lab: WakaTime coding dashboard - period selector (24h/7d/30d/90d/1y/all), stat cards, daily trend line chart, 7x24 interactive coding heatmap with hourly sparkline (total activity per UTC hour collapsed across all days) and peak coding hour, language and project progress bars, language and editor pie charts, weekday and hour-of-day bar charts, all with hover tooltips",
       "/lab: 20+ new terminal commands including stats, streak, today, languages, vscode, os (live WakaTime data), posts (most-read blog and TIL), grade, uptime, now, mottos, hire, cv, decrypt, matrix, make",
       "/lab: theatrical command animations - hack, coffee, decrypt, matrix, make, sudo and zac now play out line by line with real delays",
       "/lab: clickable link line type in the terminal - URLs render as primary-coloured anchor tags",

@@ -192,7 +192,7 @@ function NutritionCard({ item, onUpdate, onDelete }: {
 }
 
 // I use a discriminated union so the section icon type is clear
-const SECTION_ICONS: Record<string, React.ElementType> = {
+const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   gym: Dumbbell,
   nutrition: Salad,
   running: Footprints,

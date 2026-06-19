@@ -16,9 +16,9 @@ interface SpotifyData {
 }
 
 const BAR_COUNT = 52
-const BAR_H    = 72   // usable height for bars
-const WAVE_Y   = 86   // sine wave centre y
-const VH       = 96   // total SVG height
+const BAR_H    = 88   // usable height for bars
+const WAVE_Y   = 104  // sine wave centre y
+const VH       = 116  // total SVG height
 const BAR_W    = 4
 const GAP      = 2
 const VBOX_W   = BAR_COUNT * (BAR_W + GAP) - GAP  // 364

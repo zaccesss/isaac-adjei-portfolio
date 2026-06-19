@@ -78,6 +78,13 @@ function CodingHeatmap({ data }: { data: { dow: number; hour: number; seconds: n
   for (const { dow, hour, seconds } of data) matrix[dow][hour] = seconds
   const max = Math.max(...data.map((d) => d.seconds), 1)
 
+  // Hourly totals across all days - powers the sparkline below the grid
+  const hourTotals = Array.from({ length: 24 }, (_, h) =>
+    matrix.reduce((sum, row) => sum + row[h], 0)
+  )
+  const maxHourTotal = Math.max(...hourTotals, 1)
+  const peakHour = hourTotals.indexOf(maxHourTotal)
+
   // Reorder to Mon-first (1,2,3,4,5,6,0)
   const rowOrder = [1, 2, 3, 4, 5, 6, 0]
 
@@ -107,6 +114,29 @@ function CodingHeatmap({ data }: { data: { dow: number; hour: number; seconds: n
               </div>
             </div>
           ))}
+          {/* Hourly sparkline - total across all days, shares the same x-axis as the grid */}
+          <div className="flex items-end gap-1 mt-1">
+            <span className="w-6 shrink-0" />
+            <div className="flex items-end gap-[2px]">
+              {hourTotals.map((secs, h) => {
+                const heightPx = Math.max(2, Math.round((secs / maxHourTotal) * 20))
+                const isPeak = h === peakHour
+                return (
+                  <div
+                    key={h}
+                    title={`${h}:00 UTC - ${fmt(secs)} total`}
+                    className="w-3 rounded-t-[1px] cursor-default transition-opacity hover:opacity-100 opacity-70"
+                    style={{
+                      height: heightPx,
+                      background: isPeak
+                        ? "hsl(var(--primary))"
+                        : `hsl(var(--primary) / ${0.2 + 0.5 * (secs / maxHourTotal)})`,
+                    }}
+                  />
+                )
+              })}
+            </div>
+          </div>
           <div className="flex items-center gap-1 mt-0.5">
             <span className="w-6 shrink-0" />
             <div className="flex gap-[2px]">
@@ -124,12 +154,17 @@ function CodingHeatmap({ data }: { data: { dow: number; hour: number; seconds: n
           {DAYS[hovered.dow]} {hovered.hour}:00 - {fmt(matrix[hovered.dow][hovered.hour])} coded
         </div>
       )}
-      <div className="flex items-center gap-1.5 justify-end">
-        <span className="text-[9px] text-muted-foreground font-mono">Less</span>
-        {["bg-muted/30", "bg-primary/20", "bg-primary/40", "bg-primary/70", "bg-primary"].map((cls, i) => (
-          <div key={i} className={`w-3 h-3 rounded-[2px] ${cls}`} />
-        ))}
-        <span className="text-[9px] text-muted-foreground font-mono">More</span>
+      <div className="flex items-center justify-between">
+        <span className="text-[9px] font-mono text-muted-foreground/70">
+          peak <span className="text-primary">{peakHour}:00 UTC</span>
+        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[9px] text-muted-foreground font-mono">Less</span>
+          {["bg-muted/30", "bg-primary/20", "bg-primary/40", "bg-primary/70", "bg-primary"].map((cls, i) => (
+            <div key={i} className={`w-3 h-3 rounded-[2px] ${cls}`} />
+          ))}
+          <span className="text-[9px] text-muted-foreground font-mono">More</span>
+        </div>
       </div>
     </div>
   )
@@ -176,7 +211,7 @@ function ProgressBars({ items, total }: { items: { name: string; total_seconds: 
 }
 
 function StatCard({ icon: Icon, label, value, sub }: {
-  icon: React.ElementType
+  icon: React.ComponentType<{ className?: string }>
   label: string
   value: string
   sub?: string
