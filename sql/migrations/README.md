@@ -25,7 +25,8 @@ All files use `IF NOT EXISTS`, `CREATE OR REPLACE`, or `DO` blocks so they are s
 | 014 | `014_add_linear_issue_id.sql` | linear_issue_id column on applications table | Both |
 | 015 | `015_add_markdown_column_comments.sql` | PostgreSQL column comments marking markdown-storing columns | Both |
 | 016 | `016_add_applications_archived.sql` | archived flag + index on applications table | Both |
+| 017 | `017_add_activity_log_created_at_index.sql` | index on activity_log.created_at | Both |
 
 ## Run order
 
-Paste each file into the Supabase **SQL Editor** and execute in order 001 → 016. Skip any that are already applied.
+Paste each file into the Supabase **SQL Editor** and execute in order 001 → 017. Skip any that are already applied.

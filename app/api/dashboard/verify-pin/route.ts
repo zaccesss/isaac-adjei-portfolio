@@ -1,13 +1,43 @@
 // I use auth() here because this project uses NextAuth v5 - getToken (v4) always
 // returned null when NEXTAUTH_SECRET was not set, causing every PIN attempt to 401.
 import { NextRequest, NextResponse } from "next/server"
+import { Ratelimit } from "@upstash/ratelimit"
+import { Redis } from "@upstash/redis"
 import { verifyPin } from "@/lib/pin"
 import { auth } from "@/auth"
+
+// Brute-force protection on the PIN itself: 5 attempts per 15 minutes per IP.
+// Only initialised when Upstash env vars are present, same fail-open pattern
+// as /api/contact - an Upstash outage must never lock the dashboard owner out.
+let ratelimit: Ratelimit | null = null
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  try {
+    ratelimit = new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(5, "15 m"),
+      prefix: "verify_pin_rl",
+    })
+  } catch (e) {
+    console.error("Ratelimit init failed:", e)
+  }
+}
 
 export async function POST(req: NextRequest) {
   // I require an active dashboard session before accepting a PIN attempt
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
+
+  if (ratelimit) {
+    try {
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
+      const { success } = await ratelimit.limit(ip)
+      if (!success) {
+        return NextResponse.json({ error: "Too many attempts. Please try again later." }, { status: 429 })
+      }
+    } catch (rlErr) {
+      console.error("Rate limit check failed, allowing request:", rlErr)
+    }
+  }
 
   const { pin } = await req.json()
   if (!pin || typeof pin !== "string") {

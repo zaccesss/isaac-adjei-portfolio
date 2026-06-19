@@ -12,6 +12,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Applications: added `lib/application-status.ts` as the single source of truth for status normalisation, funnel classification and pipeline state, replacing three drifted copies of `normaliseStatus()` in Kanban, Analytics and the Table view (closes #365, closes #374)
 - Applications Kanban: scraped/untouched job entries no longer leak onto the board - the active-tracking filter now runs against the raw status before normalisation instead of after, which is what let the check silently stop matching anything
 - Applications funnel chart: Assessment and Interview stages no longer double-count the same entries
+- Dashboard `verify-pin` route had no brute-force protection - added a 5 attempts per 15 minutes per IP rate limit, same Upstash pattern as `/api/contact` (closes #373)
+
+### Removed
+
+- `delete_stale_entries()` in the job scraper was dead code, defined but never called - removed entirely so it cannot be wired back in by accident (closes #370)
+
+### Changed
+
+- `job-scraper.py` docstring corrected from "every 3 days" to "every 2 days" to match the actual cron schedule (closes #371)
+- Added a missing index on `activity_log.created_at` ahead of the table growing large enough for it to matter (closes #372)
 
 ---
 

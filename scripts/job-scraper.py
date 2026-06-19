@@ -1,6 +1,6 @@
 # I scrape tech internships and placements from 20+ sources and upsert them into Supabase so my application tracker stays fresh without manual searching.
 """
-Job Scraper - runs via GitHub Actions every 3 days at midnight UTC.
+Job Scraper - runs via GitHub Actions every 2 days at midnight UTC.
 
 Sources:
   - The Trackr (Playwright - JS rendered, best UK internship aggregator)
@@ -39,7 +39,7 @@ import hashlib
 import requests
 from bs4 import BeautifulSoup
 from supabase import create_client, Client
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # I use whole-word matching for "intern" so words like "internal" and
 # "international" do not trigger a false positive intern classification.
@@ -2557,26 +2557,11 @@ def send_discord_alert(new_jobs: list[dict]) -> None:
 
 # ─── MAIN ───────────────────────────────────────────────────────────────────
 
-def delete_stale_entries() -> None:
-    # I delete scraped entries that have not been seen in 30 days instead of
-    # wiping the whole board. This means a job that disappears for a day does
-    # not get lost - it only expires after a full month of absence.
-    cutoff = (datetime.utcnow() - timedelta(days=30)).isoformat()
-    try:
-        supabase.table("applications").delete() \
-            .eq("status", "scraped") \
-            .lt("last_scraped_at", cutoff) \
-            .execute()
-        print(f"Deleted scraped entries not seen since {cutoff[:10]}")
-    except Exception as e:
-        print(f"Warning: could not delete stale entries: {e}")
-
-
 def refresh_seen_timestamps() -> None:
-    # I batch-update last_scraped_at for all entries seen this run so the
-    # 30-day stale delete does not remove jobs that are still live on the
-    # source sites. I only touch last_scraped_at - all other columns
-    # (status, notes, starred etc.) remain exactly as the user left them.
+    # I batch-update last_scraped_at for all entries seen this run so freshness
+    # is always visible per-row, even though scraped applications are kept
+    # permanently and never deleted. I only touch last_scraped_at - all other
+    # columns (status, notes, starred etc.) remain exactly as the user left them.
     if not _seen_urls:
         return
     seen_list = list(_seen_urls)
