@@ -1365,8 +1365,19 @@ export async function clearAllJobs() {
 }
 
 export async function clearAllApplications() {
+  const { data } = await supabase.from("applications").select("*").neq("id", "00000000-0000-0000-0000-000000000000")
+  if (data && data.length > 0) {
+    await supabase.from("trash").insert(
+      data.map((row) => ({
+        table_name: "applications",
+        original_id: row.id,
+        display_name: `${row.company} - ${row.role}`,
+        data: row,
+      }))
+    )
+  }
   await supabase.from("applications").delete().neq("id", "00000000-0000-0000-0000-000000000000")
-  void logActivity("application.cleared", "all tracked applications")
+  void logActivity("application.cleared", `${data?.length ?? 0} applications moved to trash`)
   revalidatePath("/dashboard/applications")
 }
 

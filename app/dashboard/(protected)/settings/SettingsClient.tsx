@@ -4,6 +4,7 @@
 // I fetch workflow and scraper statuses on mount so I can show the last-run time and success state.
 
 import { useState, useEffect } from "react"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import { motion } from "framer-motion"
@@ -63,6 +64,7 @@ function StatusBadge({ status, lastRun }: { status: "success" | "failure" | "unk
 export default function SettingsClient() {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   const [currentPin, setCurrentPin] = useState("")
   const [newPin, setNewPin] = useState("")
@@ -193,12 +195,18 @@ export default function SettingsClient() {
   }
 
   async function handleClearApplications() {
-    if (!confirm("This will permanently delete all tracked applications. Are you sure?")) return
+    const confirmed = await showConfirm({
+      title: "Clear all applications?",
+      description: "Every tracked application will be moved to Trash (recoverable). This cannot be undone from this screen.",
+      typedConfirmation: "clear applications",
+      destructive: true,
+    })
+    if (!confirmed) return
     setDataLoading(true)
     setDataMessage(null)
     try {
       await clearAllApplications()
-      setDataMessage({ text: "All tracked applications cleared.", ok: true })
+      setDataMessage({ text: "All tracked applications moved to trash.", ok: true })
     } catch {
       setDataMessage({ text: "Failed to clear applications.", ok: false })
     } finally {
@@ -300,6 +308,7 @@ export default function SettingsClient() {
   }
 
   return (
+    <>
     <motion.div
       variants={dashboardPage}
       initial="hidden"
@@ -676,5 +685,7 @@ export default function SettingsClient() {
         )}
       </section>
     </motion.div>
+    {confirmDialogNode}
+    </>
   )
 }
