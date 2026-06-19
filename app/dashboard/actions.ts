@@ -652,13 +652,15 @@ export async function createHealthSection(data: {
   icon: string
   color: string
   order_index: number
+  subtype?: string
 }) {
   if (
     !validStr(data.name) ||
     !validStr(data.type) ||
     !validStr(data.icon) ||
     !validStr(data.color) ||
-    !validNum(data.order_index, 0, 9999)
+    !validNum(data.order_index, 0, 9999) ||
+    !optStr(data.subtype)
   ) return INVALID
   const { data: inserted } = await supabase.from("health_sections").insert(data).select().single()
   void logActivity("health.create", data.name)
@@ -672,7 +674,8 @@ export async function updateHealthSection(id: string, data: Partial<{
   icon: string
   color: string
   order_index: number
-  active: boolean  // I soft-delete sections by setting active: false rather than destroying the data
+  active: boolean
+  subtype: string | null
 }>) {
   if (!validId(id)) return INVALID
   await supabase.from("health_sections").update(data).eq("id", id)
@@ -682,8 +685,8 @@ export async function updateHealthSection(id: string, data: Partial<{
 
 export async function deleteHealthSection(id: string) {
   if (!validId(id)) return INVALID
-  await supabase.from("health_sections").delete().eq("id", id)
-  void logActivity("health.delete", id)
+  await moveToTrash("health_sections", id)
+  void logActivity("health.section.delete", id)
   revalidatePath("/dashboard/health")
 }
 
@@ -722,8 +725,8 @@ export async function updateHealthWorkout(id: string, data: Partial<{
 
 export async function deleteHealthWorkout(id: string) {
   if (!validId(id)) return INVALID
-  await supabase.from("health_workouts").delete().eq("id", id)
-  void logActivity("health.delete", id)
+  await moveToTrash("health_workouts", id)
+  void logActivity("health.workout.delete", id)
   revalidatePath("/dashboard/health")
 }
 
@@ -765,8 +768,8 @@ export async function createHealthNutrition(data: {
 
 export async function deleteHealthNutrition(id: string) {
   if (!validId(id)) return INVALID
-  await supabase.from("health_nutrition").delete().eq("id", id)
-  void logActivity("health.delete", id)
+  await moveToTrash("health_nutrition", id)
+  void logActivity("health.nutrition.delete", id)
   revalidatePath("/dashboard/health")
 }
 
@@ -1522,4 +1525,143 @@ export async function permanentlyDelete(trashId: string) {
 export async function emptyTrash() {
   await supabase.from("trash").delete().neq("id", "00000000-0000-0000-0000-000000000000")
   void logActivity("trash.empty")
+}
+
+// ─── Body Metrics ─────────────────────────────────────────────
+
+export async function createBodyMetric(data: {
+  date: string
+  metric: string
+  value: number
+  unit: string
+  notes?: string
+}) {
+  if (!validStr(data.date) || !validStr(data.metric) || !validStr(data.unit)) return INVALID
+  if (!validNum(data.value, 0, 9999)) return INVALID
+  if (!optStr(data.notes)) return INVALID
+  const { error } = await supabase.from("body_metrics").insert({
+    date: data.date,
+    metric: data.metric,
+    value: data.value,
+    unit: data.unit,
+    notes: data.notes?.trim() || null,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/health")
+  void logActivity("body_metric.create", `${data.metric}: ${data.value}${data.unit}`)
+}
+
+export async function deleteBodyMetric(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("body_metrics", id)
+  revalidatePath("/dashboard/health")
+  void logActivity("body_metric.delete", id)
+}
+
+// ─── Faith ───────────────────────────────────────────────────
+
+export async function createFaithEntry(data: {
+  date: string
+  type: string
+  title?: string
+  notes?: string
+  duration_m?: number
+  completed?: boolean
+}) {
+  if (!validStr(data.date) || !validStr(data.type)) return INVALID
+  if (!optStr(data.title) || !optStr(data.notes)) return INVALID
+  if (!optNum(data.duration_m, 0, 1440)) return INVALID
+  const { error } = await supabase.from("faith_entries").insert({
+    date: data.date,
+    type: data.type,
+    title: data.title?.trim() || null,
+    notes: data.notes?.trim() || null,
+    duration_m: data.duration_m ?? null,
+    completed: data.completed ?? true,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/faith")
+  void logActivity("faith.create", data.title ?? data.type)
+}
+
+export async function deleteFaithEntry(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("faith_entries", id)
+  revalidatePath("/dashboard/faith")
+  void logActivity("faith.delete", id)
+}
+
+export async function updateFaithEntry(id: string, data: {
+  title?: string
+  notes?: string
+  duration_m?: number
+  completed?: boolean
+}) {
+  if (!validId(id)) return INVALID
+  if (!optStr(data.title) || !optStr(data.notes)) return INVALID
+  if (!optNum(data.duration_m, 0, 1440)) return INVALID
+  const { error } = await supabase.from("faith_entries").update({
+    ...(data.title !== undefined && { title: data.title.trim() || null }),
+    ...(data.notes !== undefined && { notes: data.notes.trim() || null }),
+    ...(data.duration_m !== undefined && { duration_m: data.duration_m }),
+    ...(data.completed !== undefined && { completed: data.completed }),
+  }).eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/faith")
+  void logActivity("faith.update", id)
+}
+
+// ─── Study ───────────────────────────────────────────────────
+
+export async function createStudySession(data: {
+  date: string
+  subject: string
+  duration_m: number
+  notes?: string
+  technique?: string
+  productive?: boolean
+}) {
+  if (!validStr(data.date) || !validStr(data.subject)) return INVALID
+  if (!validNum(data.duration_m, 0, 1440)) return INVALID
+  if (!optStr(data.notes) || !optStr(data.technique)) return INVALID
+  const { error } = await supabase.from("study_sessions").insert({
+    date: data.date,
+    subject: data.subject.trim(),
+    duration_m: data.duration_m,
+    notes: data.notes?.trim() || null,
+    technique: data.technique?.trim() || null,
+    productive: data.productive ?? true,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/study")
+  void logActivity("study.create", `${data.subject} - ${data.duration_m}min`)
+}
+
+export async function deleteStudySession(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("study_sessions", id)
+  revalidatePath("/dashboard/study")
+  void logActivity("study.delete", id)
+}
+
+export async function updateStudySession(id: string, data: {
+  subject?: string
+  duration_m?: number
+  notes?: string
+  technique?: string
+  productive?: boolean
+}) {
+  if (!validId(id)) return INVALID
+  if (!optStr(data.subject) || !optStr(data.notes) || !optStr(data.technique)) return INVALID
+  if (data.duration_m !== undefined && !validNum(data.duration_m, 0, 1440)) return INVALID
+  const { error } = await supabase.from("study_sessions").update({
+    ...(data.subject !== undefined && { subject: data.subject.trim() }),
+    ...(data.duration_m !== undefined && { duration_m: data.duration_m }),
+    ...(data.notes !== undefined && { notes: data.notes.trim() || null }),
+    ...(data.technique !== undefined && { technique: data.technique.trim() || null }),
+    ...(data.productive !== undefined && { productive: data.productive }),
+  }).eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/study")
+  void logActivity("study.update", id)
 }

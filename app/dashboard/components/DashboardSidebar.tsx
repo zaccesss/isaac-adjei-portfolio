@@ -6,7 +6,8 @@ import { signOut } from "next-auth/react"
 import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
-  Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users
+  Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users,
+  Brain, Church
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -18,6 +19,8 @@ const nav = [
   { href: "/dashboard/us", label: "Us", icon: Heart },
   { href: "/dashboard/goals", label: "Goals", icon: Target },
   { href: "/dashboard/health", label: "Health & Fitness", icon: Dumbbell },
+  { href: "/dashboard/study", label: "Study", icon: Brain },
+  { href: "/dashboard/faith", label: "Faith", icon: Church },
   { href: "/dashboard/diary", label: "Diary", icon: BookMarked },
   { href: "/dashboard/notes", label: "Notes", icon: StickyNote },
   { href: "/dashboard/wishlist", label: "Wishlist", icon: Gift },
