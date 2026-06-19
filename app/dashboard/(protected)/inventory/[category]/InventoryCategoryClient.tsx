@@ -161,15 +161,15 @@ function ItemCard({ item, categorySlug, onEdit, onDelete }: {
           <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             {item.url && (
               <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
-                aria-label="Product page" className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground">
+                aria-label="Product page" title="Product page" className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground">
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
             )}
-            <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(item) }} aria-label="Edit"
+            <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(item) }} aria-label="Edit" title="Edit"
               className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground">
               <Edit2 className="h-3.5 w-3.5" />
             </button>
-            <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(item.id) }} aria-label="Delete"
+            <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(item.id) }} aria-label="Delete" title="Delete"
               className="p-1.5 rounded-md hover:bg-muted text-destructive/60 hover:text-destructive">
               <Trash2 className="h-3.5 w-3.5" />
             </button>

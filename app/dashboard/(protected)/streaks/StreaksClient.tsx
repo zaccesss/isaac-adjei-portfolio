@@ -367,7 +367,7 @@ function StreakCard({ streak, logs, today, onDelete, onCheckIn }: {
             {streak.description && <MarkdownContent compact>{streak.description}</MarkdownContent>}
           </div>
         </div>
-        <button type="button" onClick={() => onDelete(streak.id)} aria-label="Delete streak"
+        <button type="button" onClick={() => onDelete(streak.id)} aria-label="Delete streak" title="Delete streak"
           className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors">
           <Trash2 className="h-3.5 w-3.5" />
         </button>

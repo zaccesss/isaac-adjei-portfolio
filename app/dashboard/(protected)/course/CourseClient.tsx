@@ -66,8 +66,8 @@ function ModuleRow({ mod, onEdit, onDelete }: {
       <td className="py-2.5 text-xs text-muted-foreground">{mod.prerequisites ?? "-"}</td>
       <td className="py-2.5 pl-2">
         <div className="flex gap-1 justify-end">
-          <button type="button" onClick={() => onEdit(mod)} aria-label="Edit" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3 w-3" /></button>
-          <button type="button" onClick={() => onDelete(mod.id)} aria-label="Delete" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+          <button type="button" onClick={() => onEdit(mod)} aria-label="Edit" title="Edit" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3 w-3" /></button>
+          <button type="button" onClick={() => onDelete(mod.id)} aria-label="Delete" title="Delete" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
         </div>
       </td>
     </tr>

@@ -110,6 +110,7 @@ function ItemCard({ item, onEdit, onDelete, onToggleGotIt }: {
         type="button"
         onClick={() => onToggleGotIt(item.id, item.status)}
         aria-label={gotIt ? "Mark as wanted" : "Mark as got it"}
+        title={gotIt ? "Mark as wanted" : "Mark as got it"}
         className={`mt-0.5 h-5 w-5 rounded border flex items-center justify-center shrink-0 transition-all ${gotIt ? "bg-green-500 border-green-500 text-white" : "border-border hover:border-primary"}`}
       >
         {gotIt && <Check className="h-3 w-3" />}
@@ -125,8 +126,8 @@ function ItemCard({ item, onEdit, onDelete, onToggleGotIt }: {
         </div>
       </div>
       <div className="flex gap-1 shrink-0">
-        <button type="button" onClick={() => onEdit(item)} aria-label="Edit" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3 w-3" /></button>
-        <button type="button" onClick={() => onDelete(item.id)} aria-label="Delete" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+        <button type="button" onClick={() => onEdit(item)} aria-label="Edit" title="Edit" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"><Edit2 className="h-3 w-3" /></button>
+        <button type="button" onClick={() => onDelete(item.id)} aria-label="Delete" title="Delete" className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
       </div>
     </div>
   )

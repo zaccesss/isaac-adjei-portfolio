@@ -192,7 +192,7 @@ function EntryCard({ entry, onEdit, onDelete, onToggle }: {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button type="button" aria-label="Entry options" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0">
+              <button type="button" aria-label="Entry options" title="Entry options" className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0">
                 <MoreVertical className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
