@@ -25,6 +25,7 @@ const VBOX_W   = BAR_COUNT * (BAR_W + GAP) - GAP  // 364
 
 export default function SpotifyVisualiser() {
   const barsRef      = useRef<SVGGElement>(null)
+  const clipGRef     = useRef<SVGGElement>(null)   // same rects inside clipPath - album art mask
   const sineRef      = useRef<SVGPathElement>(null)
   const animRef      = useRef<number>(0)
   const dataRef      = useRef<SpotifyData | null>(null)
@@ -71,17 +72,27 @@ export default function SpotifyVisualiser() {
       const minH   = playing ? 3 : 1
       const barEls = barsG.children
 
+      const clipEls = clipGRef.current?.children
+
       for (let i = 0; i < BAR_COUNT; i++) {
         barPhasesRef.current[i] += 0.045 * speedMult * (1 + (i % 5) * 0.06)
         const osc = Math.abs(Math.sin(barPhasesRef.current[i]))
         const h   = minH + (maxH - minH) * osc
+        const y   = (BAR_H - h).toFixed(1)
+        const hs  = h.toFixed(1)
         const el  = barEls[i] as SVGRectElement | undefined
         if (el) {
-          el.setAttribute("height",  h.toFixed(1))
-          el.setAttribute("y",       (BAR_H - h).toFixed(1))
+          el.setAttribute("height",  hs)
+          el.setAttribute("y",       y)
           el.setAttribute("opacity", playing
             ? (0.4 + 0.6 * osc).toFixed(2)
             : (0.07 + 0.1 * osc).toFixed(2))
+        }
+        // Mirror heights into clipPath so album art cuts to the same shapes
+        const cel = clipEls?.[i] as SVGRectElement | undefined
+        if (cel) {
+          cel.setAttribute("height", hs)
+          cel.setAttribute("y",      y)
         }
       }
 
@@ -97,8 +108,7 @@ export default function SpotifyVisualiser() {
           wavePath += ` L ${x.toFixed(1)} ${y.toFixed(2)}`
         }
         sinePath.setAttribute("d",       wavePath)
-        // Higher energy = darker / more opaque sine wave
-        sinePath.setAttribute("opacity", playing ? (0.2 + 0.75 * energy).toFixed(2) : "0.08")
+        sinePath.setAttribute("opacity", playing ? (0.45 + 0.5 * energy).toFixed(2) : "0.12")
       }
 
       animRef.current = requestAnimationFrame(tick)
@@ -171,41 +181,54 @@ export default function SpotifyVisualiser() {
         >
           <defs>
             {/*
-              Bar gradient: light violet at base → dark indigo at peak.
-              Tall bars (high energy) show the dark tip; short bars look pale - energy reads as darkness.
+              Bar gradient: light violet base → dark indigo peak.
+              Tall bars reveal the dark tip; clipPath below cuts album art to the same shapes.
             */}
             <linearGradient id="spotifyBarGrad" x1="0" y1="1" x2="0" y2="0">
               <stop offset="0%"   stopColor="#c4b5fd" />
               <stop offset="100%" stopColor="#3730a3" />
             </linearGradient>
-            {/* Sine wave: dark indigo, fades to transparent at both edges */}
+            {/* Sine wave: bright indigo-300, fades at edges */}
             <linearGradient id="spotifySineGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"   stopColor="#3730a3" stopOpacity="0" />
-              <stop offset="15%"  stopColor="#3730a3" stopOpacity="1" />
-              <stop offset="85%"  stopColor="#3730a3" stopOpacity="1" />
-              <stop offset="100%" stopColor="#3730a3" stopOpacity="0" />
+              <stop offset="0%"   stopColor="#a5b4fc" stopOpacity="0" />
+              <stop offset="12%"  stopColor="#a5b4fc" stopOpacity="1" />
+              <stop offset="88%"  stopColor="#a5b4fc" stopOpacity="1" />
+              <stop offset="100%" stopColor="#a5b4fc" stopOpacity="0" />
             </linearGradient>
+            {/* Album art clip - bar shapes mirror barsRef, updated in rAF */}
+            <clipPath id="albumBarsClip">
+              <g ref={clipGRef}>
+                {Array.from({ length: BAR_COUNT }, (_, i) => (
+                  <rect key={i} x={i * (BAR_W + GAP)} y={BAR_H - 2} width={BAR_W} height={2} rx={1} />
+                ))}
+              </g>
+            </clipPath>
           </defs>
 
-          {/* Bars growing upward from baseline */}
+          {/* Gradient bars (base layer) */}
           <g ref={barsRef} fill="url(#spotifyBarGrad)">
             {Array.from({ length: BAR_COUNT }, (_, i) => (
-              <rect
-                key={i}
-                x={i * (BAR_W + GAP)}
-                y={BAR_H - 2}
-                width={BAR_W}
-                height={2}
-                rx={1}
-              />
+              <rect key={i} x={i * (BAR_W + GAP)} y={BAR_H - 2} width={BAR_W} height={2} rx={1} />
             ))}
           </g>
 
-          {/* Animated sine wave below bars */}
+          {/* Album art sliced through bar shapes - reveals album colours per bar */}
+          {albumArt && (
+            <image
+              href={albumArt}
+              x={0} y={0}
+              width={VBOX_W} height={BAR_H}
+              preserveAspectRatio="xMidYMid slice"
+              clipPath="url(#albumBarsClip)"
+              opacity={0.55}
+            />
+          )}
+
+          {/* Sine wave below bars - bright indigo-300 */}
           <path
             ref={sineRef}
             stroke="url(#spotifySineGrad)"
-            strokeWidth={2}
+            strokeWidth={2.5}
             fill="none"
             strokeLinecap="round"
             strokeLinejoin="round"
