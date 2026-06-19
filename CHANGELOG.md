@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Applications: archive/reopen controls - each row in the table now has an Archive button; archived entries are hidden from the default view, Kanban, Analytics and the funnel. A filter-bar toggle switches to the archived-only view where each entry has a Reopen button. New `archiveApplication`/`reopenApplication` server actions with `application.archive`/`application.reopen` activity log events (closes #375)
 - `components/analytics/` - shared analytics framework skeleton: `AnalyticsPeriodProvider`/`PeriodSelector` (24h/7d/30d/90d/1y/all), `StatCard`, `LineChart`/`BarChart`/`PieChart`, `TrendIndicator`, `ProgressBar`. Not yet wired into any section - Coding/Blog/Modules/Applications migrate onto it next (closes #367)
 - `lib/streaks.ts` (`useStreak`) and `lib/goal-progress.ts` (`useGoalProgress`) - generalise the current/longest streak maths from `StreaksClient.tsx` and the goal status taxonomy from `GoalsClient.tsx` so Study/Faith reuse them instead of reinventing (closes #368)
 - `components/ui/confirm-dialog.tsx` (`useConfirmDialog`) - shared confirmation dialog with a typed-confirmation mode for the highest-blast-radius actions, replacing the plan for inconsistent native `confirm()`/`window.confirm()` calls. Not yet wired into Settings/OpenSource - that rollout is Phase 1/4 (closes #369)

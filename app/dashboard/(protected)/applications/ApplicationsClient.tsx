@@ -6,13 +6,13 @@
 // SQL already applied - all new columns are in the applications table.
 
 import { useState, useTransition } from "react"
-import { createApplication, updateApplication, deleteApplication } from "../../actions"
+import { createApplication, updateApplication, deleteApplication, archiveApplication, reopenApplication } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp, BarChart2, Layers } from "lucide-react"
+import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp, BarChart2, Layers, Archive, ArchiveRestore } from "lucide-react"
 import ApplicationsKanban from "./ApplicationsKanban"
 import ApplicationsAnalytics from "./ApplicationsAnalytics"
 import LinearView from "./LinearView"
@@ -36,6 +36,7 @@ type Application = {
   work_mode: string | null
   source: string | null
   starred: boolean
+  archived: boolean
   opening_date: string | null
   last_year_opening: string | null
   housing_location: string | null
@@ -491,12 +492,16 @@ function AppRow({
   app,
   onEdit,
   onDelete,
+  onArchive,
+  onReopen,
   onStatusChange,
   isEvent,
 }: {
   app: Application
   onEdit: (a: Application) => void
   onDelete: (id: string) => void
+  onArchive: (id: string) => void
+  onReopen: (id: string) => void
   onStatusChange: (id: string, status: string) => void
   isEvent: boolean
 }) {
@@ -638,14 +643,37 @@ function AppRow({
       {/* Actions */}
       <td className="px-2 py-1.5 whitespace-nowrap">
         <div className="flex gap-0.5">
-          <button
-            type="button"
-            onClick={() => onEdit(app)}
-            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Edit"
-          >
-            <Edit2 className="h-3 w-3" />
-          </button>
+          {!app.archived && (
+            <button
+              type="button"
+              onClick={() => onEdit(app)}
+              className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Edit"
+            >
+              <Edit2 className="h-3 w-3" />
+            </button>
+          )}
+          {app.archived ? (
+            <button
+              type="button"
+              onClick={() => onReopen(app.id)}
+              className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Reopen"
+              title="Reopen"
+            >
+              <ArchiveRestore className="h-3 w-3" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onArchive(app.id)}
+              className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-amber-600 transition-colors"
+              aria-label="Archive"
+              title="Archive"
+            >
+              <Archive className="h-3 w-3" />
+            </button>
+          )}
           <button
             type="button"
             onClick={() => onDelete(app.id)}
@@ -667,6 +695,8 @@ function CategoryGroup({
   apps,
   onEdit,
   onDelete,
+  onArchive,
+  onReopen,
   onStatusChange,
   isEvent,
 }: {
@@ -674,6 +704,8 @@ function CategoryGroup({
   apps: Application[]
   onEdit: (a: Application) => void
   onDelete: (id: string) => void
+  onArchive: (id: string) => void
+  onReopen: (id: string) => void
   onStatusChange: (id: string, status: string) => void
   isEvent: boolean
 }) {
@@ -707,6 +739,8 @@ function CategoryGroup({
             app={app}
             onEdit={onEdit}
             onDelete={onDelete}
+            onArchive={onArchive}
+            onReopen={onReopen}
             onStatusChange={onStatusChange}
             isEvent={isEvent}
           />
@@ -772,6 +806,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const [filterLocation, setFilterLocation] = useState("All")
   const [filterKeyword, setFilterKeyword] = useState("All")
   const [view, setView] = useState<"table" | "kanban" | "analytics" | "linear">("table")
+  const [showArchived, setShowArchived] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const [editApp, setEditApp] = useState<Application | null>(null)
   const [, startTransition] = useTransition()
@@ -780,8 +815,8 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  // Tab-filtered apps
-  const tabApps = apps.filter((a) => appBelongsToTab(a, activeTab))
+  // Tab-filtered apps — archived view shows only archived, default hides them
+  const tabApps = apps.filter((a) => appBelongsToTab(a, activeTab) && (showArchived ? a.archived : !a.archived))
 
   // Apply filters
   const filtered = tabApps.filter((a) => {
@@ -882,6 +917,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       work_mode: null,
       source: data.source || null,
       starred: data.starred,
+      archived: false,
       opening_date: data.opening_date || null,
       last_year_opening: data.last_year_opening || null,
       housing_location: data.housing_location || null,
@@ -976,6 +1012,16 @@ export default function ApplicationsClient({ applications: initial }: { applicat
     startTransition(() => void deleteApplication(id))
   }
 
+  function handleArchive(id: string) {
+    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, archived: true } : a)))
+    startTransition(() => void archiveApplication(id))
+  }
+
+  function handleReopen(id: string) {
+    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, archived: false } : a)))
+    startTransition(() => void reopenApplication(id))
+  }
+
   function handleStatusChange(id: string, newDisplayStatus: string) {
     setApps((prev) => prev.map((a) => (a.id === id ? { ...a, status: newDisplayStatus } : a)))
     startTransition(() => void updateApplication(id, { status: newDisplayStatus }))
@@ -1067,7 +1113,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       {/* Tabs */}
       <div className="flex border-b border-border shrink-0 px-4">
         {TAB_TYPES.map((tab) => {
-          const count = apps.filter((a) => appBelongsToTab(a, tab)).length
+          const count = apps.filter((a) => appBelongsToTab(a, tab) && !a.archived).length
           return (
             <button
               key={tab}
@@ -1181,17 +1227,31 @@ export default function ApplicationsClient({ applications: initial }: { applicat
             <SelectItem value="Consulting">Consulting</SelectItem>
           </SelectContent>
         </Select>
+
+        <button
+          type="button"
+          onClick={() => setShowArchived((v) => !v)}
+          title={showArchived ? "Back to active applications" : "View archived applications"}
+          className={`h-8 px-2.5 text-xs rounded-md border flex items-center gap-1.5 shrink-0 transition-colors ${
+            showArchived
+              ? "bg-amber-100 border-amber-300 text-amber-800 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-300"
+              : "border-border text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Archive className="h-3 w-3" />
+          {showArchived ? "Viewing archived" : "Archived"}
+        </button>
       </div>
 
       {/* Kanban view */}
       {view === "kanban" && (
         <div className="flex-1 overflow-auto min-h-0 px-4 pb-4 pt-3">
-          <ApplicationsKanban applications={apps} />
+          <ApplicationsKanban applications={apps.filter((a) => !a.archived)} />
         </div>
       )}
 
       {/* Analytics */}
-      {view === "analytics" && <ApplicationsAnalytics apps={tabApps} />}
+      {view === "analytics" && <ApplicationsAnalytics apps={apps.filter((a) => appBelongsToTab(a, activeTab) && !a.archived)} />}
 
       {/* Linear */}
       {view === "linear" && <LinearView />}
@@ -1249,6 +1309,8 @@ export default function ApplicationsClient({ applications: initial }: { applicat
                       apps={catApps}
                       onEdit={setEditApp}
                       onDelete={handleDelete}
+                      onArchive={handleArchive}
+                      onReopen={handleReopen}
                       onStatusChange={handleStatusChange}
                       isEvent={isEvent}
                     />
@@ -1260,8 +1322,8 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         )}
       </div>}
 
-      {/* Funnel */}
-      <ApplicationsFunnel apps={apps} />
+      {/* Funnel - always uses non-archived apps */}
+      <ApplicationsFunnel apps={apps.filter((a) => !a.archived)} />
 
       {/* Edit dialog */}
       <Dialog
