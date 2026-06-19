@@ -12,13 +12,14 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp, BarChart2, Layers, Archive, ArchiveRestore, CalendarDays } from "lucide-react"
+import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp, BarChart2, Layers, Archive, ArchiveRestore, CalendarDays, ClipboardList } from "lucide-react"
 import ApplicationsKanban from "./ApplicationsKanban"
 import ApplicationsAnalytics from "./ApplicationsAnalytics"
 import LinearView from "./LinearView"
 import TimelineView from "./TimelineView"
+import InterviewPrepDialog, { type InterviewPrep } from "./InterviewPrepDialog"
 import MarkdownContent from "@/components/shared/MarkdownContent"
-import { APPLICATION_STATUSES, normaliseStatus, statusTextClass, computeFunnelCounts, isInPipeline } from "@/lib/application-status"
+import { APPLICATION_STATUSES, normaliseStatus, statusTextClass, computeFunnelCounts, isInPipeline, classifyFunnelStage } from "@/lib/application-status"
 import { ProgressBar } from "@/components/analytics"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -47,6 +48,7 @@ type Application = {
   written_answers: string | null
   sponsors_visa: string | null
   category: string | null
+  interview_prep: unknown
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -497,6 +499,7 @@ function AppRow({
   onArchive,
   onReopen,
   onStatusChange,
+  onPrep,
   isEvent,
 }: {
   app: Application
@@ -505,6 +508,7 @@ function AppRow({
   onArchive: (id: string) => void
   onReopen: (id: string) => void
   onStatusChange: (id: string, status: string) => void
+  onPrep: (a: Application) => void
   isEvent: boolean
 }) {
   const displayStatus = normaliseStatus(app.status)
@@ -655,6 +659,17 @@ function AppRow({
               <Edit2 className="h-3 w-3" />
             </button>
           )}
+          {!app.archived && (classifyFunnelStage(app.status) === "interview" || classifyFunnelStage(app.status) === "offer") && (
+            <button
+              type="button"
+              onClick={() => onPrep(app)}
+              className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+              aria-label="Interview prep"
+              title="Interview prep"
+            >
+              <ClipboardList className="h-3 w-3" />
+            </button>
+          )}
           {app.archived ? (
             <button
               type="button"
@@ -700,6 +715,7 @@ function CategoryGroup({
   onArchive,
   onReopen,
   onStatusChange,
+  onPrep,
   isEvent,
 }: {
   category: string
@@ -709,6 +725,7 @@ function CategoryGroup({
   onArchive: (id: string) => void
   onReopen: (id: string) => void
   onStatusChange: (id: string, status: string) => void
+  onPrep: (a: Application) => void
   isEvent: boolean
 }) {
   const [open, setOpen] = useState(true)
@@ -744,6 +761,7 @@ function CategoryGroup({
             onArchive={onArchive}
             onReopen={onReopen}
             onStatusChange={onStatusChange}
+            onPrep={onPrep}
             isEvent={isEvent}
           />
         ))}
@@ -807,6 +825,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const [showArchived, setShowArchived] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const [editApp, setEditApp] = useState<Application | null>(null)
+  const [prepApp, setPrepApp] = useState<Application | null>(null)
   const [, startTransition] = useTransition()
 
   const isEvent = activeTab === "Events"
@@ -924,6 +943,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       written_answers: data.written_answers || null,
       sponsors_visa: data.sponsors_visa || null,
       category: cat,
+      interview_prep: null,
     }
     setApps((prev) => [optimistic, ...prev])
     setAddOpen(false)
@@ -1018,6 +1038,12 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   function handleReopen(id: string) {
     setApps((prev) => prev.map((a) => (a.id === id ? { ...a, archived: false } : a)))
     startTransition(() => void reopenApplication(id))
+  }
+
+  function handleSavePrep(prep: InterviewPrep) {
+    if (!prepApp) return
+    setApps((prev) => prev.map((a) => (a.id === prepApp.id ? { ...a, interview_prep: prep } : a)))
+    setPrepApp((prev) => (prev ? { ...prev, interview_prep: prep } : null))
   }
 
   function handleStatusChange(id: string, newDisplayStatus: string) {
@@ -1323,6 +1349,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
                       onArchive={handleArchive}
                       onReopen={handleReopen}
                       onStatusChange={handleStatusChange}
+                      onPrep={setPrepApp}
                       isEvent={isEvent}
                     />
                   )
@@ -1350,6 +1377,19 @@ export default function ApplicationsClient({ applications: initial }: { applicat
           {editApp && <AppForm initial={editFormInitial(editApp)} onSave={handleEdit} onCancel={() => setEditApp(null)} />}
         </DialogContent>
       </Dialog>
+
+      {/* Interview prep dialog */}
+      {prepApp && (
+        <InterviewPrepDialog
+          open={!!prepApp}
+          onClose={() => setPrepApp(null)}
+          applicationId={prepApp.id}
+          company={prepApp.company}
+          role={prepApp.role}
+          initialPrep={prepApp.interview_prep}
+          onSave={handleSavePrep}
+        />
+      )}
     </div>
   )
 }

@@ -389,6 +389,16 @@ export async function reopenApplication(id: string) {
   revalidatePath("/dashboard/applications")
 }
 
+export async function updateInterviewPrep(
+  id: string,
+  prep: { notes: string; questions: { id: string; text: string; done: boolean }[]; company_research: string }
+) {
+  if (!validId(id)) return INVALID
+  await supabase.from("applications").update({ interview_prep: prep }).eq("id", id)
+  void logActivity("application.interview_prep.save", id)
+  revalidatePath("/dashboard/applications")
+}
+
 // ─── Vault ───────────────────────────────────────────────────
 
 export async function createVaultEntry(data: {
