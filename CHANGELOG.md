@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `components/analytics/` - shared analytics framework skeleton: `AnalyticsPeriodProvider`/`PeriodSelector` (24h/7d/30d/90d/1y/all), `StatCard`, `LineChart`/`BarChart`/`PieChart`, `TrendIndicator`, `ProgressBar`. Not yet wired into any section - Coding/Blog/Modules/Applications migrate onto it next (closes #367)
+- `lib/streaks.ts` (`useStreak`) and `lib/goal-progress.ts` (`useGoalProgress`) - generalise the current/longest streak maths from `StreaksClient.tsx` and the goal status taxonomy from `GoalsClient.tsx` so Study/Faith reuse them instead of reinventing (closes #368)
+- `components/ui/confirm-dialog.tsx` (`useConfirmDialog`) - shared confirmation dialog with a typed-confirmation mode for the highest-blast-radius actions, replacing the plan for inconsistent native `confirm()`/`window.confirm()` calls. Not yet wired into Settings/OpenSource - that rollout is Phase 1/4 (closes #369)
+
 ### Fixed
 
 - Applications: added `lib/application-status.ts` as the single source of truth for status normalisation, funnel classification and pipeline state, replacing three drifted copies of `normaliseStatus()` in Kanban, Analytics and the Table view (closes #365, closes #374)
