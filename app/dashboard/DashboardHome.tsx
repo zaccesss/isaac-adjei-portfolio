@@ -6,7 +6,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import {
   Target, Briefcase, Flame, BookOpen, BookMarked,
-  Gift, Lock, StickyNote, ArrowRight
+  Gift, Lock, StickyNote, ArrowRight, Brain, Church, School
 } from "lucide-react"
 import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
 
@@ -19,6 +19,9 @@ type Summary = {
   wishlist: { total: number }
   vault: { total: number }
   notes: { total: number; lastUpdated: string | null }
+  study: { sessionsThisWeek: number; minutesThisWeek: number }
+  faith: { lastEntry: string | null }
+  university: { upcomingDeadlines: number; activeModules: number }
 }
 
 function getGreeting(): string {
@@ -131,6 +134,44 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
         ? relativeTime(summary.notes.lastUpdated)
         : null,
       badgeClass: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
+    },
+    {
+      href: "/dashboard/study",
+      icon: Brain,
+      accentClass: "border-l-teal-500",
+      iconClass: "text-teal-500",
+      label: "Study",
+      stat: summary.study.sessionsThisWeek > 0
+        ? `${summary.study.sessionsThisWeek} session${summary.study.sessionsThisWeek === 1 ? "" : "s"} this week`
+        : "No sessions this week",
+      badge: summary.study.minutesThisWeek > 0
+        ? `${Math.round(summary.study.minutesThisWeek / 60 * 10) / 10}h total`
+        : null,
+      badgeClass: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300",
+    },
+    {
+      href: "/dashboard/faith",
+      icon: Church,
+      accentClass: "border-l-indigo-500",
+      iconClass: "text-indigo-500",
+      label: "Faith",
+      stat: summary.faith.lastEntry ? `Last entry: ${relativeTime(summary.faith.lastEntry)}` : "No entries yet",
+      badge: null,
+      badgeClass: "",
+    },
+    {
+      href: "/dashboard/university",
+      icon: School,
+      accentClass: "border-l-purple-500",
+      iconClass: "text-purple-500",
+      label: "University",
+      stat: summary.university.activeModules > 0
+        ? `${summary.university.activeModules} active module${summary.university.activeModules === 1 ? "" : "s"}`
+        : "No active modules",
+      badge: summary.university.upcomingDeadlines > 0
+        ? `${summary.university.upcomingDeadlines} deadline${summary.university.upcomingDeadlines === 1 ? "" : "s"} this week`
+        : null,
+      badgeClass: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
     },
   ]
 

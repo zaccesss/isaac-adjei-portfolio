@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
@@ -7,35 +8,49 @@ import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
   Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users,
-  Brain, Church, School
+  Brain, Church, School, CheckSquare
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useState } from "react"
 import DashboardSearch from "@/components/dashboard/DashboardSearch"
 
-const nav = [
+type NavItem = { href: string; label: string; icon: React.ComponentType<{ className?: string }>; sub?: boolean }
+type NavGroup = { group: string; items: NavItem[] }
+
+const nav: (NavItem | NavGroup)[] = [
   { href: "/dashboard/me", label: "Me", icon: User },
   { href: "/dashboard/us", label: "Us", icon: Heart },
   { href: "/dashboard/goals", label: "Goals", icon: Target },
+  { href: "/dashboard/applications", label: "Applications", icon: Briefcase },
   { href: "/dashboard/health", label: "Health & Fitness", icon: Dumbbell },
   { href: "/dashboard/study", label: "Study", icon: Brain },
   { href: "/dashboard/faith", label: "Faith", icon: Church },
-  { href: "/dashboard/university", label: "University", icon: School },
+  {
+    group: "University",
+    items: [
+      { href: "/dashboard/university", label: "Overview", icon: School },
+      { href: "/dashboard/modules", label: "Modules", icon: BookOpen, sub: true },
+      { href: "/dashboard/course", label: "Course", icon: GraduationCap, sub: true },
+    ],
+  },
   { href: "/dashboard/diary", label: "Diary", icon: BookMarked },
   { href: "/dashboard/notes", label: "Notes", icon: StickyNote },
+  { href: "/dashboard/habits", label: "Habits", icon: CheckSquare },
+  { href: "/dashboard/streaks", label: "Streaks", icon: Flame },
+  { href: "/dashboard/contacts", label: "Contacts", icon: Users },
   { href: "/dashboard/wishlist", label: "Wishlist", icon: Gift },
   { href: "/dashboard/inventory", label: "Inventory", icon: Package },
-  { href: "/dashboard/course", label: "Course", icon: GraduationCap },
-  { href: "/dashboard/modules", label: "Modules", icon: BookOpen },
-  { href: "/dashboard/applications", label: "Applications", icon: Briefcase },
   { href: "/dashboard/vault", label: "Vault", icon: Lock },
-  { href: "/dashboard/streaks", label: "Streaks", icon: Flame },
+  {
+    group: "Analytics",
+    items: [
+      { href: "/dashboard/coding", label: "Coding", icon: Code2 },
+      { href: "/dashboard/blog-analytics", label: "Posts", icon: BarChart2, sub: true },
+      { href: "/dashboard/opensource", label: "Open Source", icon: Github, sub: true },
+    ],
+  },
   { href: "/dashboard/activity", label: "Activity log", icon: Activity },
-  { href: "/dashboard/opensource", label: "Open Source", icon: Github },
-  { href: "/dashboard/blog-analytics", label: "Posts Analytics", icon: BarChart2 },
-  { href: "/dashboard/coding", label: "Coding Activity", icon: Code2 },
-  { href: "/dashboard/contacts", label: "Contacts", icon: Users },
   { href: "/dashboard/trash", label: "Trash", icon: Trash2 },
 ]
 
@@ -105,7 +120,36 @@ export default function DashboardSidebar({
 
       {/* Nav */}
       <nav className="flex flex-col gap-0.5 flex-1 overflow-y-auto">
-        {nav.map(({ href, label, icon: Icon }) => {
+        {nav.map((entry) => {
+          if ("group" in entry) {
+            const groupActive = entry.items.some((i) => pathname === i.href || pathname.startsWith(i.href + "/"))
+            return (
+              <div key={entry.group} className="mt-1">
+                {!collapsed && (
+                  <p className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50 px-2.5 py-1">{entry.group}</p>
+                )}
+                {entry.items.map(({ href, label, icon: Icon, sub }) => {
+                  const active = pathname === href || pathname.startsWith(href + "/")
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setMobileOpen(false)}
+                      title={collapsed ? label : undefined}
+                      className={`flex items-center gap-2.5 ${sub && !collapsed ? "pl-5 pr-2.5" : "px-2.5"} py-1.5 rounded-md text-sm transition-colors ${
+                        active ? "bg-primary text-primary-foreground" : groupActive && !active ? "text-muted-foreground hover:bg-muted hover:text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      <Icon className={`h-4 w-4 shrink-0 ${sub ? "h-3.5 w-3.5" : ""}`} />
+                      {!collapsed && <span className={`truncate ${sub ? "text-xs" : ""}`}>{label}</span>}
+                    </Link>
+                  )
+                })}
+              </div>
+            )
+          }
+
+          const { href, label, icon: Icon } = entry
           // I also highlight the link when on a sub-route so nested pages feel connected
           const active = pathname === href || pathname.startsWith(href + "/")
           return (
@@ -203,16 +247,30 @@ export default function DashboardSidebar({
               </button>
             </div>
             <nav className="flex flex-col gap-0.5 flex-1">
-              {nav.map(({ href, label, icon: Icon }) => {
+              {nav.map((entry) => {
+                if ("group" in entry) {
+                  return (
+                    <div key={entry.group} className="mt-1">
+                      <p className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50 px-2.5 py-1">{entry.group}</p>
+                      {entry.items.map(({ href, label, icon: Icon, sub }) => {
+                        const active = pathname === href || pathname.startsWith(href + "/")
+                        return (
+                          <Link key={href} href={href} onClick={() => setMobileOpen(false)}
+                            className={`flex items-center gap-2.5 ${sub ? "pl-5 pr-2.5" : "px-2.5"} py-1.5 rounded-md text-sm transition-colors ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                          >
+                            <Icon className={`shrink-0 ${sub ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
+                            <span className={sub ? "text-xs" : ""}>{label}</span>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )
+                }
+                const { href, label, icon: Icon } = entry
                 const active = pathname === href || pathname.startsWith(href + "/")
                 return (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
-                      active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    }`}
+                  <Link key={href} href={href} onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
                     <span>{label}</span>

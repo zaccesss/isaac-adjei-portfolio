@@ -6,7 +6,7 @@
 // Every action here is intentionally thin - validate, write, revalidate. No business logic lives here.
 import { supabase } from "@/lib/supabase"
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
-import { syncApplicationToLinear } from "@/lib/linear-sync"
+import { syncApplicationToLinear, syncDeadlineToLinear } from "@/lib/linear-sync"
 
 // I fire-and-forget activity logs so a logging failure never blocks the actual action.
 // The activity_log table must exist in Supabase:
@@ -980,6 +980,8 @@ export async function deleteInventoryItem(id: string) {
 export async function getDashboardSummary() {
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const today = new Date().toISOString().split("T")[0]
+  const weekAgoDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  const next7Days = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
 
   const [
     { data: goals },
@@ -994,6 +996,10 @@ export async function getDashboardSummary() {
     { count: vaultCount },
     { count: notesCount },
     { data: notesRecent },
+    { data: studySessions },
+    { data: faithEntries },
+    { count: uniDeadlines },
+    { count: uniModules },
   ] = await Promise.all([
     supabase.from("goals").select("id,status"),
     supabase.from("applications").select("id", { count: "exact", head: true })
@@ -1011,6 +1017,11 @@ export async function getDashboardSummary() {
     supabase.from("vault").select("id", { count: "exact", head: true }),
     supabase.from("notes").select("id", { count: "exact", head: true }),
     supabase.from("notes").select("updated_at").order("updated_at", { ascending: false }).limit(1),
+    supabase.from("study_sessions").select("id,duration_minutes").gte("date", weekAgoDate),
+    supabase.from("faith_entries").select("id,date").order("date", { ascending: false }).limit(1),
+    supabase.from("uni_deadlines").select("id", { count: "exact", head: true })
+      .gte("due_date", today).lte("due_date", next7Days).neq("status", "graded"),
+    supabase.from("uni_modules").select("id", { count: "exact", head: true }).eq("status", "active"),
   ])
 
   // I compute the overall weighted average for year 3 (or the latest year with marks) as a GPA proxy
@@ -1036,6 +1047,9 @@ export async function getDashboardSummary() {
   const goalsInProgress = (goals ?? []).filter((g) => g.status === "in_progress").length
   const goalsTotal = (goals ?? []).length
 
+  const studyMinutesThisWeek = (studySessions ?? []).reduce((s, r) => s + (r.duration_minutes ?? 0), 0)
+  const studySessionsThisWeek = (studySessions ?? []).length
+
   return {
     goals: { total: goalsTotal, done: goalsDone, inProgress: goalsInProgress },
     applications: { active: appCount ?? 0, offers: offerCount ?? 0 },
@@ -1048,6 +1062,9 @@ export async function getDashboardSummary() {
     wishlist: { total: wishlistCount ?? 0 },
     vault: { total: vaultCount ?? 0 },
     notes: { total: notesCount ?? 0, lastUpdated: notesRecent?.[0]?.updated_at ?? null },
+    study: { sessionsThisWeek: studySessionsThisWeek, minutesThisWeek: studyMinutesThisWeek },
+    faith: { lastEntry: faithEntries?.[0]?.date ?? null },
+    university: { upcomingDeadlines: uniDeadlines ?? 0, activeModules: uniModules ?? 0 },
     updatedAt: weekAgo,
   }
 }
@@ -1601,14 +1618,19 @@ export async function createUniDeadline(data: {
 }) {
   if (!validStr(data.title) || !validStr(data.type) || !validStr(data.due_date)) return INVALID
   if (!optStr(data.notes) || !optNum(data.weight_pct, 0, 100)) return INVALID
-  const { error } = await supabase.from("uni_deadlines").insert({
+  const { data: inserted, error } = await supabase.from("uni_deadlines").insert({
     module_id: data.module_id || null, title: data.title.trim(), type: data.type,
     due_date: data.due_date, weight_pct: data.weight_pct ?? null,
     notes: data.notes?.trim() || null, semester: data.semester ?? 1, status: "not_started",
-  })
+  }).select("id, title, type, due_date, status").single()
   if (error) return { error: error.message }
   revalidatePath("/dashboard/university")
   void logActivity("uni.deadline.create", data.title)
+  if (inserted) {
+    void syncDeadlineToLinear(inserted).then(async (issueId) => {
+      if (issueId) await supabase.from("uni_deadlines").update({ linear_issue_id: issueId }).eq("id", inserted.id)
+    })
+  }
 }
 
 export async function updateUniDeadline(id: string, data: Partial<{
@@ -1620,6 +1642,28 @@ export async function updateUniDeadline(id: string, data: Partial<{
   if (error) return { error: error.message }
   revalidatePath("/dashboard/university")
   void logActivity("uni.deadline.update", id)
+  if (data.status) {
+    const { data: row } = await supabase.from("uni_deadlines").select("id, title, type, due_date, status, linear_issue_id").eq("id", id).single()
+    if (row) void syncDeadlineToLinear(row)
+  }
+}
+
+export async function bulkSyncDeadlinesToLinear(): Promise<{ synced: number; skipped: number }> {
+  const { data: deadlines } = await supabase
+    .from("uni_deadlines")
+    .select("id, title, type, due_date, status, linear_issue_id")
+    .is("linear_issue_id", null)
+  if (!deadlines) return { synced: 0, skipped: 0 }
+
+  let synced = 0
+  for (const d of deadlines) {
+    const issueId = await syncDeadlineToLinear(d)
+    if (issueId) {
+      await supabase.from("uni_deadlines").update({ linear_issue_id: issueId }).eq("id", d.id)
+      synced++
+    }
+  }
+  return { synced, skipped: deadlines.length - synced }
 }
 
 export async function deleteUniDeadline(id: string) {

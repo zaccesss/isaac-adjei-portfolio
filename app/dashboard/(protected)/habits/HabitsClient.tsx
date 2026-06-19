@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
 import { Button } from "@/components/ui/button"
@@ -46,6 +47,7 @@ export default function HabitsClient({
   const [newHabitName, setNewHabitName] = useState("")
   const [adding, setAdding] = useState(false)
   const [, startTransition] = useTransition()
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   // I build a lookup of which habits are checked in today
   const todayLogs = new Set(logs.filter((l) => l.date === today).map((l) => l.habit_id))
@@ -107,7 +109,9 @@ export default function HabitsClient({
     window.location.reload()
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string, name: string) {
+    const ok = await showConfirm({ title: `Delete "${name}"?`, description: "All check-in history for this habit will be removed.", destructive: true })
+    if (!ok) return
     setHabits((h) => h.filter((x) => x.id !== id))
     startTransition(() => void deleteStreak(id))
   }
@@ -209,7 +213,7 @@ export default function HabitsClient({
                   </div>
                 </div>
                 <button
-                  onClick={() => handleDelete(habit.id)}
+                  onClick={() => handleDelete(habit.id, habit.name)}
                   className="p-2 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                   aria-label="Delete habit"
                   title="Delete habit"
@@ -226,6 +230,7 @@ export default function HabitsClient({
         <Calendar className="h-3.5 w-3.5" />
         <span>Today: {new Date(today).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</span>
       </div>
+      {confirmDialogNode}
     </motion.div>
   )
 }

@@ -9,6 +9,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `/now` and live status cards: Spotify section redesigned - album artwork now spins as a disc while playing, album art colour bleeds into the card background as a tint, animated 48-bar equaliser and sine wave embedded directly inside the card. Bars pulse at the track's BPM and use the actual `energy` value from Spotify's audio features so a high-energy track produces tall fast bars and a slow mellow track produces low slow ones. Album art colours show through the bars. Paused/stopped state gracefully idles to near-flat
+- `/lab`: top picks panel - ranked list of your top 20 tracks and top 15 artists from the past 4 weeks (Spotify `short_term` range) with popularity bars. Tracks view includes an energy vs mood scatter chart (hover a dot for track and artist name); quadrant corners labelled dark / happy / hype / chill
+- `/lab`: gaming panel - live PS5 and PC status side by side; shows current or last game with cover art, online badge and last-seen time; PC card adds CPU and GPU usage bars when online
+- `/lab`: WakaTime coding heatmap and hour-of-day bar chart now appear side by side on the same row instead of stacked
+
 - `/lab`: WakaTime coding dashboard ("In the code") with period selector (24h/7d/30d/90d/1y/all), 4 stat cards (total time, daily avg, active days, best day), daily trend line chart, 7x24 interactive coding heatmap, language and project progress bars, language pie chart, editor pie chart, weekday bar chart (weekends highlighted), hour-of-day bar chart - all with hover tooltips
 - `/lab`: 20 new terminal commands: `stats`, `streak`, `today`, `languages`, `vscode`, `os` (live WakaTime data), `posts` (most-read blog and TIL from DB), `grade`, `uptime`, `now`, `mottos`, `hire`, `cv`, `decrypt`, `matrix`, `make`, `whoami` (updated), `approach` (updated). Commands `hack`, `coffee`, `decrypt`, `matrix`, `make` now play out line by line with real delays rather than appearing all at once
 - `/lab`: `link` line type in the terminal - URLs render as clickable anchors in primary colour (used in `now` for Phaemos GitHub and `grade` for the Aston course page)

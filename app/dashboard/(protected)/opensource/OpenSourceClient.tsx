@@ -4,6 +4,7 @@
 // I use optimistic updates throughout so changes feel instant without waiting for the server.
 
 import { useState, useTransition, useRef } from "react"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import {
   addOpenSourceContribution,
   updateOpenSourceContribution,
@@ -62,6 +63,7 @@ export default function OpenSourceClient({
   // without waiting for a server round-trip.
   const [rows, setRows] = useState<OpenSourceContribution[]>(initial)
   const [, startTransition] = useTransition()
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   // I track editing state: null = no cell being edited
   const [editCell, setEditCell] = useState<{ id: string; field: string } | null>(null)
@@ -223,23 +225,25 @@ export default function OpenSourceClient({
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Delete this contribution?")) return
+    const ok = await showConfirm({ title: "Delete this contribution?", destructive: true })
+    if (!ok) return
     setRows((prev) => prev.filter((r) => r.id !== id))
     setSelected((prev) => { const n = new Set(prev); n.delete(id); return n })
-    startTransition(async () => {
-      await deleteOpenSourceContribution(id)
-    })
+    startTransition(async () => { await deleteOpenSourceContribution(id) })
   }
 
   async function handleBulkDelete() {
     const ids = [...selected]
     if (!ids.length) return
-    if (!window.confirm(`Delete ${ids.length} contribution${ids.length === 1 ? "" : "s"}?`)) return
+    const ok = await showConfirm({
+      title: `Delete ${ids.length} contribution${ids.length === 1 ? "" : "s"}?`,
+      description: "This cannot be undone.",
+      destructive: true,
+    })
+    if (!ok) return
     setRows((prev) => prev.filter((r) => !selected.has(r.id)))
     setSelected(new Set())
-    startTransition(async () => {
-      await bulkDeleteOpenSourceContributions(ids)
-    })
+    startTransition(async () => { await bulkDeleteOpenSourceContributions(ids) })
   }
 
   // ── Export ───────────────────────────────────────────────────────────────
@@ -625,6 +629,7 @@ export default function OpenSourceClient({
           </tbody>
         </table>
       </div>
+      {confirmDialogNode}
     </div>
   )
 }
