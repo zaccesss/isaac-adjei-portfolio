@@ -16,6 +16,7 @@ export function ProgressBar({
     <div className="flex items-center gap-2">
       {label && <span className="text-xs text-muted-foreground w-20 shrink-0">{label}</span>}
       <div className="flex-1 bg-muted rounded-full h-1.5">
+        {/* eslint-disable-next-line react/forbid-dom-props */}
         <div
           className={`${colorClassName} h-1.5 rounded-full transition-all duration-500`}
           style={{ width: `${pct}%` }}
