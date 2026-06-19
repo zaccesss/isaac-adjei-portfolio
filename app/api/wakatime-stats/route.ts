@@ -1,6 +1,27 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
+// AI assistant tools whose time counts in totals but must never surface as a
+// named editor - same list as CodingClient.tsx on the dashboard.
+const AI_EDITORS = new Set([
+  "Claude Code",
+  "Codex", "OpenAI",
+  "Cursor",
+  "GitHub Copilot", "Copilot",
+  "Codeium", "Windsurf",
+  "Tabnine",
+  "Amazon Q", "Amazon Q Developer",
+  "Gemini", "Gemini Code Assist",
+  "Cody",
+  "Continue",
+  "Supermaven",
+  "Aider",
+  "Cline", "Roo Code", "Roo-Code",
+  "JetBrains AI", "JetBrains AI Assistant",
+  "Avante",
+  "Replit AI", "Ghostwriter",
+])
+
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://placeholder.supabase.co",
   process.env.SUPABASE_ANON_KEY || "placeholder",
@@ -85,7 +106,10 @@ export async function GET(req: Request) {
       if (!p.name || p.name === "Unknown Project") continue
       projMap[p.name] = (projMap[p.name] ?? 0) + p.total_seconds
     }
-    for (const e of row.editors ?? []) editorMap[e.name] = (editorMap[e.name] ?? 0) + e.total_seconds
+    for (const e of row.editors ?? []) {
+      if (AI_EDITORS.has(e.name)) continue
+      editorMap[e.name] = (editorMap[e.name] ?? 0) + e.total_seconds
+    }
     for (const o of row.operating_systems ?? []) osMap[o.name] = (osMap[o.name] ?? 0) + o.total_seconds
 
     if (Array.isArray(row.hours) && row.hours.length === 24) {
