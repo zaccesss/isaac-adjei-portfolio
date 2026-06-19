@@ -39,6 +39,8 @@ const releases: ChangeEntry[] = [
       "/lab: Spotify visualiser - 52-column horizontal equaliser with a gradient darkening from light violet at the base to dark indigo at the peak (taller bar = darker colour); album art spins like a vinyl record when playing and its colours bleed through the bar shapes via SVG clipPath; bright indigo sine wave below the bars brightens with track energy; blurred album art as card background",
       "/lab: PCB viewer full redesign - full-width interactive 3D model (real geometry from the original 3DS file converted to GLB, loaded via react-three-fiber + drei); angle presets (front, back, top, bottom, left, right); wireframe toggle, auto-rotate toggle and grid helper; below the 3D model: copper layer drag-to-orbit panels, real board front/back flip card (photos of the actual built board), assembled board photo and full circuit schematic - the photo and schematic cards open in a fullscreen lightbox on click",
       "/about: approach code animation now ends with a highlighted primary-blue motto line - nohup hustle && disown impostor_syndrome",
+      "/consumed/music/[slug] - individual artist pages for each featured artist; cards on /consumed/music now link through to the detail page with YouTube embed, genre tag and personal notes",
+      "/notes/codeforces-auto-push - research note on auto-pushing competitive programming solutions to GitHub; maps what already exists (CFPusher for Codeforces, LeetHub 3.0 and LeetSync for LeetCode, AtCommitter for AtCoder, UpCode for bulk upload) and where the gaps are (no tool for TryHackMe, no unified extension); plans a single Manifest V3 extension covering Codeforces, AtCoder and TryHackMe with one GitHub PAT and one organised repo",
     ],
   },
   {
