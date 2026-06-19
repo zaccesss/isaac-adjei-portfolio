@@ -63,8 +63,19 @@ async function main() {
   console.log("\nAvailable Linear teams:")
   teams.forEach((t, i) => console.log(`  [${i + 1}] ${t.name}  (id: ${t.id})`))
 
-  // Pick the team named "University" first, otherwise the first team
-  const picked = teams.find((t) => t.name.toLowerCase().includes("university")) ?? teams[0]
+  // If LINEAR_UNI_TEAM_ID is already set, use it directly (no guessing needed)
+  const preselectedId = process.env.LINEAR_UNI_TEAM_ID
+  const picked = preselectedId
+    ? teams.find((t) => t.id === preselectedId) ?? teams[0]
+    : teams.find((t) => t.name.toLowerCase().includes("university")) ?? null
+
+  if (!picked) {
+    console.log("\nCould not auto-select a team.")
+    console.log("Re-run with the team id you want to use for university deadlines:")
+    console.log(`\n  LINEAR_API_KEY=... LINEAR_UNI_TEAM_ID=<id above> npx tsx scripts/linear-university-setup.ts\n`)
+    process.exit(0)
+  }
+
   console.log(`\nUsing team: "${picked.name}" (${picked.id})`)
 
   // 2. Check + create required states
