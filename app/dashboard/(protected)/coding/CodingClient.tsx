@@ -15,10 +15,25 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-// AI assistant tools that should never appear in the editors chart
+// AI assistant tools/IDEs whose time counts in totals but must never surface as a named
+// editor in the chart — all such time is attributed to the developer, not the AI tool.
 const AI_EDITORS = new Set([
-  "Claude Code", "Codex", "OpenAI", "Cursor", "GitHub Copilot", "Codeium",
-  "Tabnine", "Amazon Q", "Gemini", "Cody", "Continue",
+  "Claude Code",                          // Anthropic
+  "Codex", "OpenAI",                      // OpenAI
+  "Cursor",                               // Anysphere
+  "GitHub Copilot", "Copilot",            // GitHub
+  "Codeium", "Windsurf",                  // Codeium / Windsurf IDE
+  "Tabnine",                              // Tabnine
+  "Amazon Q", "Amazon Q Developer",       // Amazon
+  "Gemini", "Gemini Code Assist",         // Google
+  "Cody",                                 // Sourcegraph
+  "Continue",                             // Continue.dev
+  "Supermaven",                           // Supermaven
+  "Aider",                                // Aider CLI
+  "Cline", "Roo Code", "Roo-Code",        // Cline / Roo Code (VS Code extensions)
+  "JetBrains AI", "JetBrains AI Assistant", // JetBrains
+  "Avante",                               // Avante (Neovim)
+  "Replit AI", "Ghostwriter",             // Replit
 ])
 
 const CHART_COLORS = [
