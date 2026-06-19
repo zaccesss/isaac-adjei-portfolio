@@ -1281,6 +1281,8 @@ export type WakatimeDayRow = {
   projects: { name: string; total_seconds: number }[]
   editors: { name: string; total_seconds: number }[]
   operating_systems?: { name: string; total_seconds: number }[]
+  // 24-element array of seconds per UTC hour [h0..h23]; null on rows pre-dating the column.
+  hours?: number[] | null
 }
 
 export async function getWakatimeHeatmap(): Promise<WakatimeDayRow[]> {
@@ -1289,7 +1291,7 @@ export async function getWakatimeHeatmap(): Promise<WakatimeDayRow[]> {
   since.setDate(since.getDate() - 364)
   const { data, error } = await supabase
     .from("wakatime_daily")
-    .select("date, total_seconds, languages, projects, editors, operating_systems")
+    .select("date, total_seconds, languages, projects, editors, operating_systems, hours")
     .gte("date", since.toISOString().slice(0, 10))
     .order("date", { ascending: true })
   if (error || !data) return []

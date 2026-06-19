@@ -40,7 +40,6 @@ function ThemedTooltip({
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-1.5 py-0.5">
           {p.color && (
-            // eslint-disable-next-line react/forbid-dom-props
             <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: p.color }} />
           )}
           <span className="text-muted-foreground">{p.name}:</span>
@@ -132,12 +131,12 @@ export function BarChart({
 // Active slice shape - expands the hovered segment outward by 6px.
 // Spread as `any` below because recharts v3 types do not declare activeIndex/activeShape
 // on <Pie> even though both work at runtime.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable @typescript-eslint/no-explicit-any
 function ActiveSlice(props: any) {
   return <Sector {...props} outerRadius={props.outerRadius + 6} />
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PieActiveProps = any
+// eslint-enable @typescript-eslint/no-explicit-any
 
 export function PieChart({
   data,
