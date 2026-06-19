@@ -180,8 +180,8 @@ export default function PCBViewer() {
         back="/images/lab/pcb-3d-bottom.png"
         frontLabel="top"
         backLabel="bottom"
-        defaultRx={-28}
-        defaultRy={25}
+        defaultRx={0}
+        defaultRy={0}
         presets={[
           { label: "iso",    rx: -28, ry:   25 },
           { label: "top",    rx: -90, ry:    0 },
