@@ -32,7 +32,7 @@ function A({ href, children }: { href: string; children: React.ReactNode }) {
 
 type ColophonItem = { name: string; detail: React.ReactNode }
 
-const sections: { icon: React.ElementType; heading: string; items: ColophonItem[] }[] = [
+const sections: { icon: React.ComponentType<{ className?: string }>; heading: string; items: ColophonItem[] }[] = [
   {
     icon: Code2,
     heading: "Frontend",
