@@ -375,6 +375,20 @@ export async function deleteApplication(id: string) {
   revalidatePath("/dashboard/applications")
 }
 
+export async function archiveApplication(id: string) {
+  if (!validId(id)) return INVALID
+  await supabase.from("applications").update({ archived: true }).eq("id", id)
+  void logActivity("application.archive", id)
+  revalidatePath("/dashboard/applications")
+}
+
+export async function reopenApplication(id: string) {
+  if (!validId(id)) return INVALID
+  await supabase.from("applications").update({ archived: false }).eq("id", id)
+  void logActivity("application.reopen", id)
+  revalidatePath("/dashboard/applications")
+}
+
 // ─── Vault ───────────────────────────────────────────────────
 
 export async function createVaultEntry(data: {
