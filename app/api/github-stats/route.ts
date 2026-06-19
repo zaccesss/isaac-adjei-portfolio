@@ -4,6 +4,7 @@
 
 import { NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
+import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 
 let redis: Redis | null = null
 if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
@@ -54,7 +55,10 @@ function authHeaders(pat?: string) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!await checkRateLimit(publicApiLimiter, getIp(req))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
   try {
     if (redis) {
       const cached = await redis.get<GitHubStats>(CACHE_KEY)

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://placeholder.supabase.co",
@@ -27,6 +28,9 @@ function periodCutoff(period: string): string | null {
 }
 
 export async function GET(req: Request) {
+  if (!await checkRateLimit(publicApiLimiter, getIp(req))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
   const { searchParams } = new URL(req.url)
   const period = searchParams.get("period") ?? "30d"
   const cutoff = periodCutoff(period)

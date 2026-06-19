@@ -4,10 +4,14 @@
 // is slow, so the UI never hangs waiting.
 
 import { NextResponse } from "next/server"
+import { heavyApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 
 export const revalidate = 0
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!await checkRateLimit(heavyApiLimiter, getIp(req))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
   try {
     const res = await fetch("https://zenquotes.io/api/random", {
       next: { revalidate: 0 },
