@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { Code2 } from "lucide-react"
 import {
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart as RBarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts"
 import {
@@ -260,8 +260,8 @@ function CodingInner({
     for (const l of row.languages ?? []) langMap.set(l.name, (langMap.get(l.name) ?? 0) + l.total_seconds)
     for (const p of row.projects ?? [])  projMap.set(p.name, (projMap.get(p.name) ?? 0) + p.total_seconds)
     for (const e of row.editors ?? []) {
-      if (AI_EDITORS.has(e.name)) continue
-      editMap.set(e.name, (editMap.get(e.name) ?? 0) + e.total_seconds)
+      const key = AI_EDITORS.has(e.name) ? "Other" : e.name
+      editMap.set(key, (editMap.get(key) ?? 0) + e.total_seconds)
     }
     for (const o of row.operating_systems ?? []) osMap.set(o.name, (osMap.get(o.name) ?? 0) + o.total_seconds)
     if (row.total_seconds > 0) {
@@ -284,6 +284,12 @@ function CodingInner({
   const editPieData = topEdits.map(([name, value]) => ({ name, value }))
   const osPieData   = topOs.map(([name, value]) => ({ name, value }))
   const weekdayData = WEEKDAY_LABELS.map((day, i) => ({ day, seconds: weekdayMap[i] }))
+
+  // weekdayData is Mon-Sun (index 0-4 = weekdays, 5-6 = weekends)
+  const weekVsWeekendPie = [
+    { name: "Weekdays", value: weekdayData.slice(0, 5).reduce((a, d) => a + d.seconds, 0) },
+    { name: "Weekends", value: weekdayData.slice(5).reduce((a, d) => a + d.seconds, 0) },
+  ]
 
   // --- Hour × Day-of-week matrix (7 rows × 24 cols) from rows.hours ---
   const weekdayHourMatrix = useMemo(() => {
@@ -711,21 +717,43 @@ function CodingInner({
       {/* Projects donut */}
       <DonutPanel title="Projects" data={projPieData} total={totalProjSeconds} />
 
-      {/* Weekdays bar */}
+      {/* Weekdays: bar chart + weekday vs weekend pie */}
       <div className="border border-border rounded-lg p-4 bg-card">
         <h2 className="text-sm font-semibold mb-3">Weekdays</h2>
         {activeDays === 0 ? (
           <p className="text-xs text-muted-foreground">No data yet.</p>
         ) : (
-          <ResponsiveContainer width="100%" height={140}>
-            <RBarChart data={weekdayData} barSize={18}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-              <YAxis hide />
-              <Tooltip formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]} contentStyle={{ fontSize: "11px" }} cursor={{ fill: "hsl(var(--muted))" }} />
-              <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
-            </RBarChart>
-          </ResponsiveContainer>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <ResponsiveContainer width="100%" height={140}>
+              <RBarChart data={weekdayData} barSize={18}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <YAxis hide />
+                <Tooltip formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]} contentStyle={{ fontSize: "11px" }} cursor={{ fill: "hsl(var(--muted))" }} />
+                <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+              </RBarChart>
+            </ResponsiveContainer>
+            <ResponsiveContainer width="100%" height={140}>
+              <PieChart>
+                <Pie
+                  data={weekVsWeekendPie}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="40%"
+                  cy="50%"
+                  innerRadius={35}
+                  outerRadius={55}
+                  paddingAngle={3}
+                >
+                  {weekVsWeekendPie.map((_, i) => (
+                    <Cell key={i} fill={DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(v) => [typeof v === "number" ? formatHours(v) : v, ""]} contentStyle={{ fontSize: "11px" }} />
+                <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 10 }} layout="vertical" align="right" verticalAlign="middle" />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         )}
       </div>
     </div>
