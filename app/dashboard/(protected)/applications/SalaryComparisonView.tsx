@@ -187,14 +187,14 @@ export default function SalaryComparisonView({ apps }: { apps: App[] }) {
         </div>
       )}
 
-      {/* Apps without salary info */}
-      {withoutSalary.length > 0 && (
+      {/* Apps without salary info - cap at 10, summarise the rest */}
+      {withoutSalary.length > 0 && withSalary.length > 0 && (
         <div className="flex flex-col gap-1.5">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             No salary listed ({withoutSalary.length})
           </p>
           <div className="flex flex-col gap-1.5">
-            {withoutSalary.map((app) => (
+            {withoutSalary.slice(0, 10).map((app) => (
               <div key={app.id} className="flex items-center justify-between gap-2 rounded-lg border border-border/50 bg-card/50 px-3 py-2">
                 <div className="flex flex-col min-w-0">
                   <span className="text-xs font-medium text-foreground">{app.company}</span>
@@ -208,14 +208,25 @@ export default function SalaryComparisonView({ apps }: { apps: App[] }) {
                 </div>
               </div>
             ))}
+            {withoutSalary.length > 10 && (
+              <p className="text-[10px] text-muted-foreground px-1">
+                and {withoutSalary.length - 10} more with no salary data
+              </p>
+            )}
           </div>
         </div>
       )}
 
-      {withSalary.length === 0 && withoutSalary.length > 0 && (
-        <p className="text-xs text-muted-foreground text-center mt-4">
-          No salary figures could be parsed. Add salary ranges to your applications to see comparisons.
-        </p>
+      {withSalary.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground gap-2">
+          <DollarSign className="h-8 w-8 opacity-20" />
+          <p className="text-sm font-medium">No salary data to compare</p>
+          <p className="text-xs max-w-xs">
+            {withoutSalary.length > 0
+              ? `${withoutSalary.length} application${withoutSalary.length === 1 ? "" : "s"} here${filterStage === "active" ? " at interview or offer stage" : ""} have no salary range set. Add a salary range when editing an application to see comparisons.`
+              : "Add applications with salary ranges to see them compared here."}
+          </p>
+        </div>
       )}
     </div>
   )

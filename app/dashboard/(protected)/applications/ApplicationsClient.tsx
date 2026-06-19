@@ -6,6 +6,7 @@
 // SQL already applied - all new columns are in the applications table.
 
 import { useState, useTransition } from "react"
+import Link from "next/link"
 import { createApplication, updateApplication, deleteApplication, archiveApplication, reopenApplication } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +15,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Trash2, Edit2, ExternalLink, ChevronDown, ChevronRight, Search, LayoutGrid, List, TrendingUp, BarChart2, Layers, Archive, ArchiveRestore, CalendarDays, ClipboardList, DollarSign } from "lucide-react"
 import ApplicationsKanban from "./ApplicationsKanban"
-import ApplicationsAnalytics from "./ApplicationsAnalytics"
 import LinearView from "./LinearView"
 import TimelineView from "./TimelineView"
 import SalaryComparisonView from "./SalaryComparisonView"
@@ -824,7 +824,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const [filterMyStatus, setFilterMyStatus] = useState("All")
   const [filterLocation, setFilterLocation] = useState("All")
   const [filterKeyword, setFilterKeyword] = useState("All")
-  const [view, setView] = useState<"table" | "kanban" | "analytics" | "linear" | "timeline" | "salary">("table")
+  const [view, setView] = useState<"table" | "kanban" | "linear" | "timeline" | "salary">("table")
   const [showArchived, setShowArchived] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const [editApp, setEditApp] = useState<Application | null>(null)
@@ -1119,14 +1119,13 @@ export default function ApplicationsClient({ applications: initial }: { applicat
             >
               <DollarSign className="h-3.5 w-3.5" />
             </button>
-            <button
-              type="button"
-              onClick={() => setView("analytics")}
+            <Link
+              href="/dashboard/applications/analytics"
               title="Analytics"
-              className={`p-1.5 transition-colors ${view === "analytics" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              className="p-1.5 transition-colors text-muted-foreground hover:text-foreground"
             >
               <BarChart2 className="h-3.5 w-3.5" />
-            </button>
+            </Link>
             <button
               type="button"
               onClick={() => setView("linear")}
@@ -1292,9 +1291,6 @@ export default function ApplicationsClient({ applications: initial }: { applicat
           <ApplicationsKanban applications={apps.filter((a) => !a.archived)} />
         </div>
       )}
-
-      {/* Analytics */}
-      {view === "analytics" && <ApplicationsAnalytics apps={apps.filter((a) => appBelongsToTab(a, activeTab) && !a.archived)} />}
 
       {/* Linear */}
       {view === "linear" && <LinearView />}
