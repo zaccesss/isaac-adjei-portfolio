@@ -1,4 +1,4 @@
-import { Ratelimit } from "@upstash/ratelimit"
+import { Ratelimit, type Duration } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
 
 // Fail-open: if Upstash env vars are missing, all limiters return null and
@@ -17,7 +17,7 @@ function makeRedis(): Redis | null {
 
 const redis = makeRedis()
 
-function makeLimiter(requests: number, window: string, prefix: string): Ratelimit | null {
+function makeLimiter(requests: number, window: Duration, prefix: string): Ratelimit | null {
   if (!redis) return null
   try {
     return new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(requests, window), prefix })
