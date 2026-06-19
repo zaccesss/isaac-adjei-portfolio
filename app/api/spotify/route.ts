@@ -92,6 +92,7 @@ export async function GET() {
       currently_playing_type?: string
       device?: { name: string; type: string }
       item?: {
+        id: string
         name: string
         duration_ms: number
         artists?: { name: string }[]
@@ -125,6 +126,20 @@ export async function GET() {
       await redis.set("spotify:last_played", { track: title, artist: subtitle, albumArt, type: isEpisode ? "episode" : "track" })
     }
 
+    // Fetch audio features for tracks only - gives energy, tempo and valence for the visualiser
+    let audioFeatures: { energy: number; tempo: number; valence: number; danceability: number } | null = null
+    if (!isEpisode && data.item.id) {
+      try {
+        const afRes = await fetch(`https://api.spotify.com/v1/audio-features/${data.item.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (afRes.ok) {
+          const af = await afRes.json() as { energy: number; tempo: number; valence: number; danceability: number }
+          audioFeatures = { energy: af.energy, tempo: af.tempo, valence: af.valence, danceability: af.danceability }
+        }
+      } catch {}
+    }
+
     return NextResponse.json(
       {
         playing: data.is_playing,
@@ -138,6 +153,7 @@ export async function GET() {
         progressMs: data.progress_ms ?? 0,
         durationMs: data.item.duration_ms,
         device: data.device?.name ?? null,
+        audioFeatures,
         lastPlayed: null,
       },
       { headers: { "Cache-Control": "no-store" } }

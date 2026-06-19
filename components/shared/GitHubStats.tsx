@@ -1,9 +1,7 @@
 "use client"
 
-// I fetch and display GitHub profile stats and contribution data below the lab terminal.
-// Contributions are scoped to the current calendar year via the GraphQL API.
-
 import { useEffect, useState } from "react"
+import TypingMotto from "@/components/shared/TypingMotto"
 import { Github, Star, Users, BookOpen, ExternalLink, GitCommitHorizontal, GitPullRequest, CircleDot, GitBranch } from "lucide-react"
 import type { GitHubStats, ContributionDay } from "@/app/api/github-stats/route"
 
@@ -216,6 +214,7 @@ export default function GitHubStats() {
           )}
         </>
       )}
+      <TypingMotto text="git push origin career --force" delay={600} />
     </div>
   )
 }

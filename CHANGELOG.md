@@ -9,6 +9,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `/lab`: WakaTime coding dashboard ("In the code") with period selector (24h/7d/30d/90d/1y/all), 4 stat cards (total time, daily avg, active days, best day), daily trend line chart, 7x24 interactive coding heatmap, language and project progress bars, language pie chart, editor pie chart, weekday bar chart (weekends highlighted), hour-of-day bar chart - all with hover tooltips
+- `/lab`: 20 new terminal commands: `stats`, `streak`, `today`, `languages`, `vscode`, `os` (live WakaTime data), `posts` (most-read blog and TIL from DB), `grade`, `uptime`, `now`, `mottos`, `hire`, `cv`, `decrypt`, `matrix`, `make`, `whoami` (updated), `approach` (updated). Commands `hack`, `coffee`, `decrypt`, `matrix`, `make` now play out line by line with real delays rather than appearing all at once
+- `/lab`: `link` line type in the terminal - URLs render as clickable anchors in primary colour (used in `now` for Phaemos GitHub and `grade` for the Aston course page)
+- `/lab`: under construction banner updated to reflect terminal is fully operational
+- `components/shared/TypingMotto.tsx`: typing animation component that types out a bash-style command character by character, pauses, then loops. Respects `prefers-reduced-motion`
+- `app/api/top-content/route.ts`: public endpoint returning top 5 most-read blog posts and top 5 most-read TIL entries by unique full-read count from `blog_read_events`
+- `components/shared/GitHubStats.tsx`: `$ git push origin career --force` typing motto at the bottom
+- `components/lab/WakatimeStats.tsx`: `$ rm -rf impostor_syndrome && touch grass` typing motto at the bottom
+- `components/shared/ApproachAnimation.tsx`: `// $ nohup hustle && disown impostor_syndrome` woven as the final line of the code animation, rendered in primary blue to stand out
+- Terminal boot sequence: `$ while true; do learn && build && ship; done` system line
+- Terminal `status` command: `$ ssh internship@2026 -i private_key.pem` closing line
+- `docs/thoughts.md`: first-person notes on future ideas including /stats page, terminal email gate, lab experiments, AI features and more
+
 - Settings: "Clear all applications" now requires typing "clear applications" in a confirmation
   dialog before executing; the action soft-deletes via Trash (recoverable) rather than
   hard-deleting directly (closes #376)

@@ -1,7 +1,5 @@
 "use client"
 
-// I render the Lab - a terminal-style interactive explorer with commands, live data panels and blog post previews.
-
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { posts } from "@/data/blog"
@@ -9,9 +7,14 @@ import { getPublishedTILEntries } from "@/data/til"
 import { publications } from "@/data/respub"
 import { useModKey } from "@/hooks/useModKey"
 import GitHubStats from "@/components/shared/GitHubStats"
+import WakatimeStats from "@/components/lab/WakatimeStats"
+import SpotifyVisualiser from "@/components/lab/SpotifyVisualiser"
+import dynamic from "next/dynamic"
+
+const PCBViewer = dynamic(() => import("@/components/lab/PCBViewer"), { ssr: false })
 
 type WindowState = "normal" | "minimized" | "maximized" | "closed"
-type LineType = "system" | "cmd-echo" | "output" | "error" | "info" | "blank" | "success" | "cmd-list" | "kv"
+type LineType = "system" | "cmd-echo" | "output" | "error" | "info" | "blank" | "success" | "cmd-list" | "kv" | "link"
 
 interface Line {
   type: LineType
@@ -36,6 +39,7 @@ const BOOT: Line[] = [
   { type: "system", text: "mounting filesystem..." },
   { type: "system", text: "checking dependencies..." },
   { type: "system", text: "environment: ready" },
+  { type: "system", text: "$ while true; do learn && build && ship; done" },
   { type: "blank", text: "" },
 ]
 
@@ -71,6 +75,7 @@ const NAV_COMMANDS: Record<string, string> = {
   pages: "https://www.isaacadjei.me/all-pages",
   github: "https://github.com/zaccesss",
   linkedin: "https://www.linkedin.com/in/isaacadjei",
+  cv: "https://www.isaacadjei.me/api/cv-pdf",
 }
 
 const MAIL_COMMANDS: Record<string, string> = {
@@ -107,7 +112,7 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "cmd-list", text: "  linkedin     -  open LinkedIn profile" },
     { type: "blank", text: "" },
     { type: "info", text: "  writing" },
-    { type: "cmd-list", text: "  posts        -  all blog entries" },
+    { type: "cmd-list", text: "  posts        -  most read blog and TIL entries" },
     { type: "cmd-list", text: "  live         -  published posts" },
     { type: "cmd-list", text: "  drafts       -  works in progress" },
     { type: "cmd-list", text: "  topics       -  active tags" },
@@ -117,8 +122,11 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "cmd-list", text: "  pwd          -  print working directory" },
     { type: "cmd-list", text: "  man          -  manual page for isaac" },
     { type: "cmd-list", text: "  stack        -  tech stack" },
-    { type: "cmd-list", text: "  build        -  what is being built" },
+    { type: "cmd-list", text: "  build        -  all active projects" },
+    { type: "cmd-list", text: "  now          -  current main project" },
     { type: "cmd-list", text: "  future       -  upcoming projects" },
+    { type: "cmd-list", text: "  grade        -  predicted degree classification" },
+    { type: "cmd-list", text: "  uptime       -  how long this site has been live" },
     { type: "cmd-list", text: "  status       -  system status" },
     { type: "cmd-list", text: "  version      -  version info" },
     { type: "cmd-list", text: "  ping         -  ping isaacadjei.me" },
@@ -126,6 +134,14 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "cmd-list", text: "  date         -  current date" },
     { type: "cmd-list", text: "  time         -  current time" },
     { type: "cmd-list", text: "  echo [text]  -  echo something back" },
+    { type: "blank", text: "" },
+    { type: "info", text: "  coding stats  (live from database)" },
+    { type: "cmd-list", text: "  stats        -  all-time coding overview" },
+    { type: "cmd-list", text: "  streak       -  current coding streak" },
+    { type: "cmd-list", text: "  today        -  coding hours in last 24h" },
+    { type: "cmd-list", text: "  languages    -  top languages (30 days)" },
+    { type: "cmd-list", text: "  vscode       -  editor breakdown" },
+    { type: "cmd-list", text: "  os           -  operating system breakdown" },
     { type: "blank", text: "" },
     { type: "info", text: "  live" },
     { type: "cmd-list", text: "  playing      -  what I am listening to" },
@@ -135,6 +151,8 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "info", text: "  connect" },
     { type: "cmd-list", text: "  collaborate  -  email for collaboration" },
     { type: "cmd-list", text: "  suggest      -  send a blog suggestion" },
+    { type: "cmd-list", text: "  hire         -  why hire Isaac" },
+    { type: "cmd-list", text: "  cv           -  download CV directly" },
     { type: "blank", text: "" },
     { type: "info", text: "  discover" },
     { type: "cmd-list", text: "  whoami       -  identity check" },
@@ -144,8 +162,12 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "cmd-list", text: "  music        -  what I listen to" },
     { type: "cmd-list", text: "  coffee       -  fuel of choice" },
     { type: "cmd-list", text: "  motto        -  quick motivation" },
+    { type: "cmd-list", text: "  mottos       -  all site mottos explained" },
     { type: "cmd-list", text: "  joke         -  one for the road" },
     { type: "cmd-list", text: "  hack         -  do not" },
+    { type: "cmd-list", text: "  decrypt      -  classified message" },
+    { type: "cmd-list", text: "  matrix       -  go deeper" },
+    { type: "cmd-list", text: "  make         -  compile isaac.exe" },
     { type: "cmd-list", text: "  sudo         -  definitely do not" },
     { type: "cmd-list", text: "  approach     -  my code philosophy" },
     { type: "cmd-list", text: "  zac          -  easter egg" },
@@ -346,14 +368,6 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "output", text: '  "music is engineering for the ears."' },
   ],
 
-  coffee: () => [
-    { type: "info", text: "brewing..." },
-    { type: "blank", text: "" },
-    { type: "output", text: "  loading   [==========] 100%" },
-    { type: "blank", text: "" },
-    { type: "success", text: "  black coffee. no sugar. no milk." },
-    { type: "output", text: "  consistency fuel since 2019." },
-  ],
 
   motto: () => [
     { type: "blank", text: "" },
@@ -373,27 +387,6 @@ const COMMANDS: Record<string, () => Line[]> = {
     ]
   },
 
-  hack: () => [
-    { type: "info", text: "initiating sequence..." },
-    { type: "output", text: "  > accessing mainframe..." },
-    { type: "output", text: "  > bypassing firewall..." },
-    { type: "output", text: "  > decrypting vault..." },
-    { type: "blank", text: "" },
-    { type: "error", text: "  ERROR 403: this terminal respects the law" },
-    { type: "blank", text: "" },
-    { type: "output", text: "  nice try though." },
-  ],
-
-  posts: () => [
-    { type: "info", text: `writing queue  (${posts.length} entries)` },
-    { type: "blank", text: "" },
-    ...posts.map((p) => ({
-      type: "output" as LineType,
-      text: `  [${TYPE_LABEL[p.type] ?? p.type}]  ${p.title}${p.published ? "  ● live" : "  • draft"}`,
-    })),
-    { type: "blank", text: "" },
-    { type: "output", text: "  tip: run 'live' to get direct slugs" },
-  ],
 
   live: () => {
     const published = posts.filter((p) => p.published)
@@ -433,13 +426,92 @@ const COMMANDS: Record<string, () => Line[]> = {
   },
 
   now: () => [
-    { type: "info", text: "writing now" },
+    { type: "info", text: "currently building" },
     { type: "blank", text: "" },
-    { type: "output", text: "  → journal entries from uni and placements" },
-    { type: "output", text: "  → practical engineering write-ups" },
-    { type: "output", text: "  → notes from labs and projects" },
-    { type: "output", text: "  → reflections from virtual experiences" },
+    { type: "output", text: "  → Phaemos" },
+    { type: "output", text: "    predictive maintenance platform" },
+    { type: "output", text: "    FastAPI backend + Isolation Forest anomaly detection" },
+    { type: "link", text: "    github.com/zaccesss/phaemos" },
+    { type: "blank", text: "" },
+    { type: "output", text: "  also run 'build' for all active projects" },
   ],
+
+  grade: () => [
+    { type: "info", text: "degree classification" },
+    { type: "blank", text: "" },
+    { type: "kv", text: "  institution   Aston University" },
+    { type: "kv", text: "  programme     BEng Electronic Engineering and Computer Science" },
+    { type: "link", text: "  www.aston.ac.uk/study/courses/electronic-engineering-and-computer-science-beng/" },
+    { type: "kv", text: "  predicted     First Class (>=70%)" },
+    { type: "kv", text: "  trajectory    on track" },
+    { type: "blank", text: "" },
+    { type: "output", text: '  "Vel Primus, Vel Cum Primis"' },
+    { type: "output", text: "   either the first, or with the first." },
+  ],
+
+  uptime: () => {
+    const launched = new Date("2026-04-10")
+    const ms = Date.now() - launched.getTime()
+    const days = Math.floor(ms / 86400000)
+    const hours = Math.floor((ms % 86400000) / 3600000)
+    return [
+      { type: "info", text: "portfolio uptime" },
+      { type: "blank", text: "" },
+      { type: "kv", text: "  online since   10 Apr 2026" },
+      { type: "kv", text: `  uptime         ${days} days, ${hours} hours` },
+      { type: "kv", text: "  host           Vercel Edge Network" },
+      { type: "kv", text: "  status         all systems operational" },
+      { type: "blank", text: "" },
+      { type: "success", text: "  site is live at isaacadjei.me" },
+    ]
+  },
+
+
+  mottos: () => [
+    { type: "info", text: "site mottos - scattered across isaacadjei.me" },
+    { type: "blank", text: "" },
+    { type: "kv", text: "  boot        $ while true; do learn && build && ship; done" },
+    { type: "output", text: "               the dev lifecycle in an infinite loop, no exit condition" },
+    { type: "blank", text: "" },
+    { type: "kv", text: "  github      $ git push origin career --force" },
+    { type: "output", text: "               overwrite self-doubt with output" },
+    { type: "blank", text: "" },
+    { type: "kv", text: "  coding      $ rm -rf impostor_syndrome && touch grass" },
+    { type: "output", text: "               delete the inner critic, touch reality" },
+    { type: "blank", text: "" },
+    { type: "kv", text: "  internship  $ ssh internship@2026 -i private_key.pem" },
+    { type: "output", text: "               connecting to the next chapter" },
+    { type: "blank", text: "" },
+    { type: "kv", text: "  approach    // $ nohup hustle && disown impostor_syndrome" },
+    { type: "output", text: "               run hustle in the background, detach self-doubt" },
+  ],
+
+  hire: () => [
+    { type: "info", text: "why hire Isaac" },
+    { type: "blank", text: "" },
+    { type: "output", text: "  → BEng Electronic Engineering and Computer Science, Aston University" },
+    { type: "output", text: "    predicted First Class" },
+    { type: "blank", text: "" },
+    { type: "output", text: "  → full stack: C, TypeScript, Python, Next.js, embedded systems" },
+    { type: "output", text: "  → hardware: KiCad PCB design, AVR, ARM Cortex-M, ESP32" },
+    { type: "output", text: "  → ML: TensorFlow, PyTorch, scikit-learn, anomaly detection" },
+    { type: "blank", text: "" },
+    { type: "output", text: "  → builds: Phaemos, avr-zac, Zaccess, open-source Git course" },
+    { type: "output", text: "  → seeking 2026/2027 placement or internship" },
+    { type: "blank", text: "" },
+    { type: "kv", text: "  email    contact@isaacadjei.me" },
+    { type: "kv", text: "  cv       run 'cv' to download" },
+    { type: "kv", text: "  web      isaacadjei.me" },
+  ],
+
+  cv: () => [
+    { type: "info", text: "downloading CV..." },
+    { type: "blank", text: "" },
+    { type: "output", text: "  opening isaacadjei.me/api/cv-pdf" },
+    { type: "blank", text: "" },
+    { type: "success", text: "  CV download started" },
+  ],
+
 
   status: () => [
     { type: "info", text: "system status" },
@@ -452,6 +524,8 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "kv", text: "  ba-from-data-to-decisions     in progress" },
     { type: "blank", text: "" },
     { type: "success", text: "  all systems operational" },
+    { type: "blank", text: "" },
+    { type: "output", text: "  $ ssh internship@2026 -i private_key.pem" },
   ],
 
   approach: () => [
@@ -467,22 +541,6 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "output", text: '  printf("Mission accomplished.\\n");  // Celebrate victory' },
   ],
 
-  zac: () => [
-    { type: "success", text: "ACCESS GRANTED." },
-    { type: "blank", text: "" },
-    { type: "output", text: "  welcome to the inner circle." },
-    { type: "output", text: "  curiosity stat: +1" },
-    { type: "output", text: "  perseverance stat: already maxed." },
-    { type: "blank", text: "" },
-    { type: "output", text: "  you found it. now go build something." },
-  ],
-
-  sudo: () => [
-    { type: "error", text: "sudo: permission denied" },
-    { type: "blank", text: "" },
-    { type: "output", text: "  this terminal respects least privilege." },
-    { type: "output", text: "  nice try." },
-  ],
 
   about: () => [
     { type: "info", text: "opening: isaacadjei.me/about" },
@@ -588,9 +646,274 @@ const COMMANDS: Record<string, () => Line[]> = {
   ],
 }
 
-// I handle commands that need a live API fetch. Each returns a Promise<Line[]>.
-// They only fire when the user explicitly types the command, so there is no background polling.
+// Theatrical commands play out line by line with real delays - each entry has a line and ms offset from command invocation.
+type TheatricalStep = { line: Line; delay: number }
+const THEATRICAL_COMMANDS: Record<string, TheatricalStep[]> = {
+  hack: [
+    { line: { type: "info",   text: "initiating sequence..." },                        delay: 0 },
+    { line: { type: "output", text: "  > accessing mainframe..." },                    delay: 500 },
+    { line: { type: "output", text: "  > bypassing firewall..." },                     delay: 1100 },
+    { line: { type: "output", text: "  > decrypting vault..." },                       delay: 1800 },
+    { line: { type: "blank",  text: "" },                                              delay: 2400 },
+    { line: { type: "error",  text: "  ERROR 403: this terminal respects the law" },   delay: 2600 },
+    { line: { type: "blank",  text: "" },                                              delay: 2600 },
+    { line: { type: "output", text: "  nice try though." },                            delay: 2900 },
+  ],
+
+  coffee: [
+    { line: { type: "info",    text: "brewing..." },                             delay: 0 },
+    { line: { type: "blank",   text: "" },                                       delay: 300 },
+    { line: { type: "output",  text: "  [          ] 0%" },                      delay: 400 },
+    { line: { type: "output",  text: "  [==        ] 20%" },                     delay: 750 },
+    { line: { type: "output",  text: "  [====      ] 40%" },                     delay: 1100 },
+    { line: { type: "output",  text: "  [======    ] 60%" },                     delay: 1450 },
+    { line: { type: "output",  text: "  [========  ] 80%" },                     delay: 1800 },
+    { line: { type: "output",  text: "  [==========] 100%" },                    delay: 2150 },
+    { line: { type: "blank",   text: "" },                                       delay: 2400 },
+    { line: { type: "success", text: "  black coffee. no sugar. no milk." },     delay: 2600 },
+    { line: { type: "output",  text: "  consistency fuel since 2019." },         delay: 2900 },
+  ],
+
+  decrypt: [
+    { line: { type: "info",    text: "initiating decryption sequence..." },             delay: 0 },
+    { line: { type: "blank",   text: "" },                                             delay: 300 },
+    { line: { type: "output",  text: "  [###       ] decrypting block 1 of 3..." },    delay: 500 },
+    { line: { type: "output",  text: "  [######    ] decrypting block 2 of 3..." },    delay: 1100 },
+    { line: { type: "output",  text: "  [##########] decryption complete" },           delay: 1800 },
+    { line: { type: "blank",   text: "" },                                             delay: 2100 },
+    { line: { type: "success", text: "  ACCESS GRANTED" },                             delay: 2300 },
+    { line: { type: "blank",   text: "" },                                             delay: 2500 },
+    { line: { type: "info",    text: '  "build things that matter.' },                 delay: 2700 },
+    { line: { type: "info",    text: '   everything else is noise."' },                delay: 3000 },
+  ],
+
+  matrix: [
+    { line: { type: "system",  text: "01001000 01000101 01001100 01001100 01001111" }, delay: 0 },
+    { line: { type: "system",  text: "01010000 01001000 01000001 01000101 01001101" }, delay: 300 },
+    { line: { type: "system",  text: "01001111 01010011 00101011 00101011 01000011" }, delay: 600 },
+    { line: { type: "blank",   text: "" },                                             delay: 900 },
+    { line: { type: "success", text: "  wake up, Neo. the matrix has you." },          delay: 1100 },
+    { line: { type: "blank",   text: "" },                                             delay: 1300 },
+    { line: { type: "output",  text: "  jk. welcome to isaac's lab." },               delay: 1500 },
+    { line: { type: "output",  text: "  you're already in the simulation." },          delay: 1800 },
+  ],
+
+  sudo: [
+    { line: { type: "output",  text: "  [sudo] password for isaac:" },                delay: 0 },
+    { line: { type: "output",  text: "  authenticating..." },                         delay: 800 },
+    { line: { type: "blank",   text: "" },                                             delay: 1400 },
+    { line: { type: "error",   text: "  sudo: permission denied" },                   delay: 1600 },
+    { line: { type: "blank",   text: "" },                                             delay: 1600 },
+    { line: { type: "output",  text: "  this terminal respects least privilege." },   delay: 1900 },
+    { line: { type: "output",  text: "  nice try." },                                 delay: 2100 },
+  ],
+
+  zac: [
+    { line: { type: "output",  text: "  scanning retina..." },                        delay: 0 },
+    { line: { type: "output",  text: "  verifying identity..." },                     delay: 700 },
+    { line: { type: "blank",   text: "" },                                             delay: 1300 },
+    { line: { type: "success", text: "  ACCESS GRANTED." },                           delay: 1500 },
+    { line: { type: "blank",   text: "" },                                             delay: 1700 },
+    { line: { type: "output",  text: "  welcome to the inner circle." },              delay: 1900 },
+    { line: { type: "output",  text: "  curiosity stat: +1" },                       delay: 2100 },
+    { line: { type: "output",  text: "  perseverance stat: already maxed." },        delay: 2300 },
+    { line: { type: "blank",   text: "" },                                             delay: 2500 },
+    { line: { type: "output",  text: "  you found it. now go build something." },    delay: 2700 },
+  ],
+
+  make: [
+    { line: { type: "info",    text: "building isaac..." },                            delay: 0 },
+    { line: { type: "blank",   text: "" },                                             delay: 200 },
+    { line: { type: "output",  text: "  CC     isaac.c -O2 -Wall" },                  delay: 350 },
+    { line: { type: "output",  text: "  CC     curiosity.c -O2" },                    delay: 650 },
+    { line: { type: "output",  text: "  CC     resilience.c -O2" },                   delay: 950 },
+    { line: { type: "output",  text: "  LINK   isaac.o curiosity.o resilience.o" },   delay: 1350 },
+    { line: { type: "output",  text: "  BUILD  isaac.exe" },                          delay: 1750 },
+    { line: { type: "blank",   text: "" },                                             delay: 2100 },
+    { line: { type: "output",  text: "  [##########] 100% build succeeded" },         delay: 2300 },
+    { line: { type: "blank",   text: "" },                                             delay: 2600 },
+    { line: { type: "success", text: "  ./isaac --mode=production --target=internship" }, delay: 2800 },
+    { line: { type: "success", text: "  isaac deployed successfully." },               delay: 3100 },
+  ],
+}
+
+function fmtSec(s: number): string {
+  if (s < 60) return `${s}s`
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  if (h === 0) return `${m}m`
+  if (m === 0) return `${h}h`
+  return `${h}h ${m}m`
+}
+
+function pctOf(part: number, total: number): string {
+  if (total === 0) return "0%"
+  return `${Math.round((part / total) * 100)}%`
+}
+
 const ASYNC_COMMANDS: Record<string, () => Promise<Line[]>> = {
+  posts: async () => {
+    const r = await fetch("/api/top-content")
+    if (!r.ok) throw new Error("fetch failed")
+    const d = await r.json() as {
+      topBlog: { slug: string; reads: number; title: string }[]
+      topTil: { slug: string; reads: number; title: string }[]
+    }
+    const lines: Line[] = [{ type: "info", text: "most read content" }, { type: "blank", text: "" }]
+    if (d.topBlog.length > 0) {
+      lines.push({ type: "info", text: "  blog posts" })
+      for (const p of d.topBlog) {
+        lines.push({ type: "output", text: `  [${p.reads} reads]  ${p.title}` })
+      }
+      lines.push({ type: "blank", text: "" })
+    }
+    if (d.topTil.length > 0) {
+      lines.push({ type: "info", text: "  til entries" })
+      for (const t of d.topTil) {
+        lines.push({ type: "output", text: `  [${t.reads} reads]  ${t.title}` })
+      }
+      lines.push({ type: "blank", text: "" })
+    }
+    if (d.topBlog.length === 0 && d.topTil.length === 0) {
+      lines.push({ type: "output", text: "  no read data yet - check back later" })
+      lines.push({ type: "blank", text: "" })
+    }
+    lines.push({ type: "output", text: "  → isaacadjei.me/blog" })
+    lines.push({ type: "output", text: "  → isaacadjei.me/til" })
+    return lines
+  },
+
+  stats: async () => {
+    const r = await fetch("/api/wakatime-stats?period=all")
+    if (!r.ok) throw new Error("fetch failed")
+    const d = await r.json() as {
+      totalSeconds: number; dailyAvgSeconds: number; activeDays: number
+      bestDaySeconds: number; bestDayDate: string; codingStreak: number
+    }
+    if (!("totalSeconds" in d)) throw new Error("invalid response")
+    return [
+      { type: "info", text: "coding stats - all time" },
+      { type: "blank", text: "" },
+      { type: "kv", text: `  total time    ${fmtSec(d.totalSeconds)}` },
+      { type: "kv", text: `  daily avg     ${fmtSec(d.dailyAvgSeconds)}` },
+      { type: "kv", text: `  active days   ${d.activeDays}` },
+      { type: "kv", text: `  best day      ${fmtSec(d.bestDaySeconds)}${d.bestDayDate ? ` (${d.bestDayDate})` : ""}` },
+      { type: "kv", text: `  streak        ${d.codingStreak} day${d.codingStreak !== 1 ? "s" : ""}` },
+      { type: "blank", text: "" },
+      { type: "output", text: "  run 'languages', 'vscode', 'os' for breakdowns" },
+    ]
+  },
+
+  streak: async () => {
+    const r = await fetch("/api/wakatime-stats?period=all")
+    if (!r.ok) throw new Error("fetch failed")
+    const d = await r.json() as { codingStreak: number; activeDays: number }
+    if (!("codingStreak" in d)) throw new Error("invalid response")
+    const active = d.codingStreak > 0
+    return [
+      { type: "info", text: "coding streak" },
+      { type: "blank", text: "" },
+      { type: "kv", text: `  current       ${d.codingStreak} day${d.codingStreak !== 1 ? "s" : ""}` },
+      { type: "kv", text: `  status        ${active ? "active" : "build something today"}` },
+      { type: "blank", text: "" },
+      active
+        ? { type: "success", text: "  keep shipping." }
+        : { type: "output", text: "  streaks are rebuilt one commit at a time." },
+    ]
+  },
+
+  today: async () => {
+    const r = await fetch("/api/wakatime-stats?period=24h")
+    if (!r.ok) throw new Error("fetch failed")
+    const d = await r.json() as {
+      totalSeconds: number
+      languages: { name: string; total_seconds: number }[]
+      projects: { name: string; total_seconds: number }[]
+    }
+    if (!("totalSeconds" in d)) throw new Error("invalid response")
+    const topLang = d.languages?.[0]
+    const topProj = d.projects?.[0]
+    return [
+      { type: "info", text: "coding today - last 24 hours" },
+      { type: "blank", text: "" },
+      { type: "kv", text: `  time coded    ${fmtSec(d.totalSeconds)}` },
+      ...(topLang ? [{ type: "kv" as LineType, text: `  top language  ${topLang.name}  (${fmtSec(topLang.total_seconds)})` }] : []),
+      ...(topProj ? [{ type: "kv" as LineType, text: `  top project   ${topProj.name}  (${fmtSec(topProj.total_seconds)})` }] : []),
+      { type: "blank", text: "" },
+      d.totalSeconds > 0
+        ? { type: "success", text: "  coding today. good." }
+        : { type: "output", text: "  no coding recorded yet today." },
+    ]
+  },
+
+  languages: async () => {
+    const r = await fetch("/api/wakatime-stats?period=30d")
+    if (!r.ok) throw new Error("fetch failed")
+    const d = await r.json() as {
+      totalSeconds: number
+      languages: { name: string; total_seconds: number }[]
+    }
+    if (!("languages" in d)) throw new Error("invalid response")
+    const langs = d.languages.slice(0, 6)
+    return [
+      { type: "info", text: "top languages - last 30 days" },
+      { type: "blank", text: "" },
+      ...langs.map((l) => ({
+        type: "kv" as LineType,
+        text: `  ${l.name.padEnd(14)}  ${pctOf(l.total_seconds, d.totalSeconds).padStart(4)}  (${fmtSec(l.total_seconds)})`,
+      })),
+      { type: "blank", text: "" },
+      { type: "output", text: "  run 'stats' for full coding overview" },
+    ]
+  },
+
+  vscode: async () => {
+    const r = await fetch("/api/wakatime-stats?period=all")
+    if (!r.ok) throw new Error("fetch failed")
+    const d = await r.json() as {
+      totalSeconds: number
+      editors: { name: string; total_seconds: number }[]
+    }
+    if (!("editors" in d)) throw new Error("invalid response")
+    const editors = d.editors.slice(0, 5)
+    return [
+      { type: "info", text: "editor breakdown - all time" },
+      { type: "blank", text: "" },
+      ...editors.map((e) => ({
+        type: "kv" as LineType,
+        text: `  ${e.name.padEnd(14)}  ${pctOf(e.total_seconds, d.totalSeconds).padStart(4)}  (${fmtSec(e.total_seconds)})`,
+      })),
+    ]
+  },
+
+  os: async () => {
+    const r = await fetch("/api/wakatime-stats?period=all")
+    if (!r.ok) throw new Error("fetch failed")
+    const d = await r.json() as {
+      totalSeconds: number
+      operatingSystems: { name: string; total_seconds: number }[]
+    }
+    if (!("totalSeconds" in d)) throw new Error("invalid response")
+    const osList = (d.operatingSystems ?? []).slice(0, 5)
+    const lines: Line[] = [
+      { type: "info", text: "operating system - all time" },
+      { type: "blank", text: "" },
+    ]
+    if (osList.length > 0) {
+      for (const os of osList) {
+        const pct = d.totalSeconds > 0 ? Math.round((os.total_seconds / d.totalSeconds) * 100) : 0
+        lines.push({ type: "kv", text: `  ${os.name.padEnd(14)} ${fmtSec(os.total_seconds)}  (${pct}%)` })
+      }
+    } else {
+      lines.push({ type: "kv", text: "  macOS         primary development environment" })
+      lines.push({ type: "kv", text: "  Windows       Lenovo + gaming PC setup" })
+      lines.push({ type: "kv", text: "  Linux         embedded and server work" })
+    }
+    lines.push({ type: "blank", text: "" })
+    lines.push({ type: "output", text: `  total coding time: ${fmtSec(d.totalSeconds)}` })
+    return lines
+  },
+
   playing: async () => {
     const res = await fetch("/api/spotify")
     const d = await res.json() as {
@@ -650,6 +973,22 @@ const ASYNC_COMMANDS: Record<string, () => Promise<Line[]>> = {
 
 function renderLine(line: Line, i: number) {
   if (line.type === "blank") return <div key={i} className="h-2" />
+
+  if (line.type === "link") {
+    const url = line.text.trim()
+    const href = url.startsWith("http") ? url : `https://${url}`
+    return (
+      <a
+        key={i}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block font-mono text-xs text-primary underline underline-offset-2 hover:text-primary/70 transition-colors pl-4 leading-relaxed"
+      >
+        {url}
+      </a>
+    )
+  }
 
   if (line.type === "cmd-echo") {
     return (
@@ -807,7 +1146,19 @@ export default function LabPage() {
       return
     }
 
-    // I handle async commands separately: show a loading line immediately, then replace it when the fetch resolves.
+    // Theatrical commands play out line by line with real delays
+    if (THEATRICAL_COMMANDS[cmd]) {
+      setLines((prev) => [...prev, { type: "cmd-echo", text: trimmed }])
+      setInputVal("")
+      const steps = THEATRICAL_COMMANDS[cmd]
+      const maxDelay = Math.max(...steps.map((s) => s.delay))
+      steps.forEach(({ line, delay }) => {
+        setTimeout(() => setLines((prev) => [...prev, line]), delay)
+      })
+      setTimeout(() => setLines((prev) => [...prev, { type: "blank", text: "" }]), maxDelay + 150)
+      return
+    }
+
     if (ASYNC_COMMANDS[cmd]) {
       setLines((prev) => [
         ...prev,
@@ -892,10 +1243,10 @@ export default function LabPage() {
         <>
           <div className="text-center space-y-1">
             <p className="font-mono text-sm font-semibold tracking-widest uppercase text-yellow-500">
-              ⚠️ lab // under construction ⚠️
+              ⚠️ lab // work in progress ⚠️
             </p>
             <p className="font-mono text-xs text-muted-foreground">
-              something is being built here - check back soon
+              terminal, github stats, live coding stats, spotify visualiser and hardware · more experiments incoming
             </p>
           </div>
           <div className="flex justify-center">
@@ -1020,6 +1371,13 @@ export default function LabPage() {
       )}
 
       {!isMaximized && <GitHubStats />}
+      {!isMaximized && <WakatimeStats />}
+      {!isMaximized && (
+        <div className="flex flex-col gap-4">
+          <SpotifyVisualiser />
+          <PCBViewer />
+        </div>
+      )}
 
       {!isMaximized && (
         <p className="text-center text-xs text-muted-foreground font-mono">
