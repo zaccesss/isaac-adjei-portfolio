@@ -3,18 +3,16 @@
 import { useState } from "react"
 import { BookOpen } from "lucide-react"
 import type { BlogReadFunnelRow } from "@/app/dashboard/actions"
+import { StatCard, DEFAULT_CHART_COLOURS } from "@/components/analytics"
 
-// I define the sort keys the user can cycle through in the table header.
 type SortKey = keyof BlogReadFunnelRow
 type SortDir = "asc" | "desc"
 
 export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[] }) {
-  // I keep search and sort as controlled state for instant client-side filtering.
   const [search, setSearch] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>("reached_25")
   const [sortDir, setSortDir] = useState<SortDir>("desc")
 
-  // I compute three summary stats over all posts for the header cards.
   const totalPosts = rows.length
   const totalReads = rows.reduce((acc, r) => acc + r.reached_25, 0)
   const avgCompletion =
@@ -24,7 +22,6 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
           (rows.reduce((acc, r) => acc + (r.completion_rate ?? 0), 0) / rows.length) * 100,
         )
 
-  // I apply search then sort for the visible table rows.
   const filtered = rows
     .filter((r) => !search || r.slug.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
@@ -35,7 +32,6 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
     })
 
   function handleSort(key: SortKey) {
-    // I toggle direction when clicking the same column, otherwise default to desc.
     if (sortKey === key) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"))
     } else {
@@ -49,17 +45,21 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
     return sortDir === "asc" ? " ↑" : " ↓"
   }
 
-  // I colour each funnel bar proportionally to the 25% reach count so the
-  // visual width makes the drop-off immediately obvious.
   function funnelWidth(count: number, base: number) {
     if (base === 0) return "0%"
     return `${Math.round((count / base) * 100)}%`
   }
 
+  const FUNNEL_COLOURS = [
+    DEFAULT_CHART_COLOURS[1], // green
+    DEFAULT_CHART_COLOURS[2], // amber
+    DEFAULT_CHART_COLOURS[4], // purple
+    DEFAULT_CHART_COLOURS[0], // primary
+  ]
+
   return (
     <div className="flex flex-col gap-6">
 
-      {/* Page header */}
       <div className="flex items-center gap-3">
         <BookOpen className="h-6 w-6 text-muted-foreground" />
         <div>
@@ -70,25 +70,12 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
         </div>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="border border-border rounded-lg p-4 bg-card">
-          <p className="text-xs text-muted-foreground">Posts tracked</p>
-          <p className="text-2xl font-bold mt-1">{totalPosts}</p>
-        </div>
-        <div className="border border-border rounded-lg p-4 bg-card">
-          <p className="text-xs text-muted-foreground">Total opens (25%+)</p>
-          <p className="text-2xl font-bold mt-1">{totalReads}</p>
-        </div>
-        <div className="border border-border rounded-lg p-4 bg-card">
-          <p className="text-xs text-muted-foreground">Avg completion</p>
-          <p className="text-2xl font-bold mt-1">
-            {avgCompletion !== null ? `${avgCompletion}%` : "-"}
-          </p>
-        </div>
+        <StatCard label="Posts tracked" value={totalPosts} />
+        <StatCard label="Total opens (25%+)" value={totalReads} />
+        <StatCard label="Avg completion" value={avgCompletion !== null ? `${avgCompletion}%` : "-"} />
       </div>
 
-      {/* Search */}
       <input
         type="search"
         placeholder="Filter by slug…"
@@ -97,7 +84,6 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
         className="border border-border rounded-md px-3 py-1.5 text-sm bg-background max-w-sm"
       />
 
-      {/* Funnel table */}
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-sm">
           <thead>
@@ -148,28 +134,22 @@ export default function BlogAnalyticsClient({ rows }: { rows: BlogReadFunnelRow[
                       ? `${Math.round(row.completion_rate * 100)}%`
                       : "-"}
                   </td>
-                  {/* I draw four stacked bars that shrink proportionally to visualise drop-off */}
                   <td className="px-3 py-2 min-w-[160px]">
                     <div className="flex flex-col gap-0.5">
                       {(["reached_25", "reached_50", "reached_75", "reached_100"] as const).map(
-                        (key, idx) => {
-                          const colours = [
-                            "bg-blue-400",
-                            "bg-green-400",
-                            "bg-yellow-400",
-                            "bg-primary",
-                          ]
-                          return (
-                            <div key={key} className="flex items-center gap-1.5">
-                              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                                <div
-                                  className={`h-full rounded-full ${colours[idx]}`}
-                                  style={{ width: funnelWidth(row[key], row.reached_25) }}
-                                />
-                              </div>
+                        (key, idx) => (
+                          <div key={key} className="flex items-center gap-1.5">
+                            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full"
+                                style={{
+                                  width: funnelWidth(row[key], row.reached_25),
+                                  background: FUNNEL_COLOURS[idx],
+                                }}
+                              />
                             </div>
-                          )
-                        },
+                          </div>
+                        ),
                       )}
                     </div>
                   </td>
