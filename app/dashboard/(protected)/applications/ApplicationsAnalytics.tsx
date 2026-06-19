@@ -6,6 +6,7 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts"
+import { normaliseStatus as normalise, STATUS_COLOURS, computeFunnelCounts } from "@/lib/application-status"
 
 type Application = {
   id: string
@@ -16,34 +17,6 @@ type Application = {
   applied_date: string | null
   location: string | null
   category: string | null
-}
-
-const STATUS_COLOURS: Record<string, string> = {
-  "Not Applied":             "#94a3b8",
-  "Interested":              "#3b82f6",
-  "Application Submitted":   "#6366f1",
-  "Online Assessment":       "#8b5cf6",
-  "Case Study":              "#a855f7",
-  "HireVue":                 "#c026d3",
-  "Telephone Interview":     "#f59e0b",
-  "Video Interview":         "#f97316",
-  "Face-to-face Interview":  "#ef4444",
-  "Assessment Centre":       "#dc2626",
-  "Offer Received":          "#22c55e",
-  "Rejected":                "#64748b",
-  "Not Interested":          "#475569",
-}
-
-function normalise(raw: string): string {
-  const map: Record<string, string> = {
-    scraped: "Not Applied", applied: "Application Submitted", oa: "Online Assessment",
-    case_study: "Case Study", phone_screen: "Telephone Interview",
-    face_to_face: "Face-to-face Interview", assessment_centre: "Assessment Centre",
-    offer: "Offer Received", not_interested: "Not Interested",
-    interested: "Interested", hirevue: "HireVue", rejected: "Rejected",
-    video_interview: "Video Interview",
-  }
-  return map[raw] ?? raw
 }
 
 function detectCat(company: string, role: string): string {
@@ -123,9 +96,7 @@ export default function ApplicationsAnalytics({ apps }: { apps: Application[] })
 
   // ── Summary stats ───────────────────────────────────────────────────────────
   const total = apps.length
-  const applied = apps.filter((a) => !["Not Applied","Interested","Not Interested"].includes(normalise(a.status))).length
-  const atOA = apps.filter((a) => ["Online Assessment","Case Study","HireVue"].includes(normalise(a.status))).length
-  const atInterview = apps.filter((a) => ["Telephone Interview","Video Interview","Face-to-face Interview","Assessment Centre","Offer Received"].includes(normalise(a.status))).length
+  const { applied, assessment: atOA, interview: atInterview } = computeFunnelCounts(apps.map((a) => a.status))
   const offers = apps.filter((a) => normalise(a.status) === "Offer Received").length
   const rejected = apps.filter((a) => normalise(a.status) === "Rejected").length
   const interviewRate = applied > 0 ? Math.round((atInterview / applied) * 100) : 0
