@@ -1,17 +1,17 @@
-# I fetch yesterday's WakaTime data from Supabase and post a formatted coding summary
-# to Discord every night at 23:30 UTC - after the WakaTime sync at 23:00 has completed.
+# I check which active streaks have not yet been logged for today and post a Discord
+# reminder at 08:00 UTC every morning so nothing is forgotten before the day is over.
 # Also triggerable manually via workflow_dispatch for testing.
 
-name: Daily Coding Summary
+name: Daily Streak Reminder
 
 on:
   schedule:
-    # Runs at 23:30 UTC every day - after WakaTime has synced the day's data at 23:00.
-    - cron: "30 23 * * *"
+    # Runs at 08:00 UTC every day (08:00 GMT in winter, 09:00 BST in summer).
+    - cron: "0 8 * * *"
   workflow_dispatch:
 
 jobs:
-  send-summary:
+  remind:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -25,10 +25,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Send daily coding summary to Discord
+      - name: Send morning streak reminder to Discord
         env:
           SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           # I use the service role key so the script can read all rows without RLS blocking it
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: npx tsx scripts/daily-coding-summary.ts
+        run: npx tsx scripts/send-streak-reminder.ts
