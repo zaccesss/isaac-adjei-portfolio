@@ -16,7 +16,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 // AI assistant tools/IDEs whose time counts in totals but must never surface as a named
-// editor in the chart — all such time is attributed to the developer, not the AI tool.
+// editor in the chart - all such time is attributed to the developer, not the AI tool.
 const AI_EDITORS = new Set([
   "Claude Code",                          // Anthropic
   "Codex", "OpenAI",                      // OpenAI

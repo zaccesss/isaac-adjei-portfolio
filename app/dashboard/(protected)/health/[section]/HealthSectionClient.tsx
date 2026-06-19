@@ -72,6 +72,7 @@ function SectionCard({ section, onClick, onDelete }: {
           type="button"
           onClick={(e) => { e.stopPropagation(); onDelete(section.id) }}
           aria-label="Delete section"
+          title="Delete section"
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-all"
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -148,7 +149,7 @@ function NutritionCard({ item, onUpdate, onDelete }: {
             {item.items.map((food, i) => (
               <div key={i} className="flex items-center gap-2">
                 <span className="text-sm flex-1">{food}</span>
-                <button type="button" aria-label="Remove item" onClick={() => onUpdate(item.id, { items: item.items.filter((_, j) => j !== i) })} className="p-1 text-muted-foreground hover:text-destructive"><X className="h-3 w-3" /></button>
+                <button type="button" aria-label="Remove item" title="Remove item" onClick={() => onUpdate(item.id, { items: item.items.filter((_, j) => j !== i) })} className="p-1 text-muted-foreground hover:text-destructive"><X className="h-3 w-3" /></button>
               </div>
             ))}
             <div className="flex gap-2">
@@ -168,7 +169,7 @@ function NutritionCard({ item, onUpdate, onDelete }: {
               {item.rules.map((rule, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <div className="flex-1"><MarkdownContent compact>{rule}</MarkdownContent></div>
-                  <button type="button" aria-label="Remove rule" onClick={() => onUpdate(item.id, { rules: item.rules.filter((_, j) => j !== i) })} className="p-1 text-muted-foreground hover:text-destructive"><X className="h-3 w-3" /></button>
+                  <button type="button" aria-label="Remove rule" title="Remove rule" onClick={() => onUpdate(item.id, { rules: item.rules.filter((_, j) => j !== i) })} className="p-1 text-muted-foreground hover:text-destructive"><X className="h-3 w-3" /></button>
                 </div>
               ))}
             </div>
@@ -362,7 +363,7 @@ export default function HealthSectionClient({
                     <Input value={ex.name} onChange={(e) => setWorkoutForm((f) => ({ ...f, exercises: f.exercises.map((x, j) => j === i ? { ...x, name: e.target.value } : x) }))} placeholder="Exercise name" className="flex-1 text-sm" />
                     <Input value={ex.sets} onChange={(e) => setWorkoutForm((f) => ({ ...f, exercises: f.exercises.map((x, j) => j === i ? { ...x, sets: e.target.value } : x) }))} placeholder="Sets (e.g. 4x8)" className="w-28 text-sm" />
                     {workoutForm.exercises.length > 1 && (
-                      <button type="button" aria-label="Remove exercise" onClick={() => setWorkoutForm((f) => ({ ...f, exercises: f.exercises.filter((_, j) => j !== i) }))} className="p-1 text-muted-foreground hover:text-destructive"><X className="h-3.5 w-3.5" /></button>
+                      <button type="button" aria-label="Remove exercise" title="Remove exercise" onClick={() => setWorkoutForm((f) => ({ ...f, exercises: f.exercises.filter((_, j) => j !== i) }))} className="p-1 text-muted-foreground hover:text-destructive"><X className="h-3.5 w-3.5" /></button>
                     )}
                   </div>
                 ))}

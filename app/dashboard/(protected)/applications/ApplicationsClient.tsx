@@ -655,6 +655,7 @@ function AppRow({
               onClick={() => onEdit(app)}
               className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Edit"
+              title="Edit"
             >
               <Edit2 className="h-3 w-3" />
             </button>
@@ -696,6 +697,7 @@ function AppRow({
             onClick={() => onDelete(app.id)}
             className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
             aria-label="Delete"
+            title="Delete"
           >
             <Trash2 className="h-3 w-3" />
           </button>
@@ -832,7 +834,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  // Tab-filtered apps — archived view shows only archived, default hides them
+  // Tab-filtered apps - archived view shows only archived, default hides them
   const tabApps = apps.filter((a) => appBelongsToTab(a, activeTab) && (showArchived ? a.archived : !a.archived))
 
   // Apply filters

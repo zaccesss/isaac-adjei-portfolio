@@ -137,8 +137,8 @@ export function GoalCard({ goal, onEdit, onDelete }: {
           {goal.description && <div className="line-clamp-2"><MarkdownContent compact>{goal.description}</MarkdownContent></div>}
         </div>
         <div className="flex gap-1 shrink-0">
-          <button type="button" onClick={() => onEdit(goal)} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" aria-label="Edit goal"><Edit2 className="h-3 w-3" /></button>
-          <button type="button" onClick={() => onDelete(goal.id)} className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors" aria-label="Delete goal"><Trash2 className="h-3 w-3" /></button>
+          <button type="button" onClick={() => onEdit(goal)} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" aria-label="Edit goal" title="Edit goal"><Edit2 className="h-3 w-3" /></button>
+          <button type="button" onClick={() => onDelete(goal.id)} className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors" aria-label="Delete goal" title="Delete goal"><Trash2 className="h-3 w-3" /></button>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
