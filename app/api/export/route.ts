@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { auth } from "@/auth"
 import { supabase } from "@/lib/supabase"
 
 export const dynamic = "force-dynamic"
@@ -9,6 +10,11 @@ async function q(table: string, select = "*") {
 }
 
 export async function GET() {
+  // I require an authenticated dashboard session - this endpoint returns the entire
+  // personal database, so it must never be reachable without the GitHub session.
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
+
   const [
     goals,
     applications,
@@ -143,6 +149,11 @@ const IMPORTABLE_TABLES = [
 ] as const
 
 export async function POST(req: Request) {
+  // I require an authenticated dashboard session - this endpoint upserts into every
+  // table, so an unauthenticated caller must never be able to write to the database.
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
+
   let bundle: { version?: string; data?: Record<string, unknown[]> }
   try {
     bundle = await req.json() as typeof bundle
