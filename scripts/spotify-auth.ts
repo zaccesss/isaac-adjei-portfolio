@@ -19,8 +19,9 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
   process.exit(1)
 }
 
-// Scopes: currently-playing + playback state for /api/spotify; user-top-read for /api/spotify-top
-const scope = "user-read-currently-playing user-read-playback-state user-top-read"
+// Scopes: currently-playing + playback state for /api/spotify; user-top-read for /api/spotify-top;
+// user-library-read for /api/spotify-top podcasts (saved shows)
+const scope = "user-read-currently-playing user-read-playback-state user-top-read user-library-read"
 const authUrl =
   `https://accounts.spotify.com/authorize` +
   `?client_id=${CLIENT_ID}` +

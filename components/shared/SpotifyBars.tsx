@@ -8,10 +8,12 @@
 import { useEffect, useRef } from "react"
 
 const BAR_COUNT = 48
-const BAR_H     = 90
-const VH        = 132
+const BAR_H     = 80   // slightly taller than original 72
+const VH        = 110  // box height unchanged
 const WAVE_Y    = 14
-const BAR_TOP   = 36
+const BAR_TOP   = 28
+// Hard cap: tallest bar must stay 3px below the sine wave
+const MAX_BAR_H = BAR_TOP + BAR_H - WAVE_Y - 3  // = 91
 const BAR_W     = 5
 const GAP       = 3
 const VBOX_W    = BAR_COUNT * (BAR_W + GAP) - GAP
@@ -104,7 +106,7 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
       for (let i = 0; i < BAR_COUNT; i++) {
         phasesRef.current[i] += 0.04 * speedMult * (1 + (i % 7) * 0.05)
         const osc = Math.abs(Math.sin(phasesRef.current[i]))
-        const h   = minH + (maxH - minH) * osc
+        const h   = Math.min(minH + (maxH - minH) * osc, MAX_BAR_H)
         const y   = (BAR_TOP + (BAR_H - h)).toFixed(1)
         const hs  = h.toFixed(1)
         const el  = barEls[i] as SVGRectElement | undefined
@@ -117,7 +119,7 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
         const pel = peakEls?.[i] as SVGRectElement | undefined
         if (pel) {
           pel.setAttribute("y", y)
-          const peakOp = p ? Math.min(1, beat.boost * lf * (h / BAR_H) * 1.4 + lf * (h / BAR_H) * 0.25).toFixed(2) : "0"
+          const peakOp = p ? Math.min(1, beat.boost * lf * (h / BAR_H) * 2.0 + lf * (h / BAR_H) * 0.55).toFixed(2) : "0"
           pel.setAttribute("opacity", peakOp)
         }
         const cel = clipEls?.[i] as SVGRectElement | undefined
@@ -190,7 +192,7 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
       </g>
 
       {/* Peak caps: dark solid rect at the top of each bar, intensity driven by beat + height */}
-      <g ref={peakGRef} fill="hsl(var(--primary))" opacity={0}>
+      <g ref={peakGRef} fill="hsl(var(--foreground))" opacity={0}>
         {Array.from({ length: BAR_COUNT }, (_, i) => (
           <rect key={i} x={i * (BAR_W + GAP)} y={BAR_TOP + BAR_H - PEAK_H} width={BAR_W} height={PEAK_H} rx={1} opacity={0} />
         ))}
