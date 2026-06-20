@@ -37,8 +37,16 @@ export async function GET(request: Request) {
         } catch {}
       }, 60000)
 
-      // I clear the interval when the client disconnects to avoid orphaned Edge function instances
-      return () => clearInterval(interval)
+      // Fast Spotify-only poll so song changes appear within ~5s without hammering all other endpoints
+      const spotifyInterval = setInterval(async () => {
+        try {
+          const spotify = await fetch(`${origin}/api/spotify`).then(r => r.ok ? r.json() : null).catch(() => null)
+          if (spotify) controller.enqueue(encoder.encode(`event: spotify\ndata: ${JSON.stringify(spotify)}\n\n`))
+        } catch {}
+      }, 5000)
+
+      // I clear the intervals when the client disconnects to avoid orphaned Edge function instances
+      return () => { clearInterval(interval); clearInterval(spotifyInterval) }
     },
   })
 

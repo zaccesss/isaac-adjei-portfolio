@@ -340,10 +340,11 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
   )
 }
 
-export default function ApplicationsAnalytics({ apps }: { apps: Application[] }) {
+export default function ApplicationsAnalytics({ apps, typeFilter }: { apps: Application[]; typeFilter?: string }) {
+  const filtered = typeFilter ? apps.filter(a => a.type === typeFilter) : apps
   return (
     <AnalyticsPeriodProvider defaultPeriod="all">
-      <ApplicationsAnalyticsInner apps={apps} />
+      <ApplicationsAnalyticsInner apps={filtered} />
     </AnalyticsPeriodProvider>
   )
 }

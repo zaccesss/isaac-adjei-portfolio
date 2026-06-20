@@ -314,6 +314,10 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
         }
       } catch {}
     }
+    // Fast Spotify-only event so song changes appear within ~5s
+    es.addEventListener("spotify", (e) => {
+      try { setSpotify(JSON.parse(e.data)) } catch {}
+    })
     return () => es.close()
   }, [])
 
