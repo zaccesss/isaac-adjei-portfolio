@@ -1163,6 +1163,33 @@ export async function getDashboardSearchData() {
   }
 }
 
+// Real-time ilike search across all major tables. Called client-side via server action
+// so the Supabase service key never touches the browser and we get proper debouncing.
+export async function searchDashboard(q: string) {
+  if (!q || !validStr(q, 200)) {
+    return { goals: [], notes: [], diary: [], applications: [], contacts: [], habits: [], streaks: [] }
+  }
+  const pat = `%${q.trim()}%`
+  const [goals, notes, diary, applications, contacts, habits, streaks] = await Promise.all([
+    supabase.from("goals").select("id, title, category").or(`title.ilike.${pat},description.ilike.${pat}`).limit(4),
+    supabase.from("notes").select("id, title, folder").or(`title.ilike.${pat},content.ilike.${pat}`).limit(4),
+    supabase.from("diary").select("id, title, created_at").ilike("content", pat).limit(4),
+    supabase.from("applications").select("id, company, role, status").or(`company.ilike.${pat},role.ilike.${pat}`).limit(4),
+    supabase.from("contacts").select("id, name").ilike("name", pat).limit(4),
+    supabase.from("habits").select("id, name").ilike("name", pat).limit(4),
+    supabase.from("streaks").select("id, name").ilike("name", pat).limit(4),
+  ])
+  return {
+    goals: goals.data ?? [],
+    notes: notes.data ?? [],
+    diary: diary.data ?? [],
+    applications: applications.data ?? [],
+    contacts: contacts.data ?? [],
+    habits: habits.data ?? [],
+    streaks: streaks.data ?? [],
+  }
+}
+
 // ─── Activity Log ─────────────────────────────────────────────────────────────
 
 export async function getActivityLog(limit = 50) {
@@ -2010,4 +2037,186 @@ export async function updateStudySession(id: string, data: {
   if (error) return { error: error.message }
   revalidatePath("/dashboard/study")
   void logActivity("study.update", id)
+}
+
+// ─── Calendar Events ──────────────────────────────────────────
+
+export type CalendarCustomEvent = {
+  id: string
+  title: string
+  start_at: string
+  end_at: string
+  location: string | null
+  description: string | null
+  colour: string
+  all_day: boolean
+  event_type: "general" | "timetable"
+}
+
+export async function getCalendarCustomEvents(): Promise<CalendarCustomEvent[]> {
+  const { data } = await supabase
+    .from("calendar_events")
+    .select("id, title, start_at, end_at, location, description, colour, all_day, event_type")
+    .eq("is_deleted", false)
+    .order("start_at", { ascending: true })
+  return (data ?? []) as CalendarCustomEvent[]
+}
+
+export async function createCalendarEvent(data: {
+  title: string
+  start_at: string
+  end_at: string
+  location?: string
+  description?: string
+  colour: string
+  all_day: boolean
+  event_type: "general" | "timetable"
+}) {
+  if (
+    !validStr(data.title) ||
+    !validStr(data.start_at) ||
+    !validStr(data.end_at) ||
+    !optStr(data.location) ||
+    !optStr(data.description, MAX_LONG_TEXT) ||
+    !validStr(data.colour) ||
+    typeof data.all_day !== "boolean" ||
+    !validStr(data.event_type)
+  ) return INVALID
+  const { data: inserted } = await supabase.from("calendar_events").insert({
+    title: data.title.trim(),
+    start_at: data.start_at,
+    end_at: data.end_at,
+    location: data.location?.trim() || null,
+    description: data.description?.trim() || null,
+    colour: data.colour,
+    all_day: data.all_day,
+    event_type: data.event_type,
+    is_deleted: false,
+  }).select().single()
+  void logActivity("calendar.create", data.title)
+  revalidatePath("/dashboard/calendar")
+  revalidatePath("/dashboard/university/timetable")
+  return inserted
+}
+
+export async function updateCalendarEvent(id: string, data: Partial<{
+  title: string
+  start_at: string
+  end_at: string
+  location: string | null
+  description: string | null
+  colour: string
+  all_day: boolean
+  event_type: "general" | "timetable"
+}>) {
+  if (
+    !validId(id) ||
+    !optStr(data.title) ||
+    !optStr(data.start_at) ||
+    !optStr(data.end_at) ||
+    !optStr(data.location) ||
+    !optStr(data.description, MAX_LONG_TEXT) ||
+    !optStr(data.colour)
+  ) return INVALID
+  await supabase.from("calendar_events").update(data).eq("id", id)
+  void logActivity("calendar.update", data.title ?? id)
+  revalidatePath("/dashboard/calendar")
+  revalidatePath("/dashboard/university/timetable")
+}
+
+export async function deleteCalendarEvent(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("calendar_events", id)
+  await supabase.from("calendar_events").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", id)
+  void logActivity("calendar.delete", id)
+  revalidatePath("/dashboard/calendar")
+  revalidatePath("/dashboard/university/timetable")
+}
+
+// ─── File Manager ─────────────────────────────────────────────
+
+export type UserFile = {
+  id: string
+  name: string
+  original_name: string
+  folder: string
+  size_bytes: number
+  mime_type: string
+  storage_path: string
+  created_at: string
+}
+
+export async function getUserFiles(): Promise<UserFile[]> {
+  const { data } = await supabase
+    .from("user_files")
+    .select("id, name, original_name, folder, size_bytes, mime_type, storage_path, created_at")
+    .eq("is_deleted", false)
+    .order("created_at", { ascending: false })
+  return (data ?? []) as UserFile[]
+}
+
+export async function uploadFile(data: {
+  name: string
+  original_name: string
+  folder: string
+  size_bytes: number
+  mime_type: string
+  storage_path: string
+}) {
+  if (
+    !validStr(data.name) ||
+    !validStr(data.original_name) ||
+    !validStr(data.folder) ||
+    !validStr(data.mime_type) ||
+    !validStr(data.storage_path) ||
+    typeof data.size_bytes !== "number"
+  ) return INVALID
+  const { data: inserted } = await supabase.from("user_files").insert({
+    name: data.name.trim(),
+    original_name: data.original_name.trim(),
+    folder: data.folder.trim(),
+    size_bytes: data.size_bytes,
+    mime_type: data.mime_type.trim(),
+    storage_path: data.storage_path.trim(),
+    is_deleted: false,
+  }).select().single()
+  void logActivity("file.upload", data.name)
+  revalidatePath("/dashboard/files")
+  return inserted
+}
+
+export async function deleteFile(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("user_files", id)
+  await supabase.from("user_files").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", id)
+  void logActivity("file.delete", id)
+  revalidatePath("/dashboard/files")
+}
+
+export async function renameFile(id: string, name: string) {
+  if (!validId(id) || !validStr(name)) return INVALID
+  await supabase.from("user_files").update({ name: name.trim() }).eq("id", id)
+  void logActivity("file.rename", name)
+  revalidatePath("/dashboard/files")
+}
+
+export async function moveFile(id: string, folder: string) {
+  if (!validId(id) || !validStr(folder)) return INVALID
+  await supabase.from("user_files").update({ folder: folder.trim() }).eq("id", id)
+  void logActivity("file.move", folder)
+  revalidatePath("/dashboard/files")
+}
+
+export async function createUploadSignedUrl(path: string) {
+  if (!validStr(path)) return INVALID
+  const { data, error } = await supabase.storage.from("user-files").createSignedUploadUrl(path)
+  if (error) return { error: error.message }
+  return data
+}
+
+export async function createDownloadSignedUrl(path: string) {
+  if (!validStr(path)) return INVALID
+  const { data, error } = await supabase.storage.from("user-files").createSignedUrl(path, 300)
+  if (error) return { error: error.message }
+  return data
 }

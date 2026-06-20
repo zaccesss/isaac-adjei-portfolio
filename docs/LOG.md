@@ -4,6 +4,68 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-06-20 (PR #482) - Phase 4 polish: Spotify fixes, calendar, file manager, analytics, search (#461 #466 #468 #469 #475)
+
+### Spotify song-change lag fix
+
+- SSE stream (`/api/live-status/stream`) previously pushed all device status every 60s - song changes took up to 60s to appear in the widget
+- Added a second, named `event: spotify` SSE channel inside the same stream that polls only `/api/spotify` every 5s; the full-device stream remains at 60s
+- `LiveStatusCards` now registers an `addEventListener("spotify", ...)` handler alongside `onmessage` so the fast partial update is applied immediately without clearing other device state
+
+### SpotifyBars visualiser
+
+- Reverted BAR_H from 90 back to 80 and VH from 132 back to 110 (PR #481 squash-merge had reverted these)
+- Added `MAX_BAR_H = BAR_TOP + BAR_H - WAVE_Y - 3` hard cap so bars can never touch or overlap the sine wave
+- Gradient updated: 30% opacity at base, 70% at midpoint, 100% at top - more vivid, clearly visible gradient
+- Peak cap dots changed from primary colour to foreground colour - visible in both light and dark mode
+
+### SpotifyAnalytics top picks (lab page)
+
+- `spotify-top` route now batch-fetches `/v1/artists?ids=` for accurate follower counts and genres per artist; added `duration_ms` to track objects
+- Track tab: list shown first, then bar chart below with track duration as metric (longest = 100%); bar width is real data, not rank; label and description added
+- Artist tab: list shown first, then bar chart below with follower count as metric (most followed = 100%); follower count shown inline; label and description added
+- Genre tab: description text added explaining what bar width means; note about "genres pulled from top artists"
+- Energy vs mood scatter plot retained - renders when Spotify audio features are available; hidden otherwise
+- Genres now populate for mainstream artists (Drake, Eminem, Dave etc) via the batch artist fetch
+
+### Calendar
+
+- `maxHeight: "60vh"` changed to `"75vh"` in the scroll container so 23:00+ events are no longer clipped at the bottom
+
+### File manager (#468)
+
+- New route at `/dashboard/files` backed by `user_files` table (migration 034, applied) and Supabase Storage `user-files` bucket
+- `FilesClient.tsx`: folder sidebar (All + per-folder), upload via drag/drop or button, inline rename, move to folder, soft delete via `moveToTrash`, download via signed URL
+- REST fallback at `/api/files` (GET list, POST upload with 50 MB limit)
+- Files link added to sidebar Personal group
+
+### Calendar custom events (#469 partial)
+
+- `calendar_events` table (migration 033, applied) with RLS
+- `createCalendarEvent`, `updateCalendarEvent`, `deleteCalendarEvent` server actions
+- CalendarClient: custom events merged with iCal feed events under a "Custom" pseudo-feed; FAB + slot-click opens `EventFormDialog`; `EventDetailSheet` shows full detail with edit/delete for custom events only; feed legend updated
+
+### Timetable views (#469)
+
+- `TimetableClient` fully rewritten: Day / Week / Month / Year view switcher; week grid with 8:00-21:00 hour rows; week navigation with auto-jump to nearest term week when current week is empty; custom events merged with iCal events (violet styling); "Add event" form calling `createCalendarEvent` with `event_type: "timetable"`
+
+### Routine iCal feed (#475)
+
+- New public endpoint `/api/routine-ical` returning a valid `.ics` file with RRULE-based weekly recurring events (Mon-Fri morning/evening, Friday extras, Saturday, Sunday routines); no auth required; subscribable from any calendar app
+
+### Dashboard search (#461)
+
+- `DashboardSearch` replaced client-side filtering with debounced 300ms `searchDashboard` server action; sections: goals, notes, diary, applications, contacts, habits, streaks; results limit 4 per section
+
+### Application analytics (#466)
+
+- `ApplicationsAnalytics` now accepts optional `typeFilter` prop to filter by application type
+- Analytics is now an inline view tab on the Applications page (BarChart2 icon, alongside Table/Kanban/Timeline/Salary/Linear) - shows analytics filtered to the current tab type (Internships, Graduate Schemes etc)
+- New route `/dashboard/analytics/applications` shows all-type combined analytics
+- Sidebar "Applications" entry under Analytics now points to `/dashboard/analytics/applications`
+
+---
+
 ## 2026-06-18 (PRs #339-350) - mobile crash root cause and CI/automerge overhaul
 
 ### Mobile crash investigation
