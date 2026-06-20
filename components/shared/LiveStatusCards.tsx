@@ -28,7 +28,8 @@ interface SpotifyData {
   progressMs?: number
   durationMs?: number
   device?: string | null
-  audioFeatures?: { energy: number; tempo: number; valence: number; danceability: number } | null
+  audioFeatures?: { energy: number; tempo: number; valence: number; danceability: number; loudness?: number } | null
+  beats?: number[] | null
   lastPlayed?: LastPlayed | null
 }
 
@@ -432,17 +433,26 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
             </div>
             {/* Visualiser bars + sine wave — album art tint ONLY on this section */}
             <div className="relative overflow-hidden rounded-lg">
-              {spotify.albumArt && (
-                <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-                  <img src={spotify.albumArt} alt="" className="w-full h-full object-cover blur-2xl scale-110 opacity-[0.12]" />
-                </div>
-              )}
+              {spotify.albumArt && (() => {
+                const ld = spotify.audioFeatures?.loudness
+                const bgOpacity = ld != null
+                  ? Math.max(0.08, Math.min(0.28, 0.08 + 0.20 * ((ld + 25) / 25)))
+                  : 0.13
+                return (
+                  <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+                    <img src={spotify.albumArt} alt="" className="w-full h-full object-cover blur-2xl scale-110" style={{ opacity: bgOpacity }} />
+                  </div>
+                )
+              })()}
               <div className="relative">
                 <SpotifyBars
                   playing={spotify.playing}
                   albumArt={spotify.albumArt}
                   energy={spotify.audioFeatures?.energy}
                   tempo={spotify.audioFeatures?.tempo}
+                  loudness={spotify.audioFeatures?.loudness}
+                  beats={spotify.beats ?? undefined}
+                  progressMs={liveProgressMs}
                 />
               </div>
             </div>

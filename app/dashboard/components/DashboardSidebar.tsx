@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
@@ -8,15 +8,14 @@ import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
   Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users,
-  Brain, Church, School, CheckSquare, CalendarDays
+  Brain, Church, School, CheckSquare, CalendarDays, ChevronDown
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { useState } from "react"
 import DashboardSearch from "@/components/dashboard/DashboardSearch"
 
 type NavItem = { href: string; label: string; icon: React.ComponentType<{ className?: string }>; sub?: boolean }
-type NavGroup = { group: string; items: NavItem[] }
+type NavGroup = { group: string; icon?: React.ComponentType<{ className?: string }>; items: NavItem[] }
 
 const nav: (NavItem | NavGroup)[] = [
   { href: "/dashboard/me", label: "Me", icon: User },
@@ -31,29 +30,133 @@ const nav: (NavItem | NavGroup)[] = [
       { href: "/dashboard/modules", label: "Modules", icon: BookOpen, sub: true },
     ],
   },
-  { href: "/dashboard/study", label: "Study", icon: Brain },
-  { href: "/dashboard/faith", label: "Faith", icon: Church },
-  { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays },
-  { href: "/dashboard/health", label: "Health & Fitness", icon: Dumbbell },
-  { href: "/dashboard/habits", label: "Habits", icon: CheckSquare },
-  { href: "/dashboard/streaks", label: "Streaks", icon: Flame },
-  { href: "/dashboard/diary", label: "Diary", icon: BookMarked },
-  { href: "/dashboard/notes", label: "Notes", icon: StickyNote },
-  { href: "/dashboard/contacts", label: "Contacts", icon: Users },
-  { href: "/dashboard/wishlist", label: "Wishlist", icon: Gift },
-  { href: "/dashboard/inventory", label: "Inventory", icon: Package },
-  { href: "/dashboard/vault", label: "Vault", icon: Lock },
+  {
+    group: "Daily",
+    items: [
+      { href: "/dashboard/study", label: "Study", icon: Brain },
+      { href: "/dashboard/faith", label: "Faith", icon: Church },
+      { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays },
+    ],
+  },
+  {
+    group: "Wellbeing",
+    items: [
+      { href: "/dashboard/health", label: "Health", icon: Dumbbell },
+      { href: "/dashboard/habits", label: "Habits", icon: CheckSquare },
+      { href: "/dashboard/streaks", label: "Streaks", icon: Flame },
+    ],
+  },
+  {
+    group: "Personal",
+    items: [
+      { href: "/dashboard/diary", label: "Diary", icon: BookMarked },
+      { href: "/dashboard/notes", label: "Notes", icon: StickyNote },
+      { href: "/dashboard/contacts", label: "Contacts", icon: Users },
+    ],
+  },
+  {
+    group: "Belongings",
+    items: [
+      { href: "/dashboard/wishlist", label: "Wishlist", icon: Gift },
+      { href: "/dashboard/inventory", label: "Inventory", icon: Package },
+      { href: "/dashboard/vault", label: "Vault", icon: Lock },
+    ],
+  },
   {
     group: "Analytics",
     items: [
       { href: "/dashboard/coding", label: "Coding", icon: Code2 },
       { href: "/dashboard/blog-analytics", label: "Posts", icon: BarChart2, sub: true },
+      { href: "/dashboard/opensource", label: "Open Source", icon: Github },
     ],
   },
-  { href: "/dashboard/opensource", label: "Open Source", icon: Github },
   { href: "/dashboard/activity", label: "Activity log", icon: Activity },
   { href: "/dashboard/trash", label: "Trash", icon: Trash2 },
 ]
+
+function useCollapsedGroups(pathname: string) {
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set()
+    try {
+      const stored = localStorage.getItem("nexus_collapsed_groups")
+      return stored ? new Set<string>(JSON.parse(stored)) : new Set()
+    } catch { return new Set() }
+  })
+
+  function toggle(group: string) {
+    setCollapsed((prev) => {
+      const next = new Set(prev)
+      if (next.has(group)) { next.delete(group) } else { next.add(group) }
+      try { localStorage.setItem("nexus_collapsed_groups", JSON.stringify([...next])) } catch {}
+      return next
+    })
+  }
+
+  function isGroupCollapsed(entry: NavGroup): boolean {
+    const groupActive = entry.items.some((i) => pathname === i.href || pathname.startsWith(i.href + "/"))
+    if (groupActive) return false
+    return collapsed.has(entry.group)
+  }
+
+  return { isGroupCollapsed, toggle }
+}
+
+function NavGroupSection({
+  entry,
+  pathname,
+  sidebarCollapsed,
+  onNavigate,
+}: {
+  entry: NavGroup
+  pathname: string
+  sidebarCollapsed: boolean
+  onNavigate: () => void
+}) {
+  const groupActive = entry.items.some((i) => pathname === i.href || pathname.startsWith(i.href + "/"))
+  const { isGroupCollapsed, toggle } = useCollapsedGroups(pathname)
+  const isCollapsed = isGroupCollapsed(entry)
+
+  if (sidebarCollapsed) {
+    return (
+      <div className="mt-1">
+        {entry.items.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href || pathname.startsWith(href + "/")
+          return (
+            <Link key={href} href={href} onClick={onNavigate} title={label}
+              className={`flex justify-center px-2.5 py-1.5 rounded-md text-sm transition-colors ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+            </Link>
+          )
+        })}
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-1">
+      <button
+        type="button"
+        onClick={() => toggle(entry.group)}
+        className={`w-full flex items-center justify-between px-2.5 py-1 rounded hover:bg-muted/60 transition-colors group ${groupActive ? "text-foreground" : "text-muted-foreground/60 hover:text-muted-foreground"}`}
+      >
+        <span className="text-[9px] font-semibold uppercase tracking-widest">{entry.group}</span>
+        <ChevronDown className={`h-3 w-3 transition-transform duration-150 ${isCollapsed ? "-rotate-90" : ""}`} />
+      </button>
+      {!isCollapsed && entry.items.map(({ href, label, icon: Icon, sub }) => {
+        const active = pathname === href || pathname.startsWith(href + "/")
+        return (
+          <Link key={href} href={href} onClick={onNavigate}
+            className={`flex items-center gap-2.5 ${sub ? "pl-5 pr-2.5" : "px-2.5"} py-1.5 rounded-md text-sm transition-colors ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+          >
+            <Icon className={`shrink-0 ${sub ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
+            <span className={`truncate ${sub ? "text-xs" : ""}`}>{label}</span>
+          </Link>
+        )
+      })}
+    </div>
+  )
+}
 
 export default function DashboardSidebar({
   user,
@@ -62,9 +165,7 @@ export default function DashboardSidebar({
 }) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(() => {
-    // I guard against SSR where window is undefined, defaulting to expanded
     if (typeof window === "undefined") return false
-    // I read from localStorage so the preference survives page navigations
     return localStorage.getItem("nexus_sidebar_collapsed") === "true"
   })
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -75,36 +176,100 @@ export default function DashboardSidebar({
     try { localStorage.setItem("nexus_sidebar_collapsed", String(next)) } catch {}
   }
 
-  const sidebarContent = (
-    <>
-      {/* Header */}
-      <div className={`flex items-center pt-2 pb-1 ${collapsed ? "justify-center" : "justify-between"}`}>
-        {!collapsed && (
-          <div className="flex items-center gap-2.5 min-w-0">
-            {user.image && (
-              <Image
-                src={user.image}
-                alt={user.name ?? "avatar"}
-                width={28}
-                height={28}
-                className="rounded-full shrink-0"
+  const renderNav = (isMobile: boolean) => (
+    <nav className="flex flex-col gap-0.5 flex-1 overflow-y-auto">
+      {nav.map((entry) => {
+        if ("group" in entry) {
+          if (isMobile) {
+            return (
+              <NavGroupSection
+                key={entry.group}
+                entry={entry}
+                pathname={pathname}
+                sidebarCollapsed={false}
+                onNavigate={() => setMobileOpen(false)}
               />
-            )}
-            <div className="min-w-0">
-              <p className="text-xs font-semibold truncate leading-tight">My Dashboard</p>
-              {user.name && <p className="text-[10px] text-muted-foreground truncate leading-tight">{user.name}</p>}
-            </div>
+            )
+          }
+          return (
+            <NavGroupSection
+              key={entry.group}
+              entry={entry}
+              pathname={pathname}
+              sidebarCollapsed={collapsed}
+              onNavigate={() => setMobileOpen(false)}
+            />
+          )
+        }
+
+        const { href, label, icon: Icon } = entry
+        const active = pathname === href || pathname.startsWith(href + "/")
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={() => setMobileOpen(false)}
+            title={!isMobile && collapsed ? label : undefined}
+            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
+              active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            } ${!isMobile && collapsed ? "justify-center" : ""}`}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            {(isMobile || !collapsed) && <span className="truncate">{label}</span>}
+          </Link>
+        )
+      })}
+    </nav>
+  )
+
+  const bottomNav = (isMobile: boolean) => (
+    <div className="flex flex-col gap-0.5 border-t border-border/60 pt-2 mt-1">
+      {(() => {
+        const active = pathname === "/dashboard/settings" || pathname.startsWith("/dashboard/settings/")
+        return (
+          <Link
+            href="/dashboard/settings"
+            onClick={() => setMobileOpen(false)}
+            title={!isMobile && collapsed ? "Settings" : undefined}
+            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
+              active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            } ${!isMobile && collapsed ? "justify-center" : ""}`}
+          >
+            <Settings className="h-4 w-4 shrink-0" />
+            {(isMobile || !collapsed) && <span>Settings</span>}
+          </Link>
+        )
+      })()}
+      <Button
+        variant="ghost"
+        size="sm"
+        title={!isMobile && collapsed ? "Sign out" : undefined}
+        className={`justify-start gap-2 text-muted-foreground hover:text-foreground ${!isMobile && collapsed ? "justify-center px-2" : ""}`}
+        onClick={() => signOut({ callbackUrl: "/dashboard/login" })}
+      >
+        <LogOut className="h-4 w-4 shrink-0" />
+        {(isMobile || !collapsed) && "Sign out"}
+      </Button>
+    </div>
+  )
+
+  const header = (isMobile: boolean) => (
+    <div className={`flex items-center pt-2 pb-1 ${!isMobile && collapsed ? "justify-center" : "justify-between"}`}>
+      {(isMobile || !collapsed) && (
+        <div className="flex items-center gap-2.5 min-w-0">
+          {user.image && (
+            <Image src={user.image} alt={user.name ?? "avatar"} width={28} height={28} className="rounded-full shrink-0" />
+          )}
+          <div className="min-w-0">
+            <p className="text-xs font-semibold truncate leading-tight">My Dashboard</p>
+            {user.name && <p className="text-[10px] text-muted-foreground truncate leading-tight">{user.name}</p>}
           </div>
-        )}
-        {collapsed && user.image && (
-          <Image
-            src={user.image}
-            alt={user.name ?? "avatar"}
-            width={28}
-            height={28}
-            className="rounded-full"
-          />
-        )}
+        </div>
+      )}
+      {!isMobile && collapsed && user.image && (
+        <Image src={user.image} alt={user.name ?? "avatar"} width={28} height={28} className="rounded-full" />
+      )}
+      {!isMobile && (
         <button
           type="button"
           onClick={toggleCollapse}
@@ -114,110 +279,28 @@ export default function DashboardSidebar({
         >
           {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
         </button>
-      </div>
-
-      {/* Search */}
-      {!collapsed && <div className="py-1"><DashboardSearch /></div>}
-
-      {/* Nav */}
-      <nav className="flex flex-col gap-0.5 flex-1 overflow-y-auto">
-        {nav.map((entry) => {
-          if ("group" in entry) {
-            const groupActive = entry.items.some((i) => pathname === i.href || pathname.startsWith(i.href + "/"))
-            return (
-              <div key={entry.group} className="mt-1">
-                {!collapsed && (
-                  <p className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50 px-2.5 py-1">{entry.group}</p>
-                )}
-                {entry.items.map(({ href, label, icon: Icon, sub }) => {
-                  const active = pathname === href || pathname.startsWith(href + "/")
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={() => setMobileOpen(false)}
-                      title={collapsed ? label : undefined}
-                      className={`flex items-center gap-2.5 ${sub && !collapsed ? "pl-5 pr-2.5" : "px-2.5"} py-1.5 rounded-md text-sm transition-colors ${
-                        active ? "bg-primary text-primary-foreground" : groupActive && !active ? "text-muted-foreground hover:bg-muted hover:text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
-                    >
-                      <Icon className={`h-4 w-4 shrink-0 ${sub ? "h-3.5 w-3.5" : ""}`} />
-                      {!collapsed && <span className={`truncate ${sub ? "text-xs" : ""}`}>{label}</span>}
-                    </Link>
-                  )
-                })}
-              </div>
-            )
-          }
-
-          const { href, label, icon: Icon } = entry
-          // I also highlight the link when on a sub-route so nested pages feel connected
-          const active = pathname === href || pathname.startsWith(href + "/")
-          return (
-            <Link
-              key={href}
-              href={href}
-              // I close the mobile drawer on navigation so the content is not obscured
-              onClick={() => setMobileOpen(false)}
-              title={collapsed ? label : undefined}
-              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
-                active
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              } ${collapsed ? "justify-center" : ""}`}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {!collapsed && <span className="truncate">{label}</span>}
-            </Link>
-          )
-        })}
-      </nav>
-
-      {/* Settings + sign out at the bottom */}
-      <div className="flex flex-col gap-0.5 border-t border-border/60 pt-2 mt-1">
-        {(() => {
-          const active = pathname === "/dashboard/settings" || pathname.startsWith("/dashboard/settings/")
-          return (
-            <Link
-              href="/dashboard/settings"
-              title={collapsed ? "Settings" : undefined}
-              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
-                active
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              } ${collapsed ? "justify-center" : ""}`}
-            >
-              <Settings className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>Settings</span>}
-            </Link>
-          )
-        })()}
-        <Button
-          variant="ghost"
-          size="sm"
-          title={collapsed ? "Sign out" : undefined}
-          className={`justify-start gap-2 text-muted-foreground hover:text-foreground ${collapsed ? "justify-center px-2" : ""}`}
-          onClick={() => signOut({ callbackUrl: "/dashboard/login" })}
-        >
-          <LogOut className="h-4 w-4 shrink-0" />
-          {!collapsed && "Sign out"}
-        </Button>
-      </div>
-    </>
+      )}
+      {isMobile && (
+        <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="p-1 rounded hover:bg-muted ml-auto">
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </div>
   )
 
   return (
     <>
-      {/* Desktop sidebar */}
       <aside
         className={`hidden md:flex flex-col border-r border-border bg-muted/30 p-3 gap-3 sticky top-0 h-screen transition-all duration-200 ${
           collapsed ? "w-14" : "w-52"
         }`}
       >
-        {sidebarContent}
+        {header(false)}
+        {!collapsed && <div className="py-1"><DashboardSearch /></div>}
+        {renderNav(false)}
+        {bottomNav(false)}
       </aside>
 
-      {/* Mobile: hamburger + slide-over */}
       <div className="md:hidden fixed top-3 left-3 z-50">
         <button
           type="button"
@@ -233,78 +316,9 @@ export default function DashboardSidebar({
         <div className="md:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
           <aside className="relative flex flex-col w-64 max-w-[85vw] bg-background border-r border-border p-3 gap-3 h-full overflow-y-auto z-10">
-            <div className="flex items-center justify-between pb-1">
-              <div className="flex items-center gap-2">
-                {user.image && (
-                  <Image src={user.image} alt={user.name ?? "avatar"} width={28} height={28} className="rounded-full" />
-                )}
-                <div>
-                  <p className="text-xs font-semibold">Nexus</p>
-                  <p className="text-xs text-muted-foreground">{user.name}</p>
-                </div>
-              </div>
-              <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="p-1 rounded hover:bg-muted">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <nav className="flex flex-col gap-0.5 flex-1">
-              {nav.map((entry) => {
-                if ("group" in entry) {
-                  return (
-                    <div key={entry.group} className="mt-1">
-                      <p className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50 px-2.5 py-1">{entry.group}</p>
-                      {entry.items.map(({ href, label, icon: Icon, sub }) => {
-                        const active = pathname === href || pathname.startsWith(href + "/")
-                        return (
-                          <Link key={href} href={href} onClick={() => setMobileOpen(false)}
-                            className={`flex items-center gap-2.5 ${sub ? "pl-5 pr-2.5" : "px-2.5"} py-1.5 rounded-md text-sm transition-colors ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
-                          >
-                            <Icon className={`shrink-0 ${sub ? "h-3.5 w-3.5" : "h-4 w-4"}`} />
-                            <span className={sub ? "text-xs" : ""}>{label}</span>
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  )
-                }
-                const { href, label, icon: Icon } = entry
-                const active = pathname === href || pathname.startsWith(href + "/")
-                return (
-                  <Link key={href} href={href} onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span>{label}</span>
-                  </Link>
-                )
-              })}
-            </nav>
-            <div className="flex flex-col gap-0.5 border-t border-border/60 pt-2 mt-1">
-              {(() => {
-                const active = pathname === "/dashboard/settings" || pathname.startsWith("/dashboard/settings/")
-                return (
-                  <Link
-                    href="/dashboard/settings"
-                    onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
-                      active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    }`}
-                  >
-                    <Settings className="h-4 w-4 shrink-0" />
-                    <span>Settings</span>
-                  </Link>
-                )
-              })()}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="justify-start gap-2 text-muted-foreground"
-                onClick={() => signOut({ callbackUrl: "/dashboard/login" })}
-              >
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </Button>
-            </div>
+            {header(true)}
+            {renderNav(true)}
+            {bottomNav(true)}
           </aside>
         </div>
       )}

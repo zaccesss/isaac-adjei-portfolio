@@ -6,16 +6,18 @@ import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   CheckCircle2, Plus, Trash2, Target,
-  TrendingUp, Calendar, FlaskConical
+  TrendingUp, Calendar, FlaskConical, Pencil
 } from "lucide-react"
 import {
-  createHabit, deleteHabit, checkInHabit, undoHabitCheckIn,
+  createHabit, updateHabit, deleteHabit, checkInHabit, undoHabitCheckIn,
 } from "@/app/dashboard/actions"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 
 const SUPPLEMENT_PRESETS = ["Creatine", "Whey", "Vitamin D", "Omega-3", "Magnesium"]
+const HABIT_COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6", "#ef4444", "#8b5cf6", "#f97316"]
 
 type Habit = {
   id: string
@@ -46,30 +48,28 @@ export default function HabitsClient({
   const [habits, setHabits] = useState<Habit[]>(initial)
   const [newHabitName, setNewHabitName] = useState("")
   const [adding, setAdding] = useState(false)
+  const [editHabit, setEditHabit] = useState<Habit | null>(null)
+  const [editForm, setEditForm] = useState({ name: "", description: "", color: HABIT_COLORS[0] })
   const [, startTransition] = useTransition()
   const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
-  // I build a lookup of which habits are checked in today
   const todayLogs = new Set(logs.filter((l) => l.date === today).map((l) => l.habit_id))
 
-  // I calculate current streak for each habit
   function getStreak(habitId: string): number {
     const habitLogs = logs
       .filter((l) => l.habit_id === habitId)
       .map((l) => l.date)
       .sort()
-    
+
     let streak = 0
     const checkDate = new Date(today)
-    
-    // I check backwards from today to find consecutive days
+
     while (true) {
       const dateStr = checkDate.toISOString().split("T")[0]
       if (habitLogs.includes(dateStr)) {
         streak++
         checkDate.setDate(checkDate.getDate() - 1)
       } else if (dateStr === today && streak === 0) {
-        // I skip today if not checked in yet
         checkDate.setDate(checkDate.getDate() - 1)
       } else {
         break
@@ -110,6 +110,18 @@ export default function HabitsClient({
     if (!ok) return
     setHabits((h) => h.filter((x) => x.id !== id))
     startTransition(() => void deleteHabit(id))
+  }
+
+  function openEdit(habit: Habit) {
+    setEditHabit(habit)
+    setEditForm({ name: habit.name, description: habit.description ?? "", color: habit.color ?? HABIT_COLORS[0] })
+  }
+
+  function handleSaveEdit() {
+    if (!editHabit || !editForm.name.trim()) return
+    setHabits((h) => h.map((x) => x.id === editHabit.id ? { ...x, name: editForm.name.trim(), description: editForm.description.trim() || null, color: editForm.color } : x))
+    startTransition(() => void updateHabit(editHabit.id, { name: editForm.name.trim(), description: editForm.description.trim() || null, color: editForm.color }))
+    setEditHabit(null)
   }
 
   return (
@@ -195,6 +207,9 @@ export default function HabitsClient({
                     <span className={`font-medium ${isCheckedIn ? "line-through opacity-60" : ""}`}>
                       {habit.name}
                     </span>
+                    {habit.description && (
+                      <span className="text-xs text-muted-foreground">{habit.description}</span>
+                    )}
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       {streak > 0 && (
                         <span className="flex items-center gap-1 text-amber-600">
@@ -211,22 +226,32 @@ export default function HabitsClient({
                     </div>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(habit.id, habit.name)}
-                  className="p-2 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                  aria-label="Delete habit"
-                  title="Delete habit"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(habit)}
+                    className="p-2 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Edit habit"
+                    title="Edit habit"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(habit.id, habit.name)}
+                    className="p-2 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                    aria-label="Delete habit"
+                    title="Delete habit"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             )
           })}
         </div>
       )}
 
-      {/* Supplements quick-add - adds any supplement as a tracked daily habit */}
       <div className="border border-border rounded-xl p-4 bg-card">
         <div className="flex items-center gap-2 mb-3">
           <FlaskConical className="h-4 w-4 text-muted-foreground" />
@@ -268,6 +293,41 @@ export default function HabitsClient({
         <Calendar className="h-3.5 w-3.5" />
         <span>Today: {new Date(today).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</span>
       </div>
+
+      <Dialog open={!!editHabit} onOpenChange={(o) => { if (!o) setEditHabit(null) }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit habit</DialogTitle></DialogHeader>
+          <div className="flex flex-col gap-3">
+            <Input
+              value={editForm.name}
+              onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+              placeholder="Habit name"
+              autoFocus
+            />
+            <Input
+              value={editForm.description}
+              onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+              placeholder="Description (optional)"
+            />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-muted-foreground">Colour</label>
+              <div className="flex gap-2 flex-wrap">
+                {HABIT_COLORS.map((c) => (
+                  <button key={c} type="button" title={c} onClick={() => setEditForm((f) => ({ ...f, color: c }))}
+                    className={`w-5 h-5 rounded-full transition-transform ${editForm.color === c ? "scale-125 ring-2 ring-offset-1 ring-foreground" : ""}`}
+                    style={{ background: c }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end pt-1">
+              <Button variant="ghost" onClick={() => setEditHabit(null)}>Cancel</Button>
+              <Button onClick={handleSaveEdit} disabled={!editForm.name.trim()}>Save</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {confirmDialogNode}
     </motion.div>
   )

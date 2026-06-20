@@ -668,6 +668,17 @@ export async function createHabit(data: { name: string; color?: string; descript
   return inserted
 }
 
+export async function updateHabit(id: string, data: { name?: string; color?: string; description?: string | null }) {
+  if (!validId(id)) return INVALID
+  const patch: Record<string, unknown> = {}
+  if (data.name !== undefined) { if (!validStr(data.name)) return INVALID; patch.name = data.name.trim() }
+  if (data.color !== undefined) patch.color = data.color
+  if (data.description !== undefined) patch.description = data.description?.trim() || null
+  await supabase.from("habits").update(patch).eq("id", id)
+  void logActivity("habit.update", id)
+  revalidatePath("/dashboard/habits")
+}
+
 export async function deleteHabit(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("habit_logs").delete().eq("habit_id", id)
@@ -1639,6 +1650,25 @@ export async function createBodyMetric(data: {
   if (error) return { error: error.message }
   revalidatePath("/dashboard/health")
   void logActivity("body_metric.create", `${data.metric}: ${data.value}${data.unit}`)
+}
+
+export async function updateBodyMetric(id: string, data: {
+  date?: string
+  metric?: string
+  value?: number
+  unit?: string
+  notes?: string | null
+}) {
+  if (!validId(id)) return INVALID
+  const patch: Record<string, unknown> = {}
+  if (data.date !== undefined) { if (!validStr(data.date)) return INVALID; patch.date = data.date }
+  if (data.metric !== undefined) { if (!validStr(data.metric)) return INVALID; patch.metric = data.metric }
+  if (data.value !== undefined) { if (!validNum(data.value, 0, 9999)) return INVALID; patch.value = data.value }
+  if (data.unit !== undefined) { if (!validStr(data.unit)) return INVALID; patch.unit = data.unit }
+  if (data.notes !== undefined) patch.notes = data.notes?.trim() || null
+  await supabase.from("body_metrics").update(patch).eq("id", id)
+  revalidatePath("/dashboard/health")
+  void logActivity("body_metric.update", id)
 }
 
 export async function deleteBodyMetric(id: string) {

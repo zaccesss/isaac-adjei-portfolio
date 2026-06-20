@@ -1373,9 +1373,9 @@ export default function LabPage() {
 
       {!isMaximized && <GitHubStats />}
       {!isMaximized && <WakatimeStats />}
-      {!isMaximized && <SpotifyAnalytics />}
-      {!isMaximized && <GamingPanel />}
       {!isMaximized && <PCBViewer />}
+      {!isMaximized && <GamingPanel />}
+      {!isMaximized && <SpotifyAnalytics />}
 
       {!isMaximized && (
         <p className="text-center text-xs text-muted-foreground font-mono">
