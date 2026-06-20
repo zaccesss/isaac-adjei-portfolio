@@ -17,8 +17,10 @@ export default async function UniversityLayout({ children }: { children: React.R
     .select("id, status, due_date")
     .neq("status", "graded")
 
+  // eslint-disable-next-line react-hooks/purity
+  const now = Date.now()
   const urgentCount = (deadlines ?? []).filter((d) => {
-    const daysLeft = Math.ceil((new Date(d.due_date).getTime() - Date.now()) / 86400000)
+    const daysLeft = Math.ceil((new Date(d.due_date).getTime() - now) / 86400000)
     return daysLeft <= 7 && d.status !== "submitted"
   }).length
 
