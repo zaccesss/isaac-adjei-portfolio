@@ -1,0 +1,100 @@
+name: Mum Medication Reminder
+
+on:
+  schedule:
+    # Every 2 hours, 6am-10pm UTC (7am-11pm BST) — covers "every 2 hours while awake" phase
+    - cron: "0 6,8,10,12,14,16,18,20,22 * * *"
+  workflow_dispatch:
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send medication reminder
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python3 << 'EOF'
+          import json
+          import os
+          import urllib.request
+          from datetime import date, datetime, timezone
+
+          TODAY = date.today()
+          NOW_UTC = datetime.now(timezone.utc).hour  # 0-23 UTC
+
+          # Active date ranges (inclusive start, exclusive end)
+          END_ALL = date(2026, 7, 29)
+
+          if TODAY > END_ALL:
+              print("All medication courses complete. No reminder needed.")
+              exit(0)
+
+          medications = []
+
+          # Chloramphenicol 0.5% eye drops - 4x/day until 1 Jul
+          chlor_end = date(2026, 7, 1)
+          if TODAY < chlor_end:
+              # Fire at 8, 12, 16, 20 UTC (9am, 1pm, 5pm, 9pm BST)
+              if NOW_UTC in [8, 12, 16, 20]:
+                  medications.append({
+                      "name": "Chloramphenicol 0.5% Eye Drops",
+                      "dose": "1 drop — LEFT eye",
+                      "freq": "4x today (9am, 1pm, 5pm, 9pm)",
+                      "note": "⚠️ KEEP IN FRIDGE"
+                  })
+
+          # Dexamethasone 0.1% eye drops - step-down schedule
+          dexa_phases = [
+              (date(2026, 6, 11), date(2026, 7, 1),  "every 2 hours while awake", list(range(6, 23, 2))),
+              (date(2026, 7, 1),  date(2026, 7, 8),  "4 times a day",             [8, 12, 16, 20]),
+              (date(2026, 7, 8),  date(2026, 7, 15), "3 times a day",             [8, 14, 20]),
+              (date(2026, 7, 15), date(2026, 7, 22), "twice a day",               [8, 20]),
+              (date(2026, 7, 22), date(2026, 7, 29), "once a day",                [9]),
+          ]
+
+          for start, end, freq_label, fire_hours in dexa_phases:
+              if start <= TODAY < end and NOW_UTC in fire_hours:
+                  medications.append({
+                      "name": "Dexamethasone 0.1% Eye Drops",
+                      "dose": "1 drop — LEFT eye",
+                      "freq": freq_label,
+                      "note": f"Current phase until {end.strftime('%d %b')}"
+                  })
+                  break
+
+          if not medications:
+              print(f"No medications due at {NOW_UTC:02d}:00 UTC today. Skipping.")
+              exit(0)
+
+          fields = [
+              {
+                  "name": f"💊 {m['name']}",
+                  "value": f"**Dose:** {m['dose']}\n**Frequency:** {m['freq']}\n{m['note']}",
+                  "inline": False
+              }
+              for m in medications
+          ]
+
+          payload = {
+              "embeds": [{
+                  "title": "💉 Mum Medication Reminder",
+                  "description": f"Time to take medication — {TODAY.strftime('%A, %d %B %Y')}",
+                  "color": 0xE74C3C,
+                  "fields": fields,
+                  "footer": {
+                      "text": "Post-surgery eye care · Belmont Health Centre, Harrow · Mr Omer Jamall"
+                  }
+              }]
+          }
+
+          data = json.dumps(payload).encode("utf-8")
+          webhook_url = os.environ["DISCORD_WEBHOOK_URL"]
+          req = urllib.request.Request(
+              webhook_url,
+              data=data,
+              headers={"Content-Type": "application/json"}
+          )
+          urllib.request.urlopen(req)
+          print(f"Reminder sent for: {[m['name'] for m in medications]}")
+          EOF

@@ -19,8 +19,8 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
   process.exit(1)
 }
 
-// I request only the two scopes the /api/spotify route actually needs.
-const scope = "user-read-currently-playing user-read-playback-state"
+// Scopes: currently-playing + playback state for /api/spotify; user-top-read for /api/spotify-top
+const scope = "user-read-currently-playing user-read-playback-state user-top-read"
 const authUrl =
   `https://accounts.spotify.com/authorize` +
   `?client_id=${CLIENT_ID}` +

@@ -1721,6 +1721,25 @@ export async function updateUniDeadline(id: string, data: Partial<{
   }
 }
 
+export async function bulkSyncApplicationsToLinear(): Promise<{ synced: number; skipped: number }> {
+  const { data: apps } = await supabase
+    .from("applications")
+    .select("id, company, role, type, status, url, linear_issue_id")
+    .is("linear_issue_id", null)
+    .neq("status", "Not Applied")
+  if (!apps) return { synced: 0, skipped: 0 }
+
+  let synced = 0
+  for (const a of apps) {
+    const issueId = await syncApplicationToLinear(a)
+    if (issueId) {
+      await supabase.from("applications").update({ linear_issue_id: issueId }).eq("id", a.id)
+      synced++
+    }
+  }
+  return { synced, skipped: apps.length - synced }
+}
+
 export async function bulkSyncDeadlinesToLinear(): Promise<{ synced: number; skipped: number }> {
   const { data: deadlines } = await supabase
     .from("uni_deadlines")
