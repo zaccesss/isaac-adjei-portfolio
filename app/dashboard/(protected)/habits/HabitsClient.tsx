@@ -7,12 +7,11 @@ import { dashboardPage } from "@/lib/animations"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-  CheckCircle2, Plus, Trash2, RotateCcw, Target,
+  CheckCircle2, Plus, Trash2, Target,
   TrendingUp, Calendar, FlaskConical
 } from "lucide-react"
 import {
-  createStreak, updateStreak, deleteStreak,
-  checkInStreak, undoStreakCheckIn
+  createHabit, deleteHabit, checkInHabit, undoHabitCheckIn,
 } from "@/app/dashboard/actions"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 
@@ -23,8 +22,7 @@ type Habit = {
   name: string
   description: string | null
   frequency: string
-  target_days: number
-  colour: string | null
+  color: string | null
   active: boolean
   created_at: string
 }
@@ -87,27 +85,23 @@ export default function HabitsClient({
       name: newHabitName.trim(),
       description: null,
       frequency: "daily",
-      target_days: 30,
-      colour: null,
+      color: "#3b82f6",
       active: true,
       created_at: new Date().toISOString(),
     }
     setHabits((h) => [...h, optimistic])
     setNewHabitName("")
     setAdding(false)
-    startTransition(() => void createStreak({ name: optimistic.name, icon: "🎯", description: "", color: "#3b82f6", order_index: habits.length }))
+    startTransition(() => void createHabit({ name: optimistic.name, color: "#3b82f6" }))
   }
 
   function handleCheckIn(habitId: string) {
     const isCheckedIn = todayLogs.has(habitId)
     if (isCheckedIn) {
-      // I undo the check-in
-      startTransition(() => void undoStreakCheckIn(habitId, today))
+      startTransition(() => void undoHabitCheckIn(habitId, today))
     } else {
-      // I check in
-      startTransition(() => void checkInStreak(habitId, today))
+      startTransition(() => void checkInHabit(habitId, today))
     }
-    // I force a reload to get fresh data
     window.location.reload()
   }
 
@@ -115,7 +109,7 @@ export default function HabitsClient({
     const ok = await showConfirm({ title: `Delete "${name}"?`, description: "All check-in history for this habit will be removed.", destructive: true })
     if (!ok) return
     setHabits((h) => h.filter((x) => x.id !== id))
-    startTransition(() => void deleteStreak(id))
+    startTransition(() => void deleteHabit(id))
   }
 
   return (
@@ -185,6 +179,7 @@ export default function HabitsClient({
               >
                 <div className="flex items-center gap-3">
                   <button
+                    type="button"
                     onClick={() => handleCheckIn(habit.id)}
                     className={`p-2 rounded-full transition-colors ${
                       isCheckedIn
@@ -207,14 +202,17 @@ export default function HabitsClient({
                           {streak} day streak
                         </span>
                       )}
-                      <span className="flex items-center gap-1">
-                        <Target className="h-3 w-3" />
-                        {habit.target_days} days target
-                      </span>
+                      {streak === 0 && (
+                        <span className="flex items-center gap-1">
+                          <Target className="h-3 w-3" />
+                          Start today
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleDelete(habit.id, habit.name)}
                   className="p-2 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                   aria-label="Delete habit"
@@ -247,11 +245,11 @@ export default function HabitsClient({
                 onClick={() => {
                   if (exists) return
                   const optimistic: Habit = {
-                    id: crypto.randomUUID(), name, description: null, frequency: "daily",
-                    target_days: 30, colour: null, active: true, created_at: new Date().toISOString(),
+                    id: crypto.randomUUID(), name, description: "Daily supplement", frequency: "daily",
+                    color: "#22c55e", active: true, created_at: new Date().toISOString(),
                   }
                   setHabits((h) => [...h, optimistic])
-                  startTransition(() => void createStreak({ name, icon: "💊", description: "Daily supplement", color: "#22c55e", order_index: habits.length }))
+                  startTransition(() => void createHabit({ name, color: "#22c55e", description: "Daily supplement" }))
                 }}
                 className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                   exists

@@ -652,6 +652,44 @@ export async function undoStreakCheckIn(streakId: string, date: string) {
   revalidatePath("/dashboard/streaks")
 }
 
+// ─── Habits ─────────────────────────────────────────────────
+
+export async function createHabit(data: { name: string; color?: string; description?: string }) {
+  if (!validStr(data.name)) return INVALID
+  const { data: inserted } = await supabase.from("habits").insert({
+    name: data.name.trim(),
+    color: data.color ?? "#3b82f6",
+    description: data.description ?? null,
+    frequency: "daily",
+    active: true,
+  }).select().single()
+  void logActivity("habit.create", data.name)
+  revalidatePath("/dashboard/habits")
+  return inserted
+}
+
+export async function deleteHabit(id: string) {
+  if (!validId(id)) return INVALID
+  await supabase.from("habit_logs").delete().eq("habit_id", id)
+  await supabase.from("habits").delete().eq("id", id)
+  void logActivity("habit.delete", id)
+  revalidatePath("/dashboard/habits")
+}
+
+export async function checkInHabit(habitId: string, date: string) {
+  if (!validId(habitId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
+  await supabase.from("habit_logs").upsert({ habit_id: habitId, date, completed: true }, { onConflict: "habit_id,date" })
+  void logActivity("habit.checkin", date)
+  revalidatePath("/dashboard/habits")
+}
+
+export async function undoHabitCheckIn(habitId: string, date: string) {
+  if (!validId(habitId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
+  await supabase.from("habit_logs").delete().eq("habit_id", habitId).eq("date", date)
+  void logActivity("habit.undo_checkin", date)
+  revalidatePath("/dashboard/habits")
+}
+
 // ─── Health ──────────────────────────────────────────────────
 
 export async function createHealthSection(data: {
