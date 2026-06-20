@@ -8,7 +8,7 @@ import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
   Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users,
-  Brain, Church, School, CheckSquare
+  Brain, Church, School, CheckSquare, CalendarDays
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -34,6 +34,7 @@ const nav: (NavItem | NavGroup)[] = [
       { href: "/dashboard/course", label: "Course", icon: GraduationCap, sub: true },
     ],
   },
+  { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/dashboard/diary", label: "Diary", icon: BookMarked },
   { href: "/dashboard/notes", label: "Notes", icon: StickyNote },
   { href: "/dashboard/habits", label: "Habits", icon: CheckSquare },

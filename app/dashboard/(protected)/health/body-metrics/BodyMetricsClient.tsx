@@ -257,6 +257,7 @@ export default function BodyMetricsClient({ metrics }: { metrics: Metric[] }) {
                   size="icon"
                   variant="ghost"
                   className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity shrink-0"
+                  title="Delete measurement"
                   onClick={() => handleDelete(m.id)}
                   disabled={isPending}
                 >

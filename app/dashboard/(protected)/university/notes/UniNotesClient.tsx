@@ -143,9 +143,9 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
                   </div>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => togglePin(n)} disabled={isPending}><Pin className="h-3 w-3" /></Button>
-                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => openEdit(n)}><Pencil className="h-3 w-3" /></Button>
-                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => startTransition(async () => { await deleteUniNote(n.id) })} disabled={isPending}><Trash2 className="h-3 w-3" /></Button>
+                  <Button size="icon" variant="ghost" className="h-6 w-6" title={n.pinned ? "Unpin note" : "Pin note"} onClick={() => togglePin(n)} disabled={isPending}><Pin className="h-3 w-3" /></Button>
+                  <Button size="icon" variant="ghost" className="h-6 w-6" title="Edit note" onClick={() => openEdit(n)}><Pencil className="h-3 w-3" /></Button>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive" title="Delete note" onClick={() => startTransition(async () => { await deleteUniNote(n.id) })} disabled={isPending}><Trash2 className="h-3 w-3" /></Button>
                 </div>
               </div>
               {n.content && <p className="text-xs text-muted-foreground line-clamp-3 whitespace-pre-wrap">{n.content}</p>}

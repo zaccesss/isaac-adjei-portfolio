@@ -8,13 +8,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   CheckCircle2, Plus, Trash2, RotateCcw, Target,
-  TrendingUp, Calendar
+  TrendingUp, Calendar, FlaskConical
 } from "lucide-react"
 import {
   createStreak, updateStreak, deleteStreak,
   checkInStreak, undoStreakCheckIn
 } from "@/app/dashboard/actions"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
+
+const SUPPLEMENT_PRESETS = ["Creatine", "Whey", "Vitamin D", "Omega-3", "Magnesium"]
 
 type Habit = {
   id: string
@@ -225,6 +227,44 @@ export default function HabitsClient({
           })}
         </div>
       )}
+
+      {/* Supplements quick-add - adds any supplement as a tracked daily habit */}
+      <div className="border border-border rounded-xl p-4 bg-card">
+        <div className="flex items-center gap-2 mb-3">
+          <FlaskConical className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Supplements</span>
+          <span className="text-xs text-muted-foreground">- track as daily habits</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {SUPPLEMENT_PRESETS.map((name) => {
+            const exists = habits.some((h) => h.name.toLowerCase() === name.toLowerCase())
+            return (
+              <button
+                key={name}
+                type="button"
+                disabled={exists}
+                title={exists ? `${name} is already tracked` : `Add ${name} as a daily habit`}
+                onClick={() => {
+                  if (exists) return
+                  const optimistic: Habit = {
+                    id: crypto.randomUUID(), name, description: null, frequency: "daily",
+                    target_days: 30, colour: null, active: true, created_at: new Date().toISOString(),
+                  }
+                  setHabits((h) => [...h, optimistic])
+                  startTransition(() => void createStreak({ name, icon: "💊", description: "Daily supplement", color: "#22c55e", order_index: habits.length }))
+                }}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  exists
+                    ? "border-green-200 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 cursor-default"
+                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                {exists ? "✓ " : "+ "}{name}
+              </button>
+            )
+          })}
+        </div>
+      </div>
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <Calendar className="h-3.5 w-3.5" />

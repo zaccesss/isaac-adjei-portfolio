@@ -204,7 +204,7 @@ export default function DeadlinesClient({ deadlines, modules }: { deadlines: Dea
                         onKeyDown={(e) => e.key === "Enter" && setGrade(d.id, (e.target as HTMLInputElement).value)}
                       />
                     )}
-                    <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity" onClick={() => startTransition(async () => { await deleteUniDeadline(d.id) })} disabled={isPending}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity" title="Delete deadline" onClick={() => startTransition(async () => { await deleteUniDeadline(d.id) })} disabled={isPending}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>

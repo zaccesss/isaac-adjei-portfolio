@@ -375,6 +375,14 @@ export async function deleteApplication(id: string) {
   revalidatePath("/dashboard/applications")
 }
 
+export async function bulkDeleteApplications(ids: string[]) {
+  if (!ids.length || ids.some((id) => !validId(id))) return INVALID
+  for (const id of ids) await moveToTrash("applications", id)
+  await supabase.from("applications").delete().in("id", ids)
+  void logActivity("application.bulk_delete", `${ids.length} applications`)
+  revalidatePath("/dashboard/applications")
+}
+
 export async function archiveApplication(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("applications").update({ archived: true }).eq("id", id)
@@ -797,6 +805,25 @@ export async function setConfig(key: string, value: unknown) {
   // - no separate "does this key exist?" check needed, which would waste a round trip
   await supabase.from("config").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" })
   if (key === "theme_preference") revalidateTag("config-theme", "default")
+}
+
+export type IcalFeed = { url: string; name: string; color: string }
+
+export async function getIcalFeeds(): Promise<IcalFeed[]> {
+  const val = await getConfig("ical_feeds")
+  const base: IcalFeed[] = Array.isArray(val) ? (val as IcalFeed[]) : []
+  // Merge in the env-var timetable feed if set and not already present
+  if (process.env.ICAL_TIMETABLE_URL && !base.find((f) => f.url === process.env.ICAL_TIMETABLE_URL)) {
+    base.unshift({ url: process.env.ICAL_TIMETABLE_URL, name: "Timetable", color: "#6366f1" })
+  }
+  return base
+}
+
+export async function saveIcalFeeds(feeds: IcalFeed[]) {
+  // Strip the env-var timetable feed before saving to avoid duplicating it
+  const toSave = feeds.filter((f) => f.url !== process.env.ICAL_TIMETABLE_URL)
+  await setConfig("ical_feeds", toSave)
+  revalidatePath("/dashboard/calendar")
 }
 
 export async function updateNowStatus(data: {
@@ -1500,6 +1527,14 @@ export async function deleteContact(id: string) {
   await moveToTrash("contacts", id)
   await supabase.from("contacts").delete().eq("id", id)
   void logActivity("contact.delete", id)
+  revalidatePath("/dashboard/contacts")
+}
+
+export async function bulkDeleteContacts(ids: string[]) {
+  if (!ids.length || ids.some((id) => !validId(id))) return INVALID
+  for (const id of ids) await moveToTrash("contacts", id)
+  await supabase.from("contacts").delete().in("id", ids)
+  void logActivity("contact.bulk_delete", `${ids.length} contacts`)
   revalidatePath("/dashboard/contacts")
 }
 

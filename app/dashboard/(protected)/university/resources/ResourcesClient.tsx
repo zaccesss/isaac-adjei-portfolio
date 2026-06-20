@@ -119,7 +119,7 @@ export default function ResourcesClient({ resources, modules }: { resources: Res
                   </div>
                   {r.notes && <p className="text-xs text-muted-foreground mt-0.5">{r.notes}</p>}
                 </div>
-                <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity shrink-0" onClick={() => startTransition(async () => { await deleteUniResource(r.id) })} disabled={isPending}>
+                <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity shrink-0" title="Delete resource" onClick={() => startTransition(async () => { await deleteUniResource(r.id) })} disabled={isPending}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>

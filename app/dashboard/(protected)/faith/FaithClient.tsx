@@ -313,13 +313,14 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
                   <p className="text-[10px] text-muted-foreground mt-0.5">{e.date}</p>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(e)}>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" title="Edit entry" onClick={() => openEdit(e)}>
                     <Star className="h-3.5 w-3.5" />
                   </Button>
                   <Button
                     size="icon"
                     variant="ghost"
                     className="h-7 w-7 text-destructive hover:text-destructive"
+                    title="Delete entry"
                     onClick={() => handleDelete(e.id)}
                     disabled={isPending}
                   >
