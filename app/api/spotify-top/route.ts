@@ -1,5 +1,3 @@
-// Top tracks (short_term ~4 weeks) + audio features for each track.
-// Uses the same Redis-cached access token as /api/spotify so no extra token round-trips.
 import { NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
 
@@ -12,7 +10,7 @@ async function getAccessToken(): Promise<string | null> {
   const { SPOTIFY_CLIENT_ID: cid, SPOTIFY_CLIENT_SECRET: sec, SPOTIFY_REFRESH_TOKEN: rt } = process.env
   if (!cid || !sec || !rt) return null
   if (redis) {
-    const cached = await redis.get<string>("spotify:access_token")
+    const cached = await redis.get<string>("spotify:access_token:top")
     if (cached) return cached
   }
   const res = await fetch("https://accounts.spotify.com/api/token", {
@@ -22,7 +20,7 @@ async function getAccessToken(): Promise<string | null> {
   })
   if (!res.ok) return null
   const data = await res.json() as { access_token: string; expires_in: number }
-  if (redis) await redis.set("spotify:access_token", data.access_token, { ex: 3300 })
+  if (redis) await redis.set("spotify:access_token:top", data.access_token, { ex: 3300 })
   return data.access_token
 }
 
