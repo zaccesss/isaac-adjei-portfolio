@@ -51,7 +51,7 @@ const nav: (NavItem | NavGroup)[] = [
     items: [
       { href: "/dashboard/diary", label: "Diary", icon: BookMarked },
       { href: "/dashboard/notes", label: "Notes", icon: StickyNote },
-      { href: "/dashboard/files", label: "Files", icon: FolderOpen },
+      { href: "/dashboard/files", label: "File Manager", icon: FolderOpen },
       { href: "/dashboard/contacts", label: "Contacts", icon: Users },
     ],
   },
