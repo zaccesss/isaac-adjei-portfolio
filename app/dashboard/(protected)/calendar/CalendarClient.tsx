@@ -559,6 +559,18 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
   const [cursor, setCursor] = useState(() => new Date())
   const [showFeeds, setShowFeeds] = useState(false)
   const [gridKey, setGridKey] = useState(0)
+  const [hiddenFeeds, setHiddenFeeds] = useState<Set<string>>(new Set())
+
+  function toggleFeed(name: string) {
+    setHiddenFeeds((prev) => {
+      const next = new Set(prev)
+      if (next.has(name)) next.delete(name)
+      else next.add(name)
+      return next
+    })
+  }
+
+  const visibleEvents = hiddenFeeds.size === 0 ? events : events.filter((e) => !hiddenFeeds.has(e.feedName))
 
   function advance(delta: number) {
     setCursor((prev) => {
@@ -638,16 +650,25 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
       {/* Feed manager */}
       {showFeeds && <FeedManager feeds={feeds} onClose={() => setShowFeeds(false)} />}
 
-      {/* Feed legend */}
+      {/* Feed legend — click to toggle a feed's visibility */}
       {feeds.length > 0 && !showFeeds && (
-        <div className="flex items-center gap-3 flex-wrap">
-          {feeds.map((f) => (
-            <div key={f.url} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: f.color }} />
-              {f.name}
-            </div>
-          ))}
-          <span className="text-xs text-muted-foreground ml-auto">{events.length} event{events.length !== 1 ? "s" : ""}</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          {feeds.map((f) => {
+            const hidden = hiddenFeeds.has(f.name)
+            return (
+              <button
+                key={f.url}
+                type="button"
+                title={hidden ? `Show ${f.name}` : `Hide ${f.name}`}
+                onClick={() => toggleFeed(f.name)}
+                className={`flex items-center gap-1.5 text-xs rounded-full px-2.5 py-1 border transition-all ${hidden ? "border-border/40 text-muted-foreground/40 line-through" : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}
+              >
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: hidden ? "transparent" : f.color, border: hidden ? `1.5px solid ${f.color}` : "none" }} />
+                {f.name}
+              </button>
+            )
+          })}
+          <span className="text-xs text-muted-foreground ml-auto">{visibleEvents.length} event{visibleEvents.length !== 1 ? "s" : ""}</span>
         </div>
       )}
 
@@ -667,10 +688,10 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
       {/* Calendar views */}
       {feeds.length > 0 && (
         <>
-          {view === "day" && <DayView key={gridKey} events={events} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} />}
-          {view === "week" && <WeekView key={gridKey} events={events} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} />}
-          {view === "month" && <MonthView events={events} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} onDayClick={onDayClick} />}
-          {view === "year" && <YearView events={events} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} onMonthClick={onMonthClick} />}
+          {view === "day" && <DayView key={gridKey} events={visibleEvents} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} />}
+          {view === "week" && <WeekView key={gridKey} events={visibleEvents} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} />}
+          {view === "month" && <MonthView events={visibleEvents} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} onDayClick={onDayClick} />}
+          {view === "year" && <YearView events={visibleEvents} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} onMonthClick={onMonthClick} />}
         </>
       )}
     </motion.div>
