@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Dumbbell, Salad, Footprints } from "lucide-react"
+import { Dumbbell, Salad, Footprints, Scale } from "lucide-react"
 import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
 
 type Section = {
@@ -128,6 +128,20 @@ export default function HealthClient({ sections, workouts, nutrition }: {
             </Link>
           </motion.div>
         ))}
+        <motion.div variants={dashboardCard}>
+          <Link
+            href="/dashboard/health/body-metrics"
+            className="flex flex-col gap-3 p-4 rounded-xl border bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <Scale className="h-5 w-5 text-purple-500" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm group-hover:text-primary transition-colors">Body Metrics</p>
+              <p className="text-xs text-muted-foreground">Weight, measurements, composition</p>
+            </div>
+          </Link>
+        </motion.div>
       </motion.div>
     </motion.div>
   )

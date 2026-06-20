@@ -6,7 +6,7 @@
 // Every action here is intentionally thin - validate, write, revalidate. No business logic lives here.
 import { supabase } from "@/lib/supabase"
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
-import { syncApplicationToLinear } from "@/lib/linear-sync"
+import { syncApplicationToLinear, syncDeadlineToLinear } from "@/lib/linear-sync"
 
 // I fire-and-forget activity logs so a logging failure never blocks the actual action.
 // The activity_log table must exist in Supabase:
@@ -375,6 +375,14 @@ export async function deleteApplication(id: string) {
   revalidatePath("/dashboard/applications")
 }
 
+export async function bulkDeleteApplications(ids: string[]) {
+  if (!ids.length || ids.some((id) => !validId(id))) return INVALID
+  for (const id of ids) await moveToTrash("applications", id)
+  await supabase.from("applications").delete().in("id", ids)
+  void logActivity("application.bulk_delete", `${ids.length} applications`)
+  revalidatePath("/dashboard/applications")
+}
+
 export async function archiveApplication(id: string) {
   if (!validId(id)) return INVALID
   await supabase.from("applications").update({ archived: true }).eq("id", id)
@@ -644,6 +652,44 @@ export async function undoStreakCheckIn(streakId: string, date: string) {
   revalidatePath("/dashboard/streaks")
 }
 
+// ─── Habits ─────────────────────────────────────────────────
+
+export async function createHabit(data: { name: string; color?: string; description?: string }) {
+  if (!validStr(data.name)) return INVALID
+  const { data: inserted } = await supabase.from("habits").insert({
+    name: data.name.trim(),
+    color: data.color ?? "#3b82f6",
+    description: data.description ?? null,
+    frequency: "daily",
+    active: true,
+  }).select().single()
+  void logActivity("habit.create", data.name)
+  revalidatePath("/dashboard/habits")
+  return inserted
+}
+
+export async function deleteHabit(id: string) {
+  if (!validId(id)) return INVALID
+  await supabase.from("habit_logs").delete().eq("habit_id", id)
+  await supabase.from("habits").delete().eq("id", id)
+  void logActivity("habit.delete", id)
+  revalidatePath("/dashboard/habits")
+}
+
+export async function checkInHabit(habitId: string, date: string) {
+  if (!validId(habitId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
+  await supabase.from("habit_logs").upsert({ habit_id: habitId, date, completed: true }, { onConflict: "habit_id,date" })
+  void logActivity("habit.checkin", date)
+  revalidatePath("/dashboard/habits")
+}
+
+export async function undoHabitCheckIn(habitId: string, date: string) {
+  if (!validId(habitId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
+  await supabase.from("habit_logs").delete().eq("habit_id", habitId).eq("date", date)
+  void logActivity("habit.undo_checkin", date)
+  revalidatePath("/dashboard/habits")
+}
+
 // ─── Health ──────────────────────────────────────────────────
 
 export async function createHealthSection(data: {
@@ -652,13 +698,15 @@ export async function createHealthSection(data: {
   icon: string
   color: string
   order_index: number
+  subtype?: string
 }) {
   if (
     !validStr(data.name) ||
     !validStr(data.type) ||
     !validStr(data.icon) ||
     !validStr(data.color) ||
-    !validNum(data.order_index, 0, 9999)
+    !validNum(data.order_index, 0, 9999) ||
+    !optStr(data.subtype)
   ) return INVALID
   const { data: inserted } = await supabase.from("health_sections").insert(data).select().single()
   void logActivity("health.create", data.name)
@@ -672,7 +720,8 @@ export async function updateHealthSection(id: string, data: Partial<{
   icon: string
   color: string
   order_index: number
-  active: boolean  // I soft-delete sections by setting active: false rather than destroying the data
+  active: boolean
+  subtype: string | null
 }>) {
   if (!validId(id)) return INVALID
   await supabase.from("health_sections").update(data).eq("id", id)
@@ -682,8 +731,8 @@ export async function updateHealthSection(id: string, data: Partial<{
 
 export async function deleteHealthSection(id: string) {
   if (!validId(id)) return INVALID
-  await supabase.from("health_sections").delete().eq("id", id)
-  void logActivity("health.delete", id)
+  await moveToTrash("health_sections", id)
+  void logActivity("health.section.delete", id)
   revalidatePath("/dashboard/health")
 }
 
@@ -722,8 +771,8 @@ export async function updateHealthWorkout(id: string, data: Partial<{
 
 export async function deleteHealthWorkout(id: string) {
   if (!validId(id)) return INVALID
-  await supabase.from("health_workouts").delete().eq("id", id)
-  void logActivity("health.delete", id)
+  await moveToTrash("health_workouts", id)
+  void logActivity("health.workout.delete", id)
   revalidatePath("/dashboard/health")
 }
 
@@ -765,8 +814,8 @@ export async function createHealthNutrition(data: {
 
 export async function deleteHealthNutrition(id: string) {
   if (!validId(id)) return INVALID
-  await supabase.from("health_nutrition").delete().eq("id", id)
-  void logActivity("health.delete", id)
+  await moveToTrash("health_nutrition", id)
+  void logActivity("health.nutrition.delete", id)
   revalidatePath("/dashboard/health")
 }
 
@@ -794,6 +843,25 @@ export async function setConfig(key: string, value: unknown) {
   // - no separate "does this key exist?" check needed, which would waste a round trip
   await supabase.from("config").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" })
   if (key === "theme_preference") revalidateTag("config-theme", "default")
+}
+
+export type IcalFeed = { url: string; name: string; color: string }
+
+export async function getIcalFeeds(): Promise<IcalFeed[]> {
+  const val = await getConfig("ical_feeds")
+  const base: IcalFeed[] = Array.isArray(val) ? (val as IcalFeed[]) : []
+  // Merge in the env-var timetable feed if set and not already present
+  if (process.env.ICAL_TIMETABLE_URL && !base.find((f) => f.url === process.env.ICAL_TIMETABLE_URL)) {
+    base.unshift({ url: process.env.ICAL_TIMETABLE_URL, name: "Timetable", color: "#6366f1" })
+  }
+  return base
+}
+
+export async function saveIcalFeeds(feeds: IcalFeed[]) {
+  // Strip the env-var timetable feed before saving to avoid duplicating it
+  const toSave = feeds.filter((f) => f.url !== process.env.ICAL_TIMETABLE_URL)
+  await setConfig("ical_feeds", toSave)
+  revalidatePath("/dashboard/calendar")
 }
 
 export async function updateNowStatus(data: {
@@ -977,6 +1045,8 @@ export async function deleteInventoryItem(id: string) {
 export async function getDashboardSummary() {
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const today = new Date().toISOString().split("T")[0]
+  const weekAgoDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  const next7Days = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
 
   const [
     { data: goals },
@@ -991,6 +1061,10 @@ export async function getDashboardSummary() {
     { count: vaultCount },
     { count: notesCount },
     { data: notesRecent },
+    { data: studySessions },
+    { data: faithEntries },
+    { count: uniDeadlines },
+    { count: uniModules },
   ] = await Promise.all([
     supabase.from("goals").select("id,status"),
     supabase.from("applications").select("id", { count: "exact", head: true })
@@ -1008,6 +1082,11 @@ export async function getDashboardSummary() {
     supabase.from("vault").select("id", { count: "exact", head: true }),
     supabase.from("notes").select("id", { count: "exact", head: true }),
     supabase.from("notes").select("updated_at").order("updated_at", { ascending: false }).limit(1),
+    supabase.from("study_sessions").select("id,duration_minutes").gte("date", weekAgoDate),
+    supabase.from("faith_entries").select("id,date").order("date", { ascending: false }).limit(1),
+    supabase.from("uni_deadlines").select("id", { count: "exact", head: true })
+      .gte("due_date", today).lte("due_date", next7Days).neq("status", "graded"),
+    supabase.from("uni_modules").select("id", { count: "exact", head: true }).eq("status", "active"),
   ])
 
   // I compute the overall weighted average for year 3 (or the latest year with marks) as a GPA proxy
@@ -1033,6 +1112,9 @@ export async function getDashboardSummary() {
   const goalsInProgress = (goals ?? []).filter((g) => g.status === "in_progress").length
   const goalsTotal = (goals ?? []).length
 
+  const studyMinutesThisWeek = (studySessions ?? []).reduce((s, r) => s + (r.duration_minutes ?? 0), 0)
+  const studySessionsThisWeek = (studySessions ?? []).length
+
   return {
     goals: { total: goalsTotal, done: goalsDone, inProgress: goalsInProgress },
     applications: { active: appCount ?? 0, offers: offerCount ?? 0 },
@@ -1045,6 +1127,9 @@ export async function getDashboardSummary() {
     wishlist: { total: wishlistCount ?? 0 },
     vault: { total: vaultCount ?? 0 },
     notes: { total: notesCount ?? 0, lastUpdated: notesRecent?.[0]?.updated_at ?? null },
+    study: { sessionsThisWeek: studySessionsThisWeek, minutesThisWeek: studyMinutesThisWeek },
+    faith: { lastEntry: faithEntries?.[0]?.date ?? null },
+    university: { upcomingDeadlines: uniDeadlines ?? 0, activeModules: uniModules ?? 0 },
     updatedAt: weekAgo,
   }
 }
@@ -1483,6 +1568,14 @@ export async function deleteContact(id: string) {
   revalidatePath("/dashboard/contacts")
 }
 
+export async function bulkDeleteContacts(ids: string[]) {
+  if (!ids.length || ids.some((id) => !validId(id))) return INVALID
+  for (const id of ids) await moveToTrash("contacts", id)
+  await supabase.from("contacts").delete().in("id", ids)
+  void logActivity("contact.bulk_delete", `${ids.length} contacts`)
+  revalidatePath("/dashboard/contacts")
+}
+
 // ─── Trash / Recycle Bin ─────────────────────────────────────
 
 export type TrashItem = {
@@ -1522,4 +1615,350 @@ export async function permanentlyDelete(trashId: string) {
 export async function emptyTrash() {
   await supabase.from("trash").delete().neq("id", "00000000-0000-0000-0000-000000000000")
   void logActivity("trash.empty")
+}
+
+// ─── Body Metrics ─────────────────────────────────────────────
+
+export async function createBodyMetric(data: {
+  date: string
+  metric: string
+  value: number
+  unit: string
+  notes?: string
+}) {
+  if (!validStr(data.date) || !validStr(data.metric) || !validStr(data.unit)) return INVALID
+  if (!validNum(data.value, 0, 9999)) return INVALID
+  if (!optStr(data.notes)) return INVALID
+  const { error } = await supabase.from("body_metrics").insert({
+    date: data.date,
+    metric: data.metric,
+    value: data.value,
+    unit: data.unit,
+    notes: data.notes?.trim() || null,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/health")
+  void logActivity("body_metric.create", `${data.metric}: ${data.value}${data.unit}`)
+}
+
+export async function deleteBodyMetric(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("body_metrics", id)
+  revalidatePath("/dashboard/health")
+  void logActivity("body_metric.delete", id)
+}
+
+// ─── University ──────────────────────────────────────────────
+
+export async function createUniModule(data: {
+  code: string; name: string; credits: number; year: number
+  semester: number; target_grade?: string; color?: string; order_index?: number
+}) {
+  if (!validStr(data.code) || !validStr(data.name)) return INVALID
+  if (!validNum(data.credits, 1, 240) || !validNum(data.year, 1, 10) || !validNum(data.semester, 1, 4)) return INVALID
+  const { error } = await supabase.from("uni_modules").insert({
+    code: data.code.trim(), name: data.name.trim(),
+    credits: data.credits, year: data.year, semester: data.semester,
+    target_grade: data.target_grade?.trim() || null,
+    color: data.color ?? "#6366f1", order_index: data.order_index ?? 0,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.module.create", data.code)
+}
+
+export async function deleteUniModule(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_modules", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.module.delete", id)
+}
+
+export async function updateUniModule(id: string, data: Partial<{
+  code: string; name: string; credits: number; target_grade: string | null
+  color: string; active: boolean; order_index: number
+}>) {
+  if (!validId(id)) return INVALID
+  const { error } = await supabase.from("uni_modules").update(data).eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.module.update", id)
+}
+
+export async function createUniDeadline(data: {
+  module_id?: string; title: string; type: string
+  due_date: string; weight_pct?: number; notes?: string; semester?: number
+}) {
+  if (!validStr(data.title) || !validStr(data.type) || !validStr(data.due_date)) return INVALID
+  if (!optStr(data.notes) || !optNum(data.weight_pct, 0, 100)) return INVALID
+  const { data: inserted, error } = await supabase.from("uni_deadlines").insert({
+    module_id: data.module_id || null, title: data.title.trim(), type: data.type,
+    due_date: data.due_date, weight_pct: data.weight_pct ?? null,
+    notes: data.notes?.trim() || null, semester: data.semester ?? 1, status: "not_started",
+  }).select("id, title, type, due_date, status").single()
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.deadline.create", data.title)
+  if (inserted) {
+    void syncDeadlineToLinear(inserted).then(async (issueId) => {
+      if (issueId) await supabase.from("uni_deadlines").update({ linear_issue_id: issueId }).eq("id", inserted.id)
+    })
+  }
+}
+
+export async function updateUniDeadline(id: string, data: Partial<{
+  status: string; submitted_at: string | null; grade_received: string | null; notes: string | null
+  title: string; due_date: string; weight_pct: number | null
+}>) {
+  if (!validId(id)) return INVALID
+  const { error } = await supabase.from("uni_deadlines").update(data).eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.deadline.update", id)
+  if (data.status) {
+    const { data: row } = await supabase.from("uni_deadlines").select("id, title, type, due_date, status, linear_issue_id").eq("id", id).single()
+    if (row) void syncDeadlineToLinear(row)
+  }
+}
+
+export async function bulkSyncDeadlinesToLinear(): Promise<{ synced: number; skipped: number }> {
+  const { data: deadlines } = await supabase
+    .from("uni_deadlines")
+    .select("id, title, type, due_date, status, linear_issue_id")
+    .is("linear_issue_id", null)
+  if (!deadlines) return { synced: 0, skipped: 0 }
+
+  let synced = 0
+  for (const d of deadlines) {
+    const issueId = await syncDeadlineToLinear(d)
+    if (issueId) {
+      await supabase.from("uni_deadlines").update({ linear_issue_id: issueId }).eq("id", d.id)
+      synced++
+    }
+  }
+  return { synced, skipped: deadlines.length - synced }
+}
+
+export async function deleteUniDeadline(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_deadlines", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.deadline.delete", id)
+}
+
+export async function createUniSubmission(data: {
+  deadline_id?: string; module_id?: string; title: string
+  file_name?: string; file_url?: string; notes?: string
+}) {
+  if (!validStr(data.title)) return INVALID
+  if (!optStr(data.file_name) || !optStr(data.file_url) || !optStr(data.notes)) return INVALID
+  const { error } = await supabase.from("uni_submissions").insert({
+    deadline_id: data.deadline_id || null, module_id: data.module_id || null,
+    title: data.title.trim(), file_name: data.file_name || null,
+    file_url: data.file_url || null, notes: data.notes?.trim() || null,
+    submitted_at: new Date().toISOString(),
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.submission.create", data.title)
+}
+
+export async function deleteUniSubmission(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_submissions", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.submission.delete", id)
+}
+
+export async function createUniNote(data: {
+  module_id?: string; title: string; content?: string; type?: string; tags?: string[]
+}) {
+  if (!validStr(data.title)) return INVALID
+  if (!optStr(data.content, MAX_NOTE_TEXT) || !optStr(data.type)) return INVALID
+  const { error } = await supabase.from("uni_notes").insert({
+    module_id: data.module_id || null, title: data.title.trim(),
+    content: data.content?.trim() || "", type: data.type ?? "lecture",
+    tags: data.tags ?? [], pinned: false,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.note.create", data.title)
+}
+
+export async function updateUniNote(id: string, data: Partial<{
+  title: string; content: string; module_id: string | null; type: string; tags: string[]; pinned: boolean
+}>) {
+  if (!validId(id)) return INVALID
+  const { error } = await supabase.from("uni_notes").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.note.update", id)
+}
+
+export async function deleteUniNote(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_notes", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.note.delete", id)
+}
+
+export async function createUniResource(data: {
+  module_id?: string; title: string; url?: string; type?: string; notes?: string; semester?: number
+}) {
+  if (!validStr(data.title)) return INVALID
+  if (!optStr(data.url) || !optStr(data.notes) || !optStr(data.type)) return INVALID
+  const { error } = await supabase.from("uni_resources").insert({
+    module_id: data.module_id || null, title: data.title.trim(),
+    url: data.url?.trim() || null, type: data.type ?? "link",
+    notes: data.notes?.trim() || null, semester: data.semester ?? 1,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.resource.create", data.title)
+}
+
+export async function deleteUniResource(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_resources", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.resource.delete", id)
+}
+
+export async function createLibraryBook(data: {
+  title: string; author?: string; isbn?: string; module_id?: string
+  borrowed_at: string; due_date: string; notes?: string
+}) {
+  if (!validStr(data.title) || !validStr(data.borrowed_at) || !validStr(data.due_date)) return INVALID
+  if (!optStr(data.author) || !optStr(data.isbn) || !optStr(data.notes)) return INVALID
+  const { error } = await supabase.from("uni_library_books").insert({
+    title: data.title.trim(), author: data.author?.trim() || null,
+    isbn: data.isbn?.trim() || null, module_id: data.module_id || null,
+    borrowed_at: data.borrowed_at, due_date: data.due_date,
+    notes: data.notes?.trim() || null,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.library.create", data.title)
+}
+
+export async function returnLibraryBook(id: string) {
+  if (!validId(id)) return INVALID
+  await supabase.from("uni_library_books").update({ returned_at: new Date().toISOString().split("T")[0] }).eq("id", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.library.return", id)
+}
+
+export async function deleteLibraryBook(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("uni_library_books", id)
+  revalidatePath("/dashboard/university")
+  void logActivity("uni.library.delete", id)
+}
+
+// ─── Faith ───────────────────────────────────────────────────
+
+export async function createFaithEntry(data: {
+  date: string
+  type: string
+  title?: string
+  notes?: string
+  duration_m?: number
+  completed?: boolean
+}) {
+  if (!validStr(data.date) || !validStr(data.type)) return INVALID
+  if (!optStr(data.title) || !optStr(data.notes)) return INVALID
+  if (!optNum(data.duration_m, 0, 1440)) return INVALID
+  const { error } = await supabase.from("faith_entries").insert({
+    date: data.date,
+    type: data.type,
+    title: data.title?.trim() || null,
+    notes: data.notes?.trim() || null,
+    duration_m: data.duration_m ?? null,
+    completed: data.completed ?? true,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/faith")
+  void logActivity("faith.create", data.title ?? data.type)
+}
+
+export async function deleteFaithEntry(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("faith_entries", id)
+  revalidatePath("/dashboard/faith")
+  void logActivity("faith.delete", id)
+}
+
+export async function updateFaithEntry(id: string, data: {
+  title?: string
+  notes?: string
+  duration_m?: number
+  completed?: boolean
+}) {
+  if (!validId(id)) return INVALID
+  if (!optStr(data.title) || !optStr(data.notes)) return INVALID
+  if (!optNum(data.duration_m, 0, 1440)) return INVALID
+  const { error } = await supabase.from("faith_entries").update({
+    ...(data.title !== undefined && { title: data.title.trim() || null }),
+    ...(data.notes !== undefined && { notes: data.notes.trim() || null }),
+    ...(data.duration_m !== undefined && { duration_m: data.duration_m }),
+    ...(data.completed !== undefined && { completed: data.completed }),
+  }).eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/faith")
+  void logActivity("faith.update", id)
+}
+
+// ─── Study ───────────────────────────────────────────────────
+
+export async function createStudySession(data: {
+  date: string
+  subject: string
+  duration_m: number
+  notes?: string
+  technique?: string
+  productive?: boolean
+}) {
+  if (!validStr(data.date) || !validStr(data.subject)) return INVALID
+  if (!validNum(data.duration_m, 0, 1440)) return INVALID
+  if (!optStr(data.notes) || !optStr(data.technique)) return INVALID
+  const { error } = await supabase.from("study_sessions").insert({
+    date: data.date,
+    subject: data.subject.trim(),
+    duration_m: data.duration_m,
+    notes: data.notes?.trim() || null,
+    technique: data.technique?.trim() || null,
+    productive: data.productive ?? true,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/study")
+  void logActivity("study.create", `${data.subject} - ${data.duration_m}min`)
+}
+
+export async function deleteStudySession(id: string) {
+  if (!validId(id)) return INVALID
+  await moveToTrash("study_sessions", id)
+  revalidatePath("/dashboard/study")
+  void logActivity("study.delete", id)
+}
+
+export async function updateStudySession(id: string, data: {
+  subject?: string
+  duration_m?: number
+  notes?: string
+  technique?: string
+  productive?: boolean
+}) {
+  if (!validId(id)) return INVALID
+  if (!optStr(data.subject) || !optStr(data.notes) || !optStr(data.technique)) return INVALID
+  if (data.duration_m !== undefined && !validNum(data.duration_m, 0, 1440)) return INVALID
+  const { error } = await supabase.from("study_sessions").update({
+    ...(data.subject !== undefined && { subject: data.subject.trim() }),
+    ...(data.duration_m !== undefined && { duration_m: data.duration_m }),
+    ...(data.notes !== undefined && { notes: data.notes.trim() || null }),
+    ...(data.technique !== undefined && { technique: data.technique.trim() || null }),
+    ...(data.productive !== undefined && { productive: data.productive }),
+  }).eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/study")
+  void logActivity("study.update", id)
 }

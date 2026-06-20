@@ -6,7 +6,7 @@ import Image from "next/image"
 import { Suspense, useState, useCallback, useEffect, useRef } from "react"
 import { Canvas, useThree } from "@react-three/fiber"
 import { OrbitControls, useGLTF, Center } from "@react-three/drei"
-import { X } from "lucide-react"
+import { X, CircuitBoard } from "lucide-react"
 import * as THREE from "three"
 import styles from "./PCBViewer.module.css"
 
@@ -325,8 +325,9 @@ function PCBPhotoCard({ title, src, alt }: { title: string; src: string; alt: st
 export default function PCBViewer() {
   return (
     <div className="space-y-4">
-      <div className="text-center">
-        <p className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-widest">
+      <div className="flex items-center justify-center gap-1.5">
+        <CircuitBoard className="h-3 w-3 text-muted-foreground shrink-0" />
+        <p className="text-[10px] font-mono font-semibold text-muted-foreground uppercase tracking-widest">
           audio amplifier PCB
         </p>
       </div>

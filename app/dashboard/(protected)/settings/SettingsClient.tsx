@@ -13,9 +13,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   KeyRound, Shield, Cpu, Clock, CheckCircle2, XCircle,
-  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity, Trash2
+  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity, Trash2, Plug, GraduationCap
 } from "lucide-react"
-import { setConfig, clearAllJobs, clearAllApplications } from "@/app/dashboard/actions"
+import { SiSpotify } from "react-icons/si"
+import { setConfig, clearAllJobs, clearAllApplications, bulkSyncDeadlinesToLinear } from "@/app/dashboard/actions"
 
 type ScraperStatus = {
   lastRun: string | null
@@ -98,6 +99,12 @@ export default function SettingsClient() {
   const [dataMessage, setDataMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [dataLoading, setDataLoading] = useState(false)
 
+  const [integrationStatus, setIntegrationStatus] = useState<{
+    spotify: boolean; wakatime: boolean; linearCareers: boolean; linearUniversity: boolean
+  } | null>(null)
+  const [linearSyncLoading, setLinearSyncLoading] = useState(false)
+  const [linearSyncMessage, setLinearSyncMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
   // I use Promise.allSettled rather than Promise.all so a single failing status endpoint
   // does not prevent the others from rendering - each section degrades independently
   useEffect(() => {
@@ -106,11 +113,12 @@ export default function SettingsClient() {
       setWakatimeStatusLoading(true)
       setCvStatusLoading(true)
 
-      const [scraperRes, wakatimeRes, cvRes, digestRes] = await Promise.allSettled([
+      const [scraperRes, wakatimeRes, cvRes, digestRes, integrationRes] = await Promise.allSettled([
         fetch("/api/dashboard/scraper-status"),
         fetch("/api/dashboard/workflow-status?workflow=wakatime-sync.yml"),
         fetch("/api/dashboard/workflow-status?workflow=cv-pdf.yml"),
         fetch("/api/dashboard/digest-status"),
+        fetch("/api/dashboard/integration-status"),
       ])
 
       if (scraperRes.status === "fulfilled" && scraperRes.value.ok) {
@@ -132,6 +140,10 @@ export default function SettingsClient() {
         }
         setWeeklyDigestStatus(data.weekly)
         setDiscordDigestStatus(data.discord)
+      }
+      if (integrationRes.status === "fulfilled" && integrationRes.value.ok) {
+        const data = await integrationRes.value.json() as { spotify: boolean; wakatime: boolean; linearCareers: boolean; linearUniversity: boolean }
+        setIntegrationStatus(data)
       }
 
       setScraperLoading(false)
@@ -181,7 +193,13 @@ export default function SettingsClient() {
   }
 
   async function handleClearJobs() {
-    if (!confirm("This will permanently delete all scraped jobs. Are you sure?")) return
+    const confirmed = await showConfirm({
+      title: "Clear all scraped jobs?",
+      description: "This permanently removes all jobs fetched by the scraper. Jobs you added manually are not affected.",
+      confirmLabel: "Clear jobs",
+      destructive: true,
+    })
+    if (!confirmed) return
     setDataLoading(true)
     setDataMessage(null)
     try {
@@ -304,6 +322,19 @@ export default function SettingsClient() {
       setDiscordDigestMessage({ text: "Something went wrong.", ok: false })
     } finally {
       setDiscordDigestLoading(false)
+    }
+  }
+
+  async function handleLinearSync() {
+    setLinearSyncLoading(true)
+    setLinearSyncMessage(null)
+    try {
+      const result = await bulkSyncDeadlinesToLinear()
+      setLinearSyncMessage({ text: `${result.synced} deadline${result.synced === 1 ? "" : "s"} synced to Linear. ${result.skipped > 0 ? `${result.skipped} skipped (Linear not configured or already synced).` : ""}`, ok: true })
+    } catch {
+      setLinearSyncMessage({ text: "Sync failed. Check that LINEAR_API_KEY and LINEAR_UNI_TEAM_ID are set.", ok: false })
+    } finally {
+      setLinearSyncLoading(false)
     }
   }
 
@@ -639,6 +670,74 @@ export default function SettingsClient() {
           </div>
         </div>
       </section>
+      {/* Integrations */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <Plug className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Integrations</h2>
+        </div>
+
+        {integrationStatus && (
+          <div className="flex flex-col gap-2">
+            {[
+              { label: "Spotify", connected: integrationStatus.spotify, icon: <SiSpotify className="h-3.5 w-3.5 shrink-0" /> },
+              { label: "WakaTime", connected: integrationStatus.wakatime, icon: <Activity className="h-3.5 w-3.5 shrink-0" /> },
+              { label: "Linear (Careers)", connected: integrationStatus.linearCareers, icon: <Plug className="h-3.5 w-3.5 shrink-0" /> },
+              { label: "Linear (University)", connected: integrationStatus.linearUniversity, icon: <GraduationCap className="h-3.5 w-3.5 shrink-0" /> },
+            ].map(({ label, connected, icon }) => (
+              <div key={label} className="flex items-center justify-between py-1 border-b border-border/40 last:border-0">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">{icon}</span>
+                  <span>{label}</span>
+                </div>
+                <div className={`flex items-center gap-1.5 text-xs font-medium ${connected ? "text-green-600" : "text-muted-foreground"}`}>
+                  <div className={`h-2 w-2 rounded-full ${connected ? "bg-green-500" : "bg-muted-foreground/40"}`} />
+                  {connected ? "Connected" : "Not configured"}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!integrationStatus && <p className="text-sm text-muted-foreground">Loading...</p>}
+
+        <hr className="border-border" />
+
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-sm font-medium">Sync university deadlines to Linear</span>
+            </div>
+            <p className="text-xs text-muted-foreground pl-6">
+              Creates a Linear issue for every deadline without one yet. Future deadlines sync automatically.
+              Requires <code className="font-mono">LINEAR_UNI_TEAM_ID</code> in Vercel.
+            </p>
+            <p className="text-xs text-muted-foreground pl-6 mt-0.5">
+              First time? Run: <code className="font-mono text-[11px] bg-muted px-1.5 py-0.5 rounded">LINEAR_API_KEY=... npx tsx scripts/linear-university-setup.ts</code>
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleLinearSync()}
+              disabled={linearSyncLoading || !integrationStatus?.linearUniversity}
+              className="flex items-center gap-1.5"
+              title={!integrationStatus?.linearUniversity ? "Set LINEAR_UNI_TEAM_ID in Vercel to enable" : undefined}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${linearSyncLoading ? "animate-spin" : ""}`} />
+              {linearSyncLoading ? "Syncing..." : "Sync deadlines"}
+            </Button>
+            {linearSyncMessage && (
+              <span className={`text-xs ${linearSyncMessage.ok ? "text-green-600" : "text-destructive"}`}>
+                {linearSyncMessage.text}
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* Data Management */}
       <section className="flex flex-col gap-4 border border-destructive/30 rounded-xl p-5 bg-card">
         <div className="flex items-center gap-2">

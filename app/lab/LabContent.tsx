@@ -8,7 +8,8 @@ import { publications } from "@/data/respub"
 import { useModKey } from "@/hooks/useModKey"
 import GitHubStats from "@/components/shared/GitHubStats"
 import WakatimeStats from "@/components/lab/WakatimeStats"
-import SpotifyVisualiser from "@/components/lab/SpotifyVisualiser"
+import SpotifyAnalytics from "@/components/lab/SpotifyAnalytics"
+import GamingPanel from "@/components/lab/GamingPanel"
 import dynamic from "next/dynamic"
 
 const PCBViewer = dynamic(() => import("@/components/lab/PCBViewer"), { ssr: false })
@@ -1372,12 +1373,9 @@ export default function LabPage() {
 
       {!isMaximized && <GitHubStats />}
       {!isMaximized && <WakatimeStats />}
-      {!isMaximized && (
-        <div className="flex flex-col gap-4">
-          <SpotifyVisualiser />
-          <PCBViewer />
-        </div>
-      )}
+      {!isMaximized && <SpotifyAnalytics />}
+      {!isMaximized && <GamingPanel />}
+      {!isMaximized && <PCBViewer />}
 
       {!isMaximized && (
         <p className="text-center text-xs text-muted-foreground font-mono">
