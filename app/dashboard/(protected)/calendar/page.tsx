@@ -28,6 +28,20 @@ function parseDate(raw: string): Date | null {
   )
 }
 
+// RFC 5545 line unfolding: long lines are split with CRLF (or LF) followed by a
+// single space or tab. Joining them back is required before reading any property,
+// otherwise long descriptions are truncated at the first 75-char fold.
+function unfoldIcal(text: string): string {
+  return text.replace(/\r?\n[ \t]/g, "")
+}
+
+// RFC 5545 text unescaping: feeds escape special characters in TEXT values.
+// \n or \N -> newline, \, -> comma, \; -> semicolon, \\ -> backslash.
+// Without this the dashboard shows raw "\n", "\," and "\;" in event details.
+function unescapeText(s: string): string {
+  return s.replace(/\\([\\;,nN])/g, (_, c) => (c === "n" || c === "N" ? "\n" : c))
+}
+
 const DAY_NAME_TO_NUM: Record<string, number> = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 }
 
 // Expand a FREQ=WEEKLY RRULE into concrete Date pairs within a window.
@@ -98,7 +112,8 @@ async function fetchFeed(url: string, feedName: string, feedColor: string): Prom
   try {
     const res = await fetch(url, { next: { revalidate: 3600 } })
     if (!res.ok) return []
-    const text = await res.text()
+    // Unfold wrapped lines first so long descriptions are not truncated at 75 chars
+    const text = unfoldIcal(await res.text())
     const events: CalendarEvent[] = []
 
     for (const vevent of text.split("BEGIN:VEVENT").slice(1)) {
@@ -108,11 +123,12 @@ async function fetchFeed(url: string, feedName: string, feedColor: string): Prom
       }
 
       const uid = getProp("UID")
-      const summary = getProp("SUMMARY")
+      // Unescape iCal TEXT values so \n, \, and \; render properly
+      const summary = unescapeText(getProp("SUMMARY"))
       const dtstart = parseDate(getProp("DTSTART"))
       const dtend = parseDate(getProp("DTEND"))
-      const location = getProp("LOCATION") || undefined
-      const description = getProp("DESCRIPTION") || undefined
+      const location = getProp("LOCATION") ? unescapeText(getProp("LOCATION")) : undefined
+      const description = getProp("DESCRIPTION") ? unescapeText(getProp("DESCRIPTION")) : undefined
       const rrule = getProp("RRULE")
 
       if (!uid || !summary || !dtstart || !dtend) continue
