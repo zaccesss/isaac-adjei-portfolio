@@ -4,7 +4,8 @@ import { useState, useTransition } from "react"
 import { createFaithEntry, deleteFaithEntry, updateFaithEntry } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import MarkdownEditor from "@/components/shared/MarkdownEditor"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
@@ -198,10 +199,10 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Notes (optional)</label>
-                <Textarea
+                <MarkdownEditor
                   placeholder="Reflections, key verses, answered prayers..."
                   value={form.notes}
-                  onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                  onChange={(v) => setForm((f) => ({ ...f, notes: v }))}
                   rows={3}
                 />
               </div>
@@ -309,7 +310,7 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
                       </span>
                     )}
                   </div>
-                  {e.notes && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{e.notes}</p>}
+                  {e.notes && <MarkdownContent compact className="mt-0.5 line-clamp-3">{e.notes}</MarkdownContent>}
                   <p className="text-[10px] text-muted-foreground mt-0.5">{e.date}</p>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">

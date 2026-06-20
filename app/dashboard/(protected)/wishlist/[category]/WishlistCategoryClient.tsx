@@ -7,7 +7,7 @@ import { motion } from "framer-motion"
 import { createWishlistItem, updateWishlistItem, deleteWishlistItem } from "@/app/dashboard/actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import MarkdownEditor from "@/components/shared/MarkdownEditor"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Trash2, Edit2, Check, ShoppingBag } from "lucide-react"
@@ -88,7 +88,7 @@ function ItemForm({ initial, categories, fixedCategory, onSave, onCancel }: {
           </Select>
         </div>
       </div>
-      <Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={2} placeholder="Notes (optional)" />
+      <MarkdownEditor value={form.notes} onChange={(v) => set("notes", v)} rows={2} placeholder="Notes (optional)" />
       <div className="flex gap-2 justify-end pt-2">
         <Button variant="ghost" onClick={onCancel}>Cancel</Button>
         <Button onClick={() => { if (form.name.trim() && form.category.trim()) onSave(form) }} disabled={!form.name.trim() || !form.category.trim()}>Save</Button>
