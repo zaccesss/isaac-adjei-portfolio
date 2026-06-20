@@ -1,9 +1,6 @@
 "use client"
-// I provide the dashboard settings page: PIN management, theme toggle, job-scraper controls,
-// WakaTime sync, CV regeneration, weekly and Discord digest triggers and data management.
-// I fetch workflow and scraper statuses on mount so I can show the last-run time and success state.
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
@@ -13,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   KeyRound, Shield, Cpu, Clock, CheckCircle2, XCircle,
-  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity, Trash2, Plug, GraduationCap, Briefcase
+  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity, Trash2, Plug, GraduationCap, Briefcase, Download
 } from "lucide-react"
 import { SiSpotify } from "react-icons/si"
 import { setConfig, clearAllJobs, clearAllApplications, bulkSyncDeadlinesToLinear, bulkSyncApplicationsToLinear } from "@/app/dashboard/actions"
@@ -58,6 +55,62 @@ function StatusBadge({ status, lastRun }: { status: "success" | "failure" | "unk
       ) : (
         <span className="text-xs text-muted-foreground">No runs recorded</span>
       )}
+    </div>
+  )
+}
+
+function ExportImportPanel() {
+  const [importing, setImporting] = useState(false)
+  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImporting(true)
+    setMessage(null)
+    try {
+      const text = await file.text()
+      const bundle = JSON.parse(text) as unknown
+      const res = await fetch("/api/export", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bundle) })
+      const result = await res.json() as { total?: number; error?: string }
+      if (!res.ok || result.error) {
+        setMessage({ text: result.error ?? "Import failed.", ok: false })
+      } else {
+        setMessage({ text: `Imported ${result.total ?? 0} records successfully.`, ok: true })
+      }
+    } catch {
+      setMessage({ text: "Failed to parse file. Make sure it is a valid dashboard export.", ok: false })
+    } finally {
+      setImporting(false)
+      if (fileRef.current) fileRef.current.value = ""
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium">Export all data</p>
+          <p className="text-xs text-muted-foreground">Downloads every table as a single JSON file.</p>
+        </div>
+        <a href="/api/export" download className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border border-border bg-background hover:bg-muted transition-colors">
+          <Download className="h-3.5 w-3.5" /> Export JSON
+        </a>
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium">Import from backup</p>
+          <p className="text-xs text-muted-foreground">Restores from a previously exported JSON file. Existing records with matching IDs are overwritten.</p>
+        </div>
+        <div>
+          <input ref={fileRef} type="file" accept=".json,application/json" aria-label="Import JSON backup" className="hidden" onChange={handleImport} />
+          <Button size="sm" variant="outline" disabled={importing} onClick={() => fileRef.current?.click()}>
+            {importing ? "Importing..." : "Import JSON"}
+          </Button>
+        </div>
+      </div>
+      {message && <span className={`text-xs ${message.ok ? "text-green-600" : "text-destructive"}`}>{message.text}</span>}
     </div>
   )
 }
@@ -777,6 +830,18 @@ export default function SettingsClient() {
             )}
           </div>
         </div>
+      </section>
+
+      {/* Data Export / Import */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <Download className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Data Export & Import</h2>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Export all your data as a single JSON file. Import restores from a previously exported file - existing records with matching IDs are overwritten.
+        </p>
+        <ExportImportPanel />
       </section>
 
       {/* Data Management */}
