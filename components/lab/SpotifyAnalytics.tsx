@@ -5,15 +5,20 @@ import { SiSpotify } from "react-icons/si"
 
 type Track = {
   rank: number; id: string; name: string; artist: string
-  albumArt: string | null; url: string | null; popularity: number
+  albumArt: string | null; url: string | null
   energy?: number; valence?: number; tempo?: number; danceability?: number
 }
 type Artist = {
-  rank: number; name: string; genres: string[]
-  image: string | null; url: string | null; popularity: number
+  rank: number; id: string; name: string; genres: string[]
+  image: string | null; url: string | null; followers: number
+}
+type Show = {
+  id: string; name: string; publisher: string | null
+  description: string | null; image: string | null
+  totalEpisodes: number; explicit: boolean; url: string | null; addedAt: string
 }
 
-const TABS = ["tracks", "artists", "genres"] as const
+const TABS = ["tracks", "artists", "genres", "shows"] as const
 type Tab = typeof TABS[number]
 
 const BAR_COLOURS = [
@@ -33,14 +38,15 @@ function StatPill({ label, value }: { label: string; value: string }) {
 export default function SpotifyAnalytics() {
   const [tracks, setTracks] = useState<Track[]>([])
   const [artists, setArtists] = useState<Artist[]>([])
+  const [shows, setShows] = useState<Show[]>([])
   const [hovered, setHovered] = useState<Track | null>(null)
   const [tab, setTab] = useState<Tab>("tracks")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch("/api/spotify-top")
-      .then((r) => r.ok ? r.json() : { tracks: [], artists: [] })
-      .then((d) => { setTracks(d.tracks ?? []); setArtists(d.artists ?? []); setLoading(false) })
+      .then((r) => r.ok ? r.json() : { tracks: [], artists: [], shows: [] })
+      .then((d) => { setTracks(d.tracks ?? []); setArtists(d.artists ?? []); setShows(d.shows ?? []); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
 
@@ -82,7 +88,7 @@ export default function SpotifyAnalytics() {
           <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">top picks</p>
         </div>
         <div className="flex gap-1">
-          {TABS.map((t) => (
+          {TABS.filter((t) => t !== "shows" || shows.length > 0).map((t) => (
             <button type="button" key={t} onClick={() => setTab(t)} className={`text-[10px] font-mono px-2 py-0.5 rounded transition-colors ${tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>{t}</button>
           ))}
         </div>
@@ -94,16 +100,19 @@ export default function SpotifyAnalytics() {
         <div className="space-y-3">
           {tracks.length > 0 && (
             <div className="space-y-1">
-              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">popularity · top 10</p>
-              {tracks.slice(0, 10).map((t, i) => (
-                <div key={t.id} className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{t.rank}</span>
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${t.popularity}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }} />
+              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">energy · top 10</p>
+              {tracks.slice(0, 10).map((t, i) => {
+                const energyPct = t.energy != null ? Math.round(t.energy * 100) : Math.round(((10 - i) / 10) * 100)
+                return (
+                  <div key={t.id} className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{t.rank}</span>
+                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${energyPct}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }} />
+                    </div>
+                    <span className="text-[10px] font-mono text-muted-foreground/60 w-6 text-right shrink-0">{energyPct}%</span>
                   </div>
-                  <span className="text-[10px] font-mono text-muted-foreground/60 w-6 text-right shrink-0">{t.popularity}</span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
           {avgEnergy !== null && (
@@ -139,7 +148,7 @@ export default function SpotifyAnalytics() {
                     <p className="text-[10px] font-mono text-muted-foreground/60 truncate">{t.artist}</p>
                   </div>
                   <div className="w-12 h-1 bg-muted rounded-full overflow-hidden shrink-0">
-                    <div className="h-full bg-primary/60 rounded-full" style={{ width: `${t.popularity}%` }} />
+                    <div className="h-full bg-primary/60 rounded-full" style={{ width: `${t.energy != null ? Math.round(t.energy * 100) : 0}%` }} />
                   </div>
                 </a>
               ))}
@@ -181,16 +190,30 @@ export default function SpotifyAnalytics() {
         <div className="space-y-3">
           {artists.length > 0 && (
             <div className="space-y-1">
-              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">popularity · top 10</p>
-              {artists.slice(0, 10).map((a, i) => (
-                <div key={a.rank} className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{a.rank}</span>
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${a.popularity}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }} />
-                  </div>
-                  <span className="text-[10px] font-mono text-muted-foreground/60 w-6 text-right shrink-0">{a.popularity}</span>
-                </div>
-              ))}
+              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">followers · top 10</p>
+              {(() => {
+                const top10 = artists.slice(0, 10)
+                const maxFollowers = Math.max(...top10.map(a => a.followers), 1)
+                return top10.map((a, i) => {
+                  const pct = a.followers > 0
+                    ? Math.round((a.followers / maxFollowers) * 100)
+                    : Math.round(((10 - i) / 10) * 100)
+                  const label = a.followers > 1_000_000
+                    ? `${(a.followers / 1_000_000).toFixed(1)}M`
+                    : a.followers > 1_000
+                    ? `${Math.round(a.followers / 1_000)}K`
+                    : `${a.followers}`
+                  return (
+                    <div key={a.rank} className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{a.rank}</span>
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }} />
+                      </div>
+                      {a.followers > 0 && <span className="text-[10px] font-mono text-muted-foreground/60 w-8 text-right shrink-0">{label}</span>}
+                    </div>
+                  )
+                })
+              })()}
             </div>
           )}
           <div className="space-y-1.5">
@@ -215,13 +238,13 @@ export default function SpotifyAnalytics() {
                 {a.genres.length > 0 && <p className="text-[10px] font-mono text-muted-foreground/60 truncate">{a.genres.join(" · ")}</p>}
               </div>
               <div className="w-12 h-1 bg-muted rounded-full overflow-hidden shrink-0">
-                <div className="h-full bg-primary/60 rounded-full" style={{ width: `${a.popularity}%` }} />
+                <div className="h-full bg-primary/60 rounded-full" style={{ width: `${a.followers > 0 ? Math.round((a.followers / Math.max(...artists.map(x => x.followers), 1)) * 100) : 0}%` }} />
               </div>
             </a>
           ))}
           </div>
         </div>
-      ) : (
+      ) : tab === "genres" ? (
         <div className="space-y-3">
           {genres.length === 0 ? (
             <p className="text-xs text-muted-foreground">No genre data yet</p>
@@ -252,7 +275,41 @@ export default function SpotifyAnalytics() {
             </>
           )}
         </div>
-      )}
+      ) : tab === "shows" ? (
+        <div className="space-y-3">
+          {shows.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No saved podcasts - needs re-auth with user-library-read scope</p>
+          ) : (
+            <>
+              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">{shows.length} saved podcasts</p>
+              <div className="space-y-2">
+                {shows.map((s) => (
+                  <a
+                    key={s.id}
+                    href={s.url ?? "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 group rounded-lg hover:bg-muted/40 transition-colors py-1"
+                  >
+                    {s.image ? (
+                      <img src={s.image} alt={s.name} className="w-9 h-9 rounded-md object-cover shrink-0" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-md bg-muted shrink-0 flex items-center justify-center">
+                        <SiSpotify className="w-4 h-4 text-muted-foreground/40" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-mono font-medium truncate leading-tight group-hover:text-foreground transition-colors">{s.name}</p>
+                      {s.publisher && <p className="text-[10px] font-mono text-muted-foreground/60 truncate">{s.publisher}</p>}
+                    </div>
+                    <span className="text-[10px] font-mono text-muted-foreground/50 shrink-0">{s.totalEpisodes} eps</span>
+                  </a>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      ) : null}
     </div>
   )
 }
