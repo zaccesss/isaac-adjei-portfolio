@@ -8,16 +8,16 @@
 import { useEffect, useRef } from "react"
 
 const BAR_COUNT = 48
-const BAR_H     = 80   // slightly taller than original 72
-const VH        = 110  // box height unchanged
+const BAR_H     = 80
+const VH        = 110
 const WAVE_Y    = 14
 const BAR_TOP   = 28
-// Hard cap: tallest bar must stay 3px below the sine wave
-const MAX_BAR_H = BAR_TOP + BAR_H - WAVE_Y - 3  // = 91
 const BAR_W     = 5
 const GAP       = 3
 const VBOX_W    = BAR_COUNT * (BAR_W + GAP) - GAP
 const PEAK_H    = 3
+// bars must not touch the sine wave - hard cap at WAVE_Y + 3px clearance
+const MAX_BAR_H = BAR_TOP + BAR_H - WAVE_Y - 3
 
 // Map loudness (dB, typical -25..-5) to a 0..1 brightness multiplier
 function loudnessFactor(loudness?: number): number {
@@ -97,7 +97,7 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
       }
 
       // Loudness scales both the peak bar height and the minimum floor
-      const maxH  = p ? Math.max(14, (e ?? 0.4) * BAR_H * 0.95 * lf * (1 + beat.boost * 0.55)) : 5
+      const maxH  = p ? Math.min(MAX_BAR_H, Math.max(14, (e ?? 0.4) * BAR_H * 0.95 * lf * (1 + beat.boost * 0.55))) : 5
       const minH  = p ? Math.max(1, 3 * lf) : 1
       const barEls  = barsG.children
       const peakEls = peakGRef.current?.children
@@ -157,8 +157,9 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
     >
       <defs>
         <linearGradient id="sbBarGrad" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%"   stopColor="hsl(var(--primary))" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.85" />
+          <stop offset="0%"   stopColor="hsl(var(--primary))" stopOpacity="0.30" />
+          <stop offset="50%"  stopColor="hsl(var(--primary))" stopOpacity="0.70" />
+          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="1.00" />
         </linearGradient>
         <linearGradient id="sbSineGrad" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%"   stopColor="hsl(var(--primary))" stopOpacity="0" />
@@ -191,7 +192,7 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
         ))}
       </g>
 
-      {/* Peak caps: dark solid rect at the top of each bar, intensity driven by beat + height */}
+      {/* Peak caps: use foreground colour so they're visible in both light and dark mode */}
       <g ref={peakGRef} fill="hsl(var(--foreground))" opacity={0}>
         {Array.from({ length: BAR_COUNT }, (_, i) => (
           <rect key={i} x={i * (BAR_W + GAP)} y={BAR_TOP + BAR_H - PEAK_H} width={BAR_W} height={PEAK_H} rx={1} opacity={0} />

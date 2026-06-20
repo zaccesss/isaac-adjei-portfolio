@@ -46,19 +46,28 @@ export async function GET() {
     const showsData = showsRes?.ok ? (await showsRes.json() as { items: { added_at: string; show: any }[] }) : { items: [] }
 
     const trackIds = tracksData.items.map((t: any) => t.id).filter(Boolean).join(",")
-    let audioFeatures: Record<string, { energy: number; valence: number; tempo: number; danceability: number }> = {}
+    const artistIds = artistsData.items.map((a: any) => a.id).filter(Boolean).join(",")
 
-    if (trackIds) {
-      try {
-        const afRes = await fetch(`https://api.spotify.com/v1/audio-features?ids=${trackIds}`, { headers })
-        if (afRes.ok) {
-          const af = await afRes.json() as { audio_features: any[] }
-          for (const f of af.audio_features ?? []) {
+    let audioFeatures: Record<string, { energy: number; valence: number; tempo: number; danceability: number }> = {}
+    let artistDetails: Record<string, { genres: string[]; followers: number }> = {}
+
+    await Promise.all([
+      trackIds ? fetch(`https://api.spotify.com/v1/audio-features?ids=${trackIds}`, { headers })
+        .then(r => r.ok ? r.json() : null)
+        .then((af: { audio_features: any[] } | null) => {
+          for (const f of af?.audio_features ?? []) {
             if (f?.id) audioFeatures[f.id] = { energy: f.energy, valence: f.valence, tempo: f.tempo, danceability: f.danceability }
           }
-        }
-      } catch {}
-    }
+        }).catch(() => {}) : Promise.resolve(),
+      // batch fetch artist details for accurate genres and follower counts
+      artistIds ? fetch(`https://api.spotify.com/v1/artists?ids=${artistIds}`, { headers })
+        .then(r => r.ok ? r.json() : null)
+        .then((ad: { artists: any[] } | null) => {
+          for (const a of ad?.artists ?? []) {
+            if (a?.id) artistDetails[a.id] = { genres: a.genres ?? [], followers: a.followers?.total ?? 0 }
+          }
+        }).catch(() => {}) : Promise.resolve(),
+    ])
 
     const tracks = tracksData.items.map((t: any, i: number) => ({
       rank: i + 1,
@@ -67,38 +76,21 @@ export async function GET() {
       artist: t.artists?.map((a: any) => a.name).join(", ") ?? "",
       albumArt: t.album?.images?.[2]?.url ?? t.album?.images?.[0]?.url ?? null,
       url: t.external_urls?.spotify ?? null,
-      popularity: t.popularity ?? 0,
+      duration_ms: t.duration_ms ?? 0,
       ...(audioFeatures[t.id] ?? {}),
     }))
 
-    // Batch-fetch full artist objects — me/top/artists often returns empty genres
-    // and popularity=0; the /v1/artists endpoint is the authoritative source
-    const artistIds = artistsData.items.map((a: any) => a.id).filter(Boolean).join(",")
-    const artistDetail: Record<string, { genres: string[]; followers: number }> = {}
-    if (artistIds) {
-      try {
-        const arRes = await fetch(`https://api.spotify.com/v1/artists?ids=${artistIds}`, { headers })
-        if (arRes.ok) {
-          const ar = await arRes.json() as { artists: any[] }
-          for (const a of ar.artists ?? []) {
-            if (a?.id) artistDetail[a.id] = { genres: a.genres ?? [], followers: a.followers?.total ?? 0 }
-          }
-        }
-      } catch {}
-    }
+    const maxFollowers = Math.max(1, ...Object.values(artistDetails).map(d => d.followers))
 
-    const artists = artistsData.items.map((a: any, i: number) => {
-      const detail = artistDetail[a.id]
-      return {
-        rank: i + 1,
-        id: a.id,
-        name: a.name,
-        genres: detail?.genres?.length ? detail.genres : (a.genres ?? []),
-        image: a.images?.[2]?.url ?? a.images?.[0]?.url ?? null,
-        url: a.external_urls?.spotify ?? null,
-        followers: detail?.followers ?? a.followers?.total ?? 0,
-      }
-    })
+    const artists = artistsData.items.map((a: any, i: number) => ({
+      rank: i + 1,
+      name: a.name,
+      genres: artistDetails[a.id]?.genres ?? a.genres ?? [],
+      image: a.images?.[2]?.url ?? a.images?.[0]?.url ?? null,
+      url: a.external_urls?.spotify ?? null,
+      followers: artistDetails[a.id]?.followers ?? 0,
+      followersPct: Math.round(((artistDetails[a.id]?.followers ?? 0) / maxFollowers) * 100),
+    }))
 
     const shows = showsData.items.map((item: { added_at: string; show: any }) => {
       const s = item.show

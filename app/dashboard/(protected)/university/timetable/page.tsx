@@ -1,4 +1,5 @@
 import TimetableClient from "./TimetableClient"
+import { supabase } from "@/lib/supabase"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 3600
@@ -22,7 +23,6 @@ async function fetchICalEvents(): Promise<ICalEvent[]> {
     if (!res.ok) return []
     const text = await res.text()
 
-    // Parse iCal text manually (no external dep needed for this simple case)
     const events: ICalEvent[] = []
     const vevents = text.split("BEGIN:VEVENT").slice(1)
 
@@ -34,7 +34,6 @@ async function fetchICalEvents(): Promise<ICalEvent[]> {
 
       function parseDate(raw: string): Date | null {
         if (!raw) return null
-        // YYYYMMDDTHHMMSSZ or YYYYMMDDTHHMMSS or YYYYMMDD
         const d = raw.replace("Z", "")
         if (d.length === 8) {
           return new Date(`${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}T00:00:00Z`)
@@ -56,7 +55,6 @@ async function fetchICalEvents(): Promise<ICalEvent[]> {
       events.push({ uid, summary, dtstart, dtend, location, description })
     }
 
-    // Sort by start date
     events.sort((a, b) => a.dtstart.getTime() - b.dtstart.getTime())
     return events
   } catch {
@@ -65,7 +63,18 @@ async function fetchICalEvents(): Promise<ICalEvent[]> {
 }
 
 export default async function TimetablePage() {
-  const events = await fetchICalEvents()
+  const [events, customResult] = await Promise.all([
+    fetchICalEvents(),
+    supabase
+      .from("calendar_events")
+      .select("*")
+      .eq("is_deleted", false)
+      .eq("event_type", "timetable")
+      .order("start_at", { ascending: true }),
+  ])
+
   const hasUrl = !!process.env.ICAL_TIMETABLE_URL
-  return <TimetableClient events={events} hasUrl={hasUrl} />
+  const customEvents = customResult.data ?? []
+
+  return <TimetableClient events={events} hasUrl={hasUrl} customEvents={customEvents} />
 }

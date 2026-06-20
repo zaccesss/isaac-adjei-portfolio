@@ -5,7 +5,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased]
+## [v2.11.0] - 2026-06-20
+
+### Added
+
+- Dashboard: file manager at `/dashboard/files` - upload, rename, move between folders, soft delete, signed download; backed by Supabase Storage and `user_files` table (migration 034)
+- Dashboard: calendar custom events - create, edit and delete individual events (not just iCal feeds); FAB and slot-click to open form; detail sheet with edit/delete for custom events; `calendar_events` table (migration 033)
+- Dashboard: timetable redesigned with Day/Week/Month/Year view switcher; week grid with hour rows; week navigation; custom event creation (meetings, society events etc) merged with iCal feed
+- Dashboard: full-text search (`Cmd+K`) now queries Supabase with 300ms debounce across goals, notes, diary, applications, contacts, habits and streaks
+- Dashboard: application analytics added as an inline tab on the Applications page, filtered to the current type tab (Internships, Graduate Schemes etc); combined all-types analytics at `/dashboard/analytics/applications`
+- Dashboard: routine iCal feed at `/api/routine-ical` - public subscribable `.ics` with RRULE weekly recurring events for Mon-Fri and weekend schedules
+- Dashboard: Files link added to sidebar Personal group
+
+### Changed
+
+- `/now` and `/lab`: Spotify widget now detects song changes within 5 seconds - dedicated fast SSE channel polls Spotify every 5s; full device stream remains at 60s
+- `/lab`: Spotify visualiser bars reverted to BAR_H=80 VH=110; hard cap prevents bars touching the sine wave; gradient strengthened (30% opacity at base to 100% at top); peak caps now use foreground colour so they are visible in dark mode
+- `/lab`: Top Picks reordered - track/artist list shown first, bar charts below; track bars now show real track duration (longest = 100%); artist bars show real follower counts; each chart has a description label; genre descriptions added
+- `/lab`: Spotify top-picks API now batch-fetches artist follower counts and genres from `/v1/artists` so genres populate for mainstream artists
+- Dashboard: application analytics sidebar entry links to `/dashboard/analytics/applications` (combined view); per-type analytics accessible via the inline tab on the Applications page
+- `/colophon`: Spotify entry updated to describe the dual SSE channels (5s Spotify / 60s all-devices)
+
+### Fixed
+
+- Dashboard: calendar scroll container height raised from 60vh to 75vh so 23:00+ events are no longer clipped at the bottom of the week view
+
+---
+
+## [v2.10.0] - 2026-06-19
 
 ### Added
 
@@ -20,7 +47,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Dashboard sidebar restructured into collapsible groups (Daily, Wellbeing, Personal, Belongings, Analytics) with chevron arrows; collapse state persisted per group in localStorage; active groups stay open automatically
-- Live-status SSE stream reduced from polling every 10s to every 60s
 - Spotify top-picks API now returns all artist genres (previously capped at 2 per artist) and fetches the top 20 artists (was 15); ISR cache removed so genre data is always fresh
 
 ### Fixed

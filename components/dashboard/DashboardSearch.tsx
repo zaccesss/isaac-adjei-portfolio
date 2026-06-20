@@ -1,11 +1,11 @@
 "use client"
-// I fetch search data once on first open and cache it in component state for the
-// session - the data changes infrequently enough that a stale-for-session approach
-// is fine and avoids repeated server action calls while the user types.
+// Real-time full-text search using Supabase ilike queries via server action, debounced 300 ms.
+// Falls back to an empty state when the query is empty.
+// Keyboard navigation is handled by the CommandDialog primitive.
 
-import { useEffect, useState, useCallback, type ReactNode } from "react"
+import { useEffect, useState, useCallback, useRef, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
-import { Search, BookOpen, StickyNote, Target, Briefcase } from "lucide-react"
+import { Search, BookOpen, StickyNote, Target, Briefcase, Users, Flame, CheckSquare, Loader2 } from "lucide-react"
 import {
   CommandDialog,
   CommandInput,
@@ -14,9 +14,11 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command"
-import { getDashboardSearchData } from "@/app/dashboard/actions"
+import { searchDashboard } from "@/app/dashboard/actions"
 
-type SearchData = Awaited<ReturnType<typeof getDashboardSearchData>>
+type SearchResults = Awaited<ReturnType<typeof searchDashboard>>
+
+const EMPTY: SearchResults = { goals: [], notes: [], diary: [], applications: [], contacts: [], habits: [], streaks: [] }
 
 function hl(text: string, q: string): ReactNode {
   if (!q.trim()) return text
@@ -34,8 +36,10 @@ function hl(text: string, q: string): ReactNode {
 
 export default function DashboardSearch() {
   const [open, setOpen] = useState(false)
-  const [data, setData] = useState<SearchData | null>(null)
+  const [results, setResults] = useState<SearchResults>(EMPTY)
   const [query, setQuery] = useState("")
+  const [searching, setSearching] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const router = useRouter()
 
   const openSearch = useCallback(() => setOpen(true), [])
@@ -51,17 +55,51 @@ export default function DashboardSearch() {
     return () => window.removeEventListener("keydown", handleKey)
   }, [openSearch])
 
-  // I fetch on first open only - data is recent enough for a session
+  // Debounce 300 ms, then call the server action.
+  // All setState calls are deferred into setTimeout to satisfy react-hooks/purity.
   useEffect(() => {
-    if (open && !data) {
-      getDashboardSearchData().then(setData)
+    if (!open) return
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    if (!query.trim()) {
+      debounceRef.current = setTimeout(() => { setResults(EMPTY); setSearching(false) }, 0)
+    } else {
+      debounceRef.current = setTimeout(async () => {
+        setSearching(true)
+        try {
+          const data = await searchDashboard(query.trim())
+          setResults(data)
+        } finally {
+          setSearching(false)
+        }
+      }, 300)
     }
-  }, [open, data])
+
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [query, open])
 
   function navigate(href: string) {
     setOpen(false)
     router.push(href)
   }
+
+  function handleOpenChange(v: boolean) {
+    setOpen(v)
+    if (!v) {
+      setQuery("")
+      setResults(EMPTY)
+      setSearching(false)
+    }
+  }
+
+  const hasResults =
+    results.goals.length > 0 ||
+    results.notes.length > 0 ||
+    results.diary.length > 0 ||
+    results.applications.length > 0 ||
+    results.contacts.length > 0 ||
+    results.habits.length > 0 ||
+    results.streaks.length > 0
 
   return (
     <>
@@ -78,14 +116,33 @@ export default function DashboardSearch() {
         </kbd>
       </button>
 
-      <CommandDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setQuery("") }}>
-        <CommandInput placeholder="Search goals, notes, diary, applications..." onValueChange={setQuery} />
+      <CommandDialog open={open} onOpenChange={handleOpenChange}>
+        <CommandInput
+          placeholder="Search goals, notes, diary, applications..."
+          value={query}
+          onValueChange={setQuery}
+        />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
+          {searching && (
+            <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Searching...
+            </div>
+          )}
 
-          {data?.goals.length ? (
+          {!searching && query.trim() && !hasResults && (
+            <CommandEmpty>No results found.</CommandEmpty>
+          )}
+
+          {!searching && !query.trim() && (
+            <div className="py-6 text-center text-sm text-muted-foreground">
+              Start typing to search across your dashboard.
+            </div>
+          )}
+
+          {!searching && results.goals.length > 0 && (
             <CommandGroup heading="Goals">
-              {data.goals.map((g) => (
+              {results.goals.map((g) => (
                 <CommandItem key={g.id} value={`goal ${g.title} ${g.category}`} onSelect={() => navigate("/dashboard/goals")}>
                   <Target className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="truncate">{hl(g.title, query)}</span>
@@ -93,11 +150,11 @@ export default function DashboardSearch() {
                 </CommandItem>
               ))}
             </CommandGroup>
-          ) : null}
+          )}
 
-          {data?.notes.length ? (
+          {!searching && results.notes.length > 0 && (
             <CommandGroup heading="Notes">
-              {data.notes.map((n) => (
+              {results.notes.map((n) => (
                 <CommandItem key={n.id} value={`note ${n.title} ${n.folder}`} onSelect={() => navigate("/dashboard/notes")}>
                   <StickyNote className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="truncate">{hl(n.title, query)}</span>
@@ -105,25 +162,25 @@ export default function DashboardSearch() {
                 </CommandItem>
               ))}
             </CommandGroup>
-          ) : null}
+          )}
 
-          {data?.diary.length ? (
+          {!searching && results.diary.length > 0 && (
             <CommandGroup heading="Diary">
-              {data.diary.map((d) => (
-                <CommandItem key={d.id} value={`diary ${d.title}`} onSelect={() => navigate("/dashboard/diary")}>
+              {results.diary.map((d) => (
+                <CommandItem key={d.id} value={`diary ${d.title ?? d.id}`} onSelect={() => navigate("/dashboard/diary")}>
                   <BookOpen className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="truncate">{hl(d.title, query)}</span>
+                  <span className="truncate">{hl(d.title ?? "Entry", query)}</span>
                   <span className="ml-auto text-xs text-muted-foreground shrink-0">
                     {new Date(d.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                   </span>
                 </CommandItem>
               ))}
             </CommandGroup>
-          ) : null}
+          )}
 
-          {data?.applications.length ? (
+          {!searching && results.applications.length > 0 && (
             <CommandGroup heading="Applications">
-              {data.applications.map((a) => (
+              {results.applications.map((a) => (
                 <CommandItem key={a.id} value={`application ${a.company} ${a.role}`} onSelect={() => navigate("/dashboard/applications")}>
                   <Briefcase className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="truncate">{hl(`${a.company} - ${a.role}`, query)}</span>
@@ -131,7 +188,40 @@ export default function DashboardSearch() {
                 </CommandItem>
               ))}
             </CommandGroup>
-          ) : null}
+          )}
+
+          {!searching && results.contacts.length > 0 && (
+            <CommandGroup heading="Contacts">
+              {results.contacts.map((c) => (
+                <CommandItem key={c.id} value={`contact ${c.name}`} onSelect={() => navigate("/dashboard/contacts")}>
+                  <Users className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="truncate">{hl(c.name, query)}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {!searching && results.habits.length > 0 && (
+            <CommandGroup heading="Habits">
+              {results.habits.map((h) => (
+                <CommandItem key={h.id} value={`habit ${h.name}`} onSelect={() => navigate("/dashboard/habits")}>
+                  <CheckSquare className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="truncate">{hl(h.name, query)}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {!searching && results.streaks.length > 0 && (
+            <CommandGroup heading="Streaks">
+              {results.streaks.map((s) => (
+                <CommandItem key={s.id} value={`streak ${s.name}`} onSelect={() => navigate("/dashboard/streaks")}>
+                  <Flame className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="truncate">{hl(s.name, query)}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
         </CommandList>
       </CommandDialog>
     </>
