@@ -93,14 +93,17 @@ export default function SpotifyAnalytics() {
       ) : tab === "tracks" ? (
         <div className="space-y-3">
           {tracks.length > 0 && (
-            <div className="grid grid-cols-10 gap-0.5 rounded-lg overflow-hidden h-14">
-              {tracks.slice(0, 20).map((t) =>
-                t.albumArt ? (
-                  <img key={t.id} src={t.albumArt} alt="" className="w-full h-full object-cover" title={t.name} />
-                ) : (
-                  <div key={t.id} className="w-full h-full bg-muted" />
-                )
-              )}
+            <div className="space-y-1">
+              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">popularity · top 10</p>
+              {tracks.slice(0, 10).map((t, i) => (
+                <div key={t.id} className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{t.rank}</span>
+                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${t.popularity}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }} />
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground/60 w-6 text-right shrink-0">{t.popularity}</span>
+                </div>
+              ))}
             </div>
           )}
           {avgEnergy !== null && (
@@ -177,13 +180,16 @@ export default function SpotifyAnalytics() {
       ) : tab === "artists" ? (
         <div className="space-y-3">
           {artists.length > 0 && (
-            <div className="flex gap-1 flex-wrap">
-              {artists.map((a) => (
-                a.image ? (
-                  <img key={a.rank} src={a.image} alt={a.name} title={a.name} className="w-8 h-8 rounded-full object-cover border border-border/40" />
-                ) : (
-                  <div key={a.rank} className="w-8 h-8 rounded-full bg-muted border border-border/40" />
-                )
+            <div className="space-y-1">
+              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">popularity · top 10</p>
+              {artists.slice(0, 10).map((a, i) => (
+                <div key={a.rank} className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{a.rank}</span>
+                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${a.popularity}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }} />
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground/60 w-6 text-right shrink-0">{a.popularity}</span>
+                </div>
               ))}
             </div>
           )}

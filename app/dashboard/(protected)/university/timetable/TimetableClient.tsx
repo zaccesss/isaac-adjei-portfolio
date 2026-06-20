@@ -153,7 +153,7 @@ export default function TimetableClient({ events, hasUrl }: { events: ICalEvent[
         </div>
         <div className="flex gap-1">
           {[["upcoming", "Upcoming"], ["week", "This week"]].map(([v, l]) => (
-            <button key={v} type="button" onClick={() => setView(v as "week" | "upcoming")} className={`text-xs px-3 py-1 rounded-full border transition-colors ${view === v ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>{l}</button>
+            <button key={v} onClick={() => setView(v as "week" | "upcoming")} className={`text-xs px-3 py-1 rounded-full border transition-colors ${view === v ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>{l}</button>
           ))}
         </div>
       </div>

@@ -8,13 +8,14 @@
 import { useEffect, useRef } from "react"
 
 const BAR_COUNT = 48
-const BAR_H     = 72
-const VH        = 110
+const BAR_H     = 90
+const VH        = 132
 const WAVE_Y    = 14
-const BAR_TOP   = 28
+const BAR_TOP   = 36
 const BAR_W     = 5
 const GAP       = 3
 const VBOX_W    = BAR_COUNT * (BAR_W + GAP) - GAP
+const PEAK_H    = 3
 
 // Map loudness (dB, typical -25..-5) to a 0..1 brightness multiplier
 function loudnessFactor(loudness?: number): number {
@@ -34,6 +35,7 @@ interface Props {
 
 export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 100, loudness, beats, progressMs = 0 }: Props) {
   const barsRef          = useRef<SVGGElement>(null)
+  const peakGRef         = useRef<SVGGElement>(null)
   const clipGRef         = useRef<SVGGElement>(null)
   const sineRef          = useRef<SVGPathElement>(null)
   const rafRef           = useRef(0)
@@ -96,6 +98,7 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
       const maxH  = p ? Math.max(14, (e ?? 0.4) * BAR_H * 0.95 * lf * (1 + beat.boost * 0.55)) : 5
       const minH  = p ? Math.max(1, 3 * lf) : 1
       const barEls  = barsG.children
+      const peakEls = peakGRef.current?.children
       const clipEls = clipGRef.current?.children
 
       for (let i = 0; i < BAR_COUNT; i++) {
@@ -108,8 +111,14 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
         if (el) {
           el.setAttribute("height", hs)
           el.setAttribute("y", y)
-          // Loudness shifts the opacity range: loud = vivid, quiet = muted
           el.setAttribute("opacity", p ? Math.min(1, (0.35 + 0.5 * osc) * lf + beat.boost * 0.15).toFixed(2) : (0.06 + 0.05 * osc).toFixed(2))
+        }
+        // Peak cap: solid dark rect at bar top, visible only when bar is tall + beat fires
+        const pel = peakEls?.[i] as SVGRectElement | undefined
+        if (pel) {
+          pel.setAttribute("y", y)
+          const peakOp = p ? Math.min(1, beat.boost * lf * (h / BAR_H) * 1.4 + lf * (h / BAR_H) * 0.25).toFixed(2) : "0"
+          pel.setAttribute("opacity", peakOp)
         }
         const cel = clipEls?.[i] as SVGRectElement | undefined
         if (cel) { cel.setAttribute("height", hs); cel.setAttribute("y", y) }
@@ -177,6 +186,13 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
       <g ref={barsRef} fill="url(#sbBarGrad)">
         {Array.from({ length: BAR_COUNT }, (_, i) => (
           <rect key={i} x={i * (BAR_W + GAP)} y={BAR_TOP + BAR_H - 2} width={BAR_W} height={2} rx={1} />
+        ))}
+      </g>
+
+      {/* Peak caps: dark solid rect at the top of each bar, intensity driven by beat + height */}
+      <g ref={peakGRef} fill="hsl(var(--primary))" opacity={0}>
+        {Array.from({ length: BAR_COUNT }, (_, i) => (
+          <rect key={i} x={i * (BAR_W + GAP)} y={BAR_TOP + BAR_H - PEAK_H} width={BAR_W} height={PEAK_H} rx={1} opacity={0} />
         ))}
       </g>
 

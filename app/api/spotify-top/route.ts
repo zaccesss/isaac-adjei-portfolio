@@ -24,7 +24,7 @@ async function getAccessToken(): Promise<string | null> {
   return data.access_token
 }
 
-export const revalidate = 3600
+export const revalidate = 0
 
 export async function GET() {
   try {
@@ -35,7 +35,7 @@ export async function GET() {
 
     const [tracksRes, artistsRes] = await Promise.all([
       fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=20", { headers }),
-      fetch("https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=15", { headers }),
+      fetch("https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=20", { headers }),
     ])
 
     if (!tracksRes.ok && !artistsRes.ok) return NextResponse.json({ tracks: [], artists: [] })
@@ -72,7 +72,7 @@ export async function GET() {
     const artists = artistsData.items.map((a: any, i: number) => ({
       rank: i + 1,
       name: a.name,
-      genres: (a.genres ?? []).slice(0, 2),
+      genres: a.genres ?? [],
       image: a.images?.[2]?.url ?? a.images?.[0]?.url ?? null,
       url: a.external_urls?.spotify ?? null,
       popularity: a.popularity ?? 0,
