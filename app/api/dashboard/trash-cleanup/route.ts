@@ -4,8 +4,13 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 export async function GET(req: Request) {
+  // I reject when CRON_SECRET is unset so a request with "Bearer undefined" can never match.
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret) {
+    return NextResponse.json({ error: "CRON_SECRET not set" }, { status: 401 })
+  }
   const auth = req.headers.get("Authorization")
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (auth !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
   }
 
