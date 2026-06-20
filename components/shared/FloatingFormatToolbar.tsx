@@ -82,6 +82,10 @@ export default function FloatingFormatToolbar() {
   // Keep a ref to the element that was active when the toolbar appeared so
   // the format buttons can still operate on it after focus shifts to the toolbar.
   const activeElRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
+  // Remember the exact selection range. Inside a Radix Dialog the focus trap can
+  // collapse the textarea selection the instant a toolbar button is pressed, so
+  // we restore this saved range before applying any formatting.
+  const selRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 })
   const toolbarRef = useRef<HTMLDivElement>(null)
 
   const hide = useCallback(() => {
@@ -103,6 +107,8 @@ export default function FloatingFormatToolbar() {
       hide()
       return
     }
+    // Save the live selection so a button press can restore it before formatting
+    selRef.current = { start, end }
 
     const isMarkdown = el.dataset.markdownEditor === "true"
     const rect = el.getBoundingClientRect()
@@ -153,6 +159,12 @@ export default function FloatingFormatToolbar() {
 
   function handleFormat(type: "bold" | "italic" | "strike" | "link") {
     if (!el) return
+    // Restore the saved selection range first - the Radix focus trap may have
+    // collapsed it the moment the button was pressed. Setting the properties
+    // directly works whether or not the element currently holds focus.
+    el.focus()
+    el.selectionStart = selRef.current.start
+    el.selectionEnd = selRef.current.end
     if (type === "bold") wrapSelection(el, "**", "**")
     else if (type === "italic") wrapSelection(el, "_", "_")
     else if (type === "strike") wrapSelection(el, "~~", "~~")
@@ -170,6 +182,9 @@ export default function FloatingFormatToolbar() {
       style={{ position: "fixed", top: toolbar.y, left: toolbar.x, zIndex: 9999 }}
       // Stop the toolbar from stealing blur from the active element on click
       onMouseDown={(e) => e.preventDefault()}
+      // Keep the pointerdown from reaching document so a Radix Dialog does not
+      // treat the toolbar (portaled outside the dialog) as an outside click
+      onPointerDown={(e) => e.stopPropagation()}
     >
       <div className="flex items-center gap-0.5 rounded-lg bg-zinc-800 border border-zinc-700 shadow-lg px-1 py-1">
         {toolbar.isMarkdown && (
