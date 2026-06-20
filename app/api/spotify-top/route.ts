@@ -33,15 +33,17 @@ export async function GET() {
 
     const headers = { Authorization: `Bearer ${token}` }
 
-    const [tracksRes, artistsRes] = await Promise.all([
+    const [tracksRes, artistsRes, showsRes] = await Promise.all([
       fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=20", { headers }),
       fetch("https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=20", { headers }),
+      fetch("https://api.spotify.com/v1/me/shows?limit=50", { headers }),
     ])
 
-    if (!tracksRes.ok && !artistsRes.ok) return NextResponse.json({ tracks: [], artists: [] })
+    if (!tracksRes.ok && !artistsRes.ok) return NextResponse.json({ tracks: [], artists: [], shows: [] })
 
     const tracksData = tracksRes.ok ? (await tracksRes.json() as { items: any[] }) : { items: [] }
     const artistsData = artistsRes.ok ? (await artistsRes.json() as { items: any[] }) : { items: [] }
+    const showsData = showsRes?.ok ? (await showsRes.json() as { items: { added_at: string; show: any }[] }) : { items: [] }
 
     const trackIds = tracksData.items.map((t: any) => t.id).filter(Boolean).join(",")
     let audioFeatures: Record<string, { energy: number; valence: number; tempo: number; danceability: number }> = {}
@@ -69,17 +71,52 @@ export async function GET() {
       ...(audioFeatures[t.id] ?? {}),
     }))
 
-    const artists = artistsData.items.map((a: any, i: number) => ({
-      rank: i + 1,
-      name: a.name,
-      genres: a.genres ?? [],
-      image: a.images?.[2]?.url ?? a.images?.[0]?.url ?? null,
-      url: a.external_urls?.spotify ?? null,
-      popularity: a.popularity ?? 0,
-    }))
+    // Batch-fetch full artist objects — me/top/artists often returns empty genres
+    // and popularity=0; the /v1/artists endpoint is the authoritative source
+    const artistIds = artistsData.items.map((a: any) => a.id).filter(Boolean).join(",")
+    const artistDetail: Record<string, { genres: string[]; followers: number }> = {}
+    if (artistIds) {
+      try {
+        const arRes = await fetch(`https://api.spotify.com/v1/artists?ids=${artistIds}`, { headers })
+        if (arRes.ok) {
+          const ar = await arRes.json() as { artists: any[] }
+          for (const a of ar.artists ?? []) {
+            if (a?.id) artistDetail[a.id] = { genres: a.genres ?? [], followers: a.followers?.total ?? 0 }
+          }
+        }
+      } catch {}
+    }
 
-    return NextResponse.json({ tracks, artists })
+    const artists = artistsData.items.map((a: any, i: number) => {
+      const detail = artistDetail[a.id]
+      return {
+        rank: i + 1,
+        id: a.id,
+        name: a.name,
+        genres: detail?.genres?.length ? detail.genres : (a.genres ?? []),
+        image: a.images?.[2]?.url ?? a.images?.[0]?.url ?? null,
+        url: a.external_urls?.spotify ?? null,
+        followers: detail?.followers ?? a.followers?.total ?? 0,
+      }
+    })
+
+    const shows = showsData.items.map((item: { added_at: string; show: any }) => {
+      const s = item.show
+      return {
+        id: s.id,
+        name: s.name,
+        publisher: s.publisher ?? null,
+        description: s.description ? s.description.replace(/<[^>]*>/g, "").slice(0, 120) : null,
+        image: s.images?.[0]?.url ?? null,
+        totalEpisodes: s.total_episodes ?? 0,
+        explicit: s.explicit ?? false,
+        url: s.external_urls?.spotify ?? null,
+        addedAt: item.added_at,
+      }
+    })
+
+    return NextResponse.json({ tracks, artists, shows })
   } catch {
-    return NextResponse.json({ tracks: [], artists: [] })
+    return NextResponse.json({ tracks: [], artists: [], shows: [] })
   }
 }

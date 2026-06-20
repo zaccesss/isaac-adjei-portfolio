@@ -182,7 +182,7 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
       )}
 
       {/* Timed grid */}
-      <div ref={scrollRef} className="flex overflow-y-auto" style={{ maxHeight: "60vh" }}>
+      <div ref={scrollRef} className="flex overflow-y-auto" style={{ maxHeight: "75vh", paddingBottom: CELL_HEIGHT / 2 }}>
         {/* Hour labels */}
         <div className="w-12 shrink-0 flex flex-col">
           {HOURS.map((h) => (
