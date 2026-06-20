@@ -30,20 +30,25 @@ export async function GET(request: Request) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(snapshot)}\n\n`))
       } catch {}
 
+      // Full status refresh every 2 minutes. Each tick self-fetches 7 endpoints, so the
+      // interval is deliberately slow - device presence does not need second-by-second freshness.
       const interval = setInterval(async () => {
         try {
           const update = await fetchAllStatus(origin)
           controller.enqueue(encoder.encode(`data: ${JSON.stringify(update)}\n\n`))
         } catch {}
-      }, 60000)
+      }, 120000)
 
-      // Fast Spotify-only poll so song changes appear within ~5s without hammering all other endpoints
+      // Spotify-only poll every 30s. This was 5s, which (combined with the persistent
+      // connection across multiple open tabs) self-called /api/spotify ~720 times/hour
+      // per tab and blew the Vercel Fluid Active CPU budget. 30s keeps song changes timely
+      // without the cost.
       const spotifyInterval = setInterval(async () => {
         try {
           const spotify = await fetch(`${origin}/api/spotify`).then(r => r.ok ? r.json() : null).catch(() => null)
           if (spotify) controller.enqueue(encoder.encode(`event: spotify\ndata: ${JSON.stringify(spotify)}\n\n`))
         } catch {}
-      }, 5000)
+      }, 30000)
 
       // I clear the intervals when the client disconnects to avoid orphaned Edge function instances
       return () => { clearInterval(interval); clearInterval(spotifyInterval) }
