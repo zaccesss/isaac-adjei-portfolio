@@ -207,6 +207,7 @@ export async function updateModule(id: string, data: Partial<{
 export async function deleteModule(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
+  await moveToTrash("modules", id)
   await supabase.from("modules").delete().eq("id", id)
   void logActivity("module.delete", id)
   revalidatePath("/dashboard/modules")
@@ -300,6 +301,7 @@ export async function updateAssessment(id: string, data: Partial<{
 export async function deleteAssessment(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
+  await moveToTrash("assessments", id)
   await supabase.from("assessments").delete().eq("id", id)
   void logActivity("grade.delete", id)
   revalidatePath("/dashboard/modules")
@@ -738,6 +740,7 @@ export async function updateHabit(id: string, data: { name?: string; color?: str
 export async function deleteHabit(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
+  await moveToTrash("habits", id)
   await supabase.from("habit_logs").delete().eq("habit_id", id)
   await supabase.from("habits").delete().eq("id", id)
   void logActivity("habit.delete", id)
@@ -1020,7 +1023,9 @@ export async function updateCourseModule(id: string, data: Partial<{
 export async function deleteCourseModule(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
+  await moveToTrash("course_modules", id)
   await supabase.from("course_modules").delete().eq("id", id)
+  void logActivity("course_module.delete", id)
   revalidatePath("/dashboard/course")
 }
 
@@ -1468,6 +1473,7 @@ export async function bulkDeleteOpenSourceContributions(ids: string[]) {
   await requireAuth()
   // I validate each ID individually before sending the bulk delete.
   if (!ids.length || ids.some((id) => !validId(id))) return INVALID
+  for (const id of ids) await moveToTrash("opensource_contributions", id)
   await supabase.from("opensource_contributions").delete().in("id", ids)
   void logActivity("opensource.bulk_delete", `${ids.length} rows`)
   revalidatePath("/dashboard/opensource")
