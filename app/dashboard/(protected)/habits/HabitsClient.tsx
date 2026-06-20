@@ -11,6 +11,7 @@ import {
   CheckCircle2, Plus, Trash2, Target,
   TrendingUp, Calendar, FlaskConical, Pencil
 } from "lucide-react"
+import { ColourPickerDialog } from "@/components/shared/ColourPickerDialog"
 import {
   createHabit, updateHabit, deleteHabit, checkInHabit, undoHabitCheckIn,
 } from "@/app/dashboard/actions"
@@ -309,23 +310,14 @@ export default function HabitsClient({
               onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
               placeholder="Description (optional)"
             />
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-muted-foreground">Colour</label>
-              <div className="flex gap-2 flex-wrap items-center">
-                {HABIT_COLORS.map((c) => (
-                  <button key={c} type="button" title={c} onClick={() => setEditForm((f) => ({ ...f, color: c }))}
-                    className={`w-5 h-5 rounded-full transition-transform ${editForm.color === c ? "scale-125 ring-2 ring-offset-1 ring-foreground" : ""}`}
-                    style={{ background: c }}
-                  />
-                ))}
-                <input
-                  type="color"
-                  value={editForm.color}
-                  onChange={(e) => setEditForm((f) => ({ ...f, color: e.target.value }))}
-                  title="Custom colour"
-                  className="w-5 h-5 rounded-full cursor-pointer border border-border bg-transparent p-0 appearance-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0"
-                />
-              </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Colour</span>
+              {/* ColourPickerDialog: change only applies when the user presses Apply */}
+              <ColourPickerDialog
+                value={editForm.color}
+                onChange={(c) => setEditForm((f) => ({ ...f, color: c }))}
+                presets={HABIT_COLORS}
+              />
             </div>
             <div className="flex gap-2 justify-end pt-1">
               <Button variant="ghost" onClick={() => setEditHabit(null)}>Cancel</Button>

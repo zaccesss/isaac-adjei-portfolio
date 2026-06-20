@@ -67,6 +67,8 @@ export default function MarkdownEditor({
           placeholder={placeholder}
           rows={rows}
           disabled={disabled}
+          // Marks this textarea so FloatingFormatToolbar shows all formatting buttons
+          data-markdown-editor="true"
           className={cn(
             "w-full resize-none bg-transparent px-3 py-2 text-sm focus:outline-none placeholder:text-muted-foreground/50",
             className
