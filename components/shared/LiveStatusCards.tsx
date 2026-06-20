@@ -285,10 +285,11 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
   }, [])
 
   useEffect(() => {
-    // I replace all individual polling intervals with one SSE connection so the browser
-    // holds a single persistent stream instead of 7 independent fetch timers
-    const es = new EventSource("/api/live-status/stream")
-    es.onmessage = (e) => {
+    // One SSE connection replaces 7 independent fetch timers. I pause it while the tab is
+    // hidden (Page Visibility) so a backgrounded /now page costs nothing on the server.
+    let es: EventSource | null = null
+
+    const onSnapshot = (e: MessageEvent) => {
       try {
         const { spotify: s, macbook, lenovo, gpc, ps5, github, lanyard: l } = JSON.parse(e.data)
         if (s) setSpotify(s)
@@ -314,11 +315,30 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
         }
       } catch {}
     }
-    // Fast Spotify-only event so song changes appear within ~5s
-    es.addEventListener("spotify", (e) => {
+    // Fast Spotify-only event so song changes appear in near-realtime
+    const onSpotify = (e: MessageEvent) => {
       try { setSpotify(JSON.parse(e.data)) } catch {}
-    })
-    return () => es.close()
+    }
+
+    const connect = () => {
+      if (es) return
+      es = new EventSource("/api/live-status/stream")
+      es.onmessage = onSnapshot
+      es.addEventListener("spotify", onSpotify as EventListener)
+    }
+    const disconnect = () => { es?.close(); es = null }
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") connect()
+      else disconnect()
+    }
+
+    if (document.visibilityState === "visible") connect()
+    document.addEventListener("visibilitychange", onVisibility)
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility)
+      disconnect()
+    }
   }, [])
 
   useEffect(() => {

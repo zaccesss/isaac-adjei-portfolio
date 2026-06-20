@@ -1,69 +1,10 @@
-// I read gaming PC presence from two Redis keys: gpc:status (600s TTL set by the
-// Windows daemon) and gpc:last-known (no TTL). The live key's presence determines
-// online status. CPU, GPU and game are only exposed when the PC is online - stale
-// values from last-known would be misleading.
+// Gaming PC presence (CPU/GPU/game) written to Redis by a Windows daemon. Data logic lives
+// in lib/live-status (getGpc) so the SSE stream can read it in-process.
 import { NextResponse } from "next/server"
-import { Redis } from "@upstash/redis"
-
-let redis: Redis | null = null
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  })
-}
-
-type StatusPayload = {
-  timestamp: string
-  device?: string
-  cpu_percent: number | null
-  gpu_percent: number | null
-  game: string | null
-}
+import { getGpc } from "@/lib/live-status"
 
 export async function GET() {
-  try {
-    if (!redis) {
-      return NextResponse.json(
-        { online: false, lastSeen: null, device: null, cpu: null, gpu: null, game: null },
-        { headers: { "Cache-Control": "no-store" } }
-      )
-    }
-
-    const [live, lastKnown] = await Promise.all([
-      redis.get<StatusPayload>("gpc:status"),
-      redis.get<StatusPayload>("gpc:last-known"),
-    ])
-
-    // live key has a 600s TTL - if it exists the daemon pinged in the last 10 minutes
-    const online = live !== null
-    // I prefer live data, but fall back to last-known so lastSeen is always available even when the PC is off
-    const source = live ?? lastKnown
-
-    if (!source) {
-      return NextResponse.json(
-        { online: false, lastSeen: null, device: null, cpu: null, gpu: null, game: null },
-        { headers: { "Cache-Control": "no-store" } }
-      )
-    }
-
-    return NextResponse.json(
-      {
-        online,
-        lastSeen:  source.timestamp,
-        device:    source.device ?? null,
-        // I only expose CPU, GPU and game when online - stale values from last-known would be misleading
-        cpu:       online ? source.cpu_percent : null,
-        gpu:       online ? source.gpu_percent : null,
-        // game is detected by the Windows daemon watching foreground process names
-        game:      online ? (source.game ?? null) : null,
-      },
-      { headers: { "Cache-Control": "public, max-age=10, stale-while-revalidate=20" } }
-    )
-  } catch {
-    return NextResponse.json(
-      { online: false, lastSeen: null, device: null, cpu: null, gpu: null, game: null },
-      { headers: { "Cache-Control": "no-store" } }
-    )
-  }
+  return NextResponse.json(await getGpc(), {
+    headers: { "Cache-Control": "public, max-age=10, stale-while-revalidate=20" },
+  })
 }
