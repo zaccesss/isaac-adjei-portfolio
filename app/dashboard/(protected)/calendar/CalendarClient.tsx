@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useTransition } from "react"
+import { useState, useRef, useEffect, useTransition } from "react"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
 import { ChevronLeft, ChevronRight, Plus, X, Settings2 } from "lucide-react"
@@ -70,6 +70,11 @@ function EventTooltip({ event, onClose }: { event: CalendarEvent; onClose: () =>
   )
 }
 
+// Apple Calendar-style gradient from a feed colour
+function feedGradient(color: string): string {
+  return `linear-gradient(135deg, ${color}dd 0%, ${color} 100%)`
+}
+
 function EventPill({ event, compact = false }: { event: CalendarEvent; compact?: boolean }) {
   const [open, setOpen] = useState(false)
   return (
@@ -78,10 +83,10 @@ function EventPill({ event, compact = false }: { event: CalendarEvent; compact?:
         type="button"
         onClick={() => setOpen((o) => !o)}
         title={event.summary}
-        className={`w-full text-left rounded truncate text-white font-medium ${compact ? "text-[10px] px-1 py-0.5" : "text-xs px-1.5 py-0.5"}`}
-        style={{ backgroundColor: event.feedColor }}
+        className={`w-full text-left rounded-md truncate text-white font-medium shadow-sm ${compact ? "text-[10px] px-1 py-0.5" : "text-xs px-1.5 py-0.5"}`}
+        style={{ background: feedGradient(event.feedColor) }}
       >
-        {!isAllDay(event) && !compact && <span className="opacity-75">{formatTime(event.dtstart)} </span>}
+        {!isAllDay(event) && !compact && <span className="opacity-80">{formatTime(event.dtstart)} </span>}
         {event.summary}
       </button>
       {open && <EventTooltip event={event} onClose={() => setOpen(false)} />}
@@ -91,15 +96,23 @@ function EventPill({ event, compact = false }: { event: CalendarEvent; compact?:
 
 // ── time grid (shared by day + week) ─────────────────────────────────────────
 
-const CELL_HEIGHT = 48 // px per hour
+const CELL_HEIGHT = 56 // px per hour — matches Apple Calendar proportions
 
 function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
   const today = new Date()
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Build a map: dayIndex -> timed events (sorted by start)
-  const dayEvents = days.map((day) =>
+  const timedByDay = days.map((day) =>
     events.filter((e) => isSameDay(e.dtstart, day) && !isAllDay(e)).sort((a, b) => a.dtstart.getTime() - b.dtstart.getTime())
   )
+
+  useEffect(() => {
+    if (!scrollRef.current) return
+    const nowMins = today.getHours() * 60 + today.getMinutes()
+    const scrollTo = Math.max(0, (nowMins / 60) * CELL_HEIGHT - 160)
+    scrollRef.current.scrollTop = scrollTo
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // All-day events per day
   const allDayEvents = days.map((day) => events.filter((e) => isSameDay(e.dtstart, day) && isAllDay(e)))
@@ -117,13 +130,11 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
       const end = minutesFromMidnight(e.dtend)
 
       if (start >= maxEnd) {
-        // New non-overlapping group
         groupStart = i
         groupCols = 1
       }
       maxEnd = Math.max(maxEnd, end)
 
-      // Greedy column assignment
       const usedCols = placed.slice(groupStart).map((p) => {
         const s2 = minutesFromMidnight(p.event.dtstart)
         const e2 = minutesFromMidnight(p.event.dtend)
@@ -135,7 +146,6 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
       placed.push({ event: e, col, cols: 1 })
     }
 
-    // Fix cols value for the whole group
     let i = 0
     while (i < placed.length) {
       const s = minutesFromMidnight(placed[i].event.dtstart)
@@ -172,11 +182,15 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
       )}
 
       {/* Timed grid */}
-      <div className="flex overflow-y-auto" style={{ maxHeight: "60vh" }}>
+      <div ref={scrollRef} className="flex overflow-y-auto" style={{ maxHeight: "60vh" }}>
         {/* Hour labels */}
         <div className="w-12 shrink-0 flex flex-col">
           {HOURS.map((h) => (
-            <div key={h} className="flex items-start justify-end pr-2 text-[10px] text-muted-foreground" style={{ height: CELL_HEIGHT }}>
+            <div
+              key={h}
+              className="flex items-start justify-end pr-2 text-[10px] text-muted-foreground shrink-0"
+              style={{ height: CELL_HEIGHT }}
+            >
               {h > 0 ? `${h.toString().padStart(2, "0")}:00` : ""}
             </div>
           ))}
@@ -186,14 +200,18 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
         <div className="flex-1 grid relative" style={{ gridTemplateColumns: `repeat(${days.length}, 1fr)` }}>
           {days.map((day, di) => {
             const isToday = isSameDay(day, today)
-            const placed = layoutEvents(dayEvents[di])
+            const placed = layoutEvents(timedByDay[di])
             const nowMins = isToday ? today.getHours() * 60 + today.getMinutes() : -1
 
             return (
-              <div key={di} className="relative border-l border-border" style={{ height: CELL_HEIGHT * 24 }}>
+              <div
+                key={di}
+                className={`relative border-l border-border ${isToday ? "bg-primary/[0.02]" : ""}`}
+                style={{ height: CELL_HEIGHT * 24 }}
+              >
                 {/* Hour lines */}
                 {HOURS.map((h) => (
-                  <div key={h} className="absolute w-full border-t border-border/40" style={{ top: h * CELL_HEIGHT }} />
+                  <div key={h} className="absolute w-full border-t border-border/30" style={{ top: h * CELL_HEIGHT }} />
                 ))}
 
                 {/* Now line */}
@@ -210,7 +228,7 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
                 {placed.map(({ event, col, cols }) => {
                   const startMins = minutesFromMidnight(event.dtstart)
                   const endMins = minutesFromMidnight(event.dtend)
-                  const duration = Math.max(endMins - startMins, 30)
+                  const duration = Math.max(endMins - startMins, 20)
                   const top = (startMins / 60) * CELL_HEIGHT
                   const height = (duration / 60) * CELL_HEIGHT
                   const width = `${100 / cols}%`
@@ -238,11 +256,11 @@ function EventTimeBlock({ event, top, height, left, width }: { event: CalendarEv
           type="button"
           onClick={() => setOpen((o) => !o)}
           title={event.summary}
-          className="w-full h-full text-left rounded-md text-white px-1.5 py-1 overflow-hidden text-[10px] leading-snug font-medium hover:opacity-90 transition-opacity"
-          style={{ backgroundColor: event.feedColor }}
+          className="w-full h-full text-left rounded-lg text-white px-1.5 py-1 overflow-hidden text-[10px] leading-snug font-medium hover:brightness-110 transition-all shadow-sm"
+          style={{ background: feedGradient(event.feedColor) }}
         >
           <div className="font-semibold truncate">{event.summary}</div>
-          {height > 32 && <div className="opacity-75">{formatTime(event.dtstart)} – {formatTime(event.dtend)}</div>}
+          {height > 32 && <div className="opacity-80 truncate">{formatTime(event.dtstart)} - {formatTime(event.dtend)}</div>}
           {height > 52 && event.location && <div className="opacity-75 truncate">📍 {event.location}</div>}
         </button>
         {open && <EventTooltip event={event} onClose={() => setOpen(false)} />}
@@ -298,9 +316,13 @@ function WeekView({ events, cursor, onPrev, onNext }: { events: CalendarEvent[];
           {days.map((day, i) => {
             const isToday = isSameDay(day, today)
             return (
-              <div key={i} className="flex-1 text-center py-2 border-l border-border first:border-l-0">
-                <p className="text-[10px] text-muted-foreground uppercase">{DAYS_SHORT[i]}</p>
-                <p className={`text-sm font-semibold ${isToday ? "text-primary" : ""}`}>{day.getDate()}</p>
+              <div key={i} className={`flex-1 text-center py-2 border-l border-border first:border-l-0 ${isToday ? "bg-primary/5" : ""}`}>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{DAYS_SHORT[i]}</p>
+                <div className="flex items-center justify-center mt-0.5">
+                  <span className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-semibold ${isToday ? "bg-primary text-primary-foreground" : ""}`}>
+                    {day.getDate()}
+                  </span>
+                </div>
               </div>
             )
           })}
@@ -367,11 +389,11 @@ function MonthView({ events, cursor, onPrev, onNext, onDayClick }: {
                 {dayEvs.slice(0, 3).map((e) => (
                   <div
                     key={e.uid}
-                    className="w-full text-[10px] px-1 py-0.5 rounded truncate text-white font-medium"
-                    style={{ backgroundColor: e.feedColor }}
+                    className="w-full text-[10px] px-1 py-0.5 rounded-md truncate text-white font-medium shadow-sm"
+                    style={{ background: feedGradient(e.feedColor) }}
                     title={e.summary}
                   >
-                    {!isAllDay(e) && <span className="opacity-75">{formatTime(e.dtstart)} </span>}
+                    {!isAllDay(e) && <span className="opacity-80">{formatTime(e.dtstart)} </span>}
                     {e.summary}
                   </div>
                 ))}
@@ -536,6 +558,7 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
   const [view, setView] = useState<View>("week")
   const [cursor, setCursor] = useState(() => new Date())
   const [showFeeds, setShowFeeds] = useState(false)
+  const [gridKey, setGridKey] = useState(0)
 
   function advance(delta: number) {
     setCursor((prev) => {
@@ -550,6 +573,7 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
 
   function jumpToToday() {
     setCursor(new Date())
+    setGridKey((k) => k + 1)
   }
 
   function onDayClick(d: Date) {
@@ -643,8 +667,8 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
       {/* Calendar views */}
       {feeds.length > 0 && (
         <>
-          {view === "day" && <DayView events={events} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} />}
-          {view === "week" && <WeekView events={events} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} />}
+          {view === "day" && <DayView key={gridKey} events={events} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} />}
+          {view === "week" && <WeekView key={gridKey} events={events} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} />}
           {view === "month" && <MonthView events={events} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} onDayClick={onDayClick} />}
           {view === "year" && <YearView events={events} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} onMonthClick={onMonthClick} />}
         </>
