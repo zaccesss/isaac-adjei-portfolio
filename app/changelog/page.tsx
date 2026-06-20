@@ -28,6 +28,15 @@ type ChangeEntry = {
 // I list releases newest-first.
 const releases: ChangeEntry[] = [
   {
+    version: "v2.11.0",
+    date: "2026-06-20",
+    changed: [
+      "/now: Spotify widget now detects song changes within 5 seconds - a dedicated fast SSE channel polls only Spotify every 5s, keeping the main status stream at its 60s cadence",
+      "/lab: Spotify visualiser bars are now slightly taller with a stronger gradient (30% opacity at the base rising to fully opaque at the peak); bars can no longer touch the sine wave - a hard cap keeps 3px of clearance at all times; peak cap dots now use the foreground colour so they are visible in both light and dark mode",
+      "/lab: Top Picks - track list and artist list are now shown first with bar charts below (was the other way around); track bars now show real track duration (longest track = 100%) rather than rank position; artist bars now show real follower counts (most followed = 100%); each bar chart has a description label explaining the metric; genre breakdown now fetches genres from a dedicated batch artist call so genres are populated for mainstream artists",
+    ],
+  },
+  {
     version: "v2.10.0",
     date: "2026-06-19",
     added: [
