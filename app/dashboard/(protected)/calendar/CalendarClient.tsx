@@ -385,7 +385,7 @@ function TimeGrid({
       )}
 
       {/* Timed grid */}
-      <div ref={scrollRef} className="flex overflow-y-auto" style={{ maxHeight: "75vh", paddingBottom: CELL_HEIGHT / 2 }}>
+      <div ref={scrollRef} className="flex overflow-y-auto" style={{ maxHeight: "80vh", paddingBottom: CELL_HEIGHT * 2 }}>
         {/* Hour labels */}
         <div className="w-12 shrink-0 flex flex-col">
           {HOURS.map((h) => (
@@ -409,7 +409,7 @@ function TimeGrid({
               <div
                 key={di}
                 className={`relative border-l border-border ${isToday ? "bg-primary/[0.02]" : ""}`}
-                style={{ height: CELL_HEIGHT * 24 }}
+                style={{ height: CELL_HEIGHT * 25 }}
               >
                 {HOURS.map((h) => (
                   <div
