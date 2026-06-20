@@ -13,10 +13,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   KeyRound, Shield, Cpu, Clock, CheckCircle2, XCircle,
-  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity, Trash2, Plug, GraduationCap
+  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity, Trash2, Plug, GraduationCap, Briefcase
 } from "lucide-react"
 import { SiSpotify } from "react-icons/si"
-import { setConfig, clearAllJobs, clearAllApplications, bulkSyncDeadlinesToLinear } from "@/app/dashboard/actions"
+import { setConfig, clearAllJobs, clearAllApplications, bulkSyncDeadlinesToLinear, bulkSyncApplicationsToLinear } from "@/app/dashboard/actions"
 
 type ScraperStatus = {
   lastRun: string | null
@@ -104,6 +104,8 @@ export default function SettingsClient() {
   } | null>(null)
   const [linearSyncLoading, setLinearSyncLoading] = useState(false)
   const [linearSyncMessage, setLinearSyncMessage] = useState<{ text: string; ok: boolean } | null>(null)
+  const [linearAppSyncLoading, setLinearAppSyncLoading] = useState(false)
+  const [linearAppSyncMessage, setLinearAppSyncMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
   // I use Promise.allSettled rather than Promise.all so a single failing status endpoint
   // does not prevent the others from rendering - each section degrades independently
@@ -330,11 +332,24 @@ export default function SettingsClient() {
     setLinearSyncMessage(null)
     try {
       const result = await bulkSyncDeadlinesToLinear()
-      setLinearSyncMessage({ text: `${result.synced} deadline${result.synced === 1 ? "" : "s"} synced to Linear. ${result.skipped > 0 ? `${result.skipped} skipped (Linear not configured or already synced).` : ""}`, ok: true })
+      setLinearSyncMessage({ text: `${result.synced} deadline${result.synced === 1 ? "" : "s"} synced to Linear. ${result.skipped > 0 ? `${result.skipped} skipped (already synced).` : ""}`, ok: true })
     } catch {
-      setLinearSyncMessage({ text: "Sync failed. Check that LINEAR_API_KEY and LINEAR_UNI_TEAM_ID are set.", ok: false })
+      setLinearSyncMessage({ text: "Sync failed. Check LINEAR_API_KEY and LINEAR_UNI_TEAM_ID in Vercel.", ok: false })
     } finally {
       setLinearSyncLoading(false)
+    }
+  }
+
+  async function handleLinearAppSync() {
+    setLinearAppSyncLoading(true)
+    setLinearAppSyncMessage(null)
+    try {
+      const result = await bulkSyncApplicationsToLinear()
+      setLinearAppSyncMessage({ text: `${result.synced} application${result.synced === 1 ? "" : "s"} synced to Linear. ${result.skipped > 0 ? `${result.skipped} skipped (already synced).` : ""}`, ok: true })
+    } catch {
+      setLinearAppSyncMessage({ text: "Sync failed. Check LINEAR_API_KEY and LINEAR_TEAM_ID in Vercel.", ok: false })
+    } finally {
+      setLinearAppSyncLoading(false)
     }
   }
 
@@ -706,15 +721,41 @@ export default function SettingsClient() {
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-sm font-medium">Sync applications to Linear (Careers)</span>
+            </div>
+            <p className="text-xs text-muted-foreground pl-6">
+              Creates a Linear issue for each application not yet synced. Requires <code className="font-mono">LINEAR_TEAM_ID</code> in Vercel.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleLinearAppSync()}
+              disabled={linearAppSyncLoading || !integrationStatus?.linearCareers}
+              className="flex items-center gap-1.5"
+              title={!integrationStatus?.linearCareers ? "Set LINEAR_TEAM_ID in Vercel to enable" : undefined}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${linearAppSyncLoading ? "animate-spin" : ""}`} />
+              {linearAppSyncLoading ? "Syncing..." : "Sync applications"}
+            </Button>
+            {linearAppSyncMessage && (
+              <span className={`text-xs ${linearAppSyncMessage.ok ? "text-green-600" : "text-destructive"}`}>
+                {linearAppSyncMessage.text}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2">
               <GraduationCap className="h-4 w-4 text-muted-foreground shrink-0" />
               <span className="text-sm font-medium">Sync university deadlines to Linear</span>
             </div>
             <p className="text-xs text-muted-foreground pl-6">
-              Creates a Linear issue for every deadline without one yet. Future deadlines sync automatically.
-              Requires <code className="font-mono">LINEAR_UNI_TEAM_ID</code> in Vercel.
-            </p>
-            <p className="text-xs text-muted-foreground pl-6 mt-0.5">
-              First time? Run: <code className="font-mono text-[11px] bg-muted px-1.5 py-0.5 rounded">LINEAR_API_KEY=... npx tsx scripts/linear-university-setup.ts</code>
+              Creates a Linear issue for each deadline not yet synced. Requires <code className="font-mono">LINEAR_UNI_TEAM_ID</code> in Vercel.
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">

@@ -370,74 +370,81 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
       {/* Spotify card */}
       <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
         {hasTrack ? (
-          <div className="relative overflow-hidden">
-            {/* Blurred album art background tint */}
-            {spotify.albumArt && (
-              <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-                <img src={spotify.albumArt} alt="" className="w-full h-full object-cover blur-3xl scale-125 opacity-[0.15]" />
-              </div>
-            )}
-            <div className="relative p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <SiSpotify className="h-3.5 w-3.5 text-primary shrink-0" />
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-primary flex-1 truncate">
-                  {spotifyLabel}
-                </p>
-                <a
-                  href="https://open.spotify.com/user/zaccesss"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Spotify profile"
-                  className="text-foreground/60 hover:text-foreground transition-colors shrink-0"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-              <div className="flex items-center gap-3">
-                {/* Spinning disc — replaces the static square artwork */}
-                <div className={`relative w-14 h-14 rounded-full shrink-0 ${spotify.playing ? "animate-spin [animation-duration:6s]" : ""}`}>
-                  <div className="absolute inset-0 rounded-full border-2 border-border/40" />
-                  {spotify.albumArt ? (
-                    <img src={spotify.albumArt} alt="" className="w-full h-full rounded-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full rounded-full bg-muted flex items-center justify-center text-muted-foreground/40 text-lg">♫</div>
-                  )}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-2.5 h-2.5 rounded-full bg-card/80 border border-border/60" />
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0 relative">
-                  <MarqueeText text={spotify.track ?? ""} active={spotify.playing} className="font-semibold text-sm leading-tight" />
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">{spotify.artist}</p>
-                </div>
-                {spotify.paused && (
-                  <span className="text-xs text-muted-foreground font-mono shrink-0">
-                    &#9646;&#9646; paused
-                  </span>
+          <div className="p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <SiSpotify className="h-3.5 w-3.5 text-primary shrink-0" />
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-primary flex-1 truncate">
+                {spotifyLabel}
+              </p>
+              <a
+                href="https://open.spotify.com/user/zaccesss"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Spotify profile"
+                className="text-foreground/60 hover:text-foreground transition-colors shrink-0"
+              >
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Spinning disc */}
+              <div className={`relative w-14 h-14 rounded-full shrink-0 ${spotify.playing ? "animate-spin [animation-duration:6s]" : ""}`}>
+                <div className="absolute inset-0 rounded-full border-2 border-border/40" />
+                {spotify.albumArt ? (
+                  <img src={spotify.albumArt} alt="" className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <div className="w-full h-full rounded-full bg-muted flex items-center justify-center text-muted-foreground/40 text-lg">♫</div>
                 )}
-              </div>
-              <div className="space-y-1">
-                <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full rounded-full transition-all",
-                      spotify.playing ? "bg-primary" : "bg-muted-foreground/40"
-                    )}
-                    style={{ width: `${progress * 100}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
-                  <span>{formatMs(liveProgressMs)}</span>
-                  <span>{formatMs(spotify.durationMs ?? 0)}</span>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-2.5 h-2.5 rounded-full bg-card/80 border border-border/60" />
                 </div>
               </div>
-              {/* Visualiser bars + sine wave — embedded directly in this card */}
-              <SpotifyBars
-                playing={spotify.playing}
-                albumArt={spotify.albumArt}
-                energy={spotify.audioFeatures?.energy}
-                tempo={spotify.audioFeatures?.tempo}
-              />
+              <div className="flex-1 min-w-0 relative">
+                {spotify.url ? (
+                  <a href={spotify.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-sm leading-tight hover:underline block truncate">
+                    {spotify.track}
+                  </a>
+                ) : (
+                  <MarqueeText text={spotify.track ?? ""} active={spotify.playing} className="font-semibold text-sm leading-tight" />
+                )}
+                <p className="text-xs text-muted-foreground truncate mt-0.5">{spotify.artist}</p>
+              </div>
+              {spotify.paused && (
+                <span className="text-xs text-muted-foreground font-mono shrink-0">
+                  &#9646;&#9646; paused
+                </span>
+              )}
+            </div>
+            <div className="space-y-1">
+              <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    spotify.playing ? "bg-primary" : "bg-muted-foreground/40"
+                  )}
+                  style={{ width: `${progress * 100}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+                <span>{formatMs(liveProgressMs)}</span>
+                <span>{formatMs(spotify.durationMs ?? 0)}</span>
+              </div>
+            </div>
+            {/* Visualiser bars + sine wave — album art tint ONLY on this section */}
+            <div className="relative overflow-hidden rounded-lg">
+              {spotify.albumArt && (
+                <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+                  <img src={spotify.albumArt} alt="" className="w-full h-full object-cover blur-2xl scale-110 opacity-[0.12]" />
+                </div>
+              )}
+              <div className="relative">
+                <SpotifyBars
+                  playing={spotify.playing}
+                  albumArt={spotify.albumArt}
+                  energy={spotify.audioFeatures?.energy}
+                  tempo={spotify.audioFeatures?.tempo}
+                />
+              </div>
             </div>
           </div>
         ) : spotify.lastPlayed ? (

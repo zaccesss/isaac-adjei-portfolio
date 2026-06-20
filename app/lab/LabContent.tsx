@@ -1247,7 +1247,7 @@ export default function LabPage() {
               ⚠️ lab // work in progress ⚠️
             </p>
             <p className="font-mono text-xs text-muted-foreground">
-              terminal, github stats, live coding stats, spotify visualiser and hardware · more experiments incoming
+              terminal, github stats, live coding stats, gaming panel, PCB viewer and hardware · more experiments incoming
             </p>
           </div>
           <div className="flex justify-center">
