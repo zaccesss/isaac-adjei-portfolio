@@ -1253,7 +1253,11 @@ export async function searchDashboard(q: string) {
   if (!q || !validStr(q, 200)) {
     return { goals: [], notes: [], diary: [], applications: [], contacts: [], habits: [], streaks: [] }
   }
-  const pat = `%${q.trim()}%`
+  // I strip PostgREST filter metacharacters (commas, parens, backslashes) from the query before
+  // building the ilike pattern. Without this they could break out of the .or() filter strings
+  // below and inject extra conditions.
+  const safeQ = q.trim().replace(/[,()\\]/g, " ")
+  const pat = `%${safeQ}%`
   const [goals, notes, diary, applications, contacts, habits, streaks] = await Promise.all([
     supabase.from("goals").select("id, title, category").or(`title.ilike.${pat},description.ilike.${pat}`).limit(4),
     supabase.from("notes").select("id, title, folder").or(`title.ilike.${pat},content.ilike.${pat}`).limit(4),

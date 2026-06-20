@@ -41,8 +41,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "File too large (max 500 MB)" }, { status: 413 })
   }
 
-const ext = file.name.split(".").pop() ?? ""
-  const storagePath = `${folder.toLowerCase()}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`
+  const ext = file.name.split(".").pop() ?? ""
+  // I sanitise the folder the same way as the filename so a crafted value like "../" cannot
+  // escape the storage bucket prefix.
+  const safeFolder = folder.toLowerCase().replace(/[^a-z0-9._-]/g, "_")
+  const storagePath = `${safeFolder}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`
 
   const arrayBuffer = await file.arrayBuffer()
   const { error: uploadError } = await supabase.storage
