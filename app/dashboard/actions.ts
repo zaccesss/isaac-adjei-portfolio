@@ -4,9 +4,28 @@
 // service key never ships to the browser and revalidatePath can be called directly.
 // I use server actions rather than direct client-side Supabase calls so the service key never ships to the browser.
 // Every action here is intentionally thin - validate, write, revalidate. No business logic lives here.
+import { auth } from "@/auth"
 import { supabase } from "@/lib/supabase"
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
 import { syncApplicationToLinear, syncDeadlineToLinear } from "@/lib/linear-sync"
+
+// I require a valid dashboard session for EVERY server action below. Next.js server actions
+// are publicly callable POST endpoints, so without an explicit check inside each one an
+// unauthenticated request could invoke them directly. I throw rather than return so a missing
+// session can never be silently treated as a valid no-op. This is the Next.js-recommended
+// pattern - auth inside the action itself, not relying on the middleware perimeter.
+async function requireAuth() {
+  const session = await auth()
+  if (!session) throw new Error("Unauthorised")
+}
+
+// I read config without an auth check for the cached theme reader below, which runs inside
+// unstable_cache (outside request context, where auth() has no cookies). The exported
+// getConfig() wraps this WITH requireAuth so direct calls are still gated.
+async function readConfig(key: string) {
+  const { data } = await supabase.from("config").select("value").eq("key", key).single()
+  return data?.value ?? null
+}
 
 // I fire-and-forget activity logs so a logging failure never blocks the actual action.
 // The activity_log table must exist in Supabase:
@@ -17,6 +36,9 @@ import { syncApplicationToLinear, syncDeadlineToLinear } from "@/lib/linear-sync
 //     created_at timestamptz NOT NULL DEFAULT now()
 //   );
 export async function logActivity(action: string, detail?: string) {
+  // No requireAuth here on purpose: logActivity is a fire-and-forget helper invoked only from
+  // already-authenticated actions (void logActivity(...)). An auth check could throw after the
+  // request context has ended, producing an unhandled rejection.
   const { error } = await supabase.from("activity_log").insert({ action, detail: detail ?? null })
   if (error) console.error("[activity_log]", error.message, error.details)
 }
@@ -77,6 +99,7 @@ export async function createGoal(data: {
   target_date: string
   progress: number
 }) {
+  await requireAuth()
   if (
     !validStr(data.title) ||
     !optStr(data.description, MAX_LONG_TEXT) ||
@@ -98,6 +121,7 @@ export async function updateGoal(id: string, data: Partial<{
   target_date: string
   progress: number
 }>) {
+  await requireAuth()
   // I use Partial<> so callers can patch a single field without supplying the full row
   if (
     !validId(id) ||
@@ -114,6 +138,7 @@ export async function updateGoal(id: string, data: Partial<{
 }
 
 export async function deleteGoal(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("goals", id)
   await supabase.from("goals").delete().eq("id", id)
@@ -133,6 +158,7 @@ export async function createModule(data: {
   summary?: string
   rules?: string
 }) {
+  await requireAuth()
   if (
     !validStr(data.code) ||
     !validStr(data.name) ||
@@ -161,6 +187,7 @@ export async function updateModule(id: string, data: Partial<{
   summary: string
   rules: string
 }>) {
+  await requireAuth()
   if (
     !validId(id) ||
     !optStr(data.code) ||
@@ -178,6 +205,7 @@ export async function updateModule(id: string, data: Partial<{
 }
 
 export async function deleteModule(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("modules").delete().eq("id", id)
   void logActivity("module.delete", id)
@@ -185,6 +213,7 @@ export async function deleteModule(id: string) {
 }
 
 export async function updateModuleStatus(id: string, status: string) {
+  await requireAuth()
   // I split status into its own action because it fires on every Select change
   // and I do not want the caller to build a full update payload just to flip one field
   if (!validId(id) || !validStr(status)) return INVALID
@@ -208,6 +237,7 @@ export async function createAssessment(data: {
   is_pass_fail?: boolean
   my_notes?: string | null
 }) {
+  await requireAuth()
   if (
     !validStr(data.module_id) ||
     !validStr(data.name) ||
@@ -229,6 +259,7 @@ export async function createAssessment(data: {
 }
 
 export async function updateAssessmentMark(id: string, mark: number | null) {
+  await requireAuth()
   // I expose this as a dedicated action because mark entry is the most frequent operation
   // in the modules view - students click a row, type a number and hit Enter
   if (!validId(id)) return INVALID
@@ -250,6 +281,7 @@ export async function updateAssessment(id: string, data: Partial<{
   is_pass_fail: boolean
   my_notes: string | null
 }>) {
+  await requireAuth()
   if (
     !validId(id) ||
     !optStr(data.name) ||
@@ -266,6 +298,7 @@ export async function updateAssessment(id: string, data: Partial<{
 }
 
 export async function deleteAssessment(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("assessments").delete().eq("id", id)
   void logActivity("grade.delete", id)
@@ -297,6 +330,7 @@ export async function createApplication(data: {
   sponsors_visa?: string
   category?: string
 }) {
+  await requireAuth()
   if (
     !validStr(data.company) ||
     !validStr(data.role) ||
@@ -355,6 +389,7 @@ export async function updateApplication(id: string, data: Partial<{
   sponsors_visa: string
   category: string
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("applications").update(data).eq("id", id)
   void logActivity("application.update", data.status ? `status → ${data.status}` : (data.company ?? id))
@@ -368,6 +403,7 @@ export async function updateApplication(id: string, data: Partial<{
 }
 
 export async function deleteApplication(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("applications", id)
   await supabase.from("applications").delete().eq("id", id)
@@ -376,6 +412,7 @@ export async function deleteApplication(id: string) {
 }
 
 export async function bulkDeleteApplications(ids: string[]) {
+  await requireAuth()
   if (!ids.length || ids.some((id) => !validId(id))) return INVALID
   for (const id of ids) await moveToTrash("applications", id)
   await supabase.from("applications").delete().in("id", ids)
@@ -384,6 +421,7 @@ export async function bulkDeleteApplications(ids: string[]) {
 }
 
 export async function archiveApplication(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("applications").update({ archived: true }).eq("id", id)
   void logActivity("application.archive", id)
@@ -391,6 +429,7 @@ export async function archiveApplication(id: string) {
 }
 
 export async function reopenApplication(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("applications").update({ archived: false }).eq("id", id)
   void logActivity("application.reopen", id)
@@ -401,6 +440,7 @@ export async function updateInterviewPrep(
   id: string,
   prep: { notes: string; questions: { id: string; text: string; done: boolean }[]; company_research: string }
 ) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("applications").update({ interview_prep: prep }).eq("id", id)
   void logActivity("application.interview_prep.save", id)
@@ -430,6 +470,7 @@ export async function createVaultEntry(data: {
   notes?: string
   fields?: Record<string, unknown>  // I reserve this for arbitrary extra key-value pairs in future
 }) {
+  await requireAuth()
   if (
     !validStr(data.name) ||
     !validStr(data.type) ||
@@ -477,6 +518,7 @@ export async function updateVaultEntry(id: string, data: Partial<{
   notes: string
   fields: Record<string, unknown>
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("vault").update(data).eq("id", id)
   void logActivity("vault.update", id)
@@ -484,6 +526,7 @@ export async function updateVaultEntry(id: string, data: Partial<{
 }
 
 export async function deleteVaultEntry(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("vault", id)
   await supabase.from("vault").delete().eq("id", id)
@@ -498,6 +541,7 @@ export async function createDiaryEntry(data: {
   content: string
   mood: string
 }) {
+  await requireAuth()
   if (
     !validStr(data.title) ||
     !validStr(data.content, MAX_DIARY_TEXT) ||
@@ -517,6 +561,7 @@ export async function updateDiaryEntry(id: string, data: Partial<{
   mood: string
   updated_at: string
 }>) {
+  await requireAuth()
   if (
     !validId(id) ||
     !optStr(data.title) ||
@@ -531,6 +576,7 @@ export async function updateDiaryEntry(id: string, data: Partial<{
 }
 
 export async function deleteDiaryEntry(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("diary", id)
   await supabase.from("diary").delete().eq("id", id)
@@ -549,6 +595,7 @@ export async function createNote(data: {
   locked: boolean
   color: string | null  // null means no accent colour, the card renders in the default theme colour
 }) {
+  await requireAuth()
   if (
     !validStr(data.title) ||
     !validStr(data.content, MAX_NOTE_TEXT) ||
@@ -574,6 +621,7 @@ export async function updateNote(id: string, data: Partial<{
   color: string | null
   updated_at: string
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   // I spread updated_at on the server side for the same reason as updateDiaryEntry
   // - the client's clock drifts and I do not want stale sort orders
@@ -583,6 +631,7 @@ export async function updateNote(id: string, data: Partial<{
 }
 
 export async function deleteNote(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("notes", id)
   await supabase.from("notes").delete().eq("id", id)
@@ -599,6 +648,7 @@ export async function createStreak(data: {
   color: string
   order_index: number  // I persist order so the drag-to-reorder state survives a page reload
 }) {
+  await requireAuth()
   if (
     !validStr(data.name) ||
     !validStr(data.icon) ||
@@ -620,6 +670,7 @@ export async function updateStreak(id: string, data: Partial<{
   active: boolean
   order_index: number
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("streaks").update(data).eq("id", id)
   void logActivity("streak.update", data.name ?? id)
@@ -627,6 +678,7 @@ export async function updateStreak(id: string, data: Partial<{
 }
 
 export async function deleteStreak(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("streaks", id)
   await supabase.from("streaks").delete().eq("id", id)
@@ -635,6 +687,7 @@ export async function deleteStreak(id: string) {
 }
 
 export async function checkInStreak(streakId: string, date: string) {
+  await requireAuth()
   // I upsert on the composite key (streak_id, date) so re-checking the same day is idempotent
   // - double-clicking the button or a race condition will not create duplicate rows
   if (!validId(streakId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
@@ -644,6 +697,7 @@ export async function checkInStreak(streakId: string, date: string) {
 }
 
 export async function undoStreakCheckIn(streakId: string, date: string) {
+  await requireAuth()
   // I delete rather than setting completed: false so there is no ambiguity
   // between "never checked in" and "checked in then undone" - both look the same in the streak calc
   if (!validId(streakId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
@@ -655,6 +709,7 @@ export async function undoStreakCheckIn(streakId: string, date: string) {
 // ─── Habits ─────────────────────────────────────────────────
 
 export async function createHabit(data: { name: string; color?: string; description?: string }) {
+  await requireAuth()
   if (!validStr(data.name)) return INVALID
   const { data: inserted } = await supabase.from("habits").insert({
     name: data.name.trim(),
@@ -669,6 +724,7 @@ export async function createHabit(data: { name: string; color?: string; descript
 }
 
 export async function updateHabit(id: string, data: { name?: string; color?: string; description?: string | null }) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   const patch: Record<string, unknown> = {}
   if (data.name !== undefined) { if (!validStr(data.name)) return INVALID; patch.name = data.name.trim() }
@@ -680,6 +736,7 @@ export async function updateHabit(id: string, data: { name?: string; color?: str
 }
 
 export async function deleteHabit(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("habit_logs").delete().eq("habit_id", id)
   await supabase.from("habits").delete().eq("id", id)
@@ -688,6 +745,7 @@ export async function deleteHabit(id: string) {
 }
 
 export async function checkInHabit(habitId: string, date: string) {
+  await requireAuth()
   if (!validId(habitId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
   await supabase.from("habit_logs").upsert({ habit_id: habitId, date, completed: true }, { onConflict: "habit_id,date" })
   void logActivity("habit.checkin", date)
@@ -695,6 +753,7 @@ export async function checkInHabit(habitId: string, date: string) {
 }
 
 export async function undoHabitCheckIn(habitId: string, date: string) {
+  await requireAuth()
   if (!validId(habitId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
   await supabase.from("habit_logs").delete().eq("habit_id", habitId).eq("date", date)
   void logActivity("habit.undo_checkin", date)
@@ -711,6 +770,7 @@ export async function createHealthSection(data: {
   order_index: number
   subtype?: string
 }) {
+  await requireAuth()
   if (
     !validStr(data.name) ||
     !validStr(data.type) ||
@@ -734,6 +794,7 @@ export async function updateHealthSection(id: string, data: Partial<{
   active: boolean
   subtype: string | null
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("health_sections").update(data).eq("id", id)
   void logActivity("health.update", id)
@@ -741,6 +802,7 @@ export async function updateHealthSection(id: string, data: Partial<{
 }
 
 export async function deleteHealthSection(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("health_sections", id)
   void logActivity("health.section.delete", id)
@@ -754,6 +816,7 @@ export async function createHealthWorkout(data: {
   notes?: string
   order_index: number
 }) {
+  await requireAuth()
   if (
     !validStr(data.section_id) ||
     !validStr(data.day_label) ||
@@ -773,6 +836,7 @@ export async function updateHealthWorkout(id: string, data: Partial<{
   notes: string
   order_index: number
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   // I always refresh updated_at server-side so I know the true last-modified time
   await supabase.from("health_workouts").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
@@ -781,6 +845,7 @@ export async function updateHealthWorkout(id: string, data: Partial<{
 }
 
 export async function deleteHealthWorkout(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("health_workouts", id)
   void logActivity("health.workout.delete", id)
@@ -793,6 +858,7 @@ export async function updateHealthNutrition(id: string, data: Partial<{
   rules: string[]
   order_index: number
 }>) {
+  await requireAuth()
   if (
     !validId(id) ||
     !optStr(data.category) ||
@@ -811,6 +877,7 @@ export async function createHealthNutrition(data: {
   rules: string[]
   order_index: number
 }) {
+  await requireAuth()
   if (
     !validStr(data.category) ||
     !Array.isArray(data.items) ||
@@ -824,6 +891,7 @@ export async function createHealthNutrition(data: {
 }
 
 export async function deleteHealthNutrition(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("health_nutrition", id)
   void logActivity("health.nutrition.delete", id)
@@ -835,6 +903,7 @@ export async function deleteHealthNutrition(id: string) {
 // I store arbitrary JSON blobs in a single config table keyed by a string rather than creating a table per setting.
 // This keeps the schema stable even as I add new dashboard preferences over time.
 export async function getConfig(key: string) {
+  await requireAuth()
   const { data } = await supabase.from("config").select("value").eq("key", key).single()
   // I return null rather than throwing so callers can treat a missing key as "use default"
   return data?.value ?? null
@@ -843,12 +912,13 @@ export async function getConfig(key: string) {
 // I cache the theme preference for 5 minutes so every protected dashboard page navigation
 // doesn't fire a Supabase round trip. revalidateTag("config-theme") in setConfig clears this immediately on change.
 export const getCachedTheme = unstable_cache(
-  () => getConfig("theme_preference"),
+  () => readConfig("theme_preference"),
   ["theme_preference"],
   { revalidate: 300, tags: ["config-theme"] }
 )
 
 export async function setConfig(key: string, value: unknown) {
+  await requireAuth()
   if (!validStr(key)) return INVALID
   // I upsert on the key column so the first write creates the row and subsequent ones update it
   // - no separate "does this key exist?" check needed, which would waste a round trip
@@ -859,6 +929,7 @@ export async function setConfig(key: string, value: unknown) {
 export type IcalFeed = { url: string; name: string; color: string }
 
 export async function getIcalFeeds(): Promise<IcalFeed[]> {
+  await requireAuth()
   const val = await getConfig("ical_feeds")
   const base: IcalFeed[] = Array.isArray(val) ? (val as IcalFeed[]) : []
   // Merge in the env-var timetable feed if set and not already present
@@ -869,6 +940,7 @@ export async function getIcalFeeds(): Promise<IcalFeed[]> {
 }
 
 export async function saveIcalFeeds(feeds: IcalFeed[]) {
+  await requireAuth()
   // Strip the env-var timetable feed before saving to avoid duplicating it
   const toSave = feeds.filter((f) => f.url !== process.env.ICAL_TIMETABLE_URL)
   await setConfig("ical_feeds", toSave)
@@ -881,6 +953,7 @@ export async function updateNowStatus(data: {
   focused_on?: string
   listening_to?: string
 }) {
+  await requireAuth()
   if (
     !optStr(data.building) ||
     !optStr(data.studying) ||
@@ -908,6 +981,7 @@ export async function createCourseModule(data: {
   prerequisites: string | null
   order_index: number
 }) {
+  await requireAuth()
   if (
     !validStr(data.stage) ||
     !optStr(data.section) ||
@@ -937,12 +1011,14 @@ export async function updateCourseModule(id: string, data: Partial<{
   prerequisites: string | null
   order_index: number
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("course_modules").update(data).eq("id", id)
   revalidatePath("/dashboard/course")
 }
 
 export async function deleteCourseModule(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("course_modules").delete().eq("id", id)
   revalidatePath("/dashboard/course")
@@ -957,6 +1033,7 @@ export async function createWishlistItem(data: {
   priority: string
   notes: string
 }) {
+  await requireAuth()
   if (
     !validStr(data.name) ||
     !validStr(data.category) ||
@@ -977,6 +1054,7 @@ export async function updateWishlistItem(id: string, data: Partial<{
   priority: string
   notes: string
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("wishlist").update(data).eq("id", id)
   void logActivity("wishlist.update", data.name ?? id)
@@ -984,6 +1062,7 @@ export async function updateWishlistItem(id: string, data: Partial<{
 }
 
 export async function deleteWishlistItem(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("wishlist", id)
   await supabase.from("wishlist").delete().eq("id", id)
@@ -1005,6 +1084,7 @@ export async function createInventoryItem(data: {
   warranty_expiry?: string | null
   url?: string
 }) {
+  await requireAuth()
   if (
     !validStr(data.name) ||
     !validStr(data.category) ||
@@ -1035,6 +1115,7 @@ export async function updateInventoryItem(id: string, data: Partial<{
   warranty_expiry: string | null
   url: string
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("inventory_items").update(data).eq("id", id)
   void logActivity("inventory.update", data.name ?? id)
@@ -1042,6 +1123,7 @@ export async function updateInventoryItem(id: string, data: Partial<{
 }
 
 export async function deleteInventoryItem(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("inventory_items", id)
   await supabase.from("inventory_items").delete().eq("id", id)
@@ -1054,6 +1136,7 @@ export async function deleteInventoryItem(id: string) {
 // I run these queries in parallel with Promise.all so the home overview page loads as one
 // round trip rather than 8 sequential ones. Each query only fetches the minimum columns needed.
 export async function getDashboardSummary() {
+  await requireAuth()
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const today = new Date().toISOString().split("T")[0]
   const weekAgoDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
@@ -1148,7 +1231,7 @@ export async function getDashboardSummary() {
 // ─── Global Search ────────────────────────────────────────────────────────────
 
 export async function getDashboardSearchData() {
-  "use server"
+  await requireAuth()
   const [goals, notes, diary, applications] = await Promise.all([
     supabase.from("goals").select("id, title, category, status").order("created_at", { ascending: false }).limit(50),
     supabase.from("notes").select("id, title, folder").order("updated_at", { ascending: false }).limit(50),
@@ -1166,6 +1249,7 @@ export async function getDashboardSearchData() {
 // Real-time ilike search across all major tables. Called client-side via server action
 // so the Supabase service key never touches the browser and we get proper debouncing.
 export async function searchDashboard(q: string) {
+  await requireAuth()
   if (!q || !validStr(q, 200)) {
     return { goals: [], notes: [], diary: [], applications: [], contacts: [], habits: [], streaks: [] }
   }
@@ -1193,6 +1277,7 @@ export async function searchDashboard(q: string) {
 // ─── Activity Log ─────────────────────────────────────────────────────────────
 
 export async function getActivityLog(limit = 50) {
+  await requireAuth()
   const { data } = await supabase
     .from("activity_log")
     .select("id, action, detail, created_at")
@@ -1207,6 +1292,7 @@ export async function getActivityLog(limit = 50) {
 //           ALTER TABLE diary ADD COLUMN IF NOT EXISTS locked boolean DEFAULT false;
 
 export async function toggleDiaryHidden(id: string, hidden: boolean) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("diary").update({ hidden }).eq("id", id)
   void logActivity("diary.update", hidden ? "hidden" : "visible")
@@ -1214,6 +1300,7 @@ export async function toggleDiaryHidden(id: string, hidden: boolean) {
 }
 
 export async function toggleDiaryPinned(id: string, pinned: boolean) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("diary").update({ pinned }).eq("id", id)
   void logActivity("diary.update", pinned ? "pinned" : "unpinned")
@@ -1221,6 +1308,7 @@ export async function toggleDiaryPinned(id: string, pinned: boolean) {
 }
 
 export async function toggleDiaryLocked(id: string, locked: boolean) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("diary").update({ locked }).eq("id", id)
   void logActivity("diary.update", locked ? "locked" : "unlocked")
@@ -1231,6 +1319,7 @@ export async function toggleDiaryLocked(id: string, locked: boolean) {
 // Requires: ALTER TABLE notes ADD COLUMN IF NOT EXISTS hidden boolean DEFAULT false;
 
 export async function toggleNoteHidden(id: string, hidden: boolean) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("notes").update({ hidden }).eq("id", id)
   void logActivity("note.update", hidden ? "hidden" : "visible")
@@ -1238,6 +1327,7 @@ export async function toggleNoteHidden(id: string, hidden: boolean) {
 }
 
 export async function toggleNotePinned(id: string, pinned: boolean) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("notes").update({ pinned }).eq("id", id)
   void logActivity("note.update", pinned ? "pinned" : "unpinned")
@@ -1245,6 +1335,7 @@ export async function toggleNotePinned(id: string, pinned: boolean) {
 }
 
 export async function toggleNoteLocked(id: string, locked: boolean) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("notes").update({ locked }).eq("id", id)
   void logActivity("note.update", locked ? "locked" : "unlocked")
@@ -1256,6 +1347,7 @@ export async function toggleNoteLocked(id: string, locked: boolean) {
 //           ALTER TABLE vault ADD COLUMN IF NOT EXISTS locked boolean DEFAULT false;
 
 export async function toggleVaultHidden(id: string, hidden: boolean) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("vault").update({ hidden }).eq("id", id)
   void logActivity("vault.update", hidden ? "hidden" : "visible")
@@ -1263,6 +1355,7 @@ export async function toggleVaultHidden(id: string, hidden: boolean) {
 }
 
 export async function toggleVaultLocked(id: string, locked: boolean) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("vault").update({ locked }).eq("id", id)
   void logActivity("vault.update", locked ? "locked" : "unlocked")
@@ -1286,6 +1379,7 @@ export type OpenSourceContribution = {
 }
 
 export async function getOpenSourceContributions(): Promise<OpenSourceContribution[]> {
+  await requireAuth()
   // I order by submitted_at descending so the most recent contributions appear first.
   const { data } = await supabase
     .from("opensource_contributions")
@@ -1304,6 +1398,7 @@ export async function addOpenSourceContribution(input: {
   notes?: string | null
   submitted_at: string
 }) {
+  await requireAuth()
   if (
     !validStr(input.repo) ||
     !validStr(input.pr_title) ||
@@ -1337,6 +1432,7 @@ export async function updateOpenSourceContribution(
     submitted_at: string
   }>,
 ) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   // I only validate fields that are present in the patch.
   if (patch.repo !== undefined && !validStr(patch.repo)) return INVALID
@@ -1356,6 +1452,7 @@ export async function updateOpenSourceContribution(
 }
 
 export async function deleteOpenSourceContribution(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("opensource_contributions", id)
   await supabase.from("opensource_contributions").delete().eq("id", id)
@@ -1364,6 +1461,7 @@ export async function deleteOpenSourceContribution(id: string) {
 }
 
 export async function bulkDeleteOpenSourceContributions(ids: string[]) {
+  await requireAuth()
   // I validate each ID individually before sending the bulk delete.
   if (!ids.length || ids.some((id) => !validId(id))) return INVALID
   await supabase.from("opensource_contributions").delete().in("id", ids)
@@ -1386,6 +1484,7 @@ export type BlogReadFunnelRow = {
 }
 
 export async function getBlogReadFunnel(): Promise<BlogReadFunnelRow[]> {
+  await requireAuth()
   const { data, error } = await supabase.rpc("blog_read_funnel")
   if (error || !data) return []
   return data as BlogReadFunnelRow[]
@@ -1398,6 +1497,7 @@ export type PostsHeatmapCell = {
 }
 
 export async function getPostsReadHeatmap(): Promise<PostsHeatmapCell[]> {
+  await requireAuth()
   const { data, error } = await supabase.rpc("posts_read_heatmap")
   if (error || !data) return []
   return data as PostsHeatmapCell[]
@@ -1418,6 +1518,7 @@ export type WakatimeDayRow = {
 }
 
 export async function getWakatimeHeatmap(): Promise<WakatimeDayRow[]> {
+  await requireAuth()
   // I fetch the last 365 days so the heatmap always shows a full year.
   const since = new Date()
   since.setDate(since.getDate() - 364)
@@ -1445,6 +1546,7 @@ export type GitHubStats = {
 }
 
 export async function getGitHubContributions(): Promise<GitHubStats> {
+  await requireAuth()
   const pat = process.env.GH_PAT ?? process.env.GITHUB_PAT
   const empty: GitHubStats = { days: [], totals: { commits: 0, pullRequests: 0, reviews: 0, issues: 0 } }
   if (!pat) return empty
@@ -1501,6 +1603,7 @@ export async function getGitHubContributions(): Promise<GitHubStats> {
 // ─── Data management ─────────────────────────────────────────
 
 export async function clearAllJobs() {
+  await requireAuth()
   // I delete using neq on a dummy value to hit all rows without a WHERE clause,
   // which Supabase's REST API otherwise disallows.
   await supabase.from("jobs").delete().neq("id", "00000000-0000-0000-0000-000000000000")
@@ -1509,6 +1612,7 @@ export async function clearAllJobs() {
 }
 
 export async function clearAllApplications() {
+  await requireAuth()
   const { data } = await supabase.from("applications").select("*").neq("id", "00000000-0000-0000-0000-000000000000")
   if (data && data.length > 0) {
     await supabase.from("trash").insert(
@@ -1545,6 +1649,7 @@ export type Contact = {
 }
 
 export async function getContacts(): Promise<Contact[]> {
+  await requireAuth()
   const { data } = await supabase
     .from("contacts")
     .select("*")
@@ -1565,6 +1670,7 @@ export async function createContact(data: {
   notes?: string
   follow_up?: boolean
 }) {
+  await requireAuth()
   if (!validStr(data.name)) return INVALID
   const { data: inserted } = await supabase
     .from("contacts")
@@ -1589,6 +1695,7 @@ export async function updateContact(id: string, data: Partial<{
   notes: string
   follow_up: boolean
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase
     .from("contacts")
@@ -1599,6 +1706,7 @@ export async function updateContact(id: string, data: Partial<{
 }
 
 export async function deleteContact(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("contacts", id)
   await supabase.from("contacts").delete().eq("id", id)
@@ -1607,6 +1715,7 @@ export async function deleteContact(id: string) {
 }
 
 export async function bulkDeleteContacts(ids: string[]) {
+  await requireAuth()
   if (!ids.length || ids.some((id) => !validId(id))) return INVALID
   for (const id of ids) await moveToTrash("contacts", id)
   await supabase.from("contacts").delete().in("id", ids)
@@ -1627,6 +1736,7 @@ export type TrashItem = {
 }
 
 export async function getTrash(): Promise<TrashItem[]> {
+  await requireAuth()
   const { data } = await supabase
     .from("trash")
     .select("*")
@@ -1635,6 +1745,7 @@ export async function getTrash(): Promise<TrashItem[]> {
 }
 
 export async function restoreFromTrash(trashId: string) {
+  await requireAuth()
   if (!validId(trashId)) return INVALID
   const { data: item } = await supabase.from("trash").select("*").eq("id", trashId).single()
   if (!item) return INVALID
@@ -1645,12 +1756,14 @@ export async function restoreFromTrash(trashId: string) {
 }
 
 export async function permanentlyDelete(trashId: string) {
+  await requireAuth()
   if (!validId(trashId)) return INVALID
   await supabase.from("trash").delete().eq("id", trashId)
   void logActivity("trash.permanent_delete", trashId)
 }
 
 export async function emptyTrash() {
+  await requireAuth()
   await supabase.from("trash").delete().neq("id", "00000000-0000-0000-0000-000000000000")
   void logActivity("trash.empty")
 }
@@ -1664,6 +1777,7 @@ export async function createBodyMetric(data: {
   unit: string
   notes?: string
 }) {
+  await requireAuth()
   if (!validStr(data.date) || !validStr(data.metric) || !validStr(data.unit)) return INVALID
   if (!validNum(data.value, 0, 9999)) return INVALID
   if (!optStr(data.notes)) return INVALID
@@ -1686,6 +1800,7 @@ export async function updateBodyMetric(id: string, data: {
   unit?: string
   notes?: string | null
 }) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   const patch: Record<string, unknown> = {}
   if (data.date !== undefined) { if (!validStr(data.date)) return INVALID; patch.date = data.date }
@@ -1699,6 +1814,7 @@ export async function updateBodyMetric(id: string, data: {
 }
 
 export async function deleteBodyMetric(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("body_metrics", id)
   revalidatePath("/dashboard/health")
@@ -1711,6 +1827,7 @@ export async function createUniModule(data: {
   code: string; name: string; credits: number; year: number
   semester: number; target_grade?: string; color?: string; order_index?: number
 }) {
+  await requireAuth()
   if (!validStr(data.code) || !validStr(data.name)) return INVALID
   if (!validNum(data.credits, 1, 240) || !validNum(data.year, 1, 10) || !validNum(data.semester, 1, 4)) return INVALID
   const { error } = await supabase.from("uni_modules").insert({
@@ -1725,6 +1842,7 @@ export async function createUniModule(data: {
 }
 
 export async function deleteUniModule(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_modules", id)
   revalidatePath("/dashboard/university")
@@ -1735,6 +1853,7 @@ export async function updateUniModule(id: string, data: Partial<{
   code: string; name: string; credits: number; target_grade: string | null
   color: string; active: boolean; order_index: number
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   const { error } = await supabase.from("uni_modules").update(data).eq("id", id)
   if (error) return { error: error.message }
@@ -1746,6 +1865,7 @@ export async function createUniDeadline(data: {
   module_id?: string; title: string; type: string
   due_date: string; weight_pct?: number; notes?: string; semester?: number
 }) {
+  await requireAuth()
   if (!validStr(data.title) || !validStr(data.type) || !validStr(data.due_date)) return INVALID
   if (!optStr(data.notes) || !optNum(data.weight_pct, 0, 100)) return INVALID
   const { data: inserted, error } = await supabase.from("uni_deadlines").insert({
@@ -1767,6 +1887,7 @@ export async function updateUniDeadline(id: string, data: Partial<{
   status: string; submitted_at: string | null; grade_received: string | null; notes: string | null
   title: string; due_date: string; weight_pct: number | null
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   const { error } = await supabase.from("uni_deadlines").update(data).eq("id", id)
   if (error) return { error: error.message }
@@ -1779,6 +1900,7 @@ export async function updateUniDeadline(id: string, data: Partial<{
 }
 
 export async function bulkSyncApplicationsToLinear(): Promise<{ synced: number; skipped: number }> {
+  await requireAuth()
   const { data: apps } = await supabase
     .from("applications")
     .select("id, company, role, type, status, url, linear_issue_id")
@@ -1798,6 +1920,7 @@ export async function bulkSyncApplicationsToLinear(): Promise<{ synced: number; 
 }
 
 export async function bulkSyncDeadlinesToLinear(): Promise<{ synced: number; skipped: number }> {
+  await requireAuth()
   const { data: deadlines } = await supabase
     .from("uni_deadlines")
     .select("id, title, type, due_date, status, linear_issue_id")
@@ -1816,6 +1939,7 @@ export async function bulkSyncDeadlinesToLinear(): Promise<{ synced: number; ski
 }
 
 export async function deleteUniDeadline(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_deadlines", id)
   revalidatePath("/dashboard/university")
@@ -1826,6 +1950,7 @@ export async function createUniSubmission(data: {
   deadline_id?: string; module_id?: string; title: string
   file_name?: string; file_url?: string; notes?: string
 }) {
+  await requireAuth()
   if (!validStr(data.title)) return INVALID
   if (!optStr(data.file_name) || !optStr(data.file_url) || !optStr(data.notes)) return INVALID
   const { error } = await supabase.from("uni_submissions").insert({
@@ -1840,6 +1965,7 @@ export async function createUniSubmission(data: {
 }
 
 export async function deleteUniSubmission(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_submissions", id)
   revalidatePath("/dashboard/university")
@@ -1849,6 +1975,7 @@ export async function deleteUniSubmission(id: string) {
 export async function createUniNote(data: {
   module_id?: string; title: string; content?: string; type?: string; tags?: string[]
 }) {
+  await requireAuth()
   if (!validStr(data.title)) return INVALID
   if (!optStr(data.content, MAX_NOTE_TEXT) || !optStr(data.type)) return INVALID
   const { error } = await supabase.from("uni_notes").insert({
@@ -1864,6 +1991,7 @@ export async function createUniNote(data: {
 export async function updateUniNote(id: string, data: Partial<{
   title: string; content: string; module_id: string | null; type: string; tags: string[]; pinned: boolean
 }>) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   const { error } = await supabase.from("uni_notes").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
   if (error) return { error: error.message }
@@ -1872,6 +2000,7 @@ export async function updateUniNote(id: string, data: Partial<{
 }
 
 export async function deleteUniNote(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_notes", id)
   revalidatePath("/dashboard/university")
@@ -1881,6 +2010,7 @@ export async function deleteUniNote(id: string) {
 export async function createUniResource(data: {
   module_id?: string; title: string; url?: string; type?: string; notes?: string; semester?: number
 }) {
+  await requireAuth()
   if (!validStr(data.title)) return INVALID
   if (!optStr(data.url) || !optStr(data.notes) || !optStr(data.type)) return INVALID
   const { error } = await supabase.from("uni_resources").insert({
@@ -1894,6 +2024,7 @@ export async function createUniResource(data: {
 }
 
 export async function deleteUniResource(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_resources", id)
   revalidatePath("/dashboard/university")
@@ -1904,6 +2035,7 @@ export async function createLibraryBook(data: {
   title: string; author?: string; isbn?: string; module_id?: string
   borrowed_at: string; due_date: string; notes?: string
 }) {
+  await requireAuth()
   if (!validStr(data.title) || !validStr(data.borrowed_at) || !validStr(data.due_date)) return INVALID
   if (!optStr(data.author) || !optStr(data.isbn) || !optStr(data.notes)) return INVALID
   const { error } = await supabase.from("uni_library_books").insert({
@@ -1918,6 +2050,7 @@ export async function createLibraryBook(data: {
 }
 
 export async function returnLibraryBook(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await supabase.from("uni_library_books").update({ returned_at: new Date().toISOString().split("T")[0] }).eq("id", id)
   revalidatePath("/dashboard/university")
@@ -1925,6 +2058,7 @@ export async function returnLibraryBook(id: string) {
 }
 
 export async function deleteLibraryBook(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_library_books", id)
   revalidatePath("/dashboard/university")
@@ -1941,6 +2075,7 @@ export async function createFaithEntry(data: {
   duration_m?: number
   completed?: boolean
 }) {
+  await requireAuth()
   if (!validStr(data.date) || !validStr(data.type)) return INVALID
   if (!optStr(data.title) || !optStr(data.notes)) return INVALID
   if (!optNum(data.duration_m, 0, 1440)) return INVALID
@@ -1958,6 +2093,7 @@ export async function createFaithEntry(data: {
 }
 
 export async function deleteFaithEntry(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("faith_entries", id)
   revalidatePath("/dashboard/faith")
@@ -1970,6 +2106,7 @@ export async function updateFaithEntry(id: string, data: {
   duration_m?: number
   completed?: boolean
 }) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   if (!optStr(data.title) || !optStr(data.notes)) return INVALID
   if (!optNum(data.duration_m, 0, 1440)) return INVALID
@@ -1994,6 +2131,7 @@ export async function createStudySession(data: {
   technique?: string
   productive?: boolean
 }) {
+  await requireAuth()
   if (!validStr(data.date) || !validStr(data.subject)) return INVALID
   if (!validNum(data.duration_m, 0, 1440)) return INVALID
   if (!optStr(data.notes) || !optStr(data.technique)) return INVALID
@@ -2011,6 +2149,7 @@ export async function createStudySession(data: {
 }
 
 export async function deleteStudySession(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("study_sessions", id)
   revalidatePath("/dashboard/study")
@@ -2024,6 +2163,7 @@ export async function updateStudySession(id: string, data: {
   technique?: string
   productive?: boolean
 }) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   if (!optStr(data.subject) || !optStr(data.notes) || !optStr(data.technique)) return INVALID
   if (data.duration_m !== undefined && !validNum(data.duration_m, 0, 1440)) return INVALID
@@ -2054,6 +2194,7 @@ export type CalendarCustomEvent = {
 }
 
 export async function getCalendarCustomEvents(): Promise<CalendarCustomEvent[]> {
+  await requireAuth()
   const { data } = await supabase
     .from("calendar_events")
     .select("id, title, start_at, end_at, location, description, colour, all_day, event_type")
@@ -2072,6 +2213,7 @@ export async function createCalendarEvent(data: {
   all_day: boolean
   event_type: "general" | "timetable"
 }) {
+  await requireAuth()
   if (
     !validStr(data.title) ||
     !validStr(data.start_at) ||
@@ -2109,6 +2251,7 @@ export async function updateCalendarEvent(id: string, data: Partial<{
   all_day: boolean
   event_type: "general" | "timetable"
 }>) {
+  await requireAuth()
   if (
     !validId(id) ||
     !optStr(data.title) ||
@@ -2125,6 +2268,7 @@ export async function updateCalendarEvent(id: string, data: Partial<{
 }
 
 export async function deleteCalendarEvent(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("calendar_events", id)
   await supabase.from("calendar_events").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", id)
@@ -2147,6 +2291,7 @@ export type UserFile = {
 }
 
 export async function getUserFiles(): Promise<UserFile[]> {
+  await requireAuth()
   const { data } = await supabase
     .from("user_files")
     .select("id, name, original_name, folder, size_bytes, mime_type, storage_path, created_at")
@@ -2163,6 +2308,7 @@ export async function uploadFile(data: {
   mime_type: string
   storage_path: string
 }) {
+  await requireAuth()
   if (
     !validStr(data.name) ||
     !validStr(data.original_name) ||
@@ -2186,6 +2332,7 @@ export async function uploadFile(data: {
 }
 
 export async function deleteFile(id: string) {
+  await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("user_files", id)
   await supabase.from("user_files").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", id)
@@ -2194,6 +2341,7 @@ export async function deleteFile(id: string) {
 }
 
 export async function renameFile(id: string, name: string) {
+  await requireAuth()
   if (!validId(id) || !validStr(name)) return INVALID
   await supabase.from("user_files").update({ name: name.trim() }).eq("id", id)
   void logActivity("file.rename", name)
@@ -2201,6 +2349,7 @@ export async function renameFile(id: string, name: string) {
 }
 
 export async function moveFile(id: string, folder: string) {
+  await requireAuth()
   if (!validId(id) || !validStr(folder)) return INVALID
   await supabase.from("user_files").update({ folder: folder.trim() }).eq("id", id)
   void logActivity("file.move", folder)
@@ -2208,6 +2357,7 @@ export async function moveFile(id: string, folder: string) {
 }
 
 export async function createUploadSignedUrl(path: string) {
+  await requireAuth()
   if (!validStr(path)) return INVALID
   const { data, error } = await supabase.storage.from("user-files").createSignedUploadUrl(path)
   if (error) return { error: error.message }
@@ -2215,6 +2365,7 @@ export async function createUploadSignedUrl(path: string) {
 }
 
 export async function createDownloadSignedUrl(path: string) {
+  await requireAuth()
   if (!validStr(path)) return INVALID
   const { data, error } = await supabase.storage.from("user-files").createSignedUrl(path, 300)
   if (error) return { error: error.message }
