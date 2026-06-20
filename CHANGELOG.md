@@ -9,18 +9,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- `/lab`: Spotify top picks panel gains genre breakdown tab (horizontal bar chart of genre frequency from top 15 artists with coloured bars and pill tags), album art mosaic strip across all 20 tracks, artist photo circle mosaic, and audio stat pills (energy, mood, tempo, danceability) derived from Spotify audio features
+- `/lab`: Spotify top picks panel: tracks and artists tabs now show a ranked popularity bar chart (one coloured bar per entry) instead of image mosaics; genre tab shows bar chart aggregated from all top-20 artists with coloured bars and pill tags; audio stat pills (energy, mood, tempo, danceability) retained
 - `/lab`: section order updated to GitHub stats, WakaTime, PCB viewer, gaming panel, Spotify analytics
+- `/now` Spotify visualiser: bar height increased, peak caps added at the top of each bar - caps darken on beat and scale with loudness so loud peaks are visibly more intense; beat detection now uses 250ms progress ticks for tighter sync; audio analysis fetches all artist genres (was limited to 2 per artist)
+- Dashboard search (`Cmd+K`): query text is highlighted in all results - matching substring shown with a primary-colour highlight so matching portions stand out
+- University timetable: each event card now has attendance buttons (Present / Late / Absent) and an expandable notes field; both are persisted in localStorage per event and date
+- Calendar: per-feed visibility toggle in the feed legend - click any feed pill to hide all its events; the pill shows strikethrough and an outlined dot while hidden; event count updates in real time
+- Calendar: free colour picker (`<input type="color">`) alongside the preset swatches when adding or editing an iCal feed, in habits, and in streaks - any hex colour can now be chosen
 
 ### Changed
 
 - Dashboard sidebar restructured into collapsible groups (Daily, Wellbeing, Personal, Belongings, Analytics) with chevron arrows; collapse state persisted per group in localStorage; active groups stay open automatically
 - Live-status SSE stream reduced from polling every 10s to every 60s
+- Spotify top-picks API now returns all artist genres (previously capped at 2 per artist) and fetches the top 20 artists (was 15); ISR cache removed so genre data is always fresh
 
 ### Fixed
 
 - Edit controls added to Habits and Streaks (pencil icon opens pre-filled dialog with name, description and colour swatch picker) and Body Metrics (hover reveals pencil alongside delete)
 - `updateHabit` and `updateBodyMetric` server actions added to `app/dashboard/actions.ts`
+- `SpotifyBars`: `progressSetAtRef` initialised to `0` instead of `performance.now()` at render time to satisfy the `react-hooks/purity` ESLint rule that was failing CI
 
 ---
 
