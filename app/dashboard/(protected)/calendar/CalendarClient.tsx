@@ -3,13 +3,13 @@
 import { useState, useRef, useEffect, useTransition } from "react"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
-import { ChevronLeft, ChevronRight, Plus, X, Settings2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, X, Settings2, Trash2, Edit2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import type { CalendarEvent } from "./page"
 import type { IcalFeed } from "@/app/dashboard/actions"
-import { saveIcalFeeds } from "@/app/dashboard/actions"
+import { saveIcalFeeds, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from "@/app/dashboard/actions"
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -20,6 +20,17 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const HOURS = Array.from({ length: 24 }, (_, i) => i)
 const FEED_COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6", "#ef4444", "#8b5cf6", "#f97316"]
+
+export type CustomEvent = {
+  id: string
+  title: string
+  start_at: string
+  end_at: string
+  location?: string
+  description?: string
+  colour: string
+  all_day: boolean
+}
 
 function isSameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
@@ -46,25 +57,212 @@ function getWeekStart(d: Date) {
   return copy
 }
 
-// ── event tooltip ─────────────────────────────────────────────────────────────
+function toLocalDateTimeString(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 
-function EventTooltip({ event, onClose }: { event: CalendarEvent; onClose: () => void }) {
+// ── event detail sheet ────────────────────────────────────────────────────────
+
+function EventDetailSheet({
+  event,
+  onClose,
+  onEdit,
+  onDelete,
+}: {
+  event: CalendarEvent
+  onClose: () => void
+  onEdit?: () => void
+  onDelete?: () => void
+}) {
+  const isCustom = event.feedName === "Custom"
   return (
-    <div className="absolute z-20 w-56 bg-card border border-border rounded-xl shadow-lg p-3 text-xs space-y-1.5 top-full left-0 mt-1">
-      <div className="flex items-start justify-between gap-2">
-        <p className="font-semibold text-sm leading-snug">{event.summary}</p>
-        <button type="button" onClick={onClose} title="Close" className="text-muted-foreground hover:text-foreground shrink-0 mt-0.5">
-          <X className="h-3.5 w-3.5" />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/40" />
+      <div
+        className="relative z-10 w-full max-w-md bg-card border border-border rounded-2xl shadow-xl p-5 space-y-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-2 min-w-0">
+            <span className="w-3 h-3 rounded-full shrink-0 mt-1" style={{ backgroundColor: event.feedColor }} />
+            <p className="font-semibold text-base leading-snug">{event.summary}</p>
+          </div>
+          <button type="button" title="Close" onClick={onClose} className="text-muted-foreground hover:text-foreground shrink-0">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        {!isAllDay(event) && (
+          <p className="text-sm text-muted-foreground">
+            {event.dtstart.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+            {" "}· {formatTime(event.dtstart)} – {formatTime(event.dtend)}
+          </p>
+        )}
+        {isAllDay(event) && (
+          <p className="text-sm text-muted-foreground">
+            {event.dtstart.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · All day
+          </p>
+        )}
+        {event.location && (
+          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+            <span>📍</span>{event.location}
+          </p>
+        )}
+        {event.description && (
+          <p className="text-sm text-muted-foreground line-clamp-4">{event.description}</p>
+        )}
+        <div className="flex items-center gap-1.5 pt-1 border-t border-border/50">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: event.feedColor }} />
+          <span className="text-xs text-muted-foreground flex-1">{event.feedName}</span>
+          {isCustom && onEdit && (
+            <button type="button" onClick={onEdit} className="text-xs text-primary hover:underline flex items-center gap-1">
+              <Edit2 className="h-3 w-3" /> Edit
+            </button>
+          )}
+          {isCustom && onDelete && (
+            <button type="button" onClick={onDelete} className="text-xs text-destructive hover:underline flex items-center gap-1">
+              <Trash2 className="h-3 w-3" /> Delete
+            </button>
+          )}
+        </div>
       </div>
-      {!isAllDay(event) && (
-        <p className="text-muted-foreground">{formatTime(event.dtstart)} – {formatTime(event.dtend)}</p>
-      )}
-      {event.location && <p className="text-muted-foreground">📍 {event.location}</p>}
-      {event.description && <p className="text-muted-foreground line-clamp-3">{event.description}</p>}
-      <div className="flex items-center gap-1 pt-0.5">
-        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: event.feedColor }} />
-        <span className="text-muted-foreground">{event.feedName}</span>
+    </div>
+  )
+}
+
+// ── create/edit event dialog ──────────────────────────────────────────────────
+
+function EventFormDialog({
+  initial,
+  editId,
+  onClose,
+}: {
+  initial?: { date?: string; startTime?: string; endTime?: string; title?: string; location?: string; description?: string; colour?: string; all_day?: boolean }
+  editId?: string
+  onClose: () => void
+}) {
+  const [title, setTitle] = useState(initial?.title ?? "")
+  const [date, setDate] = useState(initial?.date ?? new Date().toISOString().slice(0, 10))
+  const [startTime, setStartTime] = useState(initial?.startTime ?? "09:00")
+  const [endTime, setEndTime] = useState(initial?.endTime ?? "10:00")
+  const [location, setLocation] = useState(initial?.location ?? "")
+  const [description, setDescription] = useState(initial?.description ?? "")
+  const [colour, setColour] = useState(initial?.colour ?? "#6366f1")
+  const [allDay, setAllDay] = useState(initial?.all_day ?? false)
+  const [saving, setSaving] = useState(false)
+  const [, startTransition] = useTransition()
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!title.trim()) return
+    setSaving(true)
+    const start_at = allDay ? `${date}T00:00:00` : `${date}T${startTime}:00`
+    const end_at = allDay ? `${date}T00:00:00` : `${date}T${endTime}:00`
+    startTransition(async () => {
+      if (editId) {
+        await updateCalendarEvent(editId, { title: title.trim(), start_at, end_at, location: location || null, description: description || null, colour, all_day: allDay })
+      } else {
+        await createCalendarEvent({ title: title.trim(), start_at, end_at, location: location || undefined, description: description || undefined, colour, all_day: allDay, event_type: "general" })
+      }
+      setSaving(false)
+      onClose()
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/40" />
+      <div
+        className="relative z-10 w-full max-w-md bg-card border border-border rounded-2xl shadow-xl p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <p className="font-semibold text-base">{editId ? "Edit event" : "New event"}</p>
+          <button type="button" title="Close" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Event title"
+            required
+            className="h-9 text-sm"
+            autoFocus
+          />
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={date}
+              title="Event date"
+              aria-label="Event date"
+              onChange={(e) => setDate(e.target.value)}
+              className="flex-1 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+            <label className="flex items-center gap-1.5 text-sm text-muted-foreground shrink-0">
+              <input type="checkbox" checked={allDay} onChange={(e) => setAllDay(e.target.checked)} className="rounded" />
+              All day
+            </label>
+          </div>
+          {!allDay && (
+            <div className="flex gap-2">
+              <input
+                type="time"
+                value={startTime}
+                title="Start time"
+                aria-label="Start time"
+                onChange={(e) => setStartTime(e.target.value)}
+                className="flex-1 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+              <span className="text-muted-foreground self-center">–</span>
+              <input
+                type="time"
+                value={endTime}
+                title="End time"
+                aria-label="End time"
+                onChange={(e) => setEndTime(e.target.value)}
+                className="flex-1 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+            </div>
+          )}
+          <Input
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="Location (optional)"
+            className="h-9 text-sm"
+          />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Description (optional)"
+            rows={2}
+            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm resize-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring placeholder:text-muted-foreground"
+          />
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Colour:</span>
+            <div className="flex gap-1 flex-wrap items-center">
+              {FEED_COLORS.map((c) => (
+                <button key={c} type="button" title={`Select colour ${c}`} onClick={() => setColour(c)}
+                  className={`w-5 h-5 rounded-full transition-transform ${colour === c ? "scale-125 ring-2 ring-offset-1 ring-foreground" : ""}`}
+                  style={{ backgroundColor: c }} />
+              ))}
+              <input
+                type="color"
+                value={colour}
+                onChange={(e) => setColour(e.target.value)}
+                title="Custom colour"
+                className="w-5 h-5 rounded-full cursor-pointer border border-border bg-transparent p-0 appearance-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
+            <Button type="submit" size="sm" disabled={saving || !title.trim()}>
+              {saving ? "Saving..." : editId ? "Save changes" : "Create event"}
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   )
@@ -75,30 +273,38 @@ function feedGradient(color: string): string {
   return `linear-gradient(135deg, ${color}dd 0%, ${color} 100%)`
 }
 
-function EventPill({ event, compact = false }: { event: CalendarEvent; compact?: boolean }) {
-  const [open, setOpen] = useState(false)
+// ── event pill (month/all-day row) ────────────────────────────────────────────
+
+function EventPill({ event, compact = false, onClick }: { event: CalendarEvent; compact?: boolean; onClick?: () => void }) {
   return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        title={event.summary}
-        className={`w-full text-left rounded-md truncate text-white font-medium shadow-sm ${compact ? "text-[10px] px-1 py-0.5" : "text-xs px-1.5 py-0.5"}`}
-        style={{ background: feedGradient(event.feedColor) }}
-      >
-        {!isAllDay(event) && !compact && <span className="opacity-80">{formatTime(event.dtstart)} </span>}
-        {event.summary}
-      </button>
-      {open && <EventTooltip event={event} onClose={() => setOpen(false)} />}
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      title={event.summary}
+      className={`w-full text-left rounded-md truncate text-white font-medium shadow-sm ${compact ? "text-[10px] px-1 py-0.5" : "text-xs px-1.5 py-0.5"}`}
+      style={{ background: feedGradient(event.feedColor) }}
+    >
+      {!isAllDay(event) && !compact && <span className="opacity-80">{formatTime(event.dtstart)} </span>}
+      {event.summary}
+    </button>
   )
 }
 
 // ── time grid (shared by day + week) ─────────────────────────────────────────
 
-const CELL_HEIGHT = 56 // px per hour — matches Apple Calendar proportions
+const CELL_HEIGHT = 56 // px per hour
 
-function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
+function TimeGrid({
+  days,
+  events,
+  onEventClick,
+  onSlotClick,
+}: {
+  days: Date[]
+  events: CalendarEvent[]
+  onEventClick: (e: CalendarEvent) => void
+  onSlotClick?: (date: Date, hour: number) => void
+}) {
   const today = new Date()
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -114,10 +320,8 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // All-day events per day
   const allDayEvents = days.map((day) => events.filter((e) => isSameDay(e.dtstart, day) && isAllDay(e)))
 
-  // Overlap layout: assign column index per event within a day
   function layoutEvents(evs: CalendarEvent[]) {
     const placed: { event: CalendarEvent; col: number; cols: number }[] = []
     let maxEnd = 0
@@ -167,14 +371,13 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
 
   return (
     <div className="flex flex-col">
-      {/* All-day row */}
       {allDayEvents.some((d) => d.length > 0) && (
         <div className="flex border-b border-border">
           <div className="w-12 shrink-0 text-[10px] text-muted-foreground text-right pr-2 pt-1">all day</div>
           <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${days.length}, 1fr)` }}>
             {allDayEvents.map((evs, i) => (
               <div key={i} className="border-l border-border p-0.5 flex flex-col gap-0.5">
-                {evs.map((e) => <EventPill key={e.uid} event={e} compact />)}
+                {evs.map((e) => <EventPill key={e.uid} event={e} compact onClick={() => onEventClick(e)} />)}
               </div>
             ))}
           </div>
@@ -196,7 +399,6 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
           ))}
         </div>
 
-        {/* Day columns */}
         <div className="flex-1 grid relative" style={{ gridTemplateColumns: `repeat(${days.length}, 1fr)` }}>
           {days.map((day, di) => {
             const isToday = isSameDay(day, today)
@@ -209,12 +411,15 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
                 className={`relative border-l border-border ${isToday ? "bg-primary/[0.02]" : ""}`}
                 style={{ height: CELL_HEIGHT * 24 }}
               >
-                {/* Hour lines */}
                 {HOURS.map((h) => (
-                  <div key={h} className="absolute w-full border-t border-border/30" style={{ top: h * CELL_HEIGHT }} />
+                  <div
+                    key={h}
+                    className="absolute w-full border-t border-border/30 cursor-pointer hover:bg-primary/5 transition-colors"
+                    style={{ top: h * CELL_HEIGHT, height: CELL_HEIGHT }}
+                    onClick={() => onSlotClick?.(day, h)}
+                  />
                 ))}
 
-                {/* Now line */}
                 {nowMins >= 0 && (
                   <div className="absolute w-full z-10" style={{ top: (nowMins / 60) * CELL_HEIGHT }}>
                     <div className="relative">
@@ -224,7 +429,6 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
                   </div>
                 )}
 
-                {/* Events */}
                 {placed.map(({ event, col, cols }) => {
                   const startMins = minutesFromMidnight(event.dtstart)
                   const endMins = minutesFromMidnight(event.dtend)
@@ -235,7 +439,7 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
                   const left = `${(col / cols) * 100}%`
 
                   return (
-                    <EventTimeBlock key={event.uid} event={event} top={top} height={height} left={left} width={width} />
+                    <EventTimeBlock key={event.uid} event={event} top={top} height={height} left={left} width={width} onClick={() => onEventClick(event)} />
                   )
                 })}
               </div>
@@ -247,31 +451,34 @@ function TimeGrid({ days, events }: { days: Date[]; events: CalendarEvent[] }) {
   )
 }
 
-function EventTimeBlock({ event, top, height, left, width }: { event: CalendarEvent; top: number; height: number; left: string; width: string }) {
-  const [open, setOpen] = useState(false)
+function EventTimeBlock({ event, top, height, left, width, onClick }: { event: CalendarEvent; top: number; height: number; left: string; width: string; onClick: () => void }) {
   return (
     <div className="absolute px-0.5 py-0.5 z-5" style={{ top, height, left, width }}>
-      <div className="relative h-full">
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          title={event.summary}
-          className="w-full h-full text-left rounded-lg text-white px-1.5 py-1 overflow-hidden text-[10px] leading-snug font-medium hover:brightness-110 transition-all shadow-sm"
-          style={{ background: feedGradient(event.feedColor) }}
-        >
-          <div className="font-semibold truncate">{event.summary}</div>
-          {height > 32 && <div className="opacity-80 truncate">{formatTime(event.dtstart)} - {formatTime(event.dtend)}</div>}
-          {height > 52 && event.location && <div className="opacity-75 truncate">📍 {event.location}</div>}
-        </button>
-        {open && <EventTooltip event={event} onClose={() => setOpen(false)} />}
-      </div>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onClick() }}
+        title={event.summary}
+        className="w-full h-full text-left rounded-lg text-white px-1.5 py-1 overflow-hidden text-[10px] leading-snug font-medium hover:brightness-110 transition-all shadow-sm"
+        style={{ background: feedGradient(event.feedColor) }}
+      >
+        <div className="font-semibold truncate">{event.summary}</div>
+        {height > 32 && <div className="opacity-80 truncate">{formatTime(event.dtstart)} - {formatTime(event.dtend)}</div>}
+        {height > 52 && event.location && <div className="opacity-75 truncate">📍 {event.location}</div>}
+      </button>
     </div>
   )
 }
 
 // ── day view ──────────────────────────────────────────────────────────────────
 
-function DayView({ events, cursor, onPrev, onNext }: { events: CalendarEvent[]; cursor: Date; onPrev: () => void; onNext: () => void }) {
+function DayView({ events, cursor, onPrev, onNext, onEventClick, onSlotClick }: {
+  events: CalendarEvent[]
+  cursor: Date
+  onPrev: () => void
+  onNext: () => void
+  onEventClick: (e: CalendarEvent) => void
+  onSlotClick: (date: Date, hour: number) => void
+}) {
   const today = new Date()
   const isToday = isSameDay(cursor, today)
   return (
@@ -284,7 +491,7 @@ function DayView({ events, cursor, onPrev, onNext }: { events: CalendarEvent[]; 
         <Button size="icon" variant="ghost" className="h-7 w-7" title="Next day" onClick={onNext}><ChevronRight className="h-4 w-4" /></Button>
       </div>
       <div className="border border-border rounded-xl overflow-hidden bg-card">
-        <TimeGrid days={[cursor]} events={events} />
+        <TimeGrid days={[cursor]} events={events} onEventClick={onEventClick} onSlotClick={onSlotClick} />
       </div>
     </div>
   )
@@ -292,7 +499,14 @@ function DayView({ events, cursor, onPrev, onNext }: { events: CalendarEvent[]; 
 
 // ── week view ─────────────────────────────────────────────────────────────────
 
-function WeekView({ events, cursor, onPrev, onNext }: { events: CalendarEvent[]; cursor: Date; onPrev: () => void; onNext: () => void }) {
+function WeekView({ events, cursor, onPrev, onNext, onEventClick, onSlotClick }: {
+  events: CalendarEvent[]
+  cursor: Date
+  onPrev: () => void
+  onNext: () => void
+  onEventClick: (e: CalendarEvent) => void
+  onSlotClick: (date: Date, hour: number) => void
+}) {
   const weekStart = getWeekStart(cursor)
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart)
@@ -310,7 +524,6 @@ function WeekView({ events, cursor, onPrev, onNext }: { events: CalendarEvent[];
         <Button size="icon" variant="ghost" className="h-7 w-7" title="Next week" onClick={onNext}><ChevronRight className="h-4 w-4" /></Button>
       </div>
       <div className="border border-border rounded-xl overflow-hidden bg-card">
-        {/* Day headers */}
         <div className="flex border-b border-border">
           <div className="w-12 shrink-0" />
           {days.map((day, i) => {
@@ -327,7 +540,7 @@ function WeekView({ events, cursor, onPrev, onNext }: { events: CalendarEvent[];
             )
           })}
         </div>
-        <TimeGrid days={days} events={events} />
+        <TimeGrid days={days} events={events} onEventClick={onEventClick} onSlotClick={onSlotClick} />
       </div>
     </div>
   )
@@ -335,12 +548,13 @@ function WeekView({ events, cursor, onPrev, onNext }: { events: CalendarEvent[];
 
 // ── month view ────────────────────────────────────────────────────────────────
 
-function MonthView({ events, cursor, onPrev, onNext, onDayClick }: {
+function MonthView({ events, cursor, onPrev, onNext, onDayClick, onEventClick }: {
   events: CalendarEvent[]
   cursor: Date
   onPrev: () => void
   onNext: () => void
   onDayClick: (d: Date) => void
+  onEventClick: (e: CalendarEvent) => void
 }) {
   const year = cursor.getFullYear()
   const month = cursor.getMonth()
@@ -363,44 +577,36 @@ function MonthView({ events, cursor, onPrev, onNext, onDayClick }: {
         <Button size="icon" variant="ghost" className="h-7 w-7" title="Next month" onClick={onNext}><ChevronRight className="h-4 w-4" /></Button>
       </div>
       <div className="border border-border rounded-xl overflow-hidden">
-        {/* Day-of-week header */}
         <div className="grid grid-cols-7 bg-muted/50">
           {DAYS_SHORT.map((d) => (
             <div key={d} className="text-center text-[10px] font-medium text-muted-foreground py-2">{d}</div>
           ))}
         </div>
-        {/* Cells */}
         <div className="grid grid-cols-7 gap-px bg-border">
           {cells.map((cell, i) => {
             if (!cell) return <div key={i} className="bg-muted/20 min-h-[80px] sm:min-h-[96px]" />
             const dayEvs = events.filter((e) => isSameDay(e.dtstart, cell))
             const isToday = isSameDay(cell, today)
             return (
-              <button
+              <div
                 key={i}
-                type="button"
-                title={`${cell.getDate()} ${MONTHS[cell.getMonth()]}`}
-                onClick={() => onDayClick(cell)}
                 className="bg-card min-h-[80px] sm:min-h-[96px] p-1 flex flex-col gap-0.5 text-left hover:bg-muted/40 transition-colors"
               >
-                <span className={`text-xs font-medium self-start leading-none w-5 h-5 flex items-center justify-center rounded-full ${isToday ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
+                <button
+                  type="button"
+                  title={`${cell.getDate()} ${MONTHS[cell.getMonth()]}`}
+                  onClick={() => onDayClick(cell)}
+                  className={`text-xs font-medium self-start leading-none w-5 h-5 flex items-center justify-center rounded-full ${isToday ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                >
                   {cell.getDate()}
-                </span>
+                </button>
                 {dayEvs.slice(0, 3).map((e) => (
-                  <div
-                    key={e.uid}
-                    className="w-full text-[10px] px-1 py-0.5 rounded-md truncate text-white font-medium shadow-sm"
-                    style={{ background: feedGradient(e.feedColor) }}
-                    title={e.summary}
-                  >
-                    {!isAllDay(e) && <span className="opacity-80">{formatTime(e.dtstart)} </span>}
-                    {e.summary}
-                  </div>
+                  <EventPill key={e.uid} event={e} compact onClick={() => onEventClick(e)} />
                 ))}
                 {dayEvs.length > 3 && (
                   <span className="text-[10px] text-muted-foreground px-1">+{dayEvs.length - 3} more</span>
                 )}
-              </button>
+              </div>
             )
           })}
         </div>
@@ -508,7 +714,6 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
         <button type="button" title="Close settings" onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
       </div>
 
-      {/* Existing feeds */}
       <div className="flex flex-col gap-2">
         {feeds.map((f) => {
           const isEnvFeed = !localFeeds.find((lf) => lf.url === f.url)
@@ -529,7 +734,6 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
         {feeds.length === 0 && <p className="text-xs text-muted-foreground">No feeds yet.</p>}
       </div>
 
-      {/* Add new feed */}
       <div className="flex flex-col gap-2 pt-2 border-t border-border">
         <p className="text-xs font-medium text-muted-foreground">Add feed</p>
         <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Feed name (e.g. Timetable)" className="h-8 text-sm" />
@@ -561,12 +765,39 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
 
 // ── main component ────────────────────────────────────────────────────────────
 
-export default function CalendarClient({ events, feeds }: { events: CalendarEvent[]; feeds: IcalFeed[] }) {
+export default function CalendarClient({
+  events,
+  feeds,
+  customEvents = [],
+}: {
+  events: CalendarEvent[]
+  feeds: IcalFeed[]
+  customEvents?: CustomEvent[]
+}) {
   const [view, setView] = useState<View>("week")
   const [cursor, setCursor] = useState(() => new Date())
   const [showFeeds, setShowFeeds] = useState(false)
   const [gridKey, setGridKey] = useState(0)
   const [hiddenFeeds, setHiddenFeeds] = useState<Set<string>>(new Set())
+  const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null)
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [createInitial, setCreateInitial] = useState<{ date?: string; startTime?: string; endTime?: string } | undefined>()
+  const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
+  const [, startTransition] = useTransition()
+
+  // Merge custom events into CalendarEvent format
+  const mergedCustom: CalendarEvent[] = customEvents.map((ce) => ({
+    uid: ce.id,
+    summary: ce.title,
+    dtstart: new Date(ce.start_at),
+    dtend: new Date(ce.end_at),
+    location: ce.location,
+    description: ce.description,
+    feedColor: ce.colour,
+    feedName: "Custom",
+  }))
+
+  const allEvents = [...events, ...mergedCustom]
 
   function toggleFeed(name: string) {
     setHiddenFeeds((prev) => {
@@ -577,7 +808,8 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
     })
   }
 
-  const visibleEvents = hiddenFeeds.size === 0 ? events : events.filter((e) => !hiddenFeeds.has(e.feedName))
+  const allFeeds = [...feeds, ...(mergedCustom.length > 0 ? [{ url: "custom", name: "Custom", color: "#8b5cf6" }] : [])]
+  const visibleEvents = hiddenFeeds.size === 0 ? allEvents : allEvents.filter((e) => !hiddenFeeds.has(e.feedName))
 
   function advance(delta: number) {
     setCursor((prev) => {
@@ -605,6 +837,32 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
     setView("month")
   }
 
+  function onSlotClick(date: Date, hour: number) {
+    const pad = (n: number) => String(n).padStart(2, "0")
+    setCreateInitial({
+      date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+      startTime: `${pad(hour)}:00`,
+      endTime: `${pad(Math.min(hour + 1, 23))}:00`,
+    })
+    setShowCreateDialog(true)
+  }
+
+  function handleDeleteEvent(eventId: string) {
+    startTransition(async () => {
+      await deleteCalendarEvent(eventId)
+      setDetailEvent(null)
+    })
+  }
+
+  const sharedViewProps = {
+    events: visibleEvents,
+    cursor,
+    onPrev: () => advance(-1),
+    onNext: () => advance(1),
+    onEventClick: (e: CalendarEvent) => setDetailEvent(e),
+    onSlotClick,
+  }
+
   return (
     <motion.div variants={dashboardPage} initial="hidden" animate="visible" className="flex flex-col gap-4 max-w-6xl">
       <DashboardBreadcrumb crumbs={[{ label: "Calendar" }]} />
@@ -626,7 +884,6 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
             Today
           </button>
 
-          {/* View switcher */}
           <div className="flex border border-border rounded-md overflow-hidden">
             {(["day", "week", "month", "year"] as View[]).map((v) => (
               <button
@@ -654,13 +911,11 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
         </div>
       </div>
 
-      {/* Feed manager */}
       {showFeeds && <FeedManager feeds={feeds} onClose={() => setShowFeeds(false)} />}
 
-      {/* Feed legend — click to toggle a feed's visibility */}
-      {feeds.length > 0 && !showFeeds && (
+      {allFeeds.length > 0 && !showFeeds && (
         <div className="flex items-center gap-2 flex-wrap">
-          {feeds.map((f) => {
+          {allFeeds.map((f) => {
             const hidden = hiddenFeeds.has(f.name)
             return (
               <button
@@ -679,8 +934,7 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
         </div>
       )}
 
-      {/* No feeds placeholder */}
-      {feeds.length === 0 && !showFeeds && (
+      {feeds.length === 0 && mergedCustom.length === 0 && !showFeeds && (
         <div className="border border-dashed border-border rounded-xl p-10 text-center">
           <p className="text-sm font-medium mb-1">No calendar feeds</p>
           <p className="text-xs text-muted-foreground max-w-xs mx-auto mb-4">
@@ -692,15 +946,63 @@ export default function CalendarClient({ events, feeds }: { events: CalendarEven
         </div>
       )}
 
-      {/* Calendar views */}
-      {feeds.length > 0 && (
+      {(feeds.length > 0 || mergedCustom.length > 0) && (
         <>
-          {view === "day" && <DayView key={gridKey} events={visibleEvents} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} />}
-          {view === "week" && <WeekView key={gridKey} events={visibleEvents} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} />}
-          {view === "month" && <MonthView events={visibleEvents} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} onDayClick={onDayClick} />}
+          {view === "day" && <DayView key={gridKey} {...sharedViewProps} />}
+          {view === "week" && <WeekView key={gridKey} {...sharedViewProps} />}
+          {view === "month" && <MonthView events={visibleEvents} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} onDayClick={onDayClick} onEventClick={(e) => setDetailEvent(e)} />}
           {view === "year" && <YearView events={visibleEvents} cursor={cursor} onPrev={() => advance(-1)} onNext={() => advance(1)} onMonthClick={onMonthClick} />}
         </>
       )}
+
+      {/* FAB */}
+      <button
+        type="button"
+        onClick={() => { setCreateInitial(undefined); setShowCreateDialog(true) }}
+        title="New event"
+        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+      >
+        <Plus className="h-5 w-5" />
+      </button>
+
+      {/* Event detail sheet */}
+      {detailEvent && (
+        <EventDetailSheet
+          event={detailEvent}
+          onClose={() => setDetailEvent(null)}
+          onEdit={() => { setEditEvent(detailEvent); setDetailEvent(null) }}
+          onDelete={() => handleDeleteEvent(detailEvent.uid)}
+        />
+      )}
+
+      {/* Create event dialog */}
+      {showCreateDialog && (
+        <EventFormDialog
+          initial={createInitial}
+          onClose={() => { setShowCreateDialog(false); setCreateInitial(undefined) }}
+        />
+      )}
+
+      {/* Edit event dialog */}
+      {editEvent && (() => {
+        const customSrc = customEvents.find((ce) => ce.id === editEvent.uid)
+        return (
+          <EventFormDialog
+            editId={editEvent.uid}
+            initial={{
+              title: editEvent.summary,
+              date: editEvent.dtstart.toISOString().slice(0, 10),
+              startTime: toLocalDateTimeString(editEvent.dtstart).slice(11),
+              endTime: toLocalDateTimeString(editEvent.dtend).slice(11),
+              location: editEvent.location,
+              description: editEvent.description,
+              colour: customSrc?.colour ?? "#6366f1",
+              all_day: customSrc?.all_day ?? false,
+            }}
+            onClose={() => setEditEvent(null)}
+          />
+        )
+      })()}
     </motion.div>
   )
 }

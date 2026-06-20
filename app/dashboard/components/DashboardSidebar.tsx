@@ -8,7 +8,7 @@ import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
   Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users,
-  Brain, Church, School, CheckSquare, CalendarDays, ChevronDown
+  Brain, Church, School, CheckSquare, CalendarDays, ChevronDown, FolderOpen
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -51,6 +51,7 @@ const nav: (NavItem | NavGroup)[] = [
     items: [
       { href: "/dashboard/diary", label: "Diary", icon: BookMarked },
       { href: "/dashboard/notes", label: "Notes", icon: StickyNote },
+      { href: "/dashboard/files", label: "Files", icon: FolderOpen },
       { href: "/dashboard/contacts", label: "Contacts", icon: Users },
     ],
   },
@@ -68,6 +69,7 @@ const nav: (NavItem | NavGroup)[] = [
       { href: "/dashboard/coding", label: "Coding", icon: Code2 },
       { href: "/dashboard/blog-analytics", label: "Posts", icon: BarChart2, sub: true },
       { href: "/dashboard/opensource", label: "Open Source", icon: Github },
+      { href: "/dashboard/applications/analytics", label: "Applications", icon: Briefcase, sub: true },
     ],
   },
   { href: "/dashboard/activity", label: "Activity log", icon: Activity },

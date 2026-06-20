@@ -1,5 +1,6 @@
 import CalendarClient from "./CalendarClient"
 import { getIcalFeeds } from "@/app/dashboard/actions"
+import { supabase } from "@/lib/supabase"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 3600
@@ -58,9 +59,15 @@ async function fetchFeed(url: string, feedName: string, feedColor: string): Prom
 }
 
 export default async function CalendarPage() {
-  const feeds = await getIcalFeeds()
+  const [feeds, customResult] = await Promise.all([
+    getIcalFeeds(),
+    supabase.from("calendar_events").select("*").eq("is_deleted", false).order("start_at", { ascending: true }),
+  ])
+
   const allEvents = (await Promise.all(feeds.map((f) => fetchFeed(f.url, f.name, f.color)))).flat()
   allEvents.sort((a, b) => a.dtstart.getTime() - b.dtstart.getTime())
 
-  return <CalendarClient events={allEvents} feeds={feeds} />
+  const customEvents = customResult.data ?? []
+
+  return <CalendarClient events={allEvents} feeds={feeds} customEvents={customEvents} />
 }
