@@ -7,6 +7,7 @@ import InactivityGuard from "@/components/dashboard/InactivityGuard"
 import QuickCapture from "@/components/dashboard/QuickCapture"
 import ShortcutHelp from "@/components/dashboard/ShortcutHelp"
 import ThemeSync from "@/components/dashboard/ThemeSync"
+import FloatingFormatToolbar from "@/components/shared/FloatingFormatToolbar"
 import { Toaster } from "sonner"
 import { getCachedTheme } from "@/app/dashboard/actions"
 
@@ -38,6 +39,8 @@ export default async function ProtectedDashboardLayout({
       </main>
       <QuickCapture />
       <ShortcutHelp />
+      {/* Floating text formatting toolbar - appears on text selection across all dashboard inputs */}
+      <FloatingFormatToolbar />
       <Toaster richColors position="bottom-right" />
     </div>
   )

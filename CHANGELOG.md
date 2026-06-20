@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.13.0] - 2026-06-20
+
+### Added
+
+- Dashboard: iCal routine feed rebuilt - dynamic weekly generation for current Mon-Sun in Europe/London timezone; switches at Monday 00:00; no RRULE (was flooding Apple Calendar with year-long events); all micro-events for all 4 day types (Mon-Thu, Friday no-football default, Saturday, Sunday) with full descriptions; habit and streak events include a reminder note; sleep blocks span midnight into next day; two daily hydration reminders (10:00 and 19:00)
+- Dashboard: shared `ColourPickerDialog` component - palette icon trigger, dialog with preset swatches, custom colour wheel, hex input and Apply/Cancel; Apply is the only action that commits the colour change; rolled out to Calendar (event form, feed list, add feed), Habits (edit) and Streaks (edit) replacing all inline colour pickers
+- Dashboard: floating text formatting toolbar appears on any text selection across all dashboard inputs; markdown textareas get B/I/S/Link; plain inputs get Link only; Link wraps selected URL as `[](url)` or selected text as `[text]()`; hides on Escape or click outside
+- Docs: Discord central bot plan added to `docs/thoughts.md` - channel structure, slash commands, automated send schedule and third-party bot policy for Phase 5
+
+---
+
 ## [v2.12.0] - 2026-06-20
 
 ### Added

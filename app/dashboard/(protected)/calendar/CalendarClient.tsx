@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useTransition } from "react"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
 import { ChevronLeft, ChevronRight, Plus, X, Settings2, Trash2, Edit2, Pencil } from "lucide-react"
+import { ColourPickerDialog } from "@/components/shared/ColourPickerDialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
@@ -241,20 +242,12 @@ function EventFormDialog({
           />
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Colour:</span>
-            <div className="flex gap-1 flex-wrap items-center">
-              {FEED_COLORS.map((c) => (
-                <button key={c} type="button" title={`Select colour ${c}`} onClick={() => setColour(c)}
-                  className={`w-5 h-5 rounded-full transition-transform ${colour === c ? "scale-125 ring-2 ring-offset-1 ring-foreground" : ""}`}
-                  style={{ backgroundColor: c }} />
-              ))}
-              <input
-                type="color"
-                value={colour}
-                onChange={(e) => setColour(e.target.value)}
-                title="Custom colour"
-                className="w-5 h-5 rounded-full cursor-pointer border border-border bg-transparent p-0 appearance-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0"
-              />
-            </div>
+            {/* Colour picker dialog - only commits on Apply */}
+            <ColourPickerDialog
+              value={colour}
+              onChange={setColour}
+              presets={FEED_COLORS}
+            />
           </div>
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
@@ -741,19 +734,16 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
           const isEditing = editingUrl === f.url
           return (
             <div key={f.url} className="flex items-center gap-2 text-sm">
-              {/* colour swatch - click to change */}
-              <div className="relative shrink-0">
-                <span className="block w-4 h-4 rounded-full cursor-pointer ring-1 ring-border hover:scale-110 transition-transform" style={{ backgroundColor: f.color }} />
-                {!isEnvFeed && (
-                  <input
-                    type="color"
-                    value={f.color}
-                    onChange={(e) => updateColor(f.url, e.target.value)}
-                    title="Change colour"
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  />
-                )}
-              </div>
+              {/* Colour picker - dialog-based, only applies on confirm */}
+              {isEnvFeed ? (
+                <span className="w-4 h-4 rounded-full ring-1 ring-border block shrink-0" style={{ backgroundColor: f.color }} />
+              ) : (
+                <ColourPickerDialog
+                  value={f.color}
+                  onChange={(c) => updateColor(f.url, c)}
+                  presets={FEED_COLORS}
+                />
+              )}
               {isEditing ? (
                 <input
                   autoFocus
@@ -789,22 +779,14 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
         <p className="text-xs font-medium text-muted-foreground">Add feed</p>
         <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Feed name (e.g. Timetable)" className="h-8 text-sm" />
         <Input value={newUrl} onChange={(e) => setNewUrl(e.target.value)} placeholder="iCal URL (https://...)" className="h-8 font-mono text-xs" />
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
           <label className="text-xs text-muted-foreground">Colour:</label>
-          <div className="flex gap-1 flex-wrap items-center">
-            {FEED_COLORS.map((c) => (
-              <button key={c} type="button" title={c} onClick={() => setNewColor(c)}
-                className={`w-5 h-5 rounded-full transition-transform ${newColor === c ? "scale-125 ring-2 ring-offset-1 ring-foreground" : ""}`}
-                style={{ backgroundColor: c }} />
-            ))}
-            <input
-              type="color"
-              value={newColor}
-              onChange={(e) => setNewColor(e.target.value)}
-              title="Custom colour"
-              className="w-5 h-5 rounded-full cursor-pointer border border-border bg-transparent p-0 appearance-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0"
-            />
-          </div>
+          {/* ColourPickerDialog for new feed - dialog only applies on confirm */}
+          <ColourPickerDialog
+            value={newColor}
+            onChange={setNewColor}
+            presets={FEED_COLORS}
+          />
         </div>
         <Button size="sm" onClick={addFeed} disabled={!newUrl.trim() || !newName.trim()} className="self-end">
           <Plus className="h-3.5 w-3.5 mr-1" />Add

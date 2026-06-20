@@ -62,4 +62,63 @@ A Chrome/Firefox extension that adds a "Save to dashboard" button on job posting
 
 ---
 
+---
+
+## Discord central bot (Phase 5)
+
+The vision is a single central bot that lives in a private Discord server and handles all personal OS automation from one place. If the dashboard is ever inaccessible, everything critical can still be done from Discord.
+
+The bot is built in Python (discord.py or interactions.py for slash command support) and runs as a persistent process, likely on Railway or Fly.io (both have free tiers). All logic talks to the Supabase API and the dashboard's server actions via internal HTTP.
+
+### Channels
+
+Each channel has a single purpose and its own description. The list below is the target structure:
+
+| Channel | Purpose | Bot/source |
+| --- | --- | --- |
+| #routine | Daily routine reminders and morning/evening send | Central bot |
+| #bible-verse | Daily Bible verse at 06:00 | YouVersion official bot if reliable, otherwise central bot via bible-api.com |
+| #streaks | Streak tracking, daily check-in buttons, mark-done commands | Central bot |
+| #habits | Habit logging, check-in buttons | Central bot |
+| #study | Study session logging, LeetCode nudges | Central bot |
+| #health | Health and workout logging | Central bot |
+| #jobs | Daily scraper summary, application deadline alerts | Central bot (automations repo) |
+| #deadlines | University deadline alerts (pulled from uni_deadlines table) | Central bot |
+| #reminders | General reminders (vault expiry, follow-ups, medication) | Central bot |
+| #vault | Vault expiry alerts | Central bot |
+| #library | Reading progress tracking | Central bot |
+
+### Slash commands
+
+The goal is full feature parity with the dashboard for common actions:
+
+- `/habit done [name]` - mark a habit complete for today
+- `/habit list` - show today's habit status
+- `/streak log [name]` - log a streak check-in
+- `/streak status` - show all streak states
+- `/study log [subject] [minutes]` - log a study session
+- `/diary new [text]` - create a diary entry
+- `/goals list` - show active goals
+- `/health log [type] [notes]` - log a health activity
+- `/week` - show the current week summary (streaks, habits, study time, deadlines)
+
+### Automated sends
+
+- 06:00 UTC - Bible verse to #bible-verse
+- 07:00 UTC - Morning routine checklist to #routine (with habit check-in buttons for #streaks)
+- 09:00 UTC - Deadline alert to #deadlines if anything is due within 7 days
+- 18:00 UTC - Evening streak check to #streaks
+- 20:00 UTC - Study nudge to #study if no session logged today
+- Daily - Scraper run summary to #jobs
+
+### Third-party bots
+
+Where a reliable, well-maintained third-party bot exists for a specific purpose, use it rather than reinventing it. YouVersion is the example for Bible verses. If they have a stable Discord bot that sends a verse each morning, use that for #bible-verse. The central bot focuses on things no third-party bot can do: habits, streaks, diary, study, vault, deadlines, all backed by personal Supabase data.
+
+### Rules
+
+All bot messages: UK English, no em dashes or en dashes (hyphens only), no Oxford commas. Embed colours and formatting match the dashboard palette. All automation code in Python. Infrastructure as code in the automations repo (`isaac-adjei-automations`).
+
+---
+
 _Last updated: June 2026_
