@@ -1,9 +1,10 @@
 // I use server actions for restore and delete here so I can call revalidatePath
 // without a round-trip to an API route. Items are soft-deleted elsewhere and hard-
 // deleted either here manually or by the daily trash-cleanup cron after 7 days.
-import { getTrash, restoreFromTrash, permanentlyDelete, emptyTrash } from "@/app/dashboard/actions"
+import { getTrash, restoreFromTrash, permanentlyDelete } from "@/app/dashboard/actions"
 import { revalidatePath } from "next/cache"
 import { Trash2, RotateCcw, X } from "lucide-react"
+import EmptyTrashButton from "./EmptyTrashButton"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Trash", robots: "noindex, nofollow" }
@@ -61,11 +62,6 @@ async function handleDelete(formData: FormData) {
   revalidatePath("/dashboard/trash")
 }
 
-async function handleEmptyTrash() {
-  "use server"
-  await emptyTrash()
-  revalidatePath("/dashboard/trash")
-}
 
 export default async function TrashPage() {
   const items = await getTrash()
@@ -82,16 +78,7 @@ export default async function TrashPage() {
             </p>
           </div>
         </div>
-        {items.length > 0 && (
-          <form action={handleEmptyTrash}>
-            <button
-              type="submit"
-              className="text-xs text-destructive hover:underline"
-            >
-              Empty trash
-            </button>
-          </form>
-        )}
+        {items.length > 0 && <EmptyTrashButton count={items.length} />}
       </div>
 
       {items.length === 0 ? (

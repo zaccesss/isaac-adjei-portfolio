@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef } from "react"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
-import { FolderOpen, Upload, File, Pencil, Trash2, Download, FolderInput, X, Check } from "lucide-react"
+import { FolderOpen, Upload, File, Pencil, Trash2, Download, FolderInput, X, Check, FolderPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
@@ -133,9 +133,12 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
   const [activeFolder, setActiveFolder] = useState<string>("All")
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [creatingFolder, setCreatingFolder] = useState(false)
+  const [newFolderName, setNewFolderName] = useState("")
   const [, startTransition] = useTransition()
   const { confirm, dialog } = useConfirmDialog()
   const inputRef = useRef<HTMLInputElement>(null)
+  const folderInputRef = useRef<HTMLInputElement>(null)
 
   const folders = ["All", ...Array.from(new Set(files.map((f) => f.folder))).sort()]
 
@@ -199,6 +202,15 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
     startTransition(() => void moveFile(id, folder))
   }
 
+  function handleCreateFolder(e: React.FormEvent) {
+    e.preventDefault()
+    const name = newFolderName.trim()
+    if (!name || folders.includes(name)) return
+    setActiveFolder(name)
+    setCreatingFolder(false)
+    setNewFolderName("")
+  }
+
   return (
     <motion.div variants={dashboardPage} initial="hidden" animate="visible" className="flex flex-col gap-4 max-w-4xl">
       {dialog}
@@ -235,7 +247,7 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
 
       <div className="flex gap-4">
         {/* Folder sidebar */}
-        <div className="flex flex-col gap-0.5 min-w-[120px] shrink-0">
+        <div className="flex flex-col gap-0.5 min-w-[130px] shrink-0">
           {folders.map((f) => (
             <button
               key={f}
@@ -251,6 +263,31 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
               <span className="truncate">{f}</span>
             </button>
           ))}
+          {creatingFolder ? (
+            <form onSubmit={handleCreateFolder} className="flex items-center gap-1 px-1 mt-0.5">
+              <input
+                ref={folderInputRef}
+                autoFocus
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Folder name"
+                className="flex-1 min-w-0 text-xs px-2 py-1 rounded border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary/50"
+                onKeyDown={(e) => { if (e.key === "Escape") { setCreatingFolder(false); setNewFolderName("") } }}
+              />
+              <button type="submit" title="Create" className="text-primary hover:text-primary/80"><Check className="h-3.5 w-3.5" /></button>
+              <button type="button" title="Cancel" onClick={() => { setCreatingFolder(false); setNewFolderName("") }} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setCreatingFolder(true)}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors mt-1"
+            >
+              <FolderPlus className="h-3.5 w-3.5 shrink-0" />
+              <span>New folder</span>
+            </button>
+          )}
         </div>
 
         {/* File list */}
