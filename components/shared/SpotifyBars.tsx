@@ -42,7 +42,7 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
   const propsRef         = useRef({ playing, energy, tempo, loudness })
   const beatsRef         = useRef<number[]>([])
   const progressRef      = useRef(progressMs)
-  const progressSetAtRef = useRef(performance.now())
+  const progressSetAtRef = useRef(0)
   const beatRef          = useRef({ lastIdx: -1, boost: 0, fallbackLastMs: 0 })
 
   useEffect(() => {
