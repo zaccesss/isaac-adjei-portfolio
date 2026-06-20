@@ -126,41 +126,12 @@ export async function GET() {
       await redis.set("spotify:last_played", { track: title, artist: subtitle, albumArt, type: isEpisode ? "episode" : "track" })
     }
 
-    // Fetch audio features + audio analysis for tracks only
-    // audio features: energy, tempo, valence, danceability, loudness (dB)
-    // audio analysis: beat timestamps for real-time beat-synced visualiser
-    let audioFeatures: { energy: number; tempo: number; valence: number; danceability: number; loudness: number } | null = null
-    let beats: number[] | null = null
-    if (!isEpisode && data.item.id) {
-      const trackId = data.item.id
-      try {
-        const afRes = await fetch(`https://api.spotify.com/v1/audio-features/${trackId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (afRes.ok) {
-          const af = await afRes.json() as { energy: number; tempo: number; valence: number; danceability: number; loudness: number }
-          audioFeatures = { energy: af.energy, tempo: af.tempo, valence: af.valence, danceability: af.danceability, loudness: af.loudness }
-        }
-      } catch {}
-
-      // Beat timestamps are static per track so cache indefinitely (24h) by track ID
-      try {
-        const cacheKey = `spotify:beats:${trackId}`
-        const cached = redis ? await redis.get<number[]>(cacheKey) : null
-        if (cached) {
-          beats = cached
-        } else {
-          const aaRes = await fetch(`https://api.spotify.com/v1/audio-analysis/${trackId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          if (aaRes.ok) {
-            const aa = await aaRes.json() as { beats: { start: number; confidence: number }[] }
-            beats = aa.beats.filter((b) => b.confidence > 0.3).map((b) => b.start)
-            if (redis) await redis.set(cacheKey, beats, { ex: 86400 })
-          }
-        }
-      } catch {}
-    }
+    // Spotify deprecated audio-features and audio-analysis on 27 Nov 2024 - they now return
+    // 403 on every call. I no longer fetch them: this block was firing on every request
+    // (including the SSE Spotify poll) making 2 doomed Spotify API calls each time and
+    // burning Vercel CPU for nothing. I keep the keys null so existing clients do not break.
+    const audioFeatures = null
+    const beats = null
 
     return NextResponse.json(
       {
