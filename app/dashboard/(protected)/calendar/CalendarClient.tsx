@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useTransition } from "react"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
-import { ChevronLeft, ChevronRight, Plus, X, Settings2, Trash2, Edit2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, X, Settings2, Trash2, Edit2, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
@@ -18,7 +18,7 @@ type View = "day" | "week" | "month" | "year"
 const DAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-const HOURS = Array.from({ length: 24 }, (_, i) => i)
+const HOURS = Array.from({ length: 25 }, (_, i) => i)
 const FEED_COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6", "#ef4444", "#8b5cf6", "#f97316"]
 
 export type CustomEvent = {
@@ -409,7 +409,7 @@ function TimeGrid({
               <div
                 key={di}
                 className={`relative border-l border-border ${isToday ? "bg-primary/[0.02]" : ""}`}
-                style={{ height: CELL_HEIGHT * 25 }}
+                style={{ height: CELL_HEIGHT * 26 }}
               >
                 {HOURS.map((h) => (
                   <div
@@ -432,7 +432,9 @@ function TimeGrid({
                 {placed.map(({ event, col, cols }) => {
                   const startMins = minutesFromMidnight(event.dtstart)
                   const endMins = minutesFromMidnight(event.dtend)
-                  const duration = Math.max(endMins - startMins, 20)
+                  // Events spanning midnight have endMins < startMins; use real duration instead
+                  const realDurationMins = (event.dtend.getTime() - event.dtstart.getTime()) / 60000
+                  const duration = Math.max(endMins < startMins ? realDurationMins : endMins - startMins, 20)
                   const top = (startMins / 60) * CELL_HEIGHT
                   const height = (duration / 60) * CELL_HEIGHT
                   const width = `${100 / cols}%`
@@ -686,25 +688,44 @@ function YearView({ events, cursor, onPrev, onNext, onMonthClick }: {
 
 function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => void }) {
   const [localFeeds, setLocalFeeds] = useState<IcalFeed[]>(feeds.filter((f) => !f.url.startsWith("env:")))
+  const [editingUrl, setEditingUrl] = useState<string | null>(null)
+  const [editName, setEditName] = useState("")
   const [newUrl, setNewUrl] = useState("")
   const [newName, setNewName] = useState("")
   const [newColor, setNewColor] = useState(FEED_COLORS[localFeeds.length % FEED_COLORS.length])
   const [, startTransition] = useTransition()
 
+  function save(updated: IcalFeed[]) {
+    setLocalFeeds(updated)
+    startTransition(() => void saveIcalFeeds(updated))
+  }
+
   function addFeed() {
     if (!newUrl.trim() || !newName.trim()) return
     const feed: IcalFeed = { url: newUrl.trim(), name: newName.trim(), color: newColor }
-    setLocalFeeds((f) => [...f, feed])
+    const updated = [...localFeeds, feed]
+    save(updated)
     setNewUrl("")
     setNewName("")
-    setNewColor(FEED_COLORS[(localFeeds.length + 1) % FEED_COLORS.length])
-    startTransition(() => void saveIcalFeeds([...localFeeds, feed]))
+    setNewColor(FEED_COLORS[updated.length % FEED_COLORS.length])
   }
 
   function removeFeed(url: string) {
-    const updated = localFeeds.filter((f) => f.url !== url)
-    setLocalFeeds(updated)
-    startTransition(() => void saveIcalFeeds(updated))
+    save(localFeeds.filter((f) => f.url !== url))
+  }
+
+  function updateColor(url: string, color: string) {
+    save(localFeeds.map((f) => f.url === url ? { ...f, color } : f))
+  }
+
+  function startRename(f: IcalFeed) {
+    setEditingUrl(f.url)
+    setEditName(f.name)
+  }
+
+  function commitRename(url: string) {
+    if (editName.trim()) save(localFeeds.map((f) => f.url === url ? { ...f, name: editName.trim() } : f))
+    setEditingUrl(null)
   }
 
   return (
@@ -717,16 +738,46 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
       <div className="flex flex-col gap-2">
         {feeds.map((f) => {
           const isEnvFeed = !localFeeds.find((lf) => lf.url === f.url)
+          const isEditing = editingUrl === f.url
           return (
             <div key={f.url} className="flex items-center gap-2 text-sm">
-              <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: f.color }} />
-              <span className="flex-1 truncate">{f.name}</span>
+              {/* colour swatch - click to change */}
+              <div className="relative shrink-0">
+                <span className="block w-4 h-4 rounded-full cursor-pointer ring-1 ring-border hover:scale-110 transition-transform" style={{ backgroundColor: f.color }} />
+                {!isEnvFeed && (
+                  <input
+                    type="color"
+                    value={f.color}
+                    onChange={(e) => updateColor(f.url, e.target.value)}
+                    title="Change colour"
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                )}
+              </div>
+              {isEditing ? (
+                <input
+                  autoFocus
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onBlur={() => commitRename(f.url)}
+                  onKeyDown={(e) => { if (e.key === "Enter") commitRename(f.url); if (e.key === "Escape") setEditingUrl(null) }}
+                  className="flex-1 text-sm bg-transparent border-b border-primary outline-none"
+                  aria-label="Rename feed"
+                />
+              ) : (
+                <span className="flex-1 truncate">{f.name}</span>
+              )}
               {isEnvFeed ? (
                 <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">env</span>
               ) : (
-                <button type="button" title={`Remove ${f.name}`} onClick={() => removeFeed(f.url)} className="text-muted-foreground hover:text-destructive transition-colors">
-                  <X className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button type="button" title="Rename" onClick={() => startRename(f)} className="text-muted-foreground hover:text-foreground transition-colors">
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                  <button type="button" title={`Remove ${f.name}`} onClick={() => removeFeed(f.url)} className="text-muted-foreground hover:text-destructive transition-colors">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               )}
             </div>
           )
