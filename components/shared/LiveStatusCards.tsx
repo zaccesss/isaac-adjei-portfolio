@@ -323,10 +323,10 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
       setLiveProgressMs(spotify.progressMs ?? 0)
     }, 0)
     if (!spotify.playing) return () => clearTimeout(reset)
-    // I tick every second client-side so the progress bar moves smoothly; the API only polls every 10s
+    // I tick every 250ms so beat detection stays accurate; the interpolation error window is 250ms max
     const tick = setInterval(() => {
-      setLiveProgressMs((p) => Math.min(p + 1000, spotify.durationMs ?? p))
-    }, 1000)
+      setLiveProgressMs((p) => Math.min(p + 250, spotify.durationMs ?? p))
+    }, 250)
     return () => {
       clearTimeout(reset)
       clearInterval(tick)
