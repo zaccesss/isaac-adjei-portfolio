@@ -3,7 +3,7 @@
 // session - the data changes infrequently enough that a stale-for-session approach
 // is fine and avoids repeated server action calls while the user types.
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { Search, BookOpen, StickyNote, Target, Briefcase } from "lucide-react"
 import {
@@ -18,9 +18,24 @@ import { getDashboardSearchData } from "@/app/dashboard/actions"
 
 type SearchData = Awaited<ReturnType<typeof getDashboardSearchData>>
 
+function hl(text: string, q: string): ReactNode {
+  if (!q.trim()) return text
+  const idx = text.toLowerCase().indexOf(q.toLowerCase().trim())
+  if (idx === -1) return text
+  const len = q.trim().length
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-primary/25 text-foreground rounded-sm px-px">{text.slice(idx, idx + len)}</mark>
+      {text.slice(idx + len)}
+    </>
+  )
+}
+
 export default function DashboardSearch() {
   const [open, setOpen] = useState(false)
   const [data, setData] = useState<SearchData | null>(null)
+  const [query, setQuery] = useState("")
   const router = useRouter()
 
   const openSearch = useCallback(() => setOpen(true), [])
@@ -63,8 +78,8 @@ export default function DashboardSearch() {
         </kbd>
       </button>
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Search goals, notes, diary, applications..." />
+      <CommandDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setQuery("") }}>
+        <CommandInput placeholder="Search goals, notes, diary, applications..." onValueChange={setQuery} />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
 
@@ -73,7 +88,7 @@ export default function DashboardSearch() {
               {data.goals.map((g) => (
                 <CommandItem key={g.id} value={`goal ${g.title} ${g.category}`} onSelect={() => navigate("/dashboard/goals")}>
                   <Target className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="truncate">{g.title}</span>
+                  <span className="truncate">{hl(g.title, query)}</span>
                   <span className="ml-auto text-xs text-muted-foreground shrink-0">{g.category}</span>
                 </CommandItem>
               ))}
@@ -85,7 +100,7 @@ export default function DashboardSearch() {
               {data.notes.map((n) => (
                 <CommandItem key={n.id} value={`note ${n.title} ${n.folder}`} onSelect={() => navigate("/dashboard/notes")}>
                   <StickyNote className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="truncate">{n.title}</span>
+                  <span className="truncate">{hl(n.title, query)}</span>
                   <span className="ml-auto text-xs text-muted-foreground shrink-0">{n.folder}</span>
                 </CommandItem>
               ))}
@@ -97,7 +112,7 @@ export default function DashboardSearch() {
               {data.diary.map((d) => (
                 <CommandItem key={d.id} value={`diary ${d.title}`} onSelect={() => navigate("/dashboard/diary")}>
                   <BookOpen className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="truncate">{d.title}</span>
+                  <span className="truncate">{hl(d.title, query)}</span>
                   <span className="ml-auto text-xs text-muted-foreground shrink-0">
                     {new Date(d.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                   </span>
@@ -111,7 +126,7 @@ export default function DashboardSearch() {
               {data.applications.map((a) => (
                 <CommandItem key={a.id} value={`application ${a.company} ${a.role}`} onSelect={() => navigate("/dashboard/applications")}>
                   <Briefcase className="mr-2 h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="truncate">{a.company} - {a.role}</span>
+                  <span className="truncate">{hl(`${a.company} - ${a.role}`, query)}</span>
                   <span className="ml-auto text-xs text-muted-foreground shrink-0">{a.status}</span>
                 </CommandItem>
               ))}
