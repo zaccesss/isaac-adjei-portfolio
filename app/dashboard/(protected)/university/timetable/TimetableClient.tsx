@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { CalendarDays, MapPin, Clock, Info, ChevronDown, ChevronUp } from "lucide-react"
 
 type Attendance = "present" | "absent" | "late"
@@ -13,14 +13,15 @@ function notesKey(uid: string, date: Date) {
 }
 
 function EventCard({ e }: { e: ICalEvent }) {
-  const [att, setAtt] = useState<Attendance | null>(null)
-  const [note, setNote] = useState("")
+  // Lazy initialisers read localStorage once on mount; the component is keyed by
+  // e.uid so it remounts (and re-reads) whenever the event identity changes
+  const [att, setAtt] = useState<Attendance | null>(
+    () => localStorage.getItem(attendanceKey(e.uid, e.dtstart)) as Attendance | null
+  )
+  const [note, setNote] = useState(
+    () => localStorage.getItem(notesKey(e.uid, e.dtstart)) ?? ""
+  )
   const [showNote, setShowNote] = useState(false)
-
-  useEffect(() => {
-    setAtt((localStorage.getItem(attendanceKey(e.uid, e.dtstart)) as Attendance | null))
-    setNote(localStorage.getItem(notesKey(e.uid, e.dtstart)) ?? "")
-  }, [e.uid, e.dtstart])
 
   function mark(status: Attendance) {
     const next = att === status ? null : status
