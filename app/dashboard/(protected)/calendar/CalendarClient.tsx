@@ -534,14 +534,21 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
         <p className="text-xs font-medium text-muted-foreground">Add feed</p>
         <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Feed name (e.g. Timetable)" className="h-8 text-sm" />
         <Input value={newUrl} onChange={(e) => setNewUrl(e.target.value)} placeholder="iCal URL (https://...)" className="h-8 font-mono text-xs" />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <label className="text-xs text-muted-foreground">Colour:</label>
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap items-center">
             {FEED_COLORS.map((c) => (
               <button key={c} type="button" title={c} onClick={() => setNewColor(c)}
                 className={`w-5 h-5 rounded-full transition-transform ${newColor === c ? "scale-125 ring-2 ring-offset-1 ring-foreground" : ""}`}
                 style={{ backgroundColor: c }} />
             ))}
+            <input
+              type="color"
+              value={newColor}
+              onChange={(e) => setNewColor(e.target.value)}
+              title="Custom colour"
+              className="w-5 h-5 rounded-full cursor-pointer border border-border bg-transparent p-0 appearance-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0"
+            />
           </div>
         </div>
         <Button size="sm" onClick={addFeed} disabled={!newUrl.trim() || !newName.trim()} className="self-end">

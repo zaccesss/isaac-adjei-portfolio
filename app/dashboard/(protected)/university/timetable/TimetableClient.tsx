@@ -1,7 +1,94 @@
 "use client"
 
 import { useState } from "react"
-import { CalendarDays, MapPin, Clock, Info } from "lucide-react"
+import { CalendarDays, MapPin, Clock, Info, ChevronDown, ChevronUp } from "lucide-react"
+
+type Attendance = "present" | "absent" | "late"
+
+function attendanceKey(uid: string, date: Date) {
+  return `tt_att_${uid}_${date.toISOString().slice(0, 10)}`
+}
+function notesKey(uid: string, date: Date) {
+  return `tt_note_${uid}_${date.toISOString().slice(0, 10)}`
+}
+
+function EventCard({ e }: { e: ICalEvent }) {
+  // Lazy initialisers read localStorage once on mount; the component is keyed by
+  // e.uid so it remounts (and re-reads) whenever the event identity changes
+  const [att, setAtt] = useState<Attendance | null>(
+    () => localStorage.getItem(attendanceKey(e.uid, e.dtstart)) as Attendance | null
+  )
+  const [note, setNote] = useState(
+    () => localStorage.getItem(notesKey(e.uid, e.dtstart)) ?? ""
+  )
+  const [showNote, setShowNote] = useState(false)
+
+  function mark(status: Attendance) {
+    const next = att === status ? null : status
+    if (next) localStorage.setItem(attendanceKey(e.uid, e.dtstart), next)
+    else localStorage.removeItem(attendanceKey(e.uid, e.dtstart))
+    setAtt(next)
+  }
+
+  function saveNote(v: string) {
+    setNote(v)
+    if (v.trim()) localStorage.setItem(notesKey(e.uid, e.dtstart), v)
+    else localStorage.removeItem(notesKey(e.uid, e.dtstart))
+  }
+
+  const attColour: Record<Attendance, string> = {
+    present: "bg-green-500/15 text-green-600 border-green-500/30",
+    absent:  "bg-red-500/15 text-red-600 border-red-500/30",
+    late:    "bg-amber-500/15 text-amber-600 border-amber-500/30",
+  }
+
+  return (
+    <div className="rounded-xl border border-border/60 bg-card px-4 py-3 space-y-2 hover:border-primary/30 transition-colors">
+      <p className="text-sm font-medium">{e.summary}</p>
+      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          {fmtTime(e.dtstart)} - {fmtTime(e.dtend)}
+        </span>
+        {e.location && (
+          <span className="flex items-center gap-1">
+            <MapPin className="h-3 w-3" />
+            {e.location}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-1.5 pt-0.5">
+        {(["present", "late", "absent"] as Attendance[]).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => mark(s)}
+            className={`text-[10px] font-mono px-2 py-0.5 rounded border transition-colors ${att === s ? attColour[s] : "border-border/50 text-muted-foreground hover:border-primary/40"}`}
+          >
+            {s}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => setShowNote((v) => !v)}
+          className="ml-auto flex items-center gap-1 text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {showNote ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          note
+        </button>
+      </div>
+      {showNote && (
+        <textarea
+          className="w-full text-xs rounded-lg border border-border bg-muted/30 px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground/50"
+          rows={2}
+          placeholder="Add a note for this session..."
+          value={note}
+          onChange={(ev) => saveNote(ev.target.value)}
+        />
+      )}
+    </div>
+  )
+}
 
 type ICalEvent = {
   uid: string; summary: string; dtstart: Date; dtend: Date
@@ -66,7 +153,7 @@ export default function TimetableClient({ events, hasUrl }: { events: ICalEvent[
         </div>
         <div className="flex gap-1">
           {[["upcoming", "Upcoming"], ["week", "This week"]].map(([v, l]) => (
-            <button key={v} onClick={() => setView(v as "week" | "upcoming")} className={`text-xs px-3 py-1 rounded-full border transition-colors ${view === v ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>{l}</button>
+            <button key={v} type="button" onClick={() => setView(v as "week" | "upcoming")} className={`text-xs px-3 py-1 rounded-full border transition-colors ${view === v ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>{l}</button>
           ))}
         </div>
       </div>
@@ -97,23 +184,7 @@ export default function TimetableClient({ events, hasUrl }: { events: ICalEvent[
                   {isToday(new Date(dayKey)) ? "Today" : fmtDate(new Date(dayKey))}
                 </p>
               </div>
-              {dayEvents.map((e) => (
-                <div key={e.uid} className="rounded-xl border border-border/60 bg-card px-4 py-3 space-y-1 hover:border-primary/30 transition-colors">
-                  <p className="text-sm font-medium">{e.summary}</p>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {fmtTime(e.dtstart)} - {fmtTime(e.dtend)}
-                    </span>
-                    {e.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {e.location}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+              {dayEvents.map((e) => <EventCard key={e.uid} e={e} />)}
             </div>
           ))}
         </div>
