@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { createBodyMetric, deleteBodyMetric } from "../../../actions"
+import { createBodyMetric, updateBodyMetric, deleteBodyMetric } from "../../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Trash2, TrendingUp, TrendingDown, Minus } from "lucide-react"
+import { Plus, Trash2, TrendingUp, TrendingDown, Minus, Pencil } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
 type Metric = {
@@ -40,6 +40,8 @@ export default function BodyMetricsClient({ metrics }: { metrics: Metric[] }) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [selectedMetric, setSelectedMetric] = useState<string>("weight_kg")
+  const [editMetric, setEditMetric] = useState<Metric | null>(null)
+  const [editForm, setEditForm] = useState({ date: "", metric: "", value: "", unit: "", notes: "" })
 
   const today = new Date().toISOString().split("T")[0]
   const [form, setForm] = useState({
@@ -74,6 +76,22 @@ export default function BodyMetricsClient({ metrics }: { metrics: Metric[] }) {
 
   function handleDelete(id: string) {
     startTransition(async () => { await deleteBodyMetric(id) })
+  }
+
+  function openEdit(m: Metric) {
+    setEditMetric(m)
+    setEditForm({ date: m.date, metric: m.metric, value: String(m.value), unit: m.unit, notes: m.notes ?? "" })
+  }
+
+  function handleSaveEdit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editMetric) return
+    const value = parseFloat(editForm.value)
+    if (isNaN(value)) return
+    startTransition(async () => {
+      await updateBodyMetric(editMetric.id, { date: editForm.date, metric: editForm.metric, value, unit: editForm.unit, notes: editForm.notes.trim() || null })
+      setEditMetric(null)
+    })
   }
 
   const allMetricTypes = [...new Set(metrics.map((m) => m.metric))]
@@ -253,21 +271,77 @@ export default function BodyMetricsClient({ metrics }: { metrics: Metric[] }) {
                   {m.notes && <p className="text-xs text-muted-foreground truncate">{m.notes}</p>}
                 </div>
                 <span className="text-[10px] text-muted-foreground shrink-0">{m.date}</span>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity shrink-0"
-                  title="Delete measurement"
-                  onClick={() => handleDelete(m.id)}
-                  disabled={isPending}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    title="Edit measurement"
+                    onClick={() => openEdit(m)}
+                    disabled={isPending}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-destructive hover:text-destructive"
+                    title="Delete measurement"
+                    onClick={() => handleDelete(m.id)}
+                    disabled={isPending}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         </>
       )}
+
+      <Dialog open={!!editMetric} onOpenChange={(o) => { if (!o) setEditMetric(null) }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit measurement</DialogTitle></DialogHeader>
+          <form onSubmit={handleSaveEdit} className="space-y-4 mt-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Date</label>
+                <Input type="date" value={editForm.date} onChange={(e) => setEditForm((f) => ({ ...f, date: e.target.value }))} required />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Metric</label>
+                <Select value={editForm.metric} onValueChange={(v) => {
+                  const mt = METRIC_TYPES.find((t) => t.value === v)
+                  setEditForm((f) => ({ ...f, metric: v, unit: mt?.unit ?? f.unit }))
+                }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {METRIC_TYPES.map((mt) => <SelectItem key={mt.value} value={mt.value}>{mt.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Value</label>
+                <Input type="number" step="0.1" min={0} value={editForm.value} onChange={(e) => setEditForm((f) => ({ ...f, value: e.target.value }))} required />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Unit</label>
+                <Input value={editForm.unit} onChange={(e) => setEditForm((f) => ({ ...f, unit: e.target.value }))} required />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Notes (optional)</label>
+              <Textarea value={editForm.notes} onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))} rows={2} />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button type="submit" disabled={isPending} className="flex-1">Save</Button>
+              <Button type="button" variant="outline" onClick={() => setEditMetric(null)}>Cancel</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
