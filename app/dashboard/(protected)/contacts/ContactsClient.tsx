@@ -10,6 +10,7 @@ import { createContact, updateContact, deleteContact, bulkDeleteContacts } from 
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useBulkSelect } from "@/hooks/useBulkSelect"
 import MarkdownContent from "@/components/shared/MarkdownContent"
+import MarkdownEditor from "@/components/shared/MarkdownEditor"
 import PhoneField from "@/components/shared/PhoneField"
 
 const HOW_MET_OPTIONS = [
@@ -126,12 +127,11 @@ function ContactForm({
           />
         </div>
       </div>
-      <textarea
+      <MarkdownEditor
         placeholder="Notes"
         value={form.notes}
-        onChange={set("notes")}
+        onChange={(v) => setForm((p) => ({ ...p, notes: v }))}
         rows={2}
-        className="w-full border border-border rounded px-3 py-1.5 text-sm bg-background resize-none"
       />
       <div className="flex gap-2 justify-end">
         <button

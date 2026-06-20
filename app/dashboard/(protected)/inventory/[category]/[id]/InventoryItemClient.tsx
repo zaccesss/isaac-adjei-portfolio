@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { deleteInventoryItem, updateInventoryItem } from "@/app/dashboard/actions"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import MarkdownContent from "@/components/shared/MarkdownContent"
+import MarkdownEditor from "@/components/shared/MarkdownEditor"
 
 type Item = {
   id: string
@@ -192,9 +192,9 @@ function EditDialog({
             placeholder="Product URL (optional)"
             type="url"
           />
-          <Textarea
+          <MarkdownEditor
             value={form.notes}
-            onChange={(e) => set("notes", e.target.value)}
+            onChange={(v) => set("notes", v)}
             rows={2}
             placeholder="Notes (optional)"
           />

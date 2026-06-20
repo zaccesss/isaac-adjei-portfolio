@@ -4,7 +4,8 @@ import { useState, useTransition } from "react"
 import { createUniNote, updateUniNote, deleteUniNote } from "../../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import MarkdownEditor from "@/components/shared/MarkdownEditor"
+import MarkdownContent from "@/components/shared/MarkdownContent"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Trash2, Pin, Pencil } from "lucide-react"
@@ -101,7 +102,7 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
               )}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Content</label>
-                <Textarea placeholder="Write your notes here..." value={form.content} onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))} rows={8} className="font-mono text-sm" />
+                <MarkdownEditor placeholder="Write your notes here..." value={form.content} onChange={(v) => setForm((f) => ({ ...f, content: v }))} rows={8} />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Tags (comma separated)</label>
@@ -148,7 +149,7 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
                   <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive" title="Delete note" onClick={() => startTransition(async () => { await deleteUniNote(n.id) })} disabled={isPending}><Trash2 className="h-3 w-3" /></Button>
                 </div>
               </div>
-              {n.content && <p className="text-xs text-muted-foreground line-clamp-3 whitespace-pre-wrap">{n.content}</p>}
+              {n.content && <MarkdownContent compact className="line-clamp-3">{n.content}</MarkdownContent>}
               {n.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {n.tags.slice(0, 4).map((t) => <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{t}</span>)}
@@ -171,7 +172,7 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
               {viewNote.uni_modules && <span className="text-xs text-muted-foreground">{viewNote.uni_modules.code}</span>}
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${TYPE_COLOUR[viewNote.type] ?? TYPE_COLOUR.other}`}>{viewNote.type}</span>
             </div>
-            <pre className="text-sm whitespace-pre-wrap font-sans leading-relaxed mt-2">{viewNote.content || "No content."}</pre>
+            {viewNote.content ? <MarkdownContent className="mt-2">{viewNote.content}</MarkdownContent> : <p className="text-sm text-muted-foreground mt-2">No content.</p>}
             {viewNote.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {viewNote.tags.map((t) => <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{t}</span>)}

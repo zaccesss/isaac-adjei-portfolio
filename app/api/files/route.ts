@@ -36,12 +36,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 })
   }
 
-  // 50 MB limit
-  if (file.size > 50 * 1024 * 1024) {
-    return NextResponse.json({ error: "File too large (max 50 MB)" }, { status: 413 })
+  // 500 MB limit
+  if (file.size > 500 * 1024 * 1024) {
+    return NextResponse.json({ error: "File too large (max 500 MB)" }, { status: 413 })
   }
 
-  const ext = file.name.split(".").pop() ?? ""
+const ext = file.name.split(".").pop() ?? ""
   const storagePath = `${folder.toLowerCase()}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`
 
   const arrayBuffer = await file.arrayBuffer()
