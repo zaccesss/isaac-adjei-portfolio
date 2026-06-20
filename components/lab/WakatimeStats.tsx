@@ -407,11 +407,27 @@ export default function WakatimeStats() {
             </div>
           )}
 
-          {/* When I code heatmap */}
+          {/* When I code heatmap + by hour bar chart side by side */}
           {stats.heatmap.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">when I code (UTC hour x day)</p>
-              <CodingHeatmap data={stats.heatmap} />
+            <div className="flex gap-6 items-start flex-wrap">
+              <div className="space-y-2 shrink-0">
+                <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">when I code (UTC hour x day)</p>
+                <CodingHeatmap data={stats.heatmap} />
+              </div>
+              {hourData.some((d) => d.hours > 0) && (
+                <div className="flex-1 min-w-[180px] space-y-2">
+                  <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">by hour of day (UTC)</p>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <BarChart data={hourData} barSize={10} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis dataKey="hour" tick={{ fontSize: 8 }} tickLine={false} axisLine={false} interval={5} />
+                      <YAxis tick={{ fontSize: 9 }} tickLine={false} axisLine={false} allowDecimals={false} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v}h`, "Coding"]} />
+                      <Bar dataKey="hours" fill={COLOURS[2]} radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
           )}
 
@@ -584,30 +600,6 @@ export default function WakatimeStats() {
             </div>
           )}
 
-          {/* Hour of day bar */}
-          {hourData.some((d) => d.hours > 0) && (
-            <div className="space-y-2">
-              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">by hour of day (UTC)</p>
-              <ResponsiveContainer width="100%" height={110}>
-                <BarChart data={hourData} barSize={9} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis
-                    dataKey="hour"
-                    tick={{ fontSize: 8 }}
-                    tickLine={false}
-                    axisLine={false}
-                    interval={5}
-                  />
-                  <YAxis tick={{ fontSize: 9 }} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={TOOLTIP_STYLE}
-                    formatter={(v) => [`${v}h`, "Coding"]}
-                  />
-                  <Bar dataKey="hours" fill={COLOURS[2]} radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
         </>
       )}
       <TypingMotto text="rm -rf impostor_syndrome && touch grass" delay={800} />

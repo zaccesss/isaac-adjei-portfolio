@@ -3,10 +3,12 @@
 // contact details and follow-up flags. I surface a follow-up queue for anyone I have not
 // contacted in over 30 days so important relationships do not go cold.
 
-import { useState } from "react"
-import { Users, Plus, X, ExternalLink, Mail, Phone, Bell, BellOff, Pencil, Github } from "lucide-react"
+import { useState, useTransition } from "react"
+import { Users, Plus, X, ExternalLink, Mail, Phone, Bell, BellOff, Pencil, Github, Trash2 } from "lucide-react"
 import type { Contact } from "@/app/dashboard/actions"
-import { createContact, updateContact, deleteContact } from "@/app/dashboard/actions"
+import { createContact, updateContact, deleteContact, bulkDeleteContacts } from "@/app/dashboard/actions"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
+import { useBulkSelect } from "@/hooks/useBulkSelect"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import PhoneField from "@/components/shared/PhoneField"
 
@@ -156,6 +158,8 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [filter, setFilter] = useState<"all" | "follow-up">("all")
+  const [, startTransition] = useTransition()
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   async function handleCreate(form: FormState) {
     const result = await createContact({
@@ -217,13 +221,29 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
     setContacts((p) => p.map((c) => c.id === contact.id ? { ...c, follow_up: next } : c))
   }
 
-  async function handleDelete(id: string) {
-    await deleteContact(id)
+  async function handleDelete(id: string, name: string) {
+    const ok = await showConfirm({ title: `Delete "${name}"?`, description: "Contact will be moved to trash.", destructive: true })
+    if (!ok) return
     setContacts((p) => p.filter((c) => c.id !== id))
+    startTransition(() => void deleteContact(id))
   }
 
   const followUpQueue = contacts.filter((c) => c.follow_up || needsFollowUp(c))
   const displayed = filter === "follow-up" ? followUpQueue : contacts
+
+  const { selected, toggle, toggleAll, remove: removeFromSelected, allSelected, someSelected } = useBulkSelect(displayed)
+
+  async function handleBulkDelete() {
+    const ids = [...selected]
+    const ok = await showConfirm({
+      title: `Delete ${ids.length} contact${ids.length === 1 ? "" : "s"}?`,
+      description: "Selected contacts will be moved to trash.",
+      destructive: true,
+    })
+    if (!ok) return
+    setContacts((p) => p.filter((c) => !selected.has(c.id)))
+    startTransition(() => void bulkDeleteContacts(ids))
+  }
 
   return (
     <div className="flex flex-col gap-6 max-w-3xl">
@@ -239,6 +259,17 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {someSelected && (
+            <button
+              type="button"
+              onClick={() => void handleBulkDelete()}
+              title={`Delete ${selected.size} selected contact${selected.size === 1 ? "" : "s"}`}
+              className="flex items-center gap-1 text-xs px-3 py-1.5 rounded border border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete {selected.size}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setFilter(filter === "all" ? "follow-up" : "all")}
@@ -297,9 +328,16 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
                 />
               ) : (
                 <div className={`border rounded-lg p-4 bg-card transition-colors ${
-                  needsFollowUp(contact) || contact.follow_up ? "border-amber-400/40" : "border-border"
+                  needsFollowUp(contact) || contact.follow_up ? "border-amber-400/40" : selected.has(contact.id) ? "border-primary/40 bg-primary/5" : "border-border"
                 }`}>
                   <div className="flex items-start justify-between gap-3">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(contact.id)}
+                      onChange={() => toggle(contact.id)}
+                      title="Select contact"
+                      className="mt-1 shrink-0 rounded"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium text-sm">{contact.name}</span>
@@ -398,8 +436,8 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDelete(contact.id)}
-                        title="Delete"
+                        onClick={() => void handleDelete(contact.id, contact.name)}
+                        title="Delete contact"
                         className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
                       >
                         <X className="h-4 w-4" />
@@ -412,6 +450,7 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
           ))}
         </div>
       )}
+      {confirmDialogNode}
     </div>
   )
 }

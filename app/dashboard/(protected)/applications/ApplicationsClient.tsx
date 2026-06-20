@@ -7,7 +7,8 @@
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
-import { createApplication, updateApplication, deleteApplication, archiveApplication, reopenApplication } from "../../actions"
+import { createApplication, updateApplication, deleteApplication, archiveApplication, reopenApplication, bulkDeleteApplications } from "../../actions"
+import { useBulkSelect } from "@/hooks/useBulkSelect"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -502,6 +503,8 @@ function AppRow({
   onStatusChange,
   onPrep,
   isEvent,
+  selected,
+  onToggleSelect,
 }: {
   app: Application
   onEdit: (a: Application) => void
@@ -511,12 +514,19 @@ function AppRow({
   onStatusChange: (id: string, status: string) => void
   onPrep: (a: Application) => void
   isEvent: boolean
+  selected?: boolean
+  onToggleSelect?: (id: string) => void
 }) {
   const displayStatus = normaliseStatus(app.status)
   const statusCls = statusTextClass(app.status)
 
   return (
-    <tr className="border-b border-border/50 hover:bg-muted/30 transition-colors text-xs">
+    <tr className={`border-b border-border/50 hover:bg-muted/30 transition-colors text-xs ${selected ? "bg-primary/5" : ""}`}>
+      <td className="px-2 py-1.5 w-7">
+        {onToggleSelect && (
+          <input type="checkbox" checked={!!selected} onChange={() => onToggleSelect(app.id)} title="Select row" className="rounded" />
+        )}
+      </td>
       {/* My Status - inline select */}
       <td className="px-2 py-1.5 whitespace-nowrap min-w-[160px]">
         <select
@@ -720,6 +730,8 @@ function CategoryGroup({
   onStatusChange,
   onPrep,
   isEvent,
+  selectedIds,
+  onToggleSelect,
 }: {
   category: string
   apps: Application[]
@@ -730,6 +742,8 @@ function CategoryGroup({
   onStatusChange: (id: string, status: string) => void
   onPrep: (a: Application) => void
   isEvent: boolean
+  selectedIds?: Set<string>
+  onToggleSelect?: (id: string) => void
 }) {
   const [open, setOpen] = useState(true)
 
@@ -737,7 +751,7 @@ function CategoryGroup({
     <>
       {/* Category header row */}
       <tr className="bg-muted/60 dark:bg-muted/40 border-b border-border">
-        <td colSpan={isEvent ? 8 : 14} className="px-2 py-1.5">
+        <td colSpan={isEvent ? 9 : 15} className="px-2 py-1.5">
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
@@ -765,6 +779,8 @@ function CategoryGroup({
             onReopen={onReopen}
             onStatusChange={onStatusChange}
             onPrep={onPrep}
+            selected={selectedIds?.has(app.id)}
+            onToggleSelect={onToggleSelect}
             isEvent={isEvent}
           />
         ))}
@@ -890,6 +906,8 @@ export default function ApplicationsClient({ applications: initial }: { applicat
 
     return true
   })
+
+  const { selected: bulkSelected, toggle: bulkToggle, toggleAll: bulkToggleAll, allSelected: bulkAllSelected, someSelected: bulkSomeSelected } = useBulkSelect(filtered)
 
   // Stats (based on filtered)
   const statsTotal = filtered.length
@@ -1031,6 +1049,13 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   function handleDelete(id: string) {
     setApps((prev) => prev.filter((a) => a.id !== id))
     startTransition(() => void deleteApplication(id))
+  }
+
+  function handleBulkDelete() {
+    const ids = [...bulkSelected]
+    if (!ids.length) return
+    setApps((prev) => prev.filter((a) => !bulkSelected.has(a.id)))
+    startTransition(() => void bulkDeleteApplications(ids))
   }
 
   function handleArchive(id: string) {
@@ -1283,6 +1308,18 @@ export default function ApplicationsClient({ applications: initial }: { applicat
           <Archive className="h-3 w-3" />
           {showArchived ? "Viewing archived" : "Archived"}
         </button>
+
+        {bulkSomeSelected && (
+          <button
+            type="button"
+            onClick={handleBulkDelete}
+            title={`Move ${bulkSelected.size} selected application${bulkSelected.size === 1 ? "" : "s"} to trash`}
+            className="h-8 px-2.5 text-xs rounded-md border border-red-300 text-red-600 flex items-center gap-1.5 shrink-0 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <Trash2 className="h-3 w-3" />
+            Delete {bulkSelected.size}
+          </button>
+        )}
       </div>
 
       {/* Kanban view */}
@@ -1321,6 +1358,9 @@ export default function ApplicationsClient({ applications: initial }: { applicat
             <table className="w-full border-collapse text-xs">
               <thead className="sticky top-0 z-10">
                 <tr className="bg-muted dark:bg-muted/80 text-foreground">
+                  <th className="px-2 py-2 w-7">
+                    <input type="checkbox" checked={bulkAllSelected} onChange={bulkToggleAll} title="Select all visible" className="rounded" />
+                  </th>
                   <th className="px-2 py-2 text-left font-semibold whitespace-nowrap">My Status</th>
                   <th className="px-2 py-2 text-left font-semibold whitespace-nowrap">Company</th>
                   <th className="px-2 py-2 text-left font-semibold whitespace-nowrap">Programme Name</th>
@@ -1363,6 +1403,8 @@ export default function ApplicationsClient({ applications: initial }: { applicat
                       onStatusChange={handleStatusChange}
                       onPrep={setPrepApp}
                       isEvent={isEvent}
+                      selectedIds={bulkSelected}
+                      onToggleSelect={bulkToggle}
                     />
                   )
                 })}

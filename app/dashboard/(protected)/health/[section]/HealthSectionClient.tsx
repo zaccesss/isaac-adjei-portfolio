@@ -45,9 +45,13 @@ type Nutrition = {
   order_index: number
 }
 
-// I map section slugs to default icon emojis so new sections get a sensible default
-const SECTION_TYPE_ICONS: Record<string, string> = { gym: "🏋️", running: "🏃", nutrition: "🥗", cardio: "❤️", other: "⚡" }
-const SECTION_TYPES = ["gym", "running", "nutrition", "cardio", "other"]
+const SECTION_TYPE_ICONS: Record<string, string> = { gym: "🏋️", running: "🏃", nutrition: "🥗", cardio: "❤️", activity: "🏃", other: "⚡" }
+const SECTION_TYPES = ["gym", "running", "nutrition", "cardio", "activity", "other"]
+const ACTIVITY_SUBTYPES = ["walking", "running", "swimming", "football", "basketball", "tennis", "cycling", "custom"]
+const ACTIVITY_SUBTYPE_ICONS: Record<string, string> = {
+  walking: "🚶", running: "🏃", swimming: "🏊", football: "⚽",
+  basketball: "🏀", tennis: "🎾", cycling: "🚴", custom: "⚡",
+}
 
 function SectionCard({ section, onClick, onDelete }: {
   section: Section
@@ -217,7 +221,7 @@ export default function HealthSectionClient({
   // I keep selectedSection as state so clicking a gym section card shows its workouts inline
   const [selectedSection, setSelectedSection] = useState<Section | null>(null)
   const [addSectionOpen, setAddSectionOpen] = useState(false)
-  const [newSection, setNewSection] = useState({ name: "", type: activeSection, icon: SECTION_TYPE_ICONS[activeSection] ?? "💪", color: "#6366f1" })
+  const [newSection, setNewSection] = useState({ name: "", type: activeSection, icon: SECTION_TYPE_ICONS[activeSection] ?? "💪", color: "#6366f1", subtype: "" })
   const [addWorkoutOpen, setAddWorkoutOpen] = useState(false)
   const [editWorkout, setEditWorkout] = useState<Workout | null>(null)
   const [workoutForm, setWorkoutForm] = useState({ day_label: "", exercises: [{ name: "", sets: "" }], notes: "" })
@@ -240,8 +244,10 @@ export default function HealthSectionClient({
     const optimistic: Section = { id: crypto.randomUUID(), ...newSection, order_index: sections.length }
     setSections((s) => [...s, optimistic])
     setAddSectionOpen(false)
-    setNewSection({ name: "", type: activeSection, icon: SECTION_TYPE_ICONS[activeSection] ?? "💪", color: "#6366f1" })
-    startTransition(() => void createHealthSection({ ...newSection, order_index: sections.length }))
+    setNewSection({ name: "", type: activeSection, icon: SECTION_TYPE_ICONS[activeSection] ?? "💪", color: "#6366f1", subtype: "" })
+    const payload = { ...newSection, order_index: sections.length }
+    if (newSection.type !== "activity") delete (payload as { subtype?: string }).subtype
+    startTransition(() => void createHealthSection(payload))
   }
 
   function handleDeleteSection(id: string) {
@@ -504,7 +510,7 @@ export default function HealthSectionClient({
                 <select
                   aria-label="Section type"
                   value={newSection.type}
-                  onChange={(e) => setNewSection((s) => ({ ...s, type: e.target.value, icon: SECTION_TYPE_ICONS[e.target.value] ?? "⚡" }))}
+                  onChange={(e) => setNewSection((s) => ({ ...s, type: e.target.value, icon: SECTION_TYPE_ICONS[e.target.value] ?? "⚡", subtype: "" }))}
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
                 >
                   {SECTION_TYPES.map((t) => <option key={t} value={t} className="capitalize">{t}</option>)}
@@ -515,6 +521,24 @@ export default function HealthSectionClient({
                 <Input value={newSection.icon} onChange={(e) => setNewSection((s) => ({ ...s, icon: e.target.value }))} placeholder="💪" className="text-lg" />
               </div>
             </div>
+            {newSection.type === "activity" && (
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Activity type</label>
+                <select
+                  aria-label="Activity subtype"
+                  value={newSection.subtype}
+                  onChange={(e) => setNewSection((s) => ({
+                    ...s,
+                    subtype: e.target.value,
+                    icon: e.target.value ? ACTIVITY_SUBTYPE_ICONS[e.target.value] ?? "⚡" : s.icon,
+                  }))}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                >
+                  <option value="">Select activity type...</option>
+                  {ACTIVITY_SUBTYPES.map((st) => <option key={st} value={st} className="capitalize">{st.charAt(0).toUpperCase() + st.slice(1)}</option>)}
+                </select>
+              </div>
+            )}
             <div className="flex gap-2 justify-end pt-2">
               <Button variant="ghost" onClick={() => setAddSectionOpen(false)}>Cancel</Button>
               <Button onClick={handleAddSection} disabled={!newSection.name.trim()}>Add section</Button>

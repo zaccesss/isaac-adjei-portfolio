@@ -261,7 +261,7 @@ function VaultForm({ initial, fixedType, onClose }: {
           <div className="flex gap-2">
             {/* I toggle input type between "password" and "text" so characters are masked by default */}
             <Input type={showPass ? "text" : "password"} value={form.password} onChange={(e) => set("password", e.target.value)} placeholder="Password" className="flex-1" />
-            <Button type="button" variant="ghost" size="icon" onClick={() => setShowPass((s) => !s)}>{showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</Button>
+            <Button type="button" variant="ghost" size="icon" title={showPass ? "Hide password" : "Show password"} onClick={() => setShowPass((s) => !s)}>{showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</Button>
           </div>
           <Input value={form.totp_secret} onChange={(e) => set("totp_secret", e.target.value)} placeholder="2FA secret (optional)" />
         </>

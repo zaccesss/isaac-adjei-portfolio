@@ -4,6 +4,8 @@
 // I use optimistic updates throughout so changes feel instant without waiting for the server.
 
 import { useState, useTransition, useRef } from "react"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
+import { useBulkSelect } from "@/hooks/useBulkSelect"
 import {
   addOpenSourceContribution,
   updateOpenSourceContribution,
@@ -62,6 +64,7 @@ export default function OpenSourceClient({
   // without waiting for a server round-trip.
   const [rows, setRows] = useState<OpenSourceContribution[]>(initial)
   const [, startTransition] = useTransition()
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   // I track editing state: null = no cell being edited
   const [editCell, setEditCell] = useState<{ id: string; field: string } | null>(null)
@@ -74,9 +77,6 @@ export default function OpenSourceClient({
   // I keep search and status filter as controlled inputs.
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all")
-
-  // I track selected rows for bulk delete.
-  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   // I show the add-row form when the user clicks "+ Add contribution".
   const [adding, setAdding] = useState(false)
@@ -116,6 +116,8 @@ export default function OpenSourceClient({
       return sortDir === "asc" ? cmp : -cmp
     })
 
+  const { selected, toggle: toggleSelect, toggleAll: toggleSelectAll, remove: removeFromSelected, allSelected, someSelected } = useBulkSelect(filtered)
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   function flash(kind: "ok" | "err", text: string) {
@@ -139,23 +141,6 @@ export default function OpenSourceClient({
   function sortIndicator(key: SortKey) {
     if (sortKey !== key) return null
     return sortDir === "asc" ? " ↑" : " ↓"
-  }
-
-  function toggleSelect(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
-  function toggleSelectAll() {
-    if (selected.size === filtered.length) {
-      setSelected(new Set())
-    } else {
-      setSelected(new Set(filtered.map((r) => r.id)))
-    }
   }
 
   // ── Mutations ────────────────────────────────────────────────────────────
@@ -223,23 +208,24 @@ export default function OpenSourceClient({
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Delete this contribution?")) return
+    const ok = await showConfirm({ title: "Delete this contribution?", destructive: true })
+    if (!ok) return
     setRows((prev) => prev.filter((r) => r.id !== id))
-    setSelected((prev) => { const n = new Set(prev); n.delete(id); return n })
-    startTransition(async () => {
-      await deleteOpenSourceContribution(id)
-    })
+    removeFromSelected(id)
+    startTransition(async () => { await deleteOpenSourceContribution(id) })
   }
 
   async function handleBulkDelete() {
     const ids = [...selected]
     if (!ids.length) return
-    if (!window.confirm(`Delete ${ids.length} contribution${ids.length === 1 ? "" : "s"}?`)) return
-    setRows((prev) => prev.filter((r) => !selected.has(r.id)))
-    setSelected(new Set())
-    startTransition(async () => {
-      await bulkDeleteOpenSourceContributions(ids)
+    const ok = await showConfirm({
+      title: `Delete ${ids.length} contribution${ids.length === 1 ? "" : "s"}?`,
+      description: "This cannot be undone.",
+      destructive: true,
     })
+    if (!ok) return
+    setRows((prev) => prev.filter((r) => !selected.has(r.id)))
+    startTransition(async () => { await bulkDeleteOpenSourceContributions(ids) })
   }
 
   // ── Export ───────────────────────────────────────────────────────────────
@@ -328,9 +314,10 @@ export default function OpenSourceClient({
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
-        {selected.size > 0 && (
+        {someSelected && (
           <button
             onClick={handleBulkDelete}
+            title={`Delete ${selected.size} selected contribution${selected.size === 1 ? "" : "s"}`}
             className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-md border border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -339,6 +326,7 @@ export default function OpenSourceClient({
         )}
         <button
           onClick={handleExportCSV}
+          title="Export visible rows as CSV"
           className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-md border border-border hover:bg-muted"
         >
           <Download className="h-3.5 w-3.5" />
@@ -361,7 +349,7 @@ export default function OpenSourceClient({
               <th className="px-3 py-2 w-8">
                 <input
                   type="checkbox"
-                  checked={filtered.length > 0 && selected.size === filtered.length}
+                  checked={allSelected}
                   onChange={toggleSelectAll}
                   className="rounded"
                 />
@@ -625,6 +613,7 @@ export default function OpenSourceClient({
           </tbody>
         </table>
       </div>
+      {confirmDialogNode}
     </div>
   )
 }

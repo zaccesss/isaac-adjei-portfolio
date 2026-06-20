@@ -1,27 +1,28 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-  CheckCircle2, Plus, Trash2, RotateCcw, Target,
-  TrendingUp, Calendar
+  CheckCircle2, Plus, Trash2, Target,
+  TrendingUp, Calendar, FlaskConical
 } from "lucide-react"
 import {
-  createStreak, updateStreak, deleteStreak,
-  checkInStreak, undoStreakCheckIn
+  createHabit, deleteHabit, checkInHabit, undoHabitCheckIn,
 } from "@/app/dashboard/actions"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
+
+const SUPPLEMENT_PRESETS = ["Creatine", "Whey", "Vitamin D", "Omega-3", "Magnesium"]
 
 type Habit = {
   id: string
   name: string
   description: string | null
   frequency: string
-  target_days: number
-  colour: string | null
+  color: string | null
   active: boolean
   created_at: string
 }
@@ -46,6 +47,7 @@ export default function HabitsClient({
   const [newHabitName, setNewHabitName] = useState("")
   const [adding, setAdding] = useState(false)
   const [, startTransition] = useTransition()
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   // I build a lookup of which habits are checked in today
   const todayLogs = new Set(logs.filter((l) => l.date === today).map((l) => l.habit_id))
@@ -83,33 +85,31 @@ export default function HabitsClient({
       name: newHabitName.trim(),
       description: null,
       frequency: "daily",
-      target_days: 30,
-      colour: null,
+      color: "#3b82f6",
       active: true,
       created_at: new Date().toISOString(),
     }
     setHabits((h) => [...h, optimistic])
     setNewHabitName("")
     setAdding(false)
-    startTransition(() => void createStreak({ name: optimistic.name, icon: "🎯", description: "", color: "#3b82f6", order_index: habits.length }))
+    startTransition(() => void createHabit({ name: optimistic.name, color: "#3b82f6" }))
   }
 
   function handleCheckIn(habitId: string) {
     const isCheckedIn = todayLogs.has(habitId)
     if (isCheckedIn) {
-      // I undo the check-in
-      startTransition(() => void undoStreakCheckIn(habitId, today))
+      startTransition(() => void undoHabitCheckIn(habitId, today))
     } else {
-      // I check in
-      startTransition(() => void checkInStreak(habitId, today))
+      startTransition(() => void checkInHabit(habitId, today))
     }
-    // I force a reload to get fresh data
     window.location.reload()
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string, name: string) {
+    const ok = await showConfirm({ title: `Delete "${name}"?`, description: "All check-in history for this habit will be removed.", destructive: true })
+    if (!ok) return
     setHabits((h) => h.filter((x) => x.id !== id))
-    startTransition(() => void deleteStreak(id))
+    startTransition(() => void deleteHabit(id))
   }
 
   return (
@@ -179,6 +179,7 @@ export default function HabitsClient({
               >
                 <div className="flex items-center gap-3">
                   <button
+                    type="button"
                     onClick={() => handleCheckIn(habit.id)}
                     className={`p-2 rounded-full transition-colors ${
                       isCheckedIn
@@ -201,15 +202,18 @@ export default function HabitsClient({
                           {streak} day streak
                         </span>
                       )}
-                      <span className="flex items-center gap-1">
-                        <Target className="h-3 w-3" />
-                        {habit.target_days} days target
-                      </span>
+                      {streak === 0 && (
+                        <span className="flex items-center gap-1">
+                          <Target className="h-3 w-3" />
+                          Start today
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
                 <button
-                  onClick={() => handleDelete(habit.id)}
+                  type="button"
+                  onClick={() => handleDelete(habit.id, habit.name)}
                   className="p-2 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                   aria-label="Delete habit"
                   title="Delete habit"
@@ -222,10 +226,49 @@ export default function HabitsClient({
         </div>
       )}
 
+      {/* Supplements quick-add - adds any supplement as a tracked daily habit */}
+      <div className="border border-border rounded-xl p-4 bg-card">
+        <div className="flex items-center gap-2 mb-3">
+          <FlaskConical className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Supplements</span>
+          <span className="text-xs text-muted-foreground">- track as daily habits</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {SUPPLEMENT_PRESETS.map((name) => {
+            const exists = habits.some((h) => h.name.toLowerCase() === name.toLowerCase())
+            return (
+              <button
+                key={name}
+                type="button"
+                disabled={exists}
+                title={exists ? `${name} is already tracked` : `Add ${name} as a daily habit`}
+                onClick={() => {
+                  if (exists) return
+                  const optimistic: Habit = {
+                    id: crypto.randomUUID(), name, description: "Daily supplement", frequency: "daily",
+                    color: "#22c55e", active: true, created_at: new Date().toISOString(),
+                  }
+                  setHabits((h) => [...h, optimistic])
+                  startTransition(() => void createHabit({ name, color: "#22c55e", description: "Daily supplement" }))
+                }}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  exists
+                    ? "border-green-200 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 cursor-default"
+                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                {exists ? "✓ " : "+ "}{name}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <Calendar className="h-3.5 w-3.5" />
         <span>Today: {new Date(today).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</span>
       </div>
+      {confirmDialogNode}
     </motion.div>
   )
 }

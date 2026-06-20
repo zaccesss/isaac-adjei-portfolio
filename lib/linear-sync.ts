@@ -1,6 +1,6 @@
-// Syncs job applications to a dedicated Linear "Careers" team.
+// Syncs job applications and university deadlines to Linear.
 // Requires LINEAR_API_KEY and LINEAR_TEAM_ID env vars.
-// On create: creates a Linear issue and returns the new issue ID (stored in applications.linear_issue_id).
+// On create: creates a Linear issue and returns the new issue ID.
 // On update: updates the state of the existing issue to match the dashboard status.
 
 const LINEAR_GQL = "https://api.linear.app/graphql"
@@ -90,4 +90,70 @@ export async function syncApplicationToLinear(app: {
 
   const issueId = (result.data?.issueCreate as { issue?: { id: string } } | undefined)?.issue?.id ?? null
   return issueId
+}
+
+// Maps uni_deadlines.status values to Linear state names.
+// Create these states in your Linear team: "To Do", "In Progress", "In Review", "Done".
+const DEADLINE_STATUS_TO_LINEAR: Record<string, string> = {
+  not_started: "To Do",
+  in_progress:  "In Progress",
+  submitted:    "In Review",
+  graded:       "Done",
+}
+
+export async function syncDeadlineToLinear(deadline: {
+  id: string
+  title: string
+  type: string
+  due_date: string
+  module?: string | null
+  status: string
+  linear_issue_id?: string | null
+}, uniTeamId?: string | null): Promise<string | null> {
+  const apiKey = process.env.LINEAR_API_KEY
+  // University deadlines use LINEAR_UNI_TEAM_ID if set, falling back to LINEAR_TEAM_ID
+  const teamId = uniTeamId ?? process.env.LINEAR_UNI_TEAM_ID ?? process.env.LINEAR_TEAM_ID
+  if (!apiKey || !teamId) return null
+
+  const targetStateName = DEADLINE_STATUS_TO_LINEAR[deadline.status]
+  if (!targetStateName) return null
+
+  const stateId = await resolveStateId(apiKey, teamId, targetStateName)
+  if (!stateId) return null
+
+  if (deadline.linear_issue_id) {
+    await gql(apiKey, `
+      mutation UpdateIssue($id: String!, $stateId: String!) {
+        issueUpdate(id: $id, input: { stateId: $stateId }) { success }
+      }
+    `, { id: deadline.linear_issue_id, stateId })
+    return deadline.linear_issue_id
+  }
+
+  const due = new Date(deadline.due_date).toISOString().split("T")[0]
+  const moduleLabel = deadline.module ? `Module: ${deadline.module}\n` : ""
+  const description = `${moduleLabel}Type: ${deadline.type}\nDue: ${due}`
+
+  const result = await gql(apiKey, `
+    mutation CreateIssue($teamId: String!, $title: String!, $stateId: String!, $description: String!, $dueDate: TimelessDate) {
+      issueCreate(input: { teamId: $teamId, title: $title, stateId: $stateId, description: $description, dueDate: $dueDate }) {
+        success
+        issue { id }
+      }
+    }
+  `, { teamId, title: deadline.title, stateId, description, dueDate: due })
+
+  const issueId = (result.data?.issueCreate as { issue?: { id: string } } | undefined)?.issue?.id ?? null
+  return issueId
+}
+
+export async function getLinearTeams(): Promise<{ id: string; name: string }[]> {
+  const apiKey = process.env.LINEAR_API_KEY
+  if (!apiKey) return []
+  const data = await gql(apiKey, `query { teams { nodes { id name } } }`)
+  return (data.data?.teams as { nodes: { id: string; name: string }[] } | undefined)?.nodes ?? []
+}
+
+export function linearConfigured(): boolean {
+  return Boolean(process.env.LINEAR_API_KEY && process.env.LINEAR_TEAM_ID)
 }
