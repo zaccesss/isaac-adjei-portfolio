@@ -1,7 +1,10 @@
 "use client"
 
-// Equaliser bars + sine wave SVG, embedded inside the LiveStatusCards Spotify section.
-// No data fetching — driven entirely by props from the parent SSE stream.
+// Equaliser bars + sine wave SVG, driven by real Spotify audio analysis data.
+// Beats array from /audio-analysis gives exact beat timestamps; progressMs
+// (interpolated between 1s ticks) lets us pinpoint the current beat and pulse
+// the bars at the correct moment. Loudness (dB) shifts bar/sine opacity so
+// louder tracks look brighter and quieter tracks appear more muted.
 import { useEffect, useRef } from "react"
 
 const BAR_COUNT = 48
@@ -13,24 +16,41 @@ const BAR_W     = 5
 const GAP       = 3
 const VBOX_W    = BAR_COUNT * (BAR_W + GAP) - GAP
 
+// Map loudness (dB, typical -25..-5) to a 0..1 brightness multiplier
+function loudnessFactor(loudness?: number): number {
+  if (loudness == null) return 0.7
+  return Math.max(0.35, Math.min(1.0, (loudness + 30) / 30))
+}
+
 interface Props {
   playing: boolean
   albumArt?: string | null
   energy?: number
   tempo?: number
+  loudness?: number   // dB, typically -25 to -5
+  beats?: number[]    // sorted beat start times in seconds from /audio-analysis
+  progressMs?: number // current playback position in ms (ticked forward by parent)
 }
 
-export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 100 }: Props) {
-  const barsRef    = useRef<SVGGElement>(null)
-  const clipGRef   = useRef<SVGGElement>(null)
-  const sineRef    = useRef<SVGPathElement>(null)
-  const rafRef     = useRef(0)
-  const phasesRef  = useRef(Array.from({ length: BAR_COUNT }, (_, i) => i * ((Math.PI * 2) / BAR_COUNT)))
-  const sinPhRef   = useRef(0)
-  const propsRef   = useRef({ playing, energy, tempo })
-  const beatRef    = useRef({ lastBeat: 0, boost: 0 })
+export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 100, loudness, beats, progressMs = 0 }: Props) {
+  const barsRef          = useRef<SVGGElement>(null)
+  const clipGRef         = useRef<SVGGElement>(null)
+  const sineRef          = useRef<SVGPathElement>(null)
+  const rafRef           = useRef(0)
+  const phasesRef        = useRef(Array.from({ length: BAR_COUNT }, (_, i) => i * ((Math.PI * 2) / BAR_COUNT)))
+  const sinPhRef         = useRef(0)
+  const propsRef         = useRef({ playing, energy, tempo, loudness })
+  const beatsRef         = useRef<number[]>([])
+  const progressRef      = useRef(progressMs)
+  const progressSetAtRef = useRef(performance.now())
+  const beatRef          = useRef({ lastIdx: -1, boost: 0, fallbackLastMs: 0 })
 
-  useEffect(() => { propsRef.current = { playing, energy, tempo } }, [playing, energy, tempo])
+  useEffect(() => {
+    propsRef.current = { playing, energy, tempo, loudness }
+    beatsRef.current = beats ?? []
+    progressRef.current = progressMs
+    progressSetAtRef.current = performance.now()
+  }, [playing, energy, tempo, loudness, beats, progressMs])
 
   useEffect(() => {
     const tick = () => {
@@ -38,25 +58,43 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
       const sinePath = sineRef.current
       if (!barsG) { rafRef.current = requestAnimationFrame(tick); return }
 
-      const { playing: p, energy: e, tempo: t } = propsRef.current
+      const { playing: p, energy: e, tempo: t, loudness: ld } = propsRef.current
       const speedMult = (t ?? 100) / 120
+      const lf        = loudnessFactor(ld)
 
-      // Beat pulse: fires at the song's BPM, decays between beats to create a thump effect
       const beat = beatRef.current
       if (p) {
-        const now = performance.now()
-        const beatInterval = 60000 / (t ?? 100)
-        if (now - beat.lastBeat > beatInterval) {
-          beat.lastBeat = now
-          beat.boost = 1.0
+        if (beatsRef.current.length > 0) {
+          // Interpolate current playback position between the 1s progressMs ticks
+          const currentS = (progressRef.current + (performance.now() - progressSetAtRef.current)) / 1000
+          // Binary search for the latest beat that has started
+          let lo = 0, hi = beatsRef.current.length - 1, idx = -1
+          while (lo <= hi) {
+            const mid = (lo + hi) >> 1
+            if (beatsRef.current[mid] <= currentS) { idx = mid; lo = mid + 1 }
+            else hi = mid - 1
+          }
+          if (idx >= 0 && idx !== beat.lastIdx) {
+            beat.lastIdx = idx
+            beat.boost = 1.0
+          }
+        } else {
+          // Fallback to BPM estimate when no audio analysis is available
+          const now = performance.now()
+          if (now - beat.fallbackLastMs > 60000 / (t ?? 100)) {
+            beat.fallbackLastMs = now
+            beat.boost = 1.0
+          }
         }
         beat.boost *= 0.88
       } else {
         beat.boost = 0
+        beat.lastIdx = -1
       }
 
-      const maxH   = p ? Math.max(14, (e ?? 0.4) * BAR_H * 0.95 * (1 + beat.boost * 0.55)) : 5
-      const minH   = p ? 3 : 1
+      // Loudness scales both the peak bar height and the minimum floor
+      const maxH  = p ? Math.max(14, (e ?? 0.4) * BAR_H * 0.95 * lf * (1 + beat.boost * 0.55)) : 5
+      const minH  = p ? Math.max(1, 3 * lf) : 1
       const barEls  = barsG.children
       const clipEls = clipGRef.current?.children
 
@@ -70,7 +108,8 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
         if (el) {
           el.setAttribute("height", hs)
           el.setAttribute("y", y)
-          el.setAttribute("opacity", p ? (0.5 + 0.5 * osc).toFixed(2) : (0.06 + 0.05 * osc).toFixed(2))
+          // Loudness shifts the opacity range: loud = vivid, quiet = muted
+          el.setAttribute("opacity", p ? Math.min(1, (0.35 + 0.5 * osc) * lf + beat.boost * 0.15).toFixed(2) : (0.06 + 0.05 * osc).toFixed(2))
         }
         const cel = clipEls?.[i] as SVGRectElement | undefined
         if (cel) { cel.setAttribute("height", hs); cel.setAttribute("y", y) }
@@ -78,7 +117,7 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
 
       if (sinePath) {
         sinPhRef.current += 0.06 * speedMult
-        const amplitude = p ? Math.max(8, (e ?? 0.4) * 22 * (1 + beat.boost * 0.4)) : 2
+        const amplitude = p ? Math.max(8, (e ?? 0.4) * 22 * lf * (1 + beat.boost * 0.4)) : 2
         const cycles    = Math.max(2.5, (t ?? 100) / 42)
         let d = `M 0 ${WAVE_Y}`
         for (let i = 1; i <= 200; i++) {
@@ -88,7 +127,7 @@ export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 1
         }
         sinePath.setAttribute("d", d)
         sinePath.setAttribute("stroke-width", p ? "2.5" : "1")
-        sinePath.setAttribute("opacity", p ? (0.65 + 0.35 * (e ?? 0.4)).toFixed(2) : "0.12")
+        sinePath.setAttribute("opacity", p ? Math.min(1, (0.45 + 0.35 * (e ?? 0.4)) * lf + beat.boost * 0.2).toFixed(2) : "0.12")
       }
 
       rafRef.current = requestAnimationFrame(tick)
