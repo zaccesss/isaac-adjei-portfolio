@@ -30,15 +30,12 @@ export async function GET(request: Request) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(snapshot)}\n\n`))
       } catch {}
 
-      // I push updates every 10s - Spotify is the fastest-changing source so 10s is the right cadence
       const interval = setInterval(async () => {
         try {
           const update = await fetchAllStatus(origin)
           controller.enqueue(encoder.encode(`data: ${JSON.stringify(update)}\n\n`))
-        } catch {
-          // I keep the stream alive even if one poll fails - the client retains its last known state
-        }
-      }, 10000)
+        } catch {}
+      }, 60000)
 
       // I clear the interval when the client disconnects to avoid orphaned Edge function instances
       return () => clearInterval(interval)

@@ -126,16 +126,38 @@ export async function GET() {
       await redis.set("spotify:last_played", { track: title, artist: subtitle, albumArt, type: isEpisode ? "episode" : "track" })
     }
 
-    // Fetch audio features for tracks only - gives energy, tempo and valence for the visualiser
-    let audioFeatures: { energy: number; tempo: number; valence: number; danceability: number } | null = null
+    // Fetch audio features + audio analysis for tracks only
+    // audio features: energy, tempo, valence, danceability, loudness (dB)
+    // audio analysis: beat timestamps for real-time beat-synced visualiser
+    let audioFeatures: { energy: number; tempo: number; valence: number; danceability: number; loudness: number } | null = null
+    let beats: number[] | null = null
     if (!isEpisode && data.item.id) {
+      const trackId = data.item.id
       try {
-        const afRes = await fetch(`https://api.spotify.com/v1/audio-features/${data.item.id}`, {
+        const afRes = await fetch(`https://api.spotify.com/v1/audio-features/${trackId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (afRes.ok) {
-          const af = await afRes.json() as { energy: number; tempo: number; valence: number; danceability: number }
-          audioFeatures = { energy: af.energy, tempo: af.tempo, valence: af.valence, danceability: af.danceability }
+          const af = await afRes.json() as { energy: number; tempo: number; valence: number; danceability: number; loudness: number }
+          audioFeatures = { energy: af.energy, tempo: af.tempo, valence: af.valence, danceability: af.danceability, loudness: af.loudness }
+        }
+      } catch {}
+
+      // Beat timestamps are static per track so cache indefinitely (24h) by track ID
+      try {
+        const cacheKey = `spotify:beats:${trackId}`
+        const cached = redis ? await redis.get<number[]>(cacheKey) : null
+        if (cached) {
+          beats = cached
+        } else {
+          const aaRes = await fetch(`https://api.spotify.com/v1/audio-analysis/${trackId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          if (aaRes.ok) {
+            const aa = await aaRes.json() as { beats: { start: number; confidence: number }[] }
+            beats = aa.beats.filter((b) => b.confidence > 0.3).map((b) => b.start)
+            if (redis) await redis.set(cacheKey, beats, { ex: 86400 })
+          }
         }
       } catch {}
     }
@@ -149,11 +171,11 @@ export async function GET() {
         artist: subtitle,
         albumArt,
         url: data.item.external_urls.spotify,
-        // I return progress_ms as a snapshot; the client ticks it forward every second so the bar stays smooth between 10s polls
         progressMs: data.progress_ms ?? 0,
         durationMs: data.item.duration_ms,
         device: data.device?.name ?? null,
         audioFeatures,
+        beats,
         lastPlayed: null,
       },
       { headers: { "Cache-Control": "no-store" } }

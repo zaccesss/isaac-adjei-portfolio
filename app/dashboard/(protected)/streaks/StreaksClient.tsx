@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { createStreak, deleteStreak, checkInStreak, undoStreakCheckIn } from "../../actions"
+import { createStreak, updateStreak, deleteStreak, checkInStreak, undoStreakCheckIn } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Flame, Trophy, Check, Activity } from "lucide-react"
+import { Plus, Trash2, Flame, Trophy, Check, Activity, Pencil } from "lucide-react"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, Legend, PieChart, Pie } from "recharts"
 import {
@@ -374,11 +374,12 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
   )
 }
 
-function StreakCard({ streak, logs, today, onDelete, onCheckIn }: {
+function StreakCard({ streak, logs, today, onDelete, onEdit, onCheckIn }: {
   streak: Streak
   logs: Log[]
   today: string
   onDelete: (id: string) => void
+  onEdit: (streak: Streak) => void
   onCheckIn: (streakId: string, date: string, undo: boolean) => void
 }) {
   const checkedInToday = logs.some((l) => l.streak_id === streak.id && l.date === today && l.completed)
@@ -395,15 +396,26 @@ function StreakCard({ streak, logs, today, onDelete, onCheckIn }: {
             {streak.description && <MarkdownContent compact>{streak.description}</MarkdownContent>}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => onDelete(streak.id)}
-          aria-label="Delete streak"
-          title="Delete streak"
-          className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onEdit(streak)}
+            aria-label="Edit streak"
+            title="Edit streak"
+            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(streak.id)}
+            aria-label="Delete streak"
+            title="Delete streak"
+            className="p-1 rounded hover:bg-muted text-destructive/60 hover:text-destructive transition-colors"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -449,6 +461,8 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
   const [logs, setLogs] = useState<Log[]>(initialLogs)
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(emptyForm)
+  const [editStreak, setEditStreak] = useState<Streak | null>(null)
+  const [editForm, setEditForm] = useState(emptyForm)
   const [, startTransition] = useTransition()
 
   const checkedInCount = streaks.filter((s) =>
@@ -467,6 +481,18 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
   function handleDelete(id: string) {
     setStreaks((s) => s.filter((x) => x.id !== id))
     startTransition(() => void deleteStreak(id))
+  }
+
+  function openEdit(streak: Streak) {
+    setEditStreak(streak)
+    setEditForm({ name: streak.name, icon: streak.icon, description: streak.description ?? "", color: streak.color })
+  }
+
+  function handleSaveEdit() {
+    if (!editStreak || !editForm.name.trim()) return
+    setStreaks((s) => s.map((x) => x.id === editStreak.id ? { ...x, ...editForm, description: editForm.description || null } : x))
+    startTransition(() => void updateStreak(editStreak.id, { name: editForm.name, icon: editForm.icon, description: editForm.description, color: editForm.color }))
+    setEditStreak(null)
   }
 
   function handleCheckIn(streakId: string, date: string, undo: boolean) {
@@ -539,6 +565,7 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
                 logs={logs}
                 today={today}
                 onDelete={handleDelete}
+                onEdit={openEdit}
                 onCheckIn={handleCheckIn}
               />
             ))}
@@ -546,6 +573,49 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
           <StreakActivityChart streaks={streaks} logs={logs} today={today} />
         </>
       )}
+
+      <Dialog open={!!editStreak} onOpenChange={(o) => { if (!o) setEditStreak(null) }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit streak</DialogTitle></DialogHeader>
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-4 gap-2">
+              <Input
+                value={editForm.icon}
+                onChange={(e) => setEditForm((f) => ({ ...f, icon: e.target.value }))}
+                placeholder="🔥"
+                className="text-xl text-center col-span-1"
+              />
+              <Input
+                value={editForm.name}
+                onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Streak name"
+                className="col-span-3"
+                autoFocus
+              />
+            </div>
+            <Input
+              value={editForm.description}
+              onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+              placeholder="Description (optional)"
+            />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-muted-foreground">Colour</label>
+              <div className="flex gap-2 flex-wrap">
+                {STREAK_COLOURS.map((c) => (
+                  <button key={c} type="button" title={c} onClick={() => setEditForm((f) => ({ ...f, color: c }))}
+                    className={`w-5 h-5 rounded-full transition-transform ${editForm.color === c ? "scale-125 ring-2 ring-offset-1 ring-foreground" : ""}`}
+                    style={{ background: c }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end pt-2">
+              <Button variant="ghost" onClick={() => setEditStreak(null)}>Cancel</Button>
+              <Button onClick={handleSaveEdit} disabled={!editForm.name.trim()}>Save</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

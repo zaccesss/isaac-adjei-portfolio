@@ -9,6 +9,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `/lab`: Spotify top picks panel gains genre breakdown tab (horizontal bar chart of genre frequency from top 15 artists with coloured bars and pill tags), album art mosaic strip across all 20 tracks, artist photo circle mosaic, and audio stat pills (energy, mood, tempo, danceability) derived from Spotify audio features
+- `/lab`: section order updated to GitHub stats, WakaTime, PCB viewer, gaming panel, Spotify analytics
+
+### Changed
+
+- Dashboard sidebar restructured into collapsible groups (Daily, Wellbeing, Personal, Belongings, Analytics) with chevron arrows; collapse state persisted per group in localStorage; active groups stay open automatically
+- Live-status SSE stream reduced from polling every 10s to every 60s
+
+### Fixed
+
+- Edit controls added to Habits and Streaks (pencil icon opens pre-filled dialog with name, description and colour swatch picker) and Body Metrics (hover reveals pencil alongside delete)
+- `updateHabit` and `updateBodyMetric` server actions added to `app/dashboard/actions.ts`
+
+---
+
+## [Unreleased - previous]
+
+### Added
+
 - `/consumed/music/[slug]`: individual artist pages - each music entry in the consumed list now has its own page with full details, tracklist, and related context, following the existing `/consumed/[category]/[slug]` pattern
 - `/notes/prosthetics-health-tech`: long-form research note on prosthetics and health technology
 - `/notes/world-cup-ai-predictor`: long-form research note on the World Cup AI predictor project
