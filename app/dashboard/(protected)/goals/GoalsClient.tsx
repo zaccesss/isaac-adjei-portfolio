@@ -7,7 +7,7 @@ import Link from "next/link"
 import { createGoal } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import MarkdownEditor from "@/components/shared/MarkdownEditor"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -84,7 +84,7 @@ export function GoalForm({ initial, onSave, onCancel }: {
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium">Description</label>
-        <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={2} placeholder="More detail..." />
+        <MarkdownEditor value={form.description} onChange={(v) => set("description", v)} rows={2} placeholder="More detail..." />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">

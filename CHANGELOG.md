@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.12.0] - 2026-06-20
+
+### Added
+
+- Dashboard: Markdown editor with Write/Preview toggle rolled out to all long-form text fields - Faith notes, Study notes, Goals description, Contacts notes, Wishlist notes, Inventory notes, University notes (editor and display)
+- Dashboard: file manager now supports folder and subfolder creation; folders persist in localStorage even before files are uploaded; move-to-folder shows a dropdown of all existing folders
+- Dashboard: file manager upload limit raised from 50 MB to 500 MB per file; Supabase bucket limit updated to match
+
+### Fixed
+
+- Dashboard: empty trash button on `/dashboard/trash` now shows a confirmation dialog before permanently deleting all items
+- Dashboard: Supabase Storage `user-files` bucket created (was missing, causing "Bucket not found" error); RLS policies corrected to `allow all` matching all other dashboard tables
+- Dashboard: `calendar_events` and `user_files` table RLS policies fixed from `auth.uid() = user_id` to `allow all` so server-side inserts work with the anon key
+
+---
+
 ## [v2.11.0] - 2026-06-20
 
 ### Added
