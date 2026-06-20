@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.14.0] - 2026-06-21
+
+### Changed
+
+- Live status: every source (Spotify, devices, GitHub and Discord) is now read in-process through a shared `lib/live-status` module instead of the SSE stream HTTP-calling its own `/api` routes; this removes a second serverless invocation per source per tick that was driving the Vercel Active CPU bill
+- Live status: the SSE stream now pauses when the browser tab is hidden and resumes on focus, so a backgrounded `/now`, `/lab` or dashboard tab no longer polls all day
+- Spotify `/now`: adaptive polling (3s while playing, 15s when idle) backed by a 3s Redis result cache, so track skips appear in near-realtime while Spotify's API is hit at most once every few seconds no matter how many tabs are open
+
+### Fixed
+
+- Live status: the SSE stream's timers are now cleared on disconnect via the stream's `cancel()` handler; the previous cleanup returned from `start()` was silently ignored by the Streams API and could leak intervals
+
+---
+
 ## [v2.13.0] - 2026-06-20
 
 ### Added
