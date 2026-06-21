@@ -1,9 +1,18 @@
-// Shared live-status data getters. Both the public /api/* route handlers AND the SSE
-// stream import these, so the stream reads each source IN-PROCESS rather than HTTP-calling
-// its own /api routes (which booted a second serverless function per item per tick - the
-// double-invocation that burned Vercel CPU). One source of truth per item. Everything here
-// is Edge-safe (no Node-only APIs) because the SSE stream runs on the Edge runtime - note
-// btoa() rather than Buffer for the Spotify Basic auth header.
+// Shared live-status data getters. The public /api/* route handlers AND the combined
+// /api/live-status snapshot import these, so every source has ONE implementation. Everything
+// here is Edge-safe (no Node-only APIs) - note btoa() rather than Buffer for the Spotify Basic
+// auth header.
+//
+// Redis discipline (this is what keeps Upstash well under its monthly command budget):
+//   - Spotify uses ZERO Redis on the hot path: the access token is cached in-memory, the
+//     now-playing result is NOT cached in Redis (the CDN cache in front of /api/spotify is the
+//     dedup layer instead), and spotify:last_played is written only when the track changes.
+//   - Device presence is the only thing that genuinely lives in Redis. getLiveSnapshot() reads
+//     every presence key in a SINGLE mget, so one origin request costs one Redis command.
+//   - Every getter that has its own upstream API (Spotify, GitHub) isolates its Redis read in
+//     its own try/catch, so a Redis outage falls through to the live API instead of blanking the
+//     card. The device getters legitimately return their offline fallback when Redis is down,
+//     because Redis is their only source.
 import { redis } from "@/lib/redis"
 
 // ---------------------------------------------------------------------------
@@ -32,20 +41,24 @@ export interface SpotifyStatus {
   progressMs?: number
   durationMs?: number
   device?: string | null
-  // Kept null for now so existing SpotifyBars consumers do not break; the visualiser
-  // rebuild (next PR) removes them. Spotify deprecated audio-features/analysis Nov 2024.
+  // Kept null so existing SpotifyBars consumers do not break. Spotify deprecated
+  // audio-features/analysis Nov 2024.
   audioFeatures?: null
   beats?: null
   lastPlayed?: LastPlayed | null
 }
 
+// In-memory token cache (NOT Redis). A warm function instance reuses the token for its ~55-min
+// life, so a refresh costs one Spotify call per cold start and zero Redis commands. This is the
+// change that stopped the now-playing poll from hammering Upstash.
+let spotifyToken: { value: string; expiresAt: number } | null = null
+// The last track I persisted to spotify:last_played, kept in-memory so a song left playing does
+// not rewrite the same value on every poll - I write only when the track actually changes.
+let lastWrittenTrackKey: string | null = null
+
 async function getSpotifyAccessToken(): Promise<string | null> {
   if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET || !SPOTIFY_REFRESH_TOKEN) return null
-
-  if (redis) {
-    const cached = await redis.get<string>("spotify:access_token")
-    if (cached) return cached
-  }
+  if (spotifyToken && spotifyToken.expiresAt > Date.now()) return spotifyToken.value
 
   const res = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
@@ -62,108 +75,107 @@ async function getSpotifyAccessToken(): Promise<string | null> {
   if (!res.ok) return null
 
   const data = (await res.json()) as { access_token: string; expires_in: number }
-  // Cache for 3300s (55 min) so the token refreshes before Spotify's 60-min expiry
-  if (redis) await redis.set("spotify:access_token", data.access_token, { ex: 3300 })
+  // Refresh a minute early so a near-expiry token is never handed out.
+  spotifyToken = { value: data.access_token, expiresAt: Date.now() + (data.expires_in - 60) * 1000 }
   return data.access_token
 }
 
-function getLastPlayed(): Promise<LastPlayed | null> {
-  if (!redis) return Promise.resolve(null)
-  return redis.get<LastPlayed>("spotify:last_played")
+async function getLastPlayed(): Promise<LastPlayed | null> {
+  if (!redis) return null
+  // Isolated so a Redis outage just means "no last-played thumbnail", never a thrown error.
+  try {
+    return await redis.get<LastPlayed>("spotify:last_played")
+  } catch {
+    return null
+  }
 }
 
-// I cache the /me/player result for 3s. This is what makes near-realtime polling cheap:
-// however many tabs poll however often, Spotify's API is hit at most ~once every 3s
-// globally instead of once per poll per tab. On a cache hit I advance progressMs by the
-// elapsed time so the progress bar stays accurate without an API call.
-const SPOTIFY_NOW_TTL = 3 // seconds
-type CachedNow = SpotifyStatus & { _at: number }
-
 export async function getSpotify(): Promise<SpotifyStatus> {
+  const token = await getSpotifyAccessToken()
+  if (!token) return { playing: false, lastPlayed: await getLastPlayed() }
+
+  let res: Response
   try {
-    if (redis) {
-      const cached = await redis.get<CachedNow>("spotify:now")
-      if (cached) {
-        const { _at, ...rest } = cached
-        if (rest.playing && typeof rest.progressMs === "number" && typeof rest.durationMs === "number") {
-          rest.progressMs = Math.min(rest.progressMs + (Date.now() - _at), rest.durationMs)
-        }
-        return rest
-      }
-    }
-
-    const token = await getSpotifyAccessToken()
-    if (!token) return { playing: false, lastPlayed: await getLastPlayed() }
-
     // /me/player (not recently-played) so I get live is_playing + progress_ms
-    const res = await fetch("https://api.spotify.com/v1/me/player?additional_types=track,episode", {
+    res = await fetch("https://api.spotify.com/v1/me/player?additional_types=track,episode", {
       headers: { Authorization: `Bearer ${token}` },
     })
+  } catch {
+    // Spotify itself unreachable - fall back to the last known track.
+    return { playing: false, lastPlayed: await getLastPlayed() }
+  }
 
-    // 204 = no active device; fall back to last_played so the card never blanks
-    if (res.status === 204 || res.status === 404 || !res.ok) {
-      return { playing: false, lastPlayed: await getLastPlayed() }
+  // 204 = no active device; fall back to last_played so the card never blanks
+  if (res.status === 204 || res.status === 404 || !res.ok) {
+    return { playing: false, lastPlayed: await getLastPlayed() }
+  }
+
+  let data: {
+    is_playing: boolean
+    progress_ms?: number
+    currently_playing_type?: string
+    device?: { name: string; type: string }
+    item?: {
+      id: string
+      name: string
+      duration_ms: number
+      artists?: { name: string }[]
+      album?: { images: { url: string }[] }
+      show?: { name: string; images: { url: string }[] }
+      images?: { url: string }[]
+      external_urls: { spotify: string }
     }
+  }
+  try {
+    data = await res.json()
+  } catch {
+    return { playing: false, lastPlayed: await getLastPlayed() }
+  }
 
-    const data = (await res.json()) as {
-      is_playing: boolean
-      progress_ms?: number
-      currently_playing_type?: string
-      device?: { name: string; type: string }
-      item?: {
-        id: string
-        name: string
-        duration_ms: number
-        artists?: { name: string }[]
-        album?: { images: { url: string }[] }
-        show?: { name: string; images: { url: string }[] }
-        images?: { url: string }[]
-        external_urls: { spotify: string }
-      }
-    }
+  if (!data.item) return { playing: false, lastPlayed: await getLastPlayed() }
 
-    if (!data.item) return { playing: false, lastPlayed: await getLastPlayed() }
+  const isEpisode = data.currently_playing_type === "episode"
+  const title = data.item.name
+  const subtitle = isEpisode
+    ? (data.item.show?.name ?? "Podcast")
+    : (data.item.artists?.map((a) => a.name).join(", ") ?? "")
+  const images = isEpisode
+    ? (data.item.images ?? data.item.show?.images ?? [])
+    : (data.item.album?.images ?? [])
+  const albumArt = images[1]?.url ?? images[0]?.url ?? null
 
-    const isEpisode = data.currently_playing_type === "episode"
-    const title = data.item.name
-    const subtitle = isEpisode
-      ? (data.item.show?.name ?? "Podcast")
-      : (data.item.artists?.map((a) => a.name).join(", ") ?? "")
-    const images = isEpisode
-      ? (data.item.images ?? data.item.show?.images ?? [])
-      : (data.item.album?.images ?? [])
-    const albumArt = images[1]?.url ?? images[0]?.url ?? null
+  const result: SpotifyStatus = {
+    playing: data.is_playing,
+    paused: !data.is_playing,
+    type: isEpisode ? "episode" : "track",
+    track: title,
+    artist: subtitle,
+    albumArt,
+    url: data.item.external_urls.spotify,
+    progressMs: data.progress_ms ?? 0,
+    durationMs: data.item.duration_ms,
+    device: data.device?.name ?? null,
+    audioFeatures: null,
+    beats: null,
+    lastPlayed: null,
+  }
 
-    const result: SpotifyStatus = {
-      playing: data.is_playing,
-      paused: !data.is_playing,
-      type: isEpisode ? "episode" : "track",
-      track: title,
-      artist: subtitle,
-      albumArt,
-      url: data.item.external_urls.spotify,
-      progressMs: data.progress_ms ?? 0,
-      durationMs: data.item.duration_ms,
-      device: data.device?.name ?? null,
-      audioFeatures: null,
-      beats: null,
-      lastPlayed: null,
-    }
-
-    if (redis) {
+  // Persist last_played only when the track actually changes. Wrapped so a Redis outage can
+  // never blank the live card - Spotify has already answered above.
+  const trackKey = `${title}|${subtitle}`
+  if (redis && trackKey !== lastWrittenTrackKey) {
+    lastWrittenTrackKey = trackKey
+    try {
       await redis.set("spotify:last_played", {
         track: title,
         artist: subtitle,
         albumArt,
         type: isEpisode ? "episode" : "track",
       })
-      await redis.set<CachedNow>("spotify:now", { ...result, _at: Date.now() }, { ex: SPOTIFY_NOW_TTL })
-    }
-
-    return result
-  } catch {
-    return { playing: false, lastPlayed: await getLastPlayed() }
+    } catch {}
   }
+
+  return result
 }
 
 // ---------------------------------------------------------------------------
@@ -200,36 +212,42 @@ const MAC_FALLBACK: MacbookStatus = {
   timezone: "Europe/London", weatherCondition: null, weatherEmoji: null, tempC: null,
 }
 
+// Pure: turn the raw Redis payloads into the public shape. Shared by getMacbook() (its own
+// route) and getLiveSnapshot() (the combined mget), so the logic lives in one place.
+function parseMacbook(live: MacPayload | null, lastKnown: MacPayload | null): MacbookStatus {
+  const source = live ?? lastKnown
+  if (!source) return MAC_FALLBACK
+
+  // Prefer WeatherAPI is_day for accurate night detection; fall back to an hour-based estimate
+  // so the moon still shows during a daemon restart that predates is_day.
+  const tz = source.timezone ?? "Europe/London"
+  const hour = new Date(new Date().toLocaleString("en-US", { timeZone: tz })).getHours()
+  const isNight = source.is_day !== undefined ? source.is_day === 0 : hour >= 19 || hour < 5
+  const dayEmojis = new Set(["☀️", "🌤️"])
+  let weatherEmoji = source.weather_emoji ?? null
+  if (isNight && weatherEmoji && dayEmojis.has(weatherEmoji)) weatherEmoji = "🌙"
+
+  return {
+    battery: source.battery,
+    charging: source.charging,
+    lastSeen: source.timestamp,
+    device: source.device ?? null,
+    countryCode: source.country_code ?? null,
+    timezone: source.timezone ?? "Europe/London",
+    weatherCondition: source.weather_condition ?? null,
+    weatherEmoji,
+    tempC: source.temp_c ?? null,
+  }
+}
+
 export async function getMacbook(): Promise<MacbookStatus> {
+  if (!redis) return MAC_FALLBACK
   try {
-    if (!redis) return MAC_FALLBACK
     const [live, lastKnown] = await Promise.all([
       redis.get<MacPayload>("macbook:status"),
       redis.get<MacPayload>("macbook:last-known"),
     ])
-    const source = live ?? lastKnown
-    if (!source) return MAC_FALLBACK
-
-    // Prefer WeatherAPI is_day for accurate night detection; fall back to an hour-based
-    // estimate so the moon still shows during a daemon restart that predates is_day.
-    const tz = source.timezone ?? "Europe/London"
-    const hour = new Date(new Date().toLocaleString("en-US", { timeZone: tz })).getHours()
-    const isNight = source.is_day !== undefined ? source.is_day === 0 : hour >= 19 || hour < 5
-    const dayEmojis = new Set(["☀️", "🌤️"])
-    let weatherEmoji = source.weather_emoji ?? null
-    if (isNight && weatherEmoji && dayEmojis.has(weatherEmoji)) weatherEmoji = "🌙"
-
-    return {
-      battery: source.battery,
-      charging: source.charging,
-      lastSeen: source.timestamp,
-      device: source.device ?? null,
-      countryCode: source.country_code ?? null,
-      timezone: source.timezone ?? "Europe/London",
-      weatherCondition: source.weather_condition ?? null,
-      weatherEmoji,
-      tempC: source.temp_c ?? null,
-    }
+    return parseMacbook(live, lastKnown)
   } catch {
     return MAC_FALLBACK
   }
@@ -239,16 +257,20 @@ type LenovoPayload = { battery: number; charging: boolean; timestamp: string; de
 export interface LenovoStatus { battery: number | null; charging: boolean | null; lastSeen: string | null; device: string | null }
 const LENOVO_FALLBACK: LenovoStatus = { battery: null, charging: null, lastSeen: null, device: null }
 
+function parseLenovo(live: LenovoPayload | null, lastKnown: LenovoPayload | null): LenovoStatus {
+  const source = live ?? lastKnown
+  if (!source) return LENOVO_FALLBACK
+  return { battery: source.battery, charging: source.charging, lastSeen: source.timestamp, device: source.device ?? null }
+}
+
 export async function getLenovo(): Promise<LenovoStatus> {
+  if (!redis) return LENOVO_FALLBACK
   try {
-    if (!redis) return LENOVO_FALLBACK
     const [live, lastKnown] = await Promise.all([
       redis.get<LenovoPayload>("lenovo:status"),
       redis.get<LenovoPayload>("lenovo:last-known"),
     ])
-    const source = live ?? lastKnown
-    if (!source) return LENOVO_FALLBACK
-    return { battery: source.battery, charging: source.charging, lastSeen: source.timestamp, device: source.device ?? null }
+    return parseLenovo(live, lastKnown)
   } catch {
     return LENOVO_FALLBACK
   }
@@ -258,25 +280,29 @@ type GpcPayload = { timestamp: string; device?: string; cpu_percent: number | nu
 export interface GpcStatus { online: boolean; lastSeen: string | null; device: string | null; cpu: number | null; gpu: number | null; game: string | null }
 const GPC_FALLBACK: GpcStatus = { online: false, lastSeen: null, device: null, cpu: null, gpu: null, game: null }
 
+function parseGpc(live: GpcPayload | null, lastKnown: GpcPayload | null): GpcStatus {
+  const online = live !== null
+  const source = live ?? lastKnown
+  if (!source) return GPC_FALLBACK
+  return {
+    online,
+    lastSeen: source.timestamp,
+    device: source.device ?? null,
+    // Only expose live metrics when online; stale last-known values would mislead
+    cpu: online ? source.cpu_percent : null,
+    gpu: online ? source.gpu_percent : null,
+    game: online ? (source.game ?? null) : null,
+  }
+}
+
 export async function getGpc(): Promise<GpcStatus> {
+  if (!redis) return GPC_FALLBACK
   try {
-    if (!redis) return GPC_FALLBACK
     const [live, lastKnown] = await Promise.all([
       redis.get<GpcPayload>("gpc:status"),
       redis.get<GpcPayload>("gpc:last-known"),
     ])
-    const online = live !== null
-    const source = live ?? lastKnown
-    if (!source) return GPC_FALLBACK
-    return {
-      online,
-      lastSeen: source.timestamp,
-      device: source.device ?? null,
-      // Only expose live metrics when online; stale last-known values would mislead
-      cpu: online ? source.cpu_percent : null,
-      gpu: online ? source.gpu_percent : null,
-      game: online ? (source.game ?? null) : null,
-    }
+    return parseGpc(live, lastKnown)
   } catch {
     return GPC_FALLBACK
   }
@@ -306,28 +332,32 @@ const PS5_FALLBACK: PS5Status = {
   game: null, gameImage: null, lastGame: null, lastGameImage: null,
 }
 
+function parsePs5(live: PS5Payload | null, lastKnown: PS5Payload | null, lastGame: PS5Payload | null): PS5Status {
+  const source = live ?? lastKnown
+  if (!source) return PS5_FALLBACK
+  const online = source.online === true
+  return {
+    online,
+    busy: online && source.busy === true,
+    // lastKnown.lastSeen = the last time it was genuinely on (source.lastSeen ticks every cron run)
+    lastSeen: lastKnown?.lastSeen ?? null,
+    status: online ? source.status : "Offline",
+    game: online ? (source.game ?? null) : null,
+    gameImage: online ? (source.game_image ?? null) : null,
+    lastGame: lastGame?.game ?? null,
+    lastGameImage: lastGame?.game_image ?? null,
+  }
+}
+
 export async function getPs5(): Promise<PS5Status> {
+  if (!redis) return PS5_FALLBACK
   try {
-    if (!redis) return PS5_FALLBACK
     const [live, lastKnown, lastGame] = await Promise.all([
       redis.get<PS5Payload>("ps5:status"),
       redis.get<PS5Payload>("ps5:last-known"),
       redis.get<PS5Payload>("ps5:last-game"),
     ])
-    const source = live ?? lastKnown
-    if (!source) return PS5_FALLBACK
-    const online = source.online === true
-    return {
-      online,
-      busy: online && source.busy === true,
-      // lastKnown.lastSeen = the last time it was genuinely on (source.lastSeen ticks every cron run)
-      lastSeen: lastKnown?.lastSeen ?? null,
-      status: online ? source.status : "Offline",
-      game: online ? (source.game ?? null) : null,
-      gameImage: online ? (source.game_image ?? null) : null,
-      lastGame: lastGame?.game ?? null,
-      lastGameImage: lastGame?.game_image ?? null,
-    }
+    return parsePs5(live, lastKnown, lastGame)
   } catch {
     return PS5_FALLBACK
   }
@@ -350,16 +380,16 @@ function relativeTime(dateStr: string): string {
   return `${days}d ago`
 }
 
-export async function getGithubActivity(): Promise<GithubActivity> {
-  try {
-    if (redis) {
-      const cached = await redis.get<{ repo: string; pushedAt: string }>("github:last_push")
-      if (cached) {
-        // relativeTime recomputed on cache hit so "2m ago" stays accurate while data is frozen
-        return { repo: cached.repo, pushedAt: cached.pushedAt, relativeTime: relativeTime(cached.pushedAt) }
-      }
-    }
+function parseGithub(cached: { repo: string; pushedAt: string } | null): GithubActivity | null {
+  if (!cached) return null
+  // relativeTime recomputed on every read so "2m ago" stays accurate while data is frozen
+  return { repo: cached.repo, pushedAt: cached.pushedAt, relativeTime: relativeTime(cached.pushedAt) }
+}
 
+// Fetch from the GitHub API and refresh the cache. Separated from the cached read so the
+// snapshot can self-heal a missing key without a second Redis round-trip.
+async function fetchGithubAndCache(): Promise<GithubActivity> {
+  try {
     const pat = process.env.GITHUB_PAT
     const res = await fetch("https://api.github.com/users/zaccesss/events?per_page=30", {
       headers: {
@@ -376,11 +406,26 @@ export async function getGithubActivity(): Promise<GithubActivity> {
     if (!push) return { repo: null, pushedAt: null, relativeTime: null }
 
     const repoShort = push.repo.name.replace("zaccesss/", "")
-    if (redis) await redis.set("github:last_push", { repo: repoShort, pushedAt: push.created_at }, { ex: 300 })
+    if (redis) {
+      try { await redis.set("github:last_push", { repo: repoShort, pushedAt: push.created_at }, { ex: 300 }) } catch {}
+    }
     return { repo: repoShort, pushedAt: push.created_at, relativeTime: relativeTime(push.created_at) }
   } catch {
     return { repo: null, pushedAt: null, relativeTime: null }
   }
+}
+
+export async function getGithubActivity(): Promise<GithubActivity> {
+  // Redis read isolated from the API fetch: a Redis outage falls through to GitHub's own API
+  // rather than blanking the card.
+  if (redis) {
+    try {
+      const cached = await redis.get<{ repo: string; pushedAt: string }>("github:last_push")
+      const parsed = parseGithub(cached)
+      if (parsed) return parsed
+    } catch {}
+  }
+  return fetchGithubAndCache()
 }
 
 // ---------------------------------------------------------------------------
@@ -393,4 +438,63 @@ export async function getLanyard(): Promise<unknown> {
   return fetch(`https://api.lanyard.rest/v1/users/${DISCORD_USER_ID}`)
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null)
+}
+
+// ---------------------------------------------------------------------------
+// Combined snapshot - everything except Spotify (which has its own faster-refreshing route).
+// All four device presences + GitHub are read in a SINGLE Redis mget, so one origin request
+// (i.e. one CDN cache miss) costs one Redis command regardless of how many cards are shown.
+// The CDN cache in front of /api/live-status then bounds how often this runs, no matter how
+// many tabs are open - that decoupling is what makes this safe at any number of viewers.
+// ---------------------------------------------------------------------------
+
+export interface LiveSnapshot {
+  macbook: MacbookStatus
+  lenovo: LenovoStatus
+  gpc: GpcStatus
+  ps5: PS5Status
+  github: GithubActivity
+  lanyard: unknown
+}
+
+export async function getLiveSnapshot(): Promise<LiveSnapshot> {
+  let macS: MacPayload | null = null, macL: MacPayload | null = null
+  let lenS: LenovoPayload | null = null, lenL: LenovoPayload | null = null
+  let gpcS: GpcPayload | null = null, gpcL: GpcPayload | null = null
+  let ps5S: PS5Payload | null = null, ps5L: PS5Payload | null = null, ps5G: PS5Payload | null = null
+  let ghCached: { repo: string; pushedAt: string } | null = null
+
+  if (redis) {
+    try {
+      const v = await redis.mget<
+        [MacPayload, MacPayload, LenovoPayload, LenovoPayload, GpcPayload, GpcPayload, PS5Payload, PS5Payload, PS5Payload, { repo: string; pushedAt: string }]
+      >(
+        "macbook:status", "macbook:last-known",
+        "lenovo:status", "lenovo:last-known",
+        "gpc:status", "gpc:last-known",
+        "ps5:status", "ps5:last-known", "ps5:last-game",
+        "github:last_push",
+      )
+      ;[macS, macL, lenS, lenL, gpcS, gpcL, ps5S, ps5L, ps5G, ghCached] = v
+    } catch {
+      // Redis unreachable: devices fall back to offline, GitHub self-heals via its API below.
+    }
+  }
+
+  // GitHub: use the mget'd value if present, else self-heal from the API (rare - the key is
+  // cached 5 min and refreshed by /api/github-activity pollers). Run in parallel with Lanyard.
+  const ghParsed = parseGithub(ghCached)
+  const [github, lanyard] = await Promise.all([
+    ghParsed ? Promise.resolve(ghParsed) : fetchGithubAndCache(),
+    getLanyard(),
+  ])
+
+  return {
+    macbook: parseMacbook(macS, macL),
+    lenovo: parseLenovo(lenS, lenL),
+    gpc: parseGpc(gpcS, gpcL),
+    ps5: parsePs5(ps5S, ps5L, ps5G),
+    github,
+    lanyard,
+  }
 }

@@ -34,8 +34,10 @@ except ImportError:
 
 UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL")
 UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
-INTERVAL = 30
-WEATHER_EVERY = 10
+# I write presence every 120s - frequent enough for a live widget but light on the free Upstash
+# command budget. The /now page reads come from a CDN cache, so this write cadence is the main cost.
+INTERVAL = 120
+WEATHER_EVERY = 5  # fetch weather every 5 ticks (~10 min); only affects the weather API call, not Redis
 
 if not UPSTASH_URL or not UPSTASH_TOKEN:
     print(

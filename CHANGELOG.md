@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.19.0] - 2026-06-21
+
+### Changed
+
+- Live status (`/now`, homepage, `/lab`): replaced the per-tab SSE stream with two CDN-cached polling endpoints - a combined `/api/live-status` snapshot (every device, GitHub and Discord read in a single Redis `mget`, edge-cached 15s) and a faster `/api/spotify` (edge-cached 4s for near-realtime track changes). Because the responses are cached at the edge, every open tab in a region shares one origin response, so server and Redis load stays flat no matter how many people are watching - the old SSE held a Redis-polling connection open per tab
+- Spotify now-playing uses zero Redis on the hot path: the access token is cached in-memory (not Redis), the now-playing result is no longer cached in Redis (the CDN cache is the dedup layer), and the last-played fallback is written only when the track actually changes
+- Device daemons write less often (laptops every 120s, gaming PC every 60s, down from 30s) since the CDN cache, not the write cadence, now bounds read load
+- `/lab` coding heatmap: removed the small hourly sparkline that sat under the grid; it duplicated the "by hour of day" bar chart beside it, which is clearer and uses the space better
+
+### Fixed
+
+- Live status resilience: the Spotify and GitHub cards no longer go dark when Redis has a problem - each now isolates its Redis read so a cache outage falls through to the live Spotify/GitHub API instead of returning empty (previously a Redis blip took down every card at once, even the ones with their own data source)
+
+---
+
 ## [v2.18.0] - 2026-06-21
 
 ### Fixed

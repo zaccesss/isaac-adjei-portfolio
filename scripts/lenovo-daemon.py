@@ -29,8 +29,9 @@ except ImportError:
 
 UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL")
 UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
-# I poll every 30s - frequent enough for a live widget but gentle on the free Upstash tier
-INTERVAL = 30
+# I write presence every 120s - frequent enough for a live widget but light on the free Upstash
+# command budget. The /now page reads come from a CDN cache, so this write cadence is the main cost.
+INTERVAL = 120
 
 if not UPSTASH_URL or not UPSTASH_TOKEN:
     print(

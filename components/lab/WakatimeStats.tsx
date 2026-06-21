@@ -114,30 +114,9 @@ function CodingHeatmap({ data }: { data: { dow: number; hour: number; seconds: n
               </div>
             </div>
           ))}
-          {/* Hourly sparkline - total across all days, shares the same x-axis as the grid */}
-          <div className="flex items-end gap-1 mt-1">
-            <span className="w-6 shrink-0" />
-            <div className="flex items-end gap-[2px]">
-              {hourTotals.map((secs, h) => {
-                const heightPx = Math.max(2, Math.round((secs / maxHourTotal) * 20))
-                const isPeak = h === peakHour
-                return (
-                  <div
-                    key={h}
-                    title={`${h}:00 UTC - ${fmt(secs)} total`}
-                    className="w-3 rounded-t-[1px] cursor-default transition-opacity hover:opacity-100 opacity-70"
-                    style={{
-                      height: heightPx,
-                      background: isPeak
-                        ? "hsl(var(--primary))"
-                        : `hsl(var(--primary) / ${0.2 + 0.5 * (secs / maxHourTotal)})`,
-                    }}
-                  />
-                )
-              })}
-            </div>
-          </div>
-          <div className="flex items-center gap-1 mt-0.5">
+          {/* Hour-of-day axis labels. The per-hour totals are shown by the "by hour of day"
+              chart beside this grid, so no sparkline is repeated under it here. */}
+          <div className="flex items-center gap-1 mt-1">
             <span className="w-6 shrink-0" />
             <div className="flex gap-[2px]">
               {Array.from({ length: 24 }, (_, h) => (

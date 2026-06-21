@@ -28,6 +28,17 @@ type ChangeEntry = {
 // I list releases newest-first.
 const releases: ChangeEntry[] = [
   {
+    version: "v2.19.0",
+    date: "2026-06-21",
+    changed: [
+      "/now, homepage and /lab live status: rebuilt to be lighter and steadier - the device, Spotify, GitHub and Discord widgets now refresh through cached endpoints that visitors share, so the cards stay fast and live no matter how many people are viewing at once; Spotify track changes still appear within a few seconds",
+      "/lab: the coding heatmap dropped its small duplicate hourly bar strip - the 'by hour of day' chart beside it already shows that, more clearly",
+    ],
+    fixed: [
+      "Live status: the Spotify and GitHub cards no longer go blank together during a brief cache hiccup - each now falls back to its own live source independently",
+    ],
+  },
+  {
     version: "v2.15.0",
     date: "2026-06-21",
     changed: [
