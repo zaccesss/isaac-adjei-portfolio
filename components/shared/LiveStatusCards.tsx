@@ -199,10 +199,12 @@ function formatMs(ms: number): string {
   return `${m}:${String(sec).padStart(2, "0")}`
 }
 
-// onlineThresholdMins should comfortably exceed the source's update interval, or this shows
-// "last seen Xm ago" for a device that is actually online right now. The laptop daemons write
-// every 120s and the gaming PC every 60s, and the PS5 worker runs every 2 minutes via cron, so
-// each call site below passes a threshold matched to its own source rather than the default.
+// onlineThresholdMins must comfortably exceed the WORST-CASE display lag, or this shows "last
+// seen Xm ago" for a device that is actually online. That lag stacks up: the write interval
+// (laptops 120s, gaming PC 60s, PS5 2-min cron) + the 15s edge cache + the 20s client poll - up
+// to ~2.6 min for the laptops. So each call site passes a generous 4-5 min window: the card stays
+// "online now" through all that lag and only flips to "last seen" once a device has genuinely
+// gone silent (i.e. actually offline) for that long.
 function relativeLastSeen(ts: string | null, onlineThresholdMins = 1): { text: string; online: boolean } {
   if (!ts) return { text: "offline", online: false }
   const diff = Date.now() - new Date(ts).getTime()
@@ -272,7 +274,7 @@ function BatteryGauge({ level, charging }: { level: number; charging: boolean })
           // White fill + a dark stroke outline, so the bolt stays crisp over any fill colour AND
           // over the empty part of the shell, in both light and dark themes. Fixed colour (not
           // level-tinted) so "charging" is always instantly recognisable.
-          <Zap className="absolute inset-0 m-auto h-2 w-2 fill-white text-black/70" strokeWidth={2.25} />
+          <Zap className="absolute inset-0 m-auto h-2.5 w-2.5 fill-white text-black/70" strokeWidth={2.25} />
         )}
       </span>
       <span className="h-1.5 w-[2px] rounded-r-[1px] bg-muted-foreground/50" />
@@ -403,7 +405,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
     }
   }, [spotify.playing, spotify.durationMs, spotify.progressMs, spotify.track])
 
-  const { text: seenText, online } = relativeLastSeen(mac.lastSeen, 3)
+  const { text: seenText, online } = relativeLastSeen(mac.lastSeen, 5)
   const hasTrack = spotify.playing || spotify.paused
   const progress = hasTrack && spotify.durationMs ? liveProgressMs / spotify.durationMs : 0
   const spotifyLabel = spotify.playing
@@ -625,7 +627,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
 
         {/* Lenovo */}
         {(() => {
-          const { text: lSeenText, online: lOnline } = relativeLastSeen(lenovo.lastSeen, 3)
+          const { text: lSeenText, online: lOnline } = relativeLastSeen(lenovo.lastSeen, 5)
           return (
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -661,7 +663,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
 
         {/* Gaming PC */}
         {(() => {
-          const { text: gSeenText, online: gOnline } = relativeLastSeen(gamingPC.lastSeen, 2)
+          const { text: gSeenText, online: gOnline } = relativeLastSeen(gamingPC.lastSeen, 4)
           return (
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -709,7 +711,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
         {(() => {
           // The PS5 worker cron runs every 2 minutes, so a 3 minute threshold covers a
           // missed/delayed tick without showing "last seen Xm ago" while still online
-          const { text: pSeenText, online: pOnline } = relativeLastSeen(ps5Data.lastSeen, 3)
+          const { text: pSeenText, online: pOnline } = relativeLastSeen(ps5Data.lastSeen, 5)
           return (
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">
