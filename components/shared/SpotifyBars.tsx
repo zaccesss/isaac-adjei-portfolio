@@ -1,214 +1,184 @@
 "use client"
 
-// Equaliser bars + sine wave SVG, driven by real Spotify audio analysis data.
-// Beats array from /audio-analysis gives exact beat timestamps; progressMs
-// (interpolated between 1s ticks) lets us pinpoint the current beat and pulse
-// the bars at the correct moment. Loudness (dB) shifts bar/sine opacity so
-// louder tracks look brighter and quieter tracks appear more muted.
+// Album-art-driven ambient visualiser. There is no real audio signal in the browser and
+// Spotify deprecated audio-features/analysis (Nov 2024), so this does not pretend to react
+// to the sound. Instead it extracts the album's dominant colours and renders soft drifting
+// glow blooms behind organic equaliser bars. It uses a canvas (not SVG) so it can size to
+// the device pixel ratio and stay crisp + identically proportioned on every screen, and it
+// animates on delta-time so motion speed is the same regardless of refresh rate.
 import { useEffect, useRef } from "react"
-
-const BAR_COUNT = 48
-const BAR_H     = 80
-const VH        = 110
-const WAVE_Y    = 14
-const BAR_TOP   = 28
-const BAR_W     = 5
-const GAP       = 3
-const VBOX_W    = BAR_COUNT * (BAR_W + GAP) - GAP
-const PEAK_H    = 3
-// bars must not touch the sine wave - hard cap at WAVE_Y + 3px clearance
-const MAX_BAR_H = BAR_TOP + BAR_H - WAVE_Y - 3
-
-// Map loudness (dB, typical -25..-5) to a 0..1 brightness multiplier
-function loudnessFactor(loudness?: number): number {
-  if (loudness == null) return 0.7
-  return Math.max(0.35, Math.min(1.0, (loudness + 30) / 30))
-}
+import { useAlbumColours } from "./useAlbumColours"
 
 interface Props {
   playing: boolean
   albumArt?: string | null
-  energy?: number
-  tempo?: number
-  loudness?: number   // dB, typically -25 to -5
-  beats?: number[]    // sorted beat start times in seconds from /audio-analysis
-  progressMs?: number // current playback position in ms (ticked forward by parent)
 }
 
-export default function SpotifyBars({ playing, albumArt, energy = 0.4, tempo = 100, loudness, beats, progressMs = 0 }: Props) {
-  const barsRef          = useRef<SVGGElement>(null)
-  const peakGRef         = useRef<SVGGElement>(null)
-  const clipGRef         = useRef<SVGGElement>(null)
-  const sineRef          = useRef<SVGPathElement>(null)
-  const rafRef           = useRef(0)
-  const phasesRef        = useRef(Array.from({ length: BAR_COUNT }, (_, i) => i * ((Math.PI * 2) / BAR_COUNT)))
-  const sinPhRef         = useRef(0)
-  const propsRef         = useRef({ playing, energy, tempo, loudness })
-  const beatsRef         = useRef<number[]>([])
-  const progressRef      = useRef(progressMs)
-  const progressSetAtRef = useRef(0)
-  const beatRef          = useRef({ lastIdx: -1, boost: 0, fallbackLastMs: 0 })
+const HEIGHT = 110
+const BAR_W = 5
+const GAP = 3
+const BAR_TOP = 28
+const BAR_AREA_H = HEIGHT - BAR_TOP - 4
+
+type RGB = [number, number, number]
+
+function hexToRgb(hex: string): RGB {
+  const h = hex.replace("#", "")
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
+}
+
+export default function SpotifyBars({ playing, albumArt }: Props) {
+  const colours = useAlbumColours(albumArt)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const playingRef = useRef(playing)
+  const rgbRef = useRef<{ primary: RGB; secondary: RGB; accent: RGB } | null>(null)
+  const themeRef = useRef<RGB>([99, 102, 241])
+  const rafRef = useRef(0)
+  const phasesRef = useRef<number[]>([])
+  const tPrevRef = useRef(0)
+  const intensityRef = useRef(0)
+  const driftRef = useRef(0)
+  const isDarkRef = useRef(true)
+
+  useEffect(() => { playingRef.current = playing }, [playing])
 
   useEffect(() => {
-    propsRef.current = { playing, energy, tempo, loudness }
-    beatsRef.current = beats ?? []
-    progressRef.current = progressMs
-    progressSetAtRef.current = performance.now()
-  }, [playing, energy, tempo, loudness, beats, progressMs])
+    rgbRef.current = colours
+      ? { primary: hexToRgb(colours.primary), secondary: hexToRgb(colours.secondary), accent: hexToRgb(colours.accent) }
+      : null
+  }, [colours])
 
+  // Track light/dark (via the resolved --background lightness, so it works whatever the theme
+  // toggle mechanism is) and re-check on toggle. Drives blend mode + bar tint below so colours
+  // read well in both modes - additive glow on dark would otherwise wash out on a light card.
   useEffect(() => {
-    const tick = () => {
-      const barsG    = barsRef.current
-      const sinePath = sineRef.current
-      if (!barsG) { rafRef.current = requestAnimationFrame(tick); return }
-
-      const { playing: p, energy: e, tempo: t, loudness: ld } = propsRef.current
-      const speedMult = (t ?? 100) / 120
-      const lf        = loudnessFactor(ld)
-
-      const beat = beatRef.current
-      if (p) {
-        if (beatsRef.current.length > 0) {
-          // Interpolate current playback position between the 1s progressMs ticks
-          const currentS = (progressRef.current + (performance.now() - progressSetAtRef.current)) / 1000
-          // Binary search for the latest beat that has started
-          let lo = 0, hi = beatsRef.current.length - 1, idx = -1
-          while (lo <= hi) {
-            const mid = (lo + hi) >> 1
-            if (beatsRef.current[mid] <= currentS) { idx = mid; lo = mid + 1 }
-            else hi = mid - 1
-          }
-          if (idx >= 0 && idx !== beat.lastIdx) {
-            beat.lastIdx = idx
-            beat.boost = 1.0
-          }
-        } else {
-          // Fallback to BPM estimate when no audio analysis is available
-          const now = performance.now()
-          if (now - beat.fallbackLastMs > 60000 / (t ?? 100)) {
-            beat.fallbackLastMs = now
-            beat.boost = 1.0
-          }
-        }
-        beat.boost *= 0.88
-      } else {
-        beat.boost = 0
-        beat.lastIdx = -1
-      }
-
-      // Loudness scales both the peak bar height and the minimum floor
-      const maxH  = p ? Math.min(MAX_BAR_H, Math.max(14, (e ?? 0.4) * BAR_H * 0.95 * lf * (1 + beat.boost * 0.55))) : 5
-      const minH  = p ? Math.max(1, 3 * lf) : 1
-      const barEls  = barsG.children
-      const peakEls = peakGRef.current?.children
-      const clipEls = clipGRef.current?.children
-
-      for (let i = 0; i < BAR_COUNT; i++) {
-        phasesRef.current[i] += 0.04 * speedMult * (1 + (i % 7) * 0.05)
-        const osc = Math.abs(Math.sin(phasesRef.current[i]))
-        const h   = Math.min(minH + (maxH - minH) * osc, MAX_BAR_H)
-        const y   = (BAR_TOP + (BAR_H - h)).toFixed(1)
-        const hs  = h.toFixed(1)
-        const el  = barEls[i] as SVGRectElement | undefined
-        if (el) {
-          el.setAttribute("height", hs)
-          el.setAttribute("y", y)
-          el.setAttribute("opacity", p ? Math.min(1, (0.35 + 0.5 * osc) * lf + beat.boost * 0.15).toFixed(2) : (0.06 + 0.05 * osc).toFixed(2))
-        }
-        // Peak cap: solid dark rect at bar top, visible only when bar is tall + beat fires
-        const pel = peakEls?.[i] as SVGRectElement | undefined
-        if (pel) {
-          pel.setAttribute("y", y)
-          const peakOp = p ? Math.min(1, beat.boost * lf * (h / BAR_H) * 2.0 + lf * (h / BAR_H) * 0.55).toFixed(2) : "0"
-          pel.setAttribute("opacity", peakOp)
-        }
-        const cel = clipEls?.[i] as SVGRectElement | undefined
-        if (cel) { cel.setAttribute("height", hs); cel.setAttribute("y", y) }
-      }
-
-      if (sinePath) {
-        sinPhRef.current += 0.06 * speedMult
-        const amplitude = p ? Math.max(8, (e ?? 0.4) * 22 * lf * (1 + beat.boost * 0.4)) : 2
-        const cycles    = Math.max(2.5, (t ?? 100) / 42)
-        let d = `M 0 ${WAVE_Y}`
-        for (let i = 1; i <= 200; i++) {
-          const x = (i / 200) * VBOX_W
-          const y = WAVE_Y + amplitude * Math.sin((i / 200) * Math.PI * 2 * cycles + sinPhRef.current)
-          d += ` L ${x.toFixed(1)} ${y.toFixed(2)}`
-        }
-        sinePath.setAttribute("d", d)
-        sinePath.setAttribute("stroke-width", p ? "2.5" : "1")
-        sinePath.setAttribute("opacity", p ? Math.min(1, (0.45 + 0.35 * (e ?? 0.4)) * lf + beat.boost * 0.2).toFixed(2) : "0.12")
-      }
-
-      rafRef.current = requestAnimationFrame(tick)
+    const readIsDark = () => {
+      try {
+        const bg = getComputedStyle(document.documentElement).getPropertyValue("--background").trim()
+        const l = parseFloat(bg.split(/\s+/)[2] ?? "100")
+        isDarkRef.current = !Number.isNaN(l) && l < 50
+      } catch { isDarkRef.current = false }
     }
-    rafRef.current = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(rafRef.current)
+    readIsDark()
+    const mo = new MutationObserver(readIsDark)
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme", "style"] })
+    return () => mo.disconnect()
   }, [])
 
-  return (
-    <svg
-      className="w-full block"
-      height={VH}
-      viewBox={`0 0 ${VBOX_W} ${VH}`}
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id="sbBarGrad" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%"   stopColor="hsl(var(--primary))" stopOpacity="0.30" />
-          <stop offset="50%"  stopColor="hsl(var(--primary))" stopOpacity="0.70" />
-          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="1.00" />
-        </linearGradient>
-        <linearGradient id="sbSineGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stopColor="hsl(var(--primary))" stopOpacity="0" />
-          <stop offset="8%"   stopColor="hsl(var(--primary))" stopOpacity="1" />
-          <stop offset="92%"  stopColor="hsl(var(--primary))" stopOpacity="1" />
-          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
-        </linearGradient>
-        <clipPath id="sbAlbumClip">
-          <g ref={clipGRef}>
-            {Array.from({ length: BAR_COUNT }, (_, i) => (
-              <rect key={i} x={i * (BAR_W + GAP)} y={BAR_TOP + BAR_H - 2} width={BAR_W} height={2} rx={1} />
-            ))}
-          </g>
-        </clipPath>
-      </defs>
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
 
-      <path
-        ref={sineRef}
-        stroke="url(#sbSineGrad)"
-        strokeWidth={2.5}
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d={`M 0 ${WAVE_Y} L ${VBOX_W} ${WAVE_Y}`}
-      />
+    // Resolve the theme --primary once for the no-album fallback (rare on /now)
+    try {
+      const v = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim()
+      if (v) {
+        const probe = document.createElement("div")
+        probe.style.color = `hsl(${v})`
+        document.body.appendChild(probe)
+        const m = getComputedStyle(probe).color.match(/\d+/g)
+        document.body.removeChild(probe)
+        if (m && m.length >= 3) themeRef.current = [Number(m[0]), Number(m[1]), Number(m[2])]
+      }
+    } catch {}
 
-      <g ref={barsRef} fill="url(#sbBarGrad)">
-        {Array.from({ length: BAR_COUNT }, (_, i) => (
-          <rect key={i} x={i * (BAR_W + GAP)} y={BAR_TOP + BAR_H - 2} width={BAR_W} height={2} rx={1} />
-        ))}
-      </g>
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    let width = 0
+    const resize = () => {
+      width = canvas.clientWidth || 1
+      canvas.width = Math.round(width * dpr)
+      canvas.height = Math.round(HEIGHT * dpr)
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    }
+    resize()
+    const ro = new ResizeObserver(resize)
+    ro.observe(canvas)
 
-      {/* Peak caps: use foreground colour so they're visible in both light and dark mode */}
-      <g ref={peakGRef} fill="hsl(var(--foreground))" opacity={0}>
-        {Array.from({ length: BAR_COUNT }, (_, i) => (
-          <rect key={i} x={i * (BAR_W + GAP)} y={BAR_TOP + BAR_H - PEAK_H} width={BAR_W} height={PEAK_H} rx={1} opacity={0} />
-        ))}
-      </g>
+    const draw = (t: number) => {
+      const dt = tPrevRef.current ? Math.min((t - tPrevRef.current) / 1000, 0.05) : 0.016
+      tPrevRef.current = t
 
-      {albumArt && (
-        <image
-          href={albumArt}
-          x={0} y={BAR_TOP}
-          width={VBOX_W} height={BAR_H}
-          preserveAspectRatio="xMidYMid slice"
-          clipPath="url(#sbAlbumClip)"
-          opacity={0.75}
-        />
-      )}
-    </svg>
-  )
+      // Ease overall intensity so play/pause is a smooth fade, not a jump
+      intensityRef.current += ((playingRef.current ? 1 : 0) - intensityRef.current) * Math.min(1, dt * 3)
+      const intensity = intensityRef.current
+      driftRef.current += dt * 0.06
+
+      const rgb = rgbRef.current
+      const c1 = rgb?.primary ?? themeRef.current
+      const c2 = rgb?.secondary ?? themeRef.current
+      const c3 = rgb?.accent ?? c1
+
+      ctx.clearRect(0, 0, width, HEIGHT)
+
+      const isDark = isDarkRef.current
+
+      // Ambient glow. Additive blending reads beautifully on a dark card but washes out to
+      // white on a light one, so on light I switch to normal alpha blending at higher strength.
+      if (intensity > 0.02) {
+        ctx.globalCompositeOperation = isDark ? "lighter" : "source-over"
+        const glowA = (isDark ? 0.16 : 0.24) * intensity
+        const blooms: { col: RGB; fx: number; fy: number }[] = [
+          { col: c1, fx: 0.30 + 0.18 * Math.sin(driftRef.current), fy: 0.72 },
+          { col: c2, fx: 0.70 + 0.18 * Math.sin(driftRef.current * 0.8 + 2), fy: 0.55 },
+          { col: c3, fx: 0.50 + 0.22 * Math.sin(driftRef.current * 0.6 + 4), fy: 0.82 },
+        ]
+        for (const b of blooms) {
+          const cx = b.fx * width, cy = b.fy * HEIGHT
+          const rad = Math.max(width * 0.28, 90)
+          const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad)
+          grd.addColorStop(0, `rgba(${b.col[0]},${b.col[1]},${b.col[2]},${glowA})`)
+          grd.addColorStop(1, `rgba(${b.col[0]},${b.col[1]},${b.col[2]},0)`)
+          ctx.fillStyle = grd
+          ctx.fillRect(0, 0, width, HEIGHT)
+        }
+        ctx.globalCompositeOperation = "source-over"
+      }
+
+      // One shared vertical gradient for all bars (each bar samples the slice over its own
+      // height). On dark: deepen base, brighten tip toward white. On light: keep the album
+      // colour saturated and DEEPEN the tip with higher alpha so bars read against a white card.
+      const tip: RGB = isDark
+        ? [Math.min(255, c3[0] + 55), Math.min(255, c3[1] + 55), Math.min(255, c3[2] + 55)]
+        : [Math.round(c3[0] * 0.72), Math.round(c3[1] * 0.72), Math.round(c3[2] * 0.72)]
+      const baseA = (isDark ? 0.35 : 0.55) + 0.2 * intensity
+      const tipA = (isDark ? 0.25 : 0.55) + (isDark ? 0.65 : 0.4) * intensity
+      const barGrad = ctx.createLinearGradient(0, BAR_TOP + BAR_AREA_H, 0, BAR_TOP)
+      barGrad.addColorStop(0, `rgba(${c1[0]},${c1[1]},${c1[2]},${baseA})`)
+      barGrad.addColorStop(1, `rgba(${tip[0]},${tip[1]},${tip[2]},${tipA})`)
+      ctx.fillStyle = barGrad
+
+      const barCount = Math.max(12, Math.floor((width + GAP) / (BAR_W + GAP)))
+      const phases = phasesRef.current
+      while (phases.length < barCount) phases.push((phases.length * 0.6) % (Math.PI * 2))
+
+      for (let i = 0; i < barCount; i++) {
+        // Layered sines = natural, non-mechanical motion; a touch of per-bar speed variety
+        phases[i] += dt * (1.1 + (i % 5) * 0.13) * (0.25 + 0.75 * intensity)
+        const ph = phases[i]
+        const osc = Math.sin(ph) * 0.55 + Math.sin(ph * 0.37 + i * 0.5) * 0.3 + Math.sin(ph * 1.7) * 0.15
+        const norm = (osc + 1) / 2
+        const h = Math.max(2, (3 + norm * (BAR_AREA_H - 6)) * (0.12 + 0.88 * intensity))
+        const x = i * (BAR_W + GAP)
+        const y = BAR_TOP + (BAR_AREA_H - h)
+        const rr = Math.min(BAR_W / 2, h / 2)
+        ctx.beginPath()
+        ctx.moveTo(x, y + rr)
+        ctx.arcTo(x, y, x + rr, y, rr)
+        ctx.arcTo(x + BAR_W, y, x + BAR_W, y + rr, rr)
+        ctx.lineTo(x + BAR_W, y + h)
+        ctx.lineTo(x, y + h)
+        ctx.closePath()
+        ctx.fill()
+      }
+
+      rafRef.current = requestAnimationFrame(draw)
+    }
+
+    rafRef.current = requestAnimationFrame(draw)
+    return () => { cancelAnimationFrame(rafRef.current); ro.disconnect() }
+  }, [])
+
+  return <canvas ref={canvasRef} className="w-full block h-[110px]" aria-hidden="true" />
 }
