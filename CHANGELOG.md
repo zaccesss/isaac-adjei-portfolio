@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.20.0] - 2026-06-21
+
+### Fixed
+
+- Live status: the CDN edge cache added in v2.19.0 was not actually taking effect - Next.js rewrites the `Cache-Control` header on dynamic route handlers and strips `s-maxage` before it reaches Vercel's edge, so `/api/live-status` and `/api/spotify` were served uncached (no `x-vercel-cache`). The cache directives now go through `CDN-Cache-Control` / `Vercel-CDN-Cache-Control`, which Next leaves untouched, so the edge caches the responses and reads stay flat against viewer count
+
+---
+
 ## [v2.19.0] - 2026-06-21
 
 ### Changed

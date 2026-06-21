@@ -3,9 +3,8 @@
 // relativeTime is recomputed on every read so "2m ago" stays accurate even while cached.
 import { NextResponse } from "next/server"
 import { getGithubActivity } from "@/lib/live-status"
+import { cdnCache } from "@/lib/cdn-cache"
 
 export async function GET() {
-  return NextResponse.json(await getGithubActivity(), {
-    headers: { "Cache-Control": "public, max-age=0, s-maxage=30, stale-while-revalidate=60" },
-  })
+  return NextResponse.json(await getGithubActivity(), { headers: cdnCache(30) })
 }

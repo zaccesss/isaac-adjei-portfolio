@@ -3,9 +3,8 @@
 // shared mget, but this per-device route stays for the lab page and direct fetches.
 import { NextResponse } from "next/server"
 import { getMacbook } from "@/lib/live-status"
+import { cdnCache } from "@/lib/cdn-cache"
 
 export async function GET() {
-  return NextResponse.json(await getMacbook(), {
-    headers: { "Cache-Control": "public, max-age=0, s-maxage=15, stale-while-revalidate=30" },
-  })
+  return NextResponse.json(await getMacbook(), { headers: cdnCache(15) })
 }

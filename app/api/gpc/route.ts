@@ -3,9 +3,8 @@
 // but this per-device route stays for the lab page's gaming panel.
 import { NextResponse } from "next/server"
 import { getGpc } from "@/lib/live-status"
+import { cdnCache } from "@/lib/cdn-cache"
 
 export async function GET() {
-  return NextResponse.json(await getGpc(), {
-    headers: { "Cache-Control": "public, max-age=0, s-maxage=15, stale-while-revalidate=30" },
-  })
+  return NextResponse.json(await getGpc(), { headers: cdnCache(15) })
 }
