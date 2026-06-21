@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.17.0] - 2026-06-21
+
+### Fixed
+
+- Dashboard: the floating markdown formatting toolbar (Bold/Italic/Strikethrough/Link on text selection) now works inside dialogs. It is portaled to `document.body`, outside the React root, so React's synthetic click never fired and the press instead bubbled to the Radix Dialog which treated it as an outside click and closed - "it closes and does nothing". The press is now handled with a native listener on the toolbar node: `preventDefault` keeps the editor's selection alive and `stopPropagation` keeps the dialog open while the formatting is applied
+
+---
+
 ## [v2.16.0] - 2026-06-21
 
 ### Changed
