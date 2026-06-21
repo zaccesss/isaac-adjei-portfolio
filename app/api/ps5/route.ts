@@ -5,12 +5,11 @@
 import { NextResponse } from "next/server"
 import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 import { getPs5 } from "@/lib/live-status"
+import { cdnCache } from "@/lib/cdn-cache"
 
 export async function GET(req: Request) {
   if (!(await checkRateLimit(publicApiLimiter, getIp(req)))) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 })
   }
-  return NextResponse.json(await getPs5(), {
-    headers: { "Cache-Control": "public, max-age=0, s-maxage=15, stale-while-revalidate=30" },
-  })
+  return NextResponse.json(await getPs5(), { headers: cdnCache(15) })
 }
