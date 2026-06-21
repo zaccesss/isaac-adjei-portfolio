@@ -77,8 +77,9 @@ IGDB_CLIENT_ID     = os.environ.get("IGDB_CLIENT_ID")
 IGDB_CLIENT_SECRET = os.environ.get("IGDB_CLIENT_SECRET")
 STEAM_API_KEY = os.environ.get("STEAM_API_KEY")
 STEAM_ID      = os.environ.get("STEAM_ID")
-# I poll every 30s - frequent enough for a live widget but gentle on the free Upstash tier
-INTERVAL = 30
+# I poll every 60s - frequent enough for a live widget but light on the free Upstash command
+# budget. The /now page reads come from a CDN cache, so this write cadence is the main cost.
+INTERVAL = 60
 
 if not UPSTASH_URL or not UPSTASH_TOKEN:
     print("Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars first.", flush=True)

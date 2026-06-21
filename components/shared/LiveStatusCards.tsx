@@ -199,10 +199,10 @@ function formatMs(ms: number): string {
   return `${m}:${String(sec).padStart(2, "0")}`
 }
 
-// onlineThresholdMins should comfortably exceed the source's update interval, or this
-// shows "last seen Xm ago" for a device that is actually online right now. Mac/Lenovo/the
-// gaming PC daemons write every 30s so the 1 minute default covers them; the PS5 worker
-// only runs every 2 minutes via cron, so its call site below passes a longer threshold.
+// onlineThresholdMins should comfortably exceed the source's update interval, or this shows
+// "last seen Xm ago" for a device that is actually online right now. The laptop daemons write
+// every 120s and the gaming PC every 60s, and the PS5 worker runs every 2 minutes via cron, so
+// each call site below passes a threshold matched to its own source rather than the default.
 function relativeLastSeen(ts: string | null, onlineThresholdMins = 1): { text: string; online: boolean } {
   if (!ts) return { text: "offline", online: false }
   const diff = Date.now() - new Date(ts).getTime()
@@ -285,14 +285,27 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
   }, [])
 
   useEffect(() => {
-    // One SSE connection replaces 7 independent fetch timers. I pause it while the tab is
-    // hidden (Page Visibility) so a backgrounded /now page costs nothing on the server.
-    let es: EventSource | null = null
+    // Two CDN-cached pollers replace the old per-tab SSE connection: a fast Spotify poll for
+    // near-realtime track changes and a slower snapshot poll for devices/GitHub/Discord. Both
+    // endpoints are edge-cached, so every open tab in a region shares one origin response and
+    // server + Redis load stays flat no matter how many people are watching. Polling pauses while
+    // the tab is hidden (Page Visibility) so a backgrounded /now page costs nothing.
+    let stopped = false
+    let spotifyTimer: ReturnType<typeof setInterval> | undefined
+    let snapshotTimer: ReturnType<typeof setInterval> | undefined
 
-    const onSnapshot = (e: MessageEvent) => {
+    const pollSpotify = async () => {
       try {
-        const { spotify: s, macbook, lenovo, gpc, ps5, github, lanyard: l } = JSON.parse(e.data)
-        if (s) setSpotify(s)
+        const r = await fetch("/api/spotify")
+        if (r.ok) setSpotify(await r.json())
+      } catch {}
+    }
+
+    const pollSnapshot = async () => {
+      try {
+        const r = await fetch("/api/live-status")
+        if (!r.ok) return
+        const { macbook, lenovo, gpc, ps5, github, lanyard: l } = await r.json()
         if (macbook) setMac(macbook)
         if (lenovo) setLenovo(lenovo)
         if (gpc) {
@@ -315,29 +328,31 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
         }
       } catch {}
     }
-    // Fast Spotify-only event so song changes appear in near-realtime
-    const onSpotify = (e: MessageEvent) => {
-      try { setSpotify(JSON.parse(e.data)) } catch {}
-    }
 
-    const connect = () => {
-      if (es) return
-      es = new EventSource("/api/live-status/stream")
-      es.onmessage = onSnapshot
-      es.addEventListener("spotify", onSpotify as EventListener)
+    const start = () => {
+      if (stopped || spotifyTimer || snapshotTimer) return
+      pollSpotify()
+      pollSnapshot()
+      // Spotify polls every 5s (4s edge cache) for near-realtime skips; the rest every 20s
+      spotifyTimer = setInterval(pollSpotify, 5000)
+      snapshotTimer = setInterval(pollSnapshot, 20000)
     }
-    const disconnect = () => { es?.close(); es = null }
+    const stop = () => {
+      if (spotifyTimer) { clearInterval(spotifyTimer); spotifyTimer = undefined }
+      if (snapshotTimer) { clearInterval(snapshotTimer); snapshotTimer = undefined }
+    }
 
     const onVisibility = () => {
-      if (document.visibilityState === "visible") connect()
-      else disconnect()
+      if (document.visibilityState === "visible") start()
+      else stop()
     }
 
-    if (document.visibilityState === "visible") connect()
+    if (document.visibilityState === "visible") start()
     document.addEventListener("visibilitychange", onVisibility)
     return () => {
+      stopped = true
+      stop()
       document.removeEventListener("visibilitychange", onVisibility)
-      disconnect()
     }
   }, [])
 
@@ -357,7 +372,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
     }
   }, [spotify.playing, spotify.durationMs, spotify.progressMs, spotify.track])
 
-  const { text: seenText, online } = relativeLastSeen(mac.lastSeen)
+  const { text: seenText, online } = relativeLastSeen(mac.lastSeen, 3)
   const hasTrack = spotify.playing || spotify.paused
   const progress = hasTrack && spotify.durationMs ? liveProgressMs / spotify.durationMs : 0
   const spotifyLabel = spotify.playing
@@ -583,7 +598,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
 
         {/* Lenovo */}
         {(() => {
-          const { text: lSeenText, online: lOnline } = relativeLastSeen(lenovo.lastSeen)
+          const { text: lSeenText, online: lOnline } = relativeLastSeen(lenovo.lastSeen, 3)
           return (
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">
@@ -623,7 +638,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
 
         {/* Gaming PC */}
         {(() => {
-          const { text: gSeenText, online: gOnline } = relativeLastSeen(gamingPC.lastSeen)
+          const { text: gSeenText, online: gOnline } = relativeLastSeen(gamingPC.lastSeen, 2)
           return (
             <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2">

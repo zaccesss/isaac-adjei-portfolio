@@ -80,6 +80,22 @@ e.g. `"GTA V" -> "Grand Theft Auto V"`.
 nssm restart gpc-daemon
 ```
 
+## Applying an updated daemon script
+
+When `scripts/gpc-daemon.py` itself changes - for example the poll interval (now `INTERVAL = 60`)
+or a new game added to `KNOWN_GAMES` - a plain restart is not enough on its own, because NSSM
+re-runs whatever copy of the file is already on the GPC. The GPC needs the new copy first:
+
+```powershell
+# 1. Get the latest script onto the GPC: git pull in the repo, or copy scripts\gpc-daemon.py across
+# 2. Restart so the new code is actually loaded
+nssm restart gpc-daemon
+nssm status gpc-daemon
+```
+
+So after adding a game (a new `.exe` in `KNOWN_GAMES`, plus an `IGDB_NAME_MAP` entry if the IGDB
+title differs) or changing the interval, always copy the updated script over, then restart.
+
 ## Logs
 
 ```powershell
