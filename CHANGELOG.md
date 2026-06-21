@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.18.0] - 2026-06-21
+
+### Fixed
+
+- Dashboard: the data export/backup queried table names that do not exist (`vault_entries`, `diary_entries`, `wishlist_items`, `open_source_projects`, `notes_folders`, `blog_posts`), so the vault, diary, wishlist and open-source rows were silently dropped from every backup. It now uses the real table names from one shared list (no destructuring to drift out of sync), and the import surfaces unknown tables in its result instead of skipping them silently
+
+---
+
 ## [v2.17.0] - 2026-06-21
 
 ### Fixed
