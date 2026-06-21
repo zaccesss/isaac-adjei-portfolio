@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { Laptop, BatteryCharging, Battery, Wifi, WifiOff, GitBranch, Monitor, Github, ExternalLink } from "lucide-react"
+import { Laptop, Zap, Wifi, WifiOff, GitBranch, Monitor, Github, ExternalLink } from "lucide-react"
 import SpotifyBars from "@/components/shared/SpotifyBars"
 import { SiPlaystation, SiDiscord, SiSpotify } from "react-icons/si"
 import { cn } from "@/lib/utils"
@@ -247,6 +247,37 @@ function countryName(code: string | null): string {
   } catch {
     return "United Kingdom"
   }
+}
+
+// A real-looking battery gauge: the inner bar fills to the actual percentage and shifts
+// green -> amber -> red as it drains (blue with a bolt while charging), so the level reads at a
+// glance. Replaces the fixed lucide battery icon on the MacBook and Lenovo cards.
+function BatteryGauge({ level, charging }: { level: number; charging: boolean }) {
+  const pct = Math.max(0, Math.min(100, level))
+  // Blue (the site's primary) for a healthy charge so it matches the site, amber as it dips under
+  // 30%, red under 20%. The charging bolt is overlaid separately, so the colour always reflects
+  // the actual level rather than the charging state.
+  const fill =
+    pct <= 20 ? "bg-red-500"
+    : pct < 30 ? "bg-amber-500"
+    : "bg-primary"
+  return (
+    <span className="inline-flex items-center shrink-0" title={`${pct}%${charging ? " - charging" : ""}`}>
+      <span className="relative h-3 w-[22px] rounded-[3px] border border-muted-foreground/50 p-[1.5px]">
+        <span
+          className={cn("block h-full rounded-[1px] transition-[width] duration-700", fill)}
+          style={{ width: `${Math.max(pct, 8)}%` }}
+        />
+        {charging && (
+          // White fill + a dark stroke outline, so the bolt stays crisp over any fill colour AND
+          // over the empty part of the shell, in both light and dark themes. Fixed colour (not
+          // level-tinted) so "charging" is always instantly recognisable.
+          <Zap className="absolute inset-0 m-auto h-2 w-2 fill-white text-black/70" strokeWidth={2.25} />
+        )}
+      </span>
+      <span className="h-1.5 w-[2px] rounded-r-[1px] bg-muted-foreground/50" />
+    </span>
+  )
 }
 
 export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysShowDiscord?: boolean }) {
@@ -580,11 +611,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
             {mac.battery !== null ? (
               <div className="flex items-center gap-1.5">
                 {/* I suppress the charging indicator when lastSeen > 5 min - the cable may have been unplugged since the last ping */}
-                {mac.charging && !isStale(mac.lastSeen) ? (
-                  <BatteryCharging className="h-3.5 w-3.5 text-primary shrink-0" />
-                ) : (
-                  <Battery className={cn("h-3.5 w-3.5 shrink-0", mac.battery <= 20 ? "text-red-500" : "text-muted-foreground")} />
-                )}
+                <BatteryGauge level={mac.battery} charging={mac.charging === true && !isStale(mac.lastSeen)} />
                 <span className="text-xs font-mono text-muted-foreground">
                   {mac.battery}%
                   {mac.charging && !isStale(mac.lastSeen) && <span className="text-blue-500"> charging</span>}
@@ -618,11 +645,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                 </div>
                 {lenovo.battery !== null ? (
                   <div className="flex items-center gap-1.5">
-                    {lenovo.charging && !isStale(lenovo.lastSeen) ? (
-                      <BatteryCharging className="h-3.5 w-3.5 text-primary shrink-0" />
-                    ) : (
-                      <Battery className={cn("h-3.5 w-3.5 shrink-0", lenovo.battery <= 20 ? "text-red-500" : "text-muted-foreground")} />
-                    )}
+                    <BatteryGauge level={lenovo.battery} charging={lenovo.charging === true && !isStale(lenovo.lastSeen)} />
                     <span className="text-xs font-mono text-muted-foreground">
                       {lenovo.battery}%
                       {lenovo.charging && !isStale(lenovo.lastSeen) && <span className="text-blue-500"> charging</span>}
