@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { Redis } from "@upstash/redis"
+import { getTagsForArtists, aggregateGenres } from "@/lib/lastfm"
 
 let redis: Redis | null = null
 if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
@@ -29,7 +30,7 @@ export const revalidate = 0
 export async function GET() {
   try {
     const token = await getAccessToken()
-    if (!token) return NextResponse.json({ tracks: [], artists: [] })
+    if (!token) return NextResponse.json({ tracks: [], artists: [], shows: [], genres: [] })
 
     const headers = { Authorization: `Bearer ${token}` }
 
@@ -39,35 +40,31 @@ export async function GET() {
       fetch("https://api.spotify.com/v1/me/shows?limit=50", { headers }),
     ])
 
-    if (!tracksRes.ok && !artistsRes.ok) return NextResponse.json({ tracks: [], artists: [], shows: [] })
+    if (!tracksRes.ok && !artistsRes.ok) return NextResponse.json({ tracks: [], artists: [], shows: [], genres: [] })
 
     const tracksData = tracksRes.ok ? (await tracksRes.json() as { items: any[] }) : { items: [] }
     const artistsData = artistsRes.ok ? (await artistsRes.json() as { items: any[] }) : { items: [] }
     const showsData = showsRes?.ok ? (await showsRes.json() as { items: { added_at: string; show: any }[] }) : { items: [] }
 
-    const trackIds = tracksData.items.map((t: any) => t.id).filter(Boolean).join(",")
     const artistIds = artistsData.items.map((a: any) => a.id).filter(Boolean).join(",")
 
-    let audioFeatures: Record<string, { energy: number; valence: number; tempo: number; danceability: number }> = {}
-    let artistDetails: Record<string, { genres: string[]; followers: number }> = {}
-
-    await Promise.all([
-      trackIds ? fetch(`https://api.spotify.com/v1/audio-features?ids=${trackIds}`, { headers })
-        .then(r => r.ok ? r.json() : null)
-        .then((af: { audio_features: any[] } | null) => {
-          for (const f of af?.audio_features ?? []) {
-            if (f?.id) audioFeatures[f.id] = { energy: f.energy, valence: f.valence, tempo: f.tempo, danceability: f.danceability }
-          }
-        }).catch(() => {}) : Promise.resolve(),
-      // batch fetch artist details for accurate genres and follower counts
-      artistIds ? fetch(`https://api.spotify.com/v1/artists?ids=${artistIds}`, { headers })
+    // Spotify deprecated audio-features (Nov 2024) and artist genres (Mar 2025). I no longer
+    // fetch audio-features at all (they 403 + burned CPU), and genres now come from Last.fm
+    // below. I still fetch artist details for accurate follower counts.
+    const artistFollowers: Record<string, number> = {}
+    if (artistIds) {
+      await fetch(`https://api.spotify.com/v1/artists?ids=${artistIds}`, { headers })
         .then(r => r.ok ? r.json() : null)
         .then((ad: { artists: any[] } | null) => {
           for (const a of ad?.artists ?? []) {
-            if (a?.id) artistDetails[a.id] = { genres: a.genres ?? [], followers: a.followers?.total ?? 0 }
+            if (a?.id) artistFollowers[a.id] = a.followers?.total ?? 0
           }
-        }).catch(() => {}) : Promise.resolve(),
-    ])
+        }).catch(() => {})
+    }
+
+    // Genres via Last.fm top tags per artist (each cached in Redis for 7 days)
+    const artistNames = artistsData.items.map((a: any) => a.name).filter(Boolean)
+    const tagsByName = await getTagsForArtists(artistNames)
 
     const tracks = tracksData.items.map((t: any, i: number) => ({
       rank: i + 1,
@@ -77,20 +74,27 @@ export async function GET() {
       albumArt: t.album?.images?.[2]?.url ?? t.album?.images?.[0]?.url ?? null,
       url: t.external_urls?.spotify ?? null,
       duration_ms: t.duration_ms ?? 0,
-      ...(audioFeatures[t.id] ?? {}),
+      releaseDate: t.album?.release_date ?? null,
+      popularity: t.popularity ?? null,
     }))
 
-    const maxFollowers = Math.max(1, ...Object.values(artistDetails).map(d => d.followers))
+    const maxFollowers = Math.max(1, ...Object.values(artistFollowers))
 
     const artists = artistsData.items.map((a: any, i: number) => ({
       rank: i + 1,
       name: a.name,
-      genres: artistDetails[a.id]?.genres ?? a.genres ?? [],
+      genres: (tagsByName[a.name] ?? []).map((t) => t.name),
       image: a.images?.[2]?.url ?? a.images?.[0]?.url ?? null,
       url: a.external_urls?.spotify ?? null,
-      followers: artistDetails[a.id]?.followers ?? 0,
-      followersPct: Math.round(((artistDetails[a.id]?.followers ?? 0) / maxFollowers) * 100),
+      followers: artistFollowers[a.id] ?? 0,
+      followersPct: Math.round(((artistFollowers[a.id] ?? 0) / maxFollowers) * 100),
+      popularity: a.popularity ?? null,
     }))
+
+    // Aggregated genre breakdown (rank-weighted) for the donut / treemap
+    const genres = aggregateGenres(
+      artistsData.items.map((a: any, i: number) => ({ rank: i + 1, tags: tagsByName[a.name] ?? [] })),
+    ).slice(0, 12)
 
     const shows = showsData.items.map((item: { added_at: string; show: any }) => {
       const s = item.show
@@ -107,8 +111,8 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json({ tracks, artists, shows })
+    return NextResponse.json({ tracks, artists, shows, genres })
   } catch {
-    return NextResponse.json({ tracks: [], artists: [], shows: [] })
+    return NextResponse.json({ tracks: [], artists: [], shows: [], genres: [] })
   }
 }

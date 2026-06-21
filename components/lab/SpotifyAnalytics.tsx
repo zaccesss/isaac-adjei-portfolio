@@ -6,16 +6,19 @@ import { SiSpotify } from "react-icons/si"
 type Track = {
   rank: number; id: string; name: string; artist: string
   albumArt: string | null; url: string | null; duration_ms: number
-  energy?: number; valence?: number; tempo?: number; danceability?: number
+  releaseDate?: string | null; popularity?: number | null
 }
 type Artist = {
   rank: number; name: string; genres: string[]
   image: string | null; url: string | null; followers: number; followersPct: number
+  popularity?: number | null
 }
+type GenreDatum = { genre: string; value: number }
 
 const TABS = ["tracks", "artists", "genres"] as const
 type Tab = typeof TABS[number]
 
+// Fixed vibrant palette - mid-tone colours that read on both light and dark cards
 const BAR_COLOURS = [
   "#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981",
   "#06b6d4", "#f97316", "#84cc16", "#e879f9", "#14b8a6",
@@ -26,58 +29,105 @@ function formatMs(ms: number): string {
   return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`
 }
 
-function StatPill({ label, value }: { label: string; value: string }) {
+function decadeOf(date?: string | null): string | null {
+  if (!date) return null
+  const y = parseInt(date.slice(0, 4), 10)
+  if (Number.isNaN(y)) return null
+  return `${Math.floor(y / 10) * 10}s`
+}
+
+function abbrevFollowers(n: number): string {
+  return n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${Math.round(n / 1000)}K` : `${n}`
+}
+
+// Genre donut - rank-weighted genre shares as arc segments. The card-coloured stroke between
+// slices and the foreground-coloured centre label keep it legible in light and dark mode.
+function GenreDonut({ data }: { data: GenreDatum[] }) {
+  const top = data.slice(0, 8)
+  const total = top.reduce((s, d) => s + d.value, 0) || 1
+  const R = 68, r = 40, cx = 80, cy = 80
+  const pt = (rad: number, a: number) => `${(cx + rad * Math.cos(a)).toFixed(2)} ${(cy + rad * Math.sin(a)).toFixed(2)}`
+  const arcs = top.map((d, i) => {
+    // Start angle = sum of prior slices (functional, no mutated accumulator)
+    const startFrac = top.slice(0, i).reduce((s, x) => s + x.value, 0) / total
+    const frac = d.value / total
+    const a0 = -Math.PI / 2 + startFrac * Math.PI * 2
+    const a1 = a0 + frac * Math.PI * 2
+    const large = frac > 0.5 ? 1 : 0
+    return {
+      path: `M ${pt(R, a0)} A ${R} ${R} 0 ${large} 1 ${pt(R, a1)} L ${pt(r, a1)} A ${r} ${r} 0 ${large} 0 ${pt(r, a0)} Z`,
+      colour: BAR_COLOURS[i % BAR_COLOURS.length],
+      genre: d.genre,
+      pct: Math.round(frac * 100),
+    }
+  })
   return (
-    <div className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/40">
-      <span className="text-[10px] font-mono text-muted-foreground/60 uppercase tracking-widest">{label}</span>
-      <span className="text-xs font-mono font-semibold">{value}</span>
-    </div>
+    <svg width={160} height={160} className="shrink-0">
+      {arcs.map((a, i) => (
+        <path key={i} d={a.path} fill={a.colour} opacity={0.92} stroke="hsl(var(--card))" strokeWidth={1.5}>
+          <title>{`${a.genre} · ${a.pct}%`}</title>
+        </path>
+      ))}
+      <text x={cx} y={cy - 1} textAnchor="middle" fontSize={11} fontFamily="monospace" fontWeight={600} fill="hsl(var(--foreground))">
+        {top[0]?.genre.slice(0, 11) ?? ""}
+      </text>
+      <text x={cx} y={cy + 12} textAnchor="middle" fontSize={9} fontFamily="monospace" fill="hsl(var(--muted-foreground))">
+        {arcs[0]?.pct ?? 0}%
+      </text>
+    </svg>
   )
 }
 
 export default function SpotifyAnalytics() {
   const [tracks, setTracks] = useState<Track[]>([])
   const [artists, setArtists] = useState<Artist[]>([])
-  const [hovered, setHovered] = useState<Track | null>(null)
+  const [genreData, setGenreData] = useState<GenreDatum[]>([])
   const [tab, setTab] = useState<Tab>("tracks")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch("/api/spotify-top")
-      .then((r) => r.ok ? r.json() : { tracks: [], artists: [] })
-      .then((d) => { setTracks(d.tracks ?? []); setArtists(d.artists ?? []); setLoading(false) })
+      .then((r) => (r.ok ? r.json() : { tracks: [], artists: [], genres: [] }))
+      .then((d) => {
+        setTracks(d.tracks ?? [])
+        setArtists(d.artists ?? [])
+        setGenreData(d.genres ?? [])
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
   }, [])
 
-  const tracksWithFeatures = tracks.filter((t) => t.energy != null && t.valence != null)
-
-  const avgEnergy = tracksWithFeatures.length
-    ? tracksWithFeatures.reduce((s, t) => s + (t.energy ?? 0), 0) / tracksWithFeatures.length
-    : null
-  const avgValence = tracksWithFeatures.length
-    ? tracksWithFeatures.reduce((s, t) => s + (t.valence ?? 0), 0) / tracksWithFeatures.length
-    : null
-  const avgTempo = tracksWithFeatures.length
-    ? tracksWithFeatures.reduce((s, t) => s + (t.tempo ?? 0), 0) / tracksWithFeatures.length
-    : null
-  const avgDance = tracksWithFeatures.length
-    ? tracksWithFeatures.reduce((s, t) => s + (t.danceability ?? 0), 0) / tracksWithFeatures.length
-    : null
-
-  // Normalise track durations so the longest track = 100%
-  const maxDuration = Math.max(1, ...tracks.map(t => t.duration_ms))
+  const maxDuration = Math.max(1, ...tracks.map((t) => t.duration_ms))
   const top10Tracks = tracks.slice(0, 10)
 
-  const genreMap: Record<string, number> = {}
-  for (const a of artists) {
-    for (const g of a.genres) genreMap[g] = (genreMap[g] ?? 0) + 1
+  // Listening era from track release decades
+  const eraMap: Record<string, number> = {}
+  for (const t of tracks) {
+    const dec = decadeOf(t.releaseDate)
+    if (dec) eraMap[dec] = (eraMap[dec] ?? 0) + 1
   }
-  const genres = Object.entries(genreMap).sort((a, b) => b[1] - a[1]).slice(0, 12)
-  const maxGenreCount = genres[0]?.[1] ?? 1
+  const eras = Object.entries(eraMap).sort((a, b) => a[0].localeCompare(b[0]))
+  const maxEra = Math.max(1, ...eras.map(([, n]) => n))
 
-  const PAD = 20
-  const W = 240
-  const H = 180
+  // Genre breakdown - prefer the API's rank-weighted aggregate, fall back to a per-artist count
+  const genres: [string, number][] = genreData.length
+    ? genreData.map((g) => [g.genre, g.value])
+    : Object.entries(
+        artists.reduce((m, a) => {
+          for (const g of a.genres) m[g] = (m[g] ?? 0) + 1
+          return m
+        }, {} as Record<string, number>),
+      ).sort((a, b) => b[1] - a[1]).slice(0, 12)
+  const maxGenre = Math.max(...genres.map(([, v]) => v), 0.0001)
+
+  // Mainstream-vs-underground scatter: x = your rank, y = artist size (followers, log scale)
+  const SW = 248, SH = 150, SP = 24
+  const logF = (f: number) => Math.log10(Math.max(10, f))
+  const fVals = artists.map((a) => logF(a.followers))
+  const minLogF = Math.min(...fVals, 1)
+  const maxLogF = Math.max(...fVals, minLogF + 0.0001)
+  const sx = (rank: number) => SP + ((rank - 1) / Math.max(1, artists.length - 1)) * (SW - SP * 2)
+  const sy = (f: number) => SP + (1 - (logF(f) - minLogF) / (maxLogF - minLogF)) * (SH - SP * 2)
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-5 space-y-4">
@@ -97,116 +147,67 @@ export default function SpotifyAnalytics() {
         <div className="space-y-2">{[...Array(5)].map((_, i) => <div key={i} className="h-8 bg-muted/60 rounded animate-pulse" />)}</div>
       ) : tab === "tracks" ? (
         <div className="space-y-3">
-          {/* Track list first */}
-          <div className="flex gap-6 items-start flex-wrap">
-            <div className="flex-1 min-w-[200px] space-y-1.5">
-              {tracks.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No data yet</p>
-              ) : tracks.map((t) => (
-                <a
-                  key={t.id}
-                  href={t.url ?? "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 group hover:bg-muted/40 rounded-lg px-1.5 py-1 transition-colors"
-                  onMouseEnter={() => setHovered(t)}
-                  onMouseLeave={() => setHovered(null)}
-                >
-                  <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{t.rank}</span>
-                  {t.albumArt ? (
-                    <img src={t.albumArt} alt="" className="w-7 h-7 rounded shrink-0 object-cover" />
-                  ) : (
-                    <div className="w-7 h-7 rounded bg-muted shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-mono font-medium truncate leading-tight group-hover:text-foreground transition-colors">{t.name}</p>
-                    <p className="text-[10px] font-mono text-muted-foreground/60 truncate">{t.artist}</p>
-                  </div>
-                  <span className="text-[10px] font-mono text-muted-foreground/50 shrink-0">{formatMs(t.duration_ms)}</span>
-                </a>
-              ))}
-            </div>
-
-            {/* Scatter plot - only when Spotify returns audio features */}
-            {tracksWithFeatures.length > 1 && (
-              <div className="shrink-0 space-y-1">
-                <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest text-center">energy vs mood</p>
-                <p className="text-[8px] font-mono text-muted-foreground/40 text-center">x = mood (dark → happy) · y = energy (chill → hype)</p>
-                <svg width={W} height={H} className="overflow-visible">
-                  <line x1={PAD + (W - PAD * 2) / 2} y1={PAD} x2={PAD + (W - PAD * 2) / 2} y2={H - PAD} stroke="hsl(var(--border))" strokeWidth={1} strokeDasharray="3 3" />
-                  <line x1={PAD} y1={PAD + (H - PAD * 2) / 2} x2={W - PAD} y2={PAD + (H - PAD * 2) / 2} stroke="hsl(var(--border))" strokeWidth={1} strokeDasharray="3 3" />
-                  <text x={PAD} y={H - 4} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace">dark</text>
-                  <text x={W - PAD} y={H - 4} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace" textAnchor="end">happy</text>
-                  <text x={4} y={PAD + 4} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace">hype</text>
-                  <text x={4} y={H - PAD} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace">chill</text>
-                  {tracksWithFeatures.map((t) => {
-                    const cx = PAD + (t.valence! * (W - PAD * 2))
-                    const cy = PAD + ((1 - t.energy!) * (H - PAD * 2))
-                    const isHov = hovered?.id === t.id
-                    return (
-                      <g key={t.id}>
-                        <circle cx={cx} cy={cy} r={isHov ? 6 : 4} fill="hsl(var(--primary))" opacity={isHov ? 1 : 0.65} className="cursor-pointer transition-all" onMouseEnter={() => setHovered(t)} onMouseLeave={() => setHovered(null)} />
-                        {isHov && (
-                          <g>
-                            <rect x={cx + 8} y={cy - 14} width={Math.min(t.name.length * 5.5, 100)} height={22} rx={3} fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth={1} />
-                            <text x={cx + 12} y={cy - 4} fontSize={8} fill="hsl(var(--foreground))" fontFamily="monospace" fontWeight="600">{t.name.slice(0, 18)}</text>
-                            <text x={cx + 12} y={cy + 5} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace">{t.artist.slice(0, 16)}</text>
-                          </g>
-                        )}
-                      </g>
-                    )
-                  })}
-                </svg>
-              </div>
-            )}
+          <div className="space-y-1.5">
+            {tracks.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No data yet</p>
+            ) : tracks.map((t) => (
+              <a key={t.id} href={t.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 group hover:bg-muted/40 rounded-lg px-1.5 py-1 transition-colors">
+                <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{t.rank}</span>
+                {t.albumArt ? (
+                  <img src={t.albumArt} alt="" className="w-7 h-7 rounded shrink-0 object-cover" />
+                ) : (
+                  <div className="w-7 h-7 rounded bg-muted shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-mono font-medium truncate leading-tight group-hover:text-foreground transition-colors">{t.name}</p>
+                  <p className="text-[10px] font-mono text-muted-foreground/60 truncate">{t.artist}</p>
+                </div>
+                <span className="text-[10px] font-mono text-muted-foreground/50 shrink-0">{formatMs(t.duration_ms)}</span>
+              </a>
+            ))}
           </div>
 
-          {/* Stat pills when audio features available */}
-          {avgEnergy !== null && (
-            <div className="flex gap-2 flex-wrap">
-              <StatPill label="avg energy" value={`${Math.round(avgEnergy * 100)}%`} />
-              <StatPill label="mood" value={avgValence! > 0.6 ? "happy" : avgValence! > 0.4 ? "neutral" : "dark"} />
-              <StatPill label="avg tempo" value={`${Math.round(avgTempo!)} bpm`} />
-              {avgDance !== null && <StatPill label="danceability" value={`${Math.round(avgDance * 100)}%`} />}
-            </div>
-          )}
-
-          {/* Duration bars below the list */}
+          {/* Duration bars */}
           {top10Tracks.length > 0 && (
             <div className="space-y-1 pt-1 border-t border-border/40">
               <div className="flex items-center justify-between">
                 <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">duration · top 10</p>
-                <p className="text-[9px] font-mono text-muted-foreground/40">bar width = track duration (longest = 100%)</p>
+                <p className="text-[9px] font-mono text-muted-foreground/40">bar width = track length (longest = 100%)</p>
               </div>
               {top10Tracks.map((t, i) => (
                 <div key={t.id} className="flex items-center gap-2">
                   <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{t.rank}</span>
                   <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${Math.round((t.duration_ms / maxDuration) * 100)}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }}
-                    />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.round((t.duration_ms / maxDuration) * 100)}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }} />
                   </div>
                   <span className="text-[10px] font-mono text-muted-foreground/60 w-8 text-right shrink-0">{formatMs(t.duration_ms)}</span>
                 </div>
               ))}
             </div>
           )}
+
+          {/* Listening era from release dates */}
+          {eras.length > 1 && (
+            <div className="space-y-1 pt-1 border-t border-border/40">
+              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">listening era · by release decade</p>
+              <div className="flex items-end gap-1.5 h-16 pt-1">
+                {eras.map(([dec, n], i) => (
+                  <div key={dec} className="flex-1 flex flex-col items-center gap-1 justify-end">
+                    <div className="w-full rounded-t transition-all" style={{ height: `${(n / maxEra) * 100}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length], minHeight: 3 }} title={`${dec}: ${n} tracks`} />
+                    <span className="text-[8px] font-mono text-muted-foreground/60">{dec}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : tab === "artists" ? (
         <div className="space-y-3">
-          {/* Artist list first */}
           <div className="space-y-1.5">
             {artists.length === 0 ? (
               <p className="text-xs text-muted-foreground">No data yet</p>
             ) : artists.map((a) => (
-              <a
-                key={a.rank}
-                href={a.url ?? "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2.5 group hover:bg-muted/40 rounded-lg px-1.5 py-1 transition-colors"
-              >
+              <a key={a.rank} href={a.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 group hover:bg-muted/40 rounded-lg px-1.5 py-1 transition-colors">
                 <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{a.rank}</span>
                 {a.image ? (
                   <img src={a.image} alt="" className="w-7 h-7 rounded-full shrink-0 object-cover" />
@@ -217,17 +218,32 @@ export default function SpotifyAnalytics() {
                   <p className="text-xs font-mono font-medium truncate leading-tight group-hover:text-foreground transition-colors">{a.name}</p>
                   {a.genres.length > 0 && <p className="text-[10px] font-mono text-muted-foreground/60 truncate">{a.genres.join(" · ")}</p>}
                 </div>
-                {a.followers > 0 && (
-                  <span className="text-[10px] font-mono text-muted-foreground/50 shrink-0">
-                    {a.followers >= 1_000_000 ? `${(a.followers / 1_000_000).toFixed(1)}M` : `${Math.round(a.followers / 1000)}K`}
-                  </span>
-                )}
+                {a.followers > 0 && <span className="text-[10px] font-mono text-muted-foreground/50 shrink-0">{abbrevFollowers(a.followers)}</span>}
               </a>
             ))}
           </div>
 
-          {/* Follower bars below the list */}
-          {artists.slice(0, 10).some(a => a.followers > 0) && (
+          {/* Mainstream vs underground scatter */}
+          {artists.length > 2 && (
+            <div className="space-y-1 pt-1 border-t border-border/40">
+              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">mainstream vs underground</p>
+              <p className="text-[8px] font-mono text-muted-foreground/40">x = your rank · y = artist size (followers, log)</p>
+              <svg width={SW} height={SH} className="overflow-visible max-w-full">
+                <text x={2} y={SP - 6} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace">mainstream</text>
+                <text x={2} y={SH - 4} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace">underground</text>
+                <text x={SW} y={SH - 4} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace" textAnchor="end">#{artists.length}</text>
+                <text x={SP} y={SH - 4} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace">#1</text>
+                {artists.map((a, i) => (
+                  <circle key={a.rank} cx={sx(a.rank)} cy={sy(a.followers)} r={4} fill={BAR_COLOURS[i % BAR_COLOURS.length]} opacity={0.75}>
+                    <title>{`#${a.rank} ${a.name} · ${abbrevFollowers(a.followers)} followers`}</title>
+                  </circle>
+                ))}
+              </svg>
+            </div>
+          )}
+
+          {/* Follower bars */}
+          {artists.slice(0, 10).some((a) => a.followers > 0) && (
             <div className="space-y-1 pt-1 border-t border-border/40">
               <div className="flex items-center justify-between">
                 <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">followers · top 10</p>
@@ -237,10 +253,7 @@ export default function SpotifyAnalytics() {
                 <div key={a.rank} className="flex items-center gap-2">
                   <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{a.rank}</span>
                   <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${a.followersPct}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }}
-                    />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${a.followersPct}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }} />
                   </div>
                   <span className="text-[10px] font-mono text-muted-foreground/60 w-8 text-right shrink-0">{a.followersPct}%</span>
                 </div>
@@ -251,32 +264,23 @@ export default function SpotifyAnalytics() {
       ) : (
         <div className="space-y-3">
           {genres.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No genre data yet - genres are pulled from your top artists</p>
+            <p className="text-xs text-muted-foreground">No genre data yet - genres are pulled from your top artists via Last.fm</p>
           ) : (
             <>
-              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">genre breakdown from top artists</p>
-              <div className="space-y-1.5">
-                {genres.map(([genre, count], i) => (
-                  <div key={genre} className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono text-muted-foreground/60 w-28 truncate shrink-0">{genre}</span>
-                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{ width: `${(count / maxGenreCount) * 100}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }}
-                      />
+              <div className="flex gap-4 items-center flex-wrap justify-center sm:justify-start">
+                <GenreDonut data={genres.map(([genre, value]) => ({ genre, value }))} />
+                <div className="flex-1 min-w-[180px] space-y-1.5">
+                  {genres.slice(0, 8).map(([genre, value], i) => (
+                    <div key={genre} className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-muted-foreground/70 w-24 truncate shrink-0">{genre}</span>
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${(value / maxGenre) * 100}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }} />
+                      </div>
                     </div>
-                    <span className="text-[10px] font-mono text-muted-foreground/60 w-3 text-right shrink-0">{count}</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-              <p className="text-[9px] font-mono text-muted-foreground/40">each colour = one genre · bar width = how many of your top artists are tagged with it</p>
-              <div className="flex gap-2 flex-wrap pt-1">
-                {genres.slice(0, 5).map(([genre], i) => (
-                  <span key={genre} className="text-[10px] font-mono px-2 py-0.5 rounded-full border" style={{ borderColor: BAR_COLOURS[i % BAR_COLOURS.length] + "66", color: BAR_COLOURS[i % BAR_COLOURS.length] }}>
-                    {genre}
-                  </span>
-                ))}
-              </div>
+              <p className="text-[9px] font-mono text-muted-foreground/40">rank-weighted across your top artists - higher picks and stronger tags count for more</p>
             </>
           )}
         </div>

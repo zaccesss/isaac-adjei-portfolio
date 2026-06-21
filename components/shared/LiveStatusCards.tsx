@@ -472,11 +472,6 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                 <SpotifyBars
                   playing={spotify.playing}
                   albumArt={spotify.albumArt}
-                  energy={spotify.audioFeatures?.energy}
-                  tempo={spotify.audioFeatures?.tempo}
-                  loudness={spotify.audioFeatures?.loudness}
-                  beats={spotify.beats ?? undefined}
-                  progressMs={liveProgressMs}
                 />
               </div>
             </div>

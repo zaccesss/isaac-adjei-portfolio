@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.15.0] - 2026-06-21
+
+### Added
+
+- Lab: Spotify genres restored via Last.fm (Spotify deprecated artist genres in Mar 2025) - the genres tab now shows a rank-weighted genre donut plus a breakdown, and each top artist lists its genre tags again
+- Lab: artists tab gains a mainstream-vs-underground scatter (your rank against artist follower count), and the tracks tab gains a listening-era chart by release decade
+- `/now` visualiser rebuilt: extracts the album art's dominant colours and renders soft drifting glow blooms behind organic equaliser bars, on a device-pixel-ratio canvas with delta-time animation so it stays crisp and identically proportioned on every screen; renders correctly in both light and dark mode
+
+### Changed
+
+- `/now` visualiser no longer pretends to react to audio (Spotify deprecated audio-features/analysis in Nov 2024); the motion is honest album-colour ambience, and the dead `energy`/`tempo`/`loudness`/`beats` props are removed
+- Lab Spotify route no longer calls the deprecated audio-features endpoint, and adds track release dates + popularity for the new charts
+
+---
+
 ## [v2.14.0] - 2026-06-21
 
 ### Changed
