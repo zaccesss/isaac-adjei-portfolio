@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-# I push my MacBook's battery level, real-time weather and country code to Upstash Redis every 30 seconds so my portfolio dashboard can show a live device widget with weather.
+# I push my MacBook's battery level, real-time weather and country code to Upstash Redis every 120 seconds so my portfolio dashboard can show a live device widget with weather.
 """
-Mac daemon - writes battery, location and weather to Upstash Redis every 30s.
-Location and weather refresh every 10 cycles (~5 min) to keep API usage low.
+Mac daemon - writes battery, location and weather to Upstash Redis every 120s.
+Location and weather refresh every 5 cycles (~10 min) to keep API usage low.
 City coordinates are used only for accurate weather - the city name is never
 stored. Only country code and timezone are stored for privacy.
 
 Setup:
-  brew install corelocationcli
-  pip install psutil requests
+  brew install corelocationcli              # GPS-level location (optional; falls back to ipinfo)
+  pip install psutil requests timezonefinder  # timezonefinder turns GPS coords into the exact zone
 
 Run:
   export UPSTASH_REDIS_REST_URL=https://your-database.upstash.io
@@ -22,6 +22,7 @@ import os
 import sys
 import json
 import time
+import shutil
 import subprocess
 
 import requests
@@ -31,6 +32,22 @@ try:
 except ImportError:
     print("Missing dependency. Run: pip install psutil requests", flush=True)
     sys.exit(1)
+
+# Optional: turn GPS coordinates into an exact IANA timezone offline (accurate even in countries
+# that span several zones). If it is not installed, I fall back to ipinfo's timezone.
+try:
+    from timezonefinder import TimezoneFinder
+    _tf = TimezoneFinder()
+except ImportError:
+    _tf = None
+
+# CoreLocationCLI gives GPS-level coordinates. I resolve it to an absolute path because launchd
+# runs the daemon with a minimal PATH (no Homebrew bin), so a bare "CoreLocationCLI" would not be
+# found even when it is installed - that was why GPS was silently falling back to ipinfo.
+CORELOCATION_BIN = (
+    shutil.which("CoreLocationCLI")
+    or next((p for p in ("/opt/homebrew/bin/CoreLocationCLI", "/usr/local/bin/CoreLocationCLI") if os.path.exists(p)), None)
+)
 
 UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL")
 UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
@@ -107,29 +124,40 @@ _location = {}
 _weather = {}
 
 
+_corelocation_warned = False  # so the "CoreLocationCLI not installed" hint logs once, not every refresh
+
+
 def fetch_location():
-    global _location
+    global _location, _corelocation_warned
     lat, lon = None, None
+    gps_tz = None  # timezone derived from GPS coordinates (precise, multi-timezone aware)
 
     # I prefer CoreLocationCLI for street-level GPS precision; ipinfo.io is
     # city-level only
-    try:
-        result = subprocess.run(
-            ["CoreLocationCLI", "-once", "-format", "%latitude %longitude"],
-            capture_output=True, text=True, timeout=10,
-        )
-        if result.returncode == 0:
-            parts = result.stdout.strip().split()
-            lat, lon = float(parts[0]), float(parts[1])
-            print("[location] using CoreLocation GPS", flush=True)
-    except FileNotFoundError:
-        print(
-            "[location] CoreLocationCLI not found - "
-            "install with: brew install corelocationcli",
-            flush=True,
-        )
-    except Exception as e:
-        print(f"[location] CoreLocationCLI failed: {e}", flush=True)
+    if CORELOCATION_BIN:
+        try:
+            result = subprocess.run(
+                [CORELOCATION_BIN, "-once", "-format", "%latitude %longitude"],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                parts = result.stdout.strip().split()
+                lat, lon = float(parts[0]), float(parts[1])
+                # Derive the timezone straight from the coordinates - accurate even in large,
+                # multi-timezone countries where an IP-based guess can land in the wrong zone.
+                if _tf:
+                    gps_tz = _tf.timezone_at(lat=lat, lng=lon)
+                print(f"[location] using CoreLocation GPS (tz={gps_tz or 'n/a'})", flush=True)
+            else:
+                # Usually a Location Services permission issue - fall through to ipinfo this cycle.
+                print(f"[location] CoreLocationCLI returned nothing (rc={result.returncode}) - using ipinfo", flush=True)
+        except Exception as e:
+            print(f"[location] CoreLocationCLI failed: {e} - using ipinfo", flush=True)
+    elif not _corelocation_warned:
+        # Not installed at all - ipinfo provides country + timezone, so I note this once and stay
+        # quiet instead of repeating it each refresh.
+        _corelocation_warned = True
+        print("[location] CoreLocationCLI not installed - using ipinfo for location + timezone", flush=True)
 
     # I always fetch ipinfo for country_code and timezone; it also provides a
     # lat/lon fallback
@@ -139,14 +167,11 @@ def fetch_location():
             data = r.json()
             loc = data.get("loc", "")
             country_code = data.get("country", "")
-            # I fall back to Europe/London so timezone-aware displays degrade
-            # gracefully
-            timezone = data.get("timezone", "Europe/London")
+            # Prefer the GPS-derived timezone; fall back to ipinfo's, then Europe/London.
+            timezone = gps_tz or data.get("timezone", "Europe/London")
             if not lat and loc:
                 ip_lat, ip_lon = loc.split(",")
                 lat, lon = float(ip_lat), float(ip_lon)
-                print("[location] falling back to ipinfo coordinates",
-                      flush=True)
             if lat and lon and country_code:
                 _location = {
                     "lat": lat,
