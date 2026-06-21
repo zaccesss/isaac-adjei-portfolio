@@ -1,11 +1,14 @@
 "use client"
 
-// Album-art-driven ambient visualiser. There is no real audio signal in the browser and
-// Spotify deprecated audio-features/analysis (Nov 2024), so this does not pretend to react
-// to the sound. Instead it extracts the album's dominant colours and renders soft drifting
-// glow blooms behind organic equaliser bars. It uses a canvas (not SVG) so it can size to
-// the device pixel ratio and stay crisp + identically proportioned on every screen, and it
-// animates on delta-time so motion speed is the same regardless of refresh rate.
+// Album-art-driven ambient visualiser. No real audio signal exists in the browser and
+// Spotify deprecated audio-features/analysis (Nov 2024), so this does not react to sound -
+// it extracts the album's dominant colours and renders a sine wave above a bouncy equaliser,
+// both tinted from the cover. Drawn on a device-pixel-ratio canvas (crisp + identically
+// proportioned on every screen) and animated on delta-time (same speed at any refresh rate).
+//
+// Two deliberate touches: the bars share one bright-base -> dark-tip gradient so a taller bar
+// reaches into the dark zone and its peak goes darker (like a real meter); and the wave is
+// synced to the bars - at each x it swings wider and darkens in step with the bar beneath it.
 import { useEffect, useRef } from "react"
 import { useAlbumColours } from "./useAlbumColours"
 
@@ -15,10 +18,12 @@ interface Props {
 }
 
 const HEIGHT = 110
+const WAVE_Y = 16
+const BAR_TOP = 32
+const BAR_BOTTOM = HEIGHT - 4
+const BAR_AREA_H = BAR_BOTTOM - BAR_TOP
 const BAR_W = 5
 const GAP = 3
-const BAR_TOP = 28
-const BAR_AREA_H = HEIGHT - BAR_TOP - 4
 
 type RGB = [number, number, number]
 
@@ -26,6 +31,9 @@ function hexToRgb(hex: string): RGB {
   const h = hex.replace("#", "")
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
 }
+const lighten = (c: RGB, a: number): RGB => [c[0] + (255 - c[0]) * a, c[1] + (255 - c[1]) * a, c[2] + (255 - c[2]) * a]
+const darken = (c: RGB, a: number): RGB => [c[0] * (1 - a), c[1] * (1 - a), c[2] * (1 - a)]
+const rgba = (c: RGB, a: number) => `rgba(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])},${a})`
 
 export default function SpotifyBars({ playing, albumArt }: Props) {
   const colours = useAlbumColours(albumArt)
@@ -33,12 +41,12 @@ export default function SpotifyBars({ playing, albumArt }: Props) {
   const playingRef = useRef(playing)
   const rgbRef = useRef<{ primary: RGB; secondary: RGB; accent: RGB } | null>(null)
   const themeRef = useRef<RGB>([99, 102, 241])
+  const isDarkRef = useRef(true)
   const rafRef = useRef(0)
   const phasesRef = useRef<number[]>([])
   const tPrevRef = useRef(0)
   const intensityRef = useRef(0)
   const driftRef = useRef(0)
-  const isDarkRef = useRef(true)
 
   useEffect(() => { playingRef.current = playing }, [playing])
 
@@ -48,9 +56,7 @@ export default function SpotifyBars({ playing, albumArt }: Props) {
       : null
   }, [colours])
 
-  // Track light/dark (via the resolved --background lightness, so it works whatever the theme
-  // toggle mechanism is) and re-check on toggle. Drives blend mode + bar tint below so colours
-  // read well in both modes - additive glow on dark would otherwise wash out on a light card.
+  // Track light/dark via the resolved --background lightness, re-checked on toggle
   useEffect(() => {
     const readIsDark = () => {
       try {
@@ -71,7 +77,7 @@ export default function SpotifyBars({ playing, albumArt }: Props) {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    // Resolve the theme --primary once for the no-album fallback (rare on /now)
+    // Resolve theme --primary once for the no-album fallback
     try {
       const v = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim()
       if (v) {
@@ -99,11 +105,10 @@ export default function SpotifyBars({ playing, albumArt }: Props) {
     const draw = (t: number) => {
       const dt = tPrevRef.current ? Math.min((t - tPrevRef.current) / 1000, 0.05) : 0.016
       tPrevRef.current = t
-
-      // Ease overall intensity so play/pause is a smooth fade, not a jump
       intensityRef.current += ((playingRef.current ? 1 : 0) - intensityRef.current) * Math.min(1, dt * 3)
       const intensity = intensityRef.current
-      driftRef.current += dt * 0.06
+      driftRef.current += dt
+      const isDark = isDarkRef.current
 
       const rgb = rgbRef.current
       const c1 = rgb?.primary ?? themeRef.current
@@ -112,65 +117,87 @@ export default function SpotifyBars({ playing, albumArt }: Props) {
 
       ctx.clearRect(0, 0, width, HEIGHT)
 
-      const isDark = isDarkRef.current
+      const barCount = Math.max(12, Math.floor((width + GAP) / (BAR_W + GAP)))
+      const phases = phasesRef.current
+      while (phases.length < barCount) phases.push((phases.length * 0.7) % (Math.PI * 2))
 
-      // Ambient glow. Additive blending reads beautifully on a dark card but washes out to
-      // white on a light one, so on light I switch to normal alpha blending at higher strength.
+      // Bouncy, lively per-bar heights (abs-sine, varied speed per bar)
+      const norms: number[] = new Array(barCount)
+      for (let i = 0; i < barCount; i++) {
+        phases[i] += dt * (2.3 + (i % 7) * 0.18) * (0.3 + 0.7 * intensity)
+        const ph = phases[i]
+        norms[i] = Math.abs(Math.sin(ph)) * 0.8 + Math.abs(Math.sin(ph * 0.5 + i)) * 0.2
+      }
+
+      // Ambient album-colour glow (additive on dark; normal alpha on light so it does not wash out)
       if (intensity > 0.02) {
         ctx.globalCompositeOperation = isDark ? "lighter" : "source-over"
-        const glowA = (isDark ? 0.16 : 0.24) * intensity
+        const glowA = (isDark ? 0.16 : 0.22) * intensity
         const blooms: { col: RGB; fx: number; fy: number }[] = [
-          { col: c1, fx: 0.30 + 0.18 * Math.sin(driftRef.current), fy: 0.72 },
-          { col: c2, fx: 0.70 + 0.18 * Math.sin(driftRef.current * 0.8 + 2), fy: 0.55 },
-          { col: c3, fx: 0.50 + 0.22 * Math.sin(driftRef.current * 0.6 + 4), fy: 0.82 },
+          { col: c1, fx: 0.30 + 0.18 * Math.sin(driftRef.current * 0.6), fy: 0.72 },
+          { col: c2, fx: 0.70 + 0.18 * Math.sin(driftRef.current * 0.5 + 2), fy: 0.6 },
+          { col: c3, fx: 0.50 + 0.22 * Math.sin(driftRef.current * 0.4 + 4), fy: 0.82 },
         ]
         for (const b of blooms) {
           const cx = b.fx * width, cy = b.fy * HEIGHT
           const rad = Math.max(width * 0.28, 90)
           const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad)
-          grd.addColorStop(0, `rgba(${b.col[0]},${b.col[1]},${b.col[2]},${glowA})`)
-          grd.addColorStop(1, `rgba(${b.col[0]},${b.col[1]},${b.col[2]},0)`)
+          grd.addColorStop(0, rgba(b.col, glowA))
+          grd.addColorStop(1, rgba(b.col, 0))
           ctx.fillStyle = grd
           ctx.fillRect(0, 0, width, HEIGHT)
         }
         ctx.globalCompositeOperation = "source-over"
       }
 
-      // One shared vertical gradient for all bars (each bar samples the slice over its own
-      // height). On dark: deepen base, brighten tip toward white. On light: keep the album
-      // colour saturated and DEEPEN the tip with higher alpha so bars read against a white card.
-      const tip: RGB = isDark
-        ? [Math.min(255, c3[0] + 55), Math.min(255, c3[1] + 55), Math.min(255, c3[2] + 55)]
-        : [Math.round(c3[0] * 0.72), Math.round(c3[1] * 0.72), Math.round(c3[2] * 0.72)]
-      const baseA = (isDark ? 0.35 : 0.55) + 0.2 * intensity
-      const tipA = (isDark ? 0.25 : 0.55) + (isDark ? 0.65 : 0.4) * intensity
-      const barGrad = ctx.createLinearGradient(0, BAR_TOP + BAR_AREA_H, 0, BAR_TOP)
-      barGrad.addColorStop(0, `rgba(${c1[0]},${c1[1]},${c1[2]},${baseA})`)
-      barGrad.addColorStop(1, `rgba(${tip[0]},${tip[1]},${tip[2]},${tipA})`)
+      // Bars: one shared gradient, bright album base at the bottom -> dark album tip at the top.
+      // A taller bar reaches further up into the dark zone, so its peak naturally goes darker.
+      const base = isDark ? lighten(c1, 0.12) : c1
+      const tip = darken(c3, isDark ? 0.45 : 0.5)
+      const barGrad = ctx.createLinearGradient(0, BAR_BOTTOM, 0, BAR_TOP)
+      barGrad.addColorStop(0, rgba(base, 0.45 + 0.3 * intensity))
+      barGrad.addColorStop(1, rgba(tip, 0.92))
       ctx.fillStyle = barGrad
-
-      const barCount = Math.max(12, Math.floor((width + GAP) / (BAR_W + GAP)))
-      const phases = phasesRef.current
-      while (phases.length < barCount) phases.push((phases.length * 0.6) % (Math.PI * 2))
-
       for (let i = 0; i < barCount; i++) {
-        // Layered sines = natural, non-mechanical motion; a touch of per-bar speed variety
-        phases[i] += dt * (1.1 + (i % 5) * 0.13) * (0.25 + 0.75 * intensity)
-        const ph = phases[i]
-        const osc = Math.sin(ph) * 0.55 + Math.sin(ph * 0.37 + i * 0.5) * 0.3 + Math.sin(ph * 1.7) * 0.15
-        const norm = (osc + 1) / 2
-        const h = Math.max(2, (3 + norm * (BAR_AREA_H - 6)) * (0.12 + 0.88 * intensity))
+        const h = Math.max(2, norms[i] * BAR_AREA_H * (0.15 + 0.85 * intensity))
         const x = i * (BAR_W + GAP)
-        const y = BAR_TOP + (BAR_AREA_H - h)
+        const y = BAR_BOTTOM - h
         const rr = Math.min(BAR_W / 2, h / 2)
         ctx.beginPath()
         ctx.moveTo(x, y + rr)
         ctx.arcTo(x, y, x + rr, y, rr)
         ctx.arcTo(x + BAR_W, y, x + BAR_W, y + rr, rr)
-        ctx.lineTo(x + BAR_W, y + h)
-        ctx.lineTo(x, y + h)
+        ctx.lineTo(x + BAR_W, BAR_BOTTOM)
+        ctx.lineTo(x, BAR_BOTTOM)
         ctx.closePath()
         ctx.fill()
+      }
+
+      // Sine wave above the bars, synced to them: at each x it swings wider and darkens in step
+      // with the bar beneath, so a tall dark bar lifts and darkens that strip of the wave.
+      const waveCol = isDark ? lighten(c3, 0.1) : c3
+      const segs = Math.max(64, barCount)
+      const freq = (Math.PI * 2 * 3) / width
+      const phase = driftRef.current * 3.2
+      ctx.lineWidth = 2.3
+      ctx.lineCap = "round"
+      const yAt = (x: number) => {
+        const bi = Math.min(barCount - 1, Math.max(0, Math.floor(x / (BAR_W + GAP))))
+        const bn = norms[bi]
+        const amp = (2.5 + bn * 8) * (0.25 + 0.75 * intensity)
+        return WAVE_Y + Math.sin(x * freq + phase) * amp - bn * 4 * intensity
+      }
+      for (let s = 0; s < segs; s++) {
+        const x0 = (s / segs) * width
+        const x1 = ((s + 1) / segs) * width
+        const bi = Math.min(barCount - 1, Math.max(0, Math.floor(x0 / (BAR_W + GAP))))
+        const bn = norms[bi]
+        const wc = darken(waveCol, bn * 0.5) // darker where the bar is tall
+        ctx.strokeStyle = rgba(wc, (isDark ? 0.5 : 0.6) + 0.35 * intensity)
+        ctx.beginPath()
+        ctx.moveTo(x0, yAt(x0))
+        ctx.lineTo(x1, yAt(x1))
+        ctx.stroke()
       }
 
       rafRef.current = requestAnimationFrame(draw)

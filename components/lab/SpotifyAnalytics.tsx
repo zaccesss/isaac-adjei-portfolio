@@ -14,6 +14,7 @@ type Artist = {
   popularity?: number | null
 }
 type GenreDatum = { genre: string; value: number }
+type Era = { decade: string; count: number }
 
 const TABS = ["tracks", "artists", "genres"] as const
 type Tab = typeof TABS[number]
@@ -29,13 +30,6 @@ function formatMs(ms: number): string {
   return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`
 }
 
-function decadeOf(date?: string | null): string | null {
-  if (!date) return null
-  const y = parseInt(date.slice(0, 4), 10)
-  if (Number.isNaN(y)) return null
-  return `${Math.floor(y / 10) * 10}s`
-}
-
 function abbrevFollowers(n: number): string {
   return n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${Math.round(n / 1000)}K` : `${n}`
 }
@@ -48,7 +42,6 @@ function GenreDonut({ data }: { data: GenreDatum[] }) {
   const R = 68, r = 40, cx = 80, cy = 80
   const pt = (rad: number, a: number) => `${(cx + rad * Math.cos(a)).toFixed(2)} ${(cy + rad * Math.sin(a)).toFixed(2)}`
   const arcs = top.map((d, i) => {
-    // Start angle = sum of prior slices (functional, no mutated accumulator)
     const startFrac = top.slice(0, i).reduce((s, x) => s + x.value, 0) / total
     const frac = d.value / total
     const a0 = -Math.PI / 2 + startFrac * Math.PI * 2
@@ -82,16 +75,18 @@ export default function SpotifyAnalytics() {
   const [tracks, setTracks] = useState<Track[]>([])
   const [artists, setArtists] = useState<Artist[]>([])
   const [genreData, setGenreData] = useState<GenreDatum[]>([])
+  const [eras, setEras] = useState<Era[]>([])
   const [tab, setTab] = useState<Tab>("tracks")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch("/api/spotify-top")
-      .then((r) => (r.ok ? r.json() : { tracks: [], artists: [], genres: [] }))
+      .then((r) => (r.ok ? r.json() : { tracks: [], artists: [], genres: [], eras: [] }))
       .then((d) => {
         setTracks(d.tracks ?? [])
         setArtists(d.artists ?? [])
         setGenreData(d.genres ?? [])
+        setEras(d.eras ?? [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -99,15 +94,7 @@ export default function SpotifyAnalytics() {
 
   const maxDuration = Math.max(1, ...tracks.map((t) => t.duration_ms))
   const top10Tracks = tracks.slice(0, 10)
-
-  // Listening era from track release decades
-  const eraMap: Record<string, number> = {}
-  for (const t of tracks) {
-    const dec = decadeOf(t.releaseDate)
-    if (dec) eraMap[dec] = (eraMap[dec] ?? 0) + 1
-  }
-  const eras = Object.entries(eraMap).sort((a, b) => a[0].localeCompare(b[0]))
-  const maxEra = Math.max(1, ...eras.map(([, n]) => n))
+  const maxEra = Math.max(1, ...eras.map((e) => e.count))
 
   // Genre breakdown - prefer the API's rank-weighted aggregate, fall back to a per-artist count
   const genres: [string, number][] = genreData.length
@@ -120,21 +107,19 @@ export default function SpotifyAnalytics() {
       ).sort((a, b) => b[1] - a[1]).slice(0, 12)
   const maxGenre = Math.max(...genres.map(([, v]) => v), 0.0001)
 
-  // Mainstream-vs-underground scatter: x = your rank, y = artist size (followers, log scale)
-  const SW = 248, SH = 150, SP = 24
+  // Underground -> mainstream spectrum: position each artist by audience size on a log scale
   const logF = (f: number) => Math.log10(Math.max(10, f))
   const fVals = artists.map((a) => logF(a.followers))
   const minLogF = Math.min(...fVals, 1)
   const maxLogF = Math.max(...fVals, minLogF + 0.0001)
-  const sx = (rank: number) => SP + ((rank - 1) / Math.max(1, artists.length - 1)) * (SW - SP * 2)
-  const sy = (f: number) => SP + (1 - (logF(f) - minLogF) / (maxLogF - minLogF)) * (SH - SP * 2)
+  const spectrumX = (f: number) => ((logF(f) - minLogF) / (maxLogF - minLogF)) * 100
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <SiSpotify className="h-3 w-3 text-muted-foreground shrink-0" />
-          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">top picks</p>
+          <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">my top picks</p>
         </div>
         <div className="flex gap-1">
           {TABS.map((t) => (
@@ -149,7 +134,7 @@ export default function SpotifyAnalytics() {
         <div className="space-y-3">
           <div className="space-y-1.5">
             {tracks.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No data yet</p>
+              <p className="text-xs text-muted-foreground">I am not tracking any plays yet</p>
             ) : tracks.map((t) => (
               <a key={t.id} href={t.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 group hover:bg-muted/40 rounded-lg px-1.5 py-1 transition-colors">
                 <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{t.rank}</span>
@@ -171,8 +156,8 @@ export default function SpotifyAnalytics() {
           {top10Tracks.length > 0 && (
             <div className="space-y-1 pt-1 border-t border-border/40">
               <div className="flex items-center justify-between">
-                <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">duration · top 10</p>
-                <p className="text-[9px] font-mono text-muted-foreground/40">bar width = track length (longest = 100%)</p>
+                <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">my longest tracks · top 10</p>
+                <p className="text-[9px] font-mono text-muted-foreground/40">bar width = track length (my longest = 100%)</p>
               </div>
               {top10Tracks.map((t, i) => (
                 <div key={t.id} className="flex items-center gap-2">
@@ -186,15 +171,16 @@ export default function SpotifyAnalytics() {
             </div>
           )}
 
-          {/* Listening era from release dates */}
+          {/* Listening era from all-time top tracks */}
           {eras.length > 1 && (
             <div className="space-y-1 pt-1 border-t border-border/40">
-              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">listening era · by release decade</p>
+              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">my listening era · all-time tracks by decade</p>
               <div className="flex items-end gap-1.5 h-16 pt-1">
-                {eras.map(([dec, n], i) => (
-                  <div key={dec} className="flex-1 flex flex-col items-center gap-1 justify-end">
-                    <div className="w-full rounded-t transition-all" style={{ height: `${(n / maxEra) * 100}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length], minHeight: 3 }} title={`${dec}: ${n} tracks`} />
-                    <span className="text-[8px] font-mono text-muted-foreground/60">{dec}</span>
+                {eras.map((e, i) => (
+                  <div key={e.decade} className="flex-1 flex flex-col items-center gap-1 justify-end">
+                    <span className="text-[8px] font-mono text-muted-foreground/50">{e.count}</span>
+                    <div className="w-full rounded-t transition-all" style={{ height: `${(e.count / maxEra) * 100}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length], minHeight: 3 }} title={`${e.decade}: ${e.count} tracks`} />
+                    <span className="text-[8px] font-mono text-muted-foreground/60">{e.decade}</span>
                   </div>
                 ))}
               </div>
@@ -205,7 +191,7 @@ export default function SpotifyAnalytics() {
         <div className="space-y-3">
           <div className="space-y-1.5">
             {artists.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No data yet</p>
+              <p className="text-xs text-muted-foreground">I am not tracking any artists yet</p>
             ) : artists.map((a) => (
               <a key={a.rank} href={a.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 group hover:bg-muted/40 rounded-lg px-1.5 py-1 transition-colors">
                 <span className="text-[10px] font-mono text-muted-foreground/50 w-4 text-right shrink-0">{a.rank}</span>
@@ -223,22 +209,25 @@ export default function SpotifyAnalytics() {
             ))}
           </div>
 
-          {/* Mainstream vs underground scatter */}
+          {/* Underground -> mainstream spectrum */}
           {artists.length > 2 && (
-            <div className="space-y-1 pt-1 border-t border-border/40">
-              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">mainstream vs underground</p>
-              <p className="text-[8px] font-mono text-muted-foreground/40">x = your rank · y = artist size (followers, log)</p>
-              <svg width={SW} height={SH} className="overflow-visible max-w-full">
-                <text x={2} y={SP - 6} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace">mainstream</text>
-                <text x={2} y={SH - 4} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace">underground</text>
-                <text x={SW} y={SH - 4} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace" textAnchor="end">#{artists.length}</text>
-                <text x={SP} y={SH - 4} fontSize={7} fill="hsl(var(--muted-foreground))" fontFamily="monospace">#1</text>
+            <div className="space-y-1.5 pt-1 border-t border-border/40">
+              <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">how mainstream are my artists</p>
+              <div className="relative h-16">
+                <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border/60" />
                 {artists.map((a, i) => (
-                  <circle key={a.rank} cx={sx(a.rank)} cy={sy(a.followers)} r={4} fill={BAR_COLOURS[i % BAR_COLOURS.length]} opacity={0.75}>
-                    <title>{`#${a.rank} ${a.name} · ${abbrevFollowers(a.followers)} followers`}</title>
-                  </circle>
+                  <div
+                    key={a.rank}
+                    className="absolute -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: `${spectrumX(a.followers)}%`, top: `calc(50% + ${(i % 3 - 1) * 13}px)` }}
+                    title={`#${a.rank} ${a.name} · ${abbrevFollowers(a.followers)} followers`}
+                  >
+                    <div className="w-2.5 h-2.5 rounded-full ring-2 ring-card" style={{ backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length] }} />
+                  </div>
                 ))}
-              </svg>
+                <span className="absolute left-0 bottom-0 text-[8px] font-mono text-muted-foreground/60">underground</span>
+                <span className="absolute right-0 bottom-0 text-[8px] font-mono text-muted-foreground/60">mainstream</span>
+              </div>
             </div>
           )}
 
@@ -247,7 +236,7 @@ export default function SpotifyAnalytics() {
             <div className="space-y-1 pt-1 border-t border-border/40">
               <div className="flex items-center justify-between">
                 <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">followers · top 10</p>
-                <p className="text-[9px] font-mono text-muted-foreground/40">bar width = follower count (most = 100%)</p>
+                <p className="text-[9px] font-mono text-muted-foreground/40">bar width = follower count (biggest = 100%)</p>
               </div>
               {artists.slice(0, 10).map((a, i) => (
                 <div key={a.rank} className="flex items-center gap-2">
@@ -264,7 +253,7 @@ export default function SpotifyAnalytics() {
       ) : (
         <div className="space-y-3">
           {genres.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No genre data yet - genres are pulled from your top artists via Last.fm</p>
+            <p className="text-xs text-muted-foreground">No genre data yet - I pull genres from my top artists via Last.fm</p>
           ) : (
             <>
               <div className="flex gap-4 items-center flex-wrap justify-center sm:justify-start">
@@ -280,7 +269,7 @@ export default function SpotifyAnalytics() {
                   ))}
                 </div>
               </div>
-              <p className="text-[9px] font-mono text-muted-foreground/40">rank-weighted across your top artists - higher picks and stronger tags count for more</p>
+              <p className="text-[9px] font-mono text-muted-foreground/40">rank-weighted across my top artists - higher picks and stronger tags count for more</p>
             </>
           )}
         </div>

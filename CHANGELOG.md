@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.16.0] - 2026-06-21
+
+### Changed
+
+- `/now` visualiser: brought the sine wave back above the bars with the old livelier bounce; bar peaks now darken as they rise (a taller bar reaches into the dark end of the gradient, like a real meter) and the wave swings wider and darkens in step with the bar beneath each point, all tinted from the album art and theme-aware
+- Lab Spotify: the mainstream-vs-underground scatter is now a clean underground-to-mainstream spectrum, and the listening-era chart is computed from all-time top tracks so the decades actually spread rather than skewing to this month
+- Lab Spotify and the live-status cards: first-person wording throughout (my top artists, my longest tracks, "I'm not playing anything")
+
+### Fixed
+
+- Lab Spotify genres: duplicate tags Last.fm returns in different spellings ("hip-hop" and "hip hop") are now merged into one genre
+
+---
+
 ## [v2.15.0] - 2026-06-21
 
 ### Added
