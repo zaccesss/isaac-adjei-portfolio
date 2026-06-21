@@ -4,12 +4,19 @@
 // Appears when the user selects text in any dashboard textarea or input.
 // Markdown textareas (data-markdown-editor="true"): B / I / S / Link buttons.
 // Plain inputs/textareas: Link button only.
-// Only commits formatting when a button is clicked - does not interfere with
-// normal typing or selection.
+//
+// The toolbar is portaled to document.body so it can sit above anything, but that means it
+// renders OUTSIDE the React root container - and React's synthetic events (onClick etc.) do
+// not fire reliably for such portals. So the button press is handled with a NATIVE listener
+// on the toolbar node instead: it preventDefaults (keeps the editor's selection from
+// collapsing) and stopPropagations (so a Radix Dialog's dismissable layer does not treat the
+// press as an outside click and close the dialog), then applies the formatting.
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { createPortal } from "react-dom"
 import { Bold, Italic, Strikethrough, Link } from "lucide-react"
+
+type FormatType = "bold" | "italic" | "strike" | "link"
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -51,11 +58,9 @@ function applyLink(el: HTMLInputElement | HTMLTextAreaElement) {
   let cursorAt: number
 
   if (/^https?:\/\//i.test(selected)) {
-    // Selected text is a URL - leave display label blank
     inserted = `[](${selected})`
     cursorAt = start + 1
   } else {
-    // Selected text is a label - leave URL blank
     inserted = `[${selected}]()`
     cursorAt = start + selected.length + 3
   }
@@ -79,26 +84,35 @@ interface ToolbarState {
 
 export default function FloatingFormatToolbar() {
   const [toolbar, setToolbar] = useState<ToolbarState>({ visible: false, x: 0, y: 0, isMarkdown: false })
-  // Keep a ref to the element that was active when the toolbar appeared so
-  // the format buttons can still operate on it after focus shifts to the toolbar.
+  // The element that was active when the toolbar appeared, so the buttons can still operate
+  // on it after the press.
   const activeElRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
-  // Remember the exact selection range. Inside a Radix Dialog the focus trap can
-  // collapse the textarea selection the instant a toolbar button is pressed, so
-  // we restore this saved range before applying any formatting.
+  // The exact selection range when the toolbar appeared, restored before formatting in case
+  // anything collapsed it.
   const selRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 })
-  const toolbarRef = useRef<HTMLDivElement>(null)
+  const toolbarRef = useRef<HTMLDivElement | null>(null)
 
   const hide = useCallback(() => {
     setToolbar((t) => ({ ...t, visible: false }))
     activeElRef.current = null
   }, [])
 
-  const checkSelection = useCallback((e: Event) => {
+  const handleFormat = useCallback((type: FormatType) => {
+    const el = activeElRef.current
+    if (!el) return
+    el.focus()
+    el.selectionStart = selRef.current.start
+    el.selectionEnd = selRef.current.end
+    if (type === "bold") wrapSelection(el, "**", "**")
+    else if (type === "italic") wrapSelection(el, "_", "_")
+    else if (type === "strike") wrapSelection(el, "~~", "~~")
+    else applyLink(el)
+    setTimeout(hide, 50)
+  }, [hide])
+
+  const checkSelection = useCallback(() => {
     const el = document.activeElement
-    if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) {
-      return
-    }
-    // Ignore password and hidden fields
+    if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return
     if ((el as HTMLInputElement).type === "password" || (el as HTMLInputElement).type === "hidden") return
 
     const start = el.selectionStart ?? 0
@@ -107,22 +121,15 @@ export default function FloatingFormatToolbar() {
       hide()
       return
     }
-    // Save the live selection so a button press can restore it before formatting
     selRef.current = { start, end }
 
     const isMarkdown = el.dataset.markdownEditor === "true"
     const rect = el.getBoundingClientRect()
-
-    // Position the toolbar centred above the input.
-    // If that would clip off the top of the viewport, put it below instead.
     const TOOLBAR_H = 40
     const GAP = 6
     const rawTop = rect.top - TOOLBAR_H - GAP
     const y = rawTop < 8 ? rect.bottom + GAP : rawTop
-    const x = Math.min(
-      Math.max(8, rect.left + rect.width / 2 - 80),
-      window.innerWidth - 168
-    )
+    const x = Math.min(Math.max(8, rect.left + rect.width / 2 - 80), window.innerWidth - 168)
 
     activeElRef.current = el
     setToolbar({ visible: true, x, y, isMarkdown })
@@ -132,14 +139,13 @@ export default function FloatingFormatToolbar() {
     document.addEventListener("mouseup", checkSelection)
     document.addEventListener("keyup", checkSelection)
 
-    // Hide toolbar when user clicks anywhere outside it
+    // Hide when the user presses anywhere outside the toolbar (real outside click)
     function onPointerDown(e: PointerEvent) {
       if (toolbarRef.current && toolbarRef.current.contains(e.target as Node)) return
       hide()
     }
     document.addEventListener("pointerdown", onPointerDown)
 
-    // Hide on Escape
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") hide()
     }
@@ -153,25 +159,31 @@ export default function FloatingFormatToolbar() {
     }
   }, [checkSelection, hide])
 
+  // Native press handling on the toolbar node. React synthetic events are unreliable for a
+  // portal rendered to document.body, so we attach directly to the node: preventDefault keeps
+  // the editor's selection alive, stopPropagation keeps the Radix Dialog from dismissing, and
+  // we resolve which button was pressed via its data-format attribute.
+  useEffect(() => {
+    const node = toolbarRef.current
+    if (!toolbar.visible || !node) return
+    const onPress = (e: Event) => {
+      e.preventDefault()
+      e.stopPropagation()
+      const btn = (e.target as HTMLElement).closest<HTMLElement>("[data-format]")
+      const fmt = btn?.dataset.format as FormatType | undefined
+      if (fmt) handleFormat(fmt)
+    }
+    // mousedown also prevented so the press never blurs the editor on mouse devices
+    const onMouseDown = (e: Event) => { e.preventDefault(); e.stopPropagation() }
+    node.addEventListener("pointerdown", onPress)
+    node.addEventListener("mousedown", onMouseDown)
+    return () => {
+      node.removeEventListener("pointerdown", onPress)
+      node.removeEventListener("mousedown", onMouseDown)
+    }
+  }, [toolbar.visible, handleFormat])
+
   if (!toolbar.visible || typeof document === "undefined") return null
-
-  const el = activeElRef.current
-
-  function handleFormat(type: "bold" | "italic" | "strike" | "link") {
-    if (!el) return
-    // Restore the saved selection range first - the Radix focus trap may have
-    // collapsed it the moment the button was pressed. Setting the properties
-    // directly works whether or not the element currently holds focus.
-    el.focus()
-    el.selectionStart = selRef.current.start
-    el.selectionEnd = selRef.current.end
-    if (type === "bold") wrapSelection(el, "**", "**")
-    else if (type === "italic") wrapSelection(el, "_", "_")
-    else if (type === "strike") wrapSelection(el, "~~", "~~")
-    else applyLink(el)
-    // Give the focus time to settle before rechecking selection
-    setTimeout(hide, 50)
-  }
 
   const btnClass =
     "flex items-center justify-center w-7 h-7 rounded hover:bg-white/10 transition-colors text-white/90 hover:text-white disabled:opacity-40"
@@ -180,29 +192,23 @@ export default function FloatingFormatToolbar() {
     <div
       ref={toolbarRef}
       style={{ position: "fixed", top: toolbar.y, left: toolbar.x, zIndex: 9999 }}
-      // Stop the toolbar from stealing blur from the active element on click
-      onMouseDown={(e) => e.preventDefault()}
-      // Keep the pointerdown from reaching document so a Radix Dialog does not
-      // treat the toolbar (portaled outside the dialog) as an outside click
-      onPointerDown={(e) => e.stopPropagation()}
     >
       <div className="flex items-center gap-0.5 rounded-lg bg-zinc-800 border border-zinc-700 shadow-lg px-1 py-1">
         {toolbar.isMarkdown && (
           <>
-            <button type="button" title="Bold" className={btnClass} onClick={() => handleFormat("bold")}>
+            <button type="button" data-format="bold" title="Bold" className={btnClass}>
               <Bold className="h-3.5 w-3.5" />
             </button>
-            <button type="button" title="Italic" className={btnClass} onClick={() => handleFormat("italic")}>
+            <button type="button" data-format="italic" title="Italic" className={btnClass}>
               <Italic className="h-3.5 w-3.5" />
             </button>
-            <button type="button" title="Strikethrough" className={btnClass} onClick={() => handleFormat("strike")}>
+            <button type="button" data-format="strike" title="Strikethrough" className={btnClass}>
               <Strikethrough className="h-3.5 w-3.5" />
             </button>
-            {/* Divider */}
             <div className="w-px h-4 bg-zinc-600 mx-0.5" />
           </>
         )}
-        <button type="button" title="Link" className={btnClass} onClick={() => handleFormat("link")}>
+        <button type="button" data-format="link" title="Link" className={btnClass}>
           <Link className="h-3.5 w-3.5" />
         </button>
       </div>
