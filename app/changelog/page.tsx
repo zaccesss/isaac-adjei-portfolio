@@ -31,10 +31,10 @@ const releases: ChangeEntry[] = [
     version: "v2.15.0",
     date: "2026-06-21",
     changed: [
-      "/now: Spotify visualiser rebuilt - it now extracts the dominant colours from the current album art and renders soft drifting glow blooms behind organic equaliser bars; drawn on a device-pixel-ratio canvas so it stays crisp and identically proportioned on every screen, animated on delta-time so motion is the same on any refresh rate, and tuned separately for light and dark mode; the bars no longer pretend to react to audio (Spotify retired the audio analysis API) so the motion is honest album-colour ambience",
-      "/now: Spotify song changes now appear in near-realtime, and the live status stream pauses while the browser tab is hidden so a backgrounded page no longer polls in the background",
-      "/lab: Spotify Top Picks genres are back, now sourced from Last.fm (Spotify retired its artist genre data) - the genres tab shows a rank-weighted genre donut with a breakdown, and each top artist lists its genre tags again",
-      "/lab: Spotify Top Picks gains a mainstream-vs-underground scatter on the artists tab (your rank against each artist's follower count) and a listening-era chart on the tracks tab grouped by release decade",
+      "/now: Spotify visualiser rebuilt - it extracts the dominant colours from the current album art and renders a sine wave above a bouncy equaliser, both tinted from the cover; bar peaks darken as they rise like a real meter and the wave swings wider and darkens in step with the bar beneath each point; drawn on a device-pixel-ratio canvas so it stays crisp and identically proportioned on every screen, animated on delta-time, and tuned for light and dark mode; it no longer pretends to react to audio (Spotify retired the audio analysis API) so the motion is honest album-colour ambience",
+      "/now: Spotify song changes now appear in near-realtime, and the live status stream pauses while the browser tab is hidden so a backgrounded page no longer polls",
+      "/lab: Spotify Top Picks genres are back, sourced from Last.fm (Spotify retired its artist genre data) - the genres tab shows a rank-weighted donut and breakdown with duplicate tags merged, and each top artist lists its genre tags again",
+      "/lab: Spotify Top Picks artists tab gains an underground-to-mainstream spectrum of my top artists by audience size, and the tracks tab a listening-era chart from my all-time tracks by release decade",
     ],
   },
   {

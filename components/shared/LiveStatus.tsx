@@ -126,7 +126,7 @@ export default function LiveStatus({ variant = "card" }: LiveStatusProps) {
           <span className={spotify.playing ? "text-zinc-300" : "text-zinc-600"}>
             {spotify.playing && spotify.track
               ? `${spotify.track} - ${spotify.artist}`
-              : "nothing playing"}
+              : "I'm not playing anything"}
           </span>
         </span>
 
@@ -182,7 +182,7 @@ export default function LiveStatus({ variant = "card" }: LiveStatusProps) {
         <span className="text-xs text-muted-foreground truncate max-w-[180px]">
           {spotify.playing && spotify.track
             ? `${spotify.track} - ${spotify.artist}`
-            : "nothing playing"}
+            : "I'm not playing anything"}
         </span>
       </span>
 

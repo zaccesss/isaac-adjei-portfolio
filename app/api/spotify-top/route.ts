@@ -30,17 +30,20 @@ export const revalidate = 0
 export async function GET() {
   try {
     const token = await getAccessToken()
-    if (!token) return NextResponse.json({ tracks: [], artists: [], shows: [], genres: [] })
+    if (!token) return NextResponse.json({ tracks: [], artists: [], shows: [], genres: [], eras: [] })
 
     const headers = { Authorization: `Bearer ${token}` }
 
-    const [tracksRes, artistsRes, showsRes] = await Promise.all([
+    const [tracksRes, artistsRes, showsRes, eraRes] = await Promise.all([
       fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=20", { headers }),
       fetch("https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=20", { headers }),
       fetch("https://api.spotify.com/v1/me/shows?limit=50", { headers }),
+      // All-time top tracks purely for the era chart, so the decade spread is real rather
+      // than just whatever I have been playing this month
+      fetch("https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=50", { headers }),
     ])
 
-    if (!tracksRes.ok && !artistsRes.ok) return NextResponse.json({ tracks: [], artists: [], shows: [], genres: [] })
+    if (!tracksRes.ok && !artistsRes.ok) return NextResponse.json({ tracks: [], artists: [], shows: [], genres: [], eras: [] })
 
     const tracksData = tracksRes.ok ? (await tracksRes.json() as { items: any[] }) : { items: [] }
     const artistsData = artistsRes.ok ? (await artistsRes.json() as { items: any[] }) : { items: [] }
@@ -96,6 +99,21 @@ export async function GET() {
       artistsData.items.map((a: any, i: number) => ({ rank: i + 1, tags: tagsByName[a.name] ?? [] })),
     ).slice(0, 12)
 
+    // Listening era: bucket all-time top tracks by release decade
+    const eraData = eraRes?.ok ? (await eraRes.json() as { items: any[] }) : { items: [] }
+    const eraMap: Record<string, number> = {}
+    for (const t of eraData.items) {
+      const d: string | undefined = t.album?.release_date
+      if (!d) continue
+      const y = parseInt(d.slice(0, 4), 10)
+      if (Number.isNaN(y)) continue
+      const dec = `${Math.floor(y / 10) * 10}s`
+      eraMap[dec] = (eraMap[dec] ?? 0) + 1
+    }
+    const eras = Object.entries(eraMap)
+      .map(([decade, count]) => ({ decade, count }))
+      .sort((a, b) => a.decade.localeCompare(b.decade))
+
     const shows = showsData.items.map((item: { added_at: string; show: any }) => {
       const s = item.show
       return {
@@ -111,8 +129,8 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json({ tracks, artists, shows, genres })
+    return NextResponse.json({ tracks, artists, shows, genres, eras })
   } catch {
-    return NextResponse.json({ tracks: [], artists: [], shows: [], genres: [] })
+    return NextResponse.json({ tracks: [], artists: [], shows: [], genres: [], eras: [] })
   }
 }

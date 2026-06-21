@@ -17,6 +17,12 @@ const JUNK_TAGS = new Set([
 
 export interface LastfmTag { name: string; count: number }
 
+// Normalise a genre for de-duplication: "hip-hop", "hip hop" and "Hip Hop" all collapse to
+// the same key so they merge into a single genre instead of showing twice.
+export function genreKey(name: string): string {
+  return name.toLowerCase().replace(/[\s\-_/&]+/g, "")
+}
+
 export async function getArtistTags(artist: string): Promise<LastfmTag[]> {
   if (!LASTFM_API_KEY || !artist) return []
   const cacheKey = `lastfm:tags:${artist.toLowerCase()}`
@@ -31,10 +37,21 @@ export async function getArtistTags(artist: string): Promise<LastfmTag[]> {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
     if (!res.ok) return []
     const data = (await res.json()) as { toptags?: { tag?: { name: string; count: number }[] } }
-    const tags = (data.toptags?.tag ?? [])
+
+    // Last.fm returns tags newest-popularity-first; keep the first spelling of each genre
+    const raw = (data.toptags?.tag ?? [])
       .map((t) => ({ name: t.name.toLowerCase().trim(), count: t.count }))
       .filter((t) => t.count > 0 && !JUNK_TAGS.has(t.name))
-      .slice(0, 5)
+    const seen = new Set<string>()
+    const tags: LastfmTag[] = []
+    for (const t of raw) {
+      const k = genreKey(t.name)
+      if (seen.has(k)) continue
+      seen.add(k)
+      tags.push(t)
+      if (tags.length >= 5) break
+    }
+
     if (redis) await redis.set(cacheKey, tags, { ex: 60 * 60 * 24 * 7 })
     return tags
   } catch {
@@ -54,18 +71,26 @@ export async function getTagsForArtists(names: string[]): Promise<Record<string,
 }
 
 // Aggregate genres across a ranked artist list: higher-ranked artists weigh more, and each
-// artist's tags weigh by their Last.fm strength. Returns sorted [{ genre, value }].
+// artist's tags weigh by their Last.fm strength. De-duplicates by normalised key (so
+// "hip-hop" and "hip hop" merge), keeping the most popular spelling for display.
 export function aggregateGenres(
   artists: { rank: number; tags: LastfmTag[] }[],
 ): { genre: string; value: number }[] {
-  const totals = new Map<string, number>()
+  const totals = new Map<string, { value: number; display: string; count: number }>()
   for (const { rank, tags } of artists) {
     const rankWeight = 1 / Math.sqrt(rank)
     for (const t of tags) {
-      totals.set(t.name, (totals.get(t.name) ?? 0) + (t.count / 100) * rankWeight)
+      const k = genreKey(t.name)
+      const cur = totals.get(k)
+      if (cur) {
+        cur.value += (t.count / 100) * rankWeight
+        if (t.count > cur.count) { cur.display = t.name; cur.count = t.count }
+      } else {
+        totals.set(k, { value: (t.count / 100) * rankWeight, display: t.name, count: t.count })
+      }
     }
   }
-  return [...totals.entries()]
-    .map(([genre, value]) => ({ genre, value: Math.round(value * 1000) / 1000 }))
+  return [...totals.values()]
+    .map(({ display, value }) => ({ genre: display, value: Math.round(value * 1000) / 1000 }))
     .sort((a, b) => b.value - a.value)
 }

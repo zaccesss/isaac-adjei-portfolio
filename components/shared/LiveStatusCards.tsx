@@ -536,7 +536,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
-              <p className="text-sm text-muted-foreground">Nothing playing</p>
+              <p className="text-sm text-muted-foreground">I&apos;m not playing anything right now</p>
             </div>
           </div>
         )}
