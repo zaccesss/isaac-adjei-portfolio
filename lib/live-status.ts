@@ -276,11 +276,27 @@ export async function getLenovo(): Promise<LenovoStatus> {
   }
 }
 
-type GpcPayload = { timestamp: string; device?: string; cpu_percent: number | null; gpu_percent: number | null; game: string | null }
-export interface GpcStatus { online: boolean; lastSeen: string | null; device: string | null; cpu: number | null; gpu: number | null; game: string | null }
-const GPC_FALLBACK: GpcStatus = { online: false, lastSeen: null, device: null, cpu: null, gpu: null, game: null }
+type GpcPayload = { timestamp: string; device?: string; cpu_percent: number | null; gpu_percent: number | null; game: string | null; game_image?: string | null }
+export interface GpcStatus {
+  online: boolean
+  lastSeen: string | null
+  device: string | null
+  cpu: number | null
+  gpu: number | null
+  game: string | null
+  gameImage: string | null
+  // Last game actually played, shown only when the PC is offline (mirrors the PS5 card). Kept in
+  // its own gpc:last-game key - not read off gpc:last-known - so it survives the PC being shut down
+  // from the desktop (where the final write would carry game = null).
+  lastGame: string | null
+  lastGameImage: string | null
+}
+const GPC_FALLBACK: GpcStatus = {
+  online: false, lastSeen: null, device: null, cpu: null, gpu: null,
+  game: null, gameImage: null, lastGame: null, lastGameImage: null,
+}
 
-function parseGpc(live: GpcPayload | null, lastKnown: GpcPayload | null): GpcStatus {
+function parseGpc(live: GpcPayload | null, lastKnown: GpcPayload | null, lastGame: GpcPayload | null): GpcStatus {
   const online = live !== null
   const source = live ?? lastKnown
   if (!source) return GPC_FALLBACK
@@ -292,17 +308,21 @@ function parseGpc(live: GpcPayload | null, lastKnown: GpcPayload | null): GpcSta
     cpu: online ? source.cpu_percent : null,
     gpu: online ? source.gpu_percent : null,
     game: online ? (source.game ?? null) : null,
+    gameImage: online ? (source.game_image ?? null) : null,
+    lastGame: lastGame?.game ?? null,
+    lastGameImage: lastGame?.game_image ?? null,
   }
 }
 
 export async function getGpc(): Promise<GpcStatus> {
   if (!redis) return GPC_FALLBACK
   try {
-    const [live, lastKnown] = await Promise.all([
+    const [live, lastKnown, lastGame] = await Promise.all([
       redis.get<GpcPayload>("gpc:status"),
       redis.get<GpcPayload>("gpc:last-known"),
+      redis.get<GpcPayload>("gpc:last-game"),
     ])
-    return parseGpc(live, lastKnown)
+    return parseGpc(live, lastKnown, lastGame)
   } catch {
     return GPC_FALLBACK
   }
@@ -460,22 +480,22 @@ export interface LiveSnapshot {
 export async function getLiveSnapshot(): Promise<LiveSnapshot> {
   let macS: MacPayload | null = null, macL: MacPayload | null = null
   let lenS: LenovoPayload | null = null, lenL: LenovoPayload | null = null
-  let gpcS: GpcPayload | null = null, gpcL: GpcPayload | null = null
+  let gpcS: GpcPayload | null = null, gpcL: GpcPayload | null = null, gpcG: GpcPayload | null = null
   let ps5S: PS5Payload | null = null, ps5L: PS5Payload | null = null, ps5G: PS5Payload | null = null
   let ghCached: { repo: string; pushedAt: string } | null = null
 
   if (redis) {
     try {
       const v = await redis.mget<
-        [MacPayload, MacPayload, LenovoPayload, LenovoPayload, GpcPayload, GpcPayload, PS5Payload, PS5Payload, PS5Payload, { repo: string; pushedAt: string }]
+        [MacPayload, MacPayload, LenovoPayload, LenovoPayload, GpcPayload, GpcPayload, GpcPayload, PS5Payload, PS5Payload, PS5Payload, { repo: string; pushedAt: string }]
       >(
         "macbook:status", "macbook:last-known",
         "lenovo:status", "lenovo:last-known",
-        "gpc:status", "gpc:last-known",
+        "gpc:status", "gpc:last-known", "gpc:last-game",
         "ps5:status", "ps5:last-known", "ps5:last-game",
         "github:last_push",
       )
-      ;[macS, macL, lenS, lenL, gpcS, gpcL, ps5S, ps5L, ps5G, ghCached] = v
+      ;[macS, macL, lenS, lenL, gpcS, gpcL, gpcG, ps5S, ps5L, ps5G, ghCached] = v
     } catch {
       // Redis unreachable: devices fall back to offline, GitHub self-heals via its API below.
     }
@@ -492,7 +512,7 @@ export async function getLiveSnapshot(): Promise<LiveSnapshot> {
   return {
     macbook: parseMacbook(macS, macL),
     lenovo: parseLenovo(lenS, lenL),
-    gpc: parseGpc(gpcS, gpcL),
+    gpc: parseGpc(gpcS, gpcL, gpcG),
     ps5: parsePs5(ps5S, ps5L, ps5G),
     github,
     lanyard,

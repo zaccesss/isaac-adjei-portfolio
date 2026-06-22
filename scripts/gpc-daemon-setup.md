@@ -1,8 +1,19 @@
 # GPC Daemon Setup (Gaming PC - Windows)
 
-The `scripts/gpc-daemon.py` daemon detects which game is running on the Windows GPC,
-fetches cover art from IGDB (Twitch API) on first detection and pushes the current
-game to Upstash Redis so the PS5 presence widget can display it.
+The `scripts/gpc-daemon.py` daemon writes my gaming PC's live CPU%, GPU% and current
+game to Upstash Redis every 60s. It detects which game is running, fetches cover art
+from IGDB (Twitch API) on first detection, and feeds the Gaming PC card on my `/now`
+dashboard.
+
+The card shows:
+
+- **CPU and GPU** as small live graphs that build up from each poll (only while the PC is online).
+- **The current game** underneath, only while I am actually in a game.
+- **The last game I played**, shown only when the PC is offline (same as the PS5 card).
+
+The last-played game comes from a `gpc:last-game` Redis key the daemon writes automatically
+whenever a game is detected - there is nothing extra to configure for it. After a `git pull`,
+just restart the service (see "Applying an updated daemon script" below).
 
 ## One-time Setup
 
@@ -12,7 +23,7 @@ Run all steps in an admin PowerShell session.
 
 ```powershell
 winget install Python.Python.3
-pip install requests upstash-redis
+pip install psutil requests pynvml
 ```
 
 ### 2. Install NSSM (Non-Sucking Service Manager)
