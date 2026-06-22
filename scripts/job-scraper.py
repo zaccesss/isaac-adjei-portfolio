@@ -752,10 +752,12 @@ def insert_job(job: dict, existing_keys: set) -> bool:
     if not is_date_relevant(job.get("deadline"), cutoff):
         return False
 
-    # I skip dead links before touching the DB - a HEAD request is cheap
-    # and saves polluting the table with 404 entries.
+    # I skip dead links before touching the DB, but only for genuinely new URLs.
+    # Re-HEAD-checking the thousands of already-stored URLs every run was the main
+    # thing eating the time budget, and a known URL is never deleted even if it
+    # 404s now, so that check was wasted work.
     url = job.get("url", "")
-    if url and not is_url_alive(url):
+    if url and url not in _existing_urls and not is_url_alive(url):
         return False
 
     key = dedupe_key(job["company"], job["role"], job.get("url", ""))
