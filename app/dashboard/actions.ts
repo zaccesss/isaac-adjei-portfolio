@@ -1240,7 +1240,7 @@ export async function getDashboardSummary() {
     study: { sessionsThisWeek: studySessionsThisWeek, minutesThisWeek: studyMinutesThisWeek },
     faith: { lastEntry: faithEntries?.[0]?.date ?? null },
     university: { upcomingDeadlines: uniDeadlines ?? 0, activeModules: uniModules ?? 0 },
-    updatedAt: weekAgo,
+    updatedAt: new Date().toISOString(),
   }
 }
 
@@ -1269,10 +1269,10 @@ export async function searchDashboard(q: string) {
   if (!q || !validStr(q, 200)) {
     return { goals: [], notes: [], diary: [], applications: [], contacts: [], habits: [], streaks: [] }
   }
-  // I strip PostgREST filter metacharacters (commas, parens, backslashes) from the query before
-  // building the ilike pattern. Without this they could break out of the .or() filter strings
-  // below and inject extra conditions.
-  const safeQ = q.trim().replace(/[,()\\]/g, " ")
+  // I strip PostgREST filter metacharacters (commas, parens, backslashes) AND the LIKE wildcards
+  // (% and _) from the query before building the ilike pattern. Without this they could break out of
+  // the .or() filter strings below, or a lone "%" would match every row.
+  const safeQ = q.trim().replace(/[,()\\%_]/g, " ")
   const pat = `%${safeQ}%`
   const [goals, notes, diary, applications, contacts, habits, streaks] = await Promise.all([
     supabase.from("goals").select("id, title, category").or(`title.ilike.${pat},description.ilike.${pat}`).limit(4),
