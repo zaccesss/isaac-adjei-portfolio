@@ -1,5 +1,6 @@
 import TimetableClient from "./TimetableClient"
 import { supabase } from "@/lib/supabase"
+import { parseVEvents } from "@/lib/ical"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 3600
@@ -19,44 +20,17 @@ async function fetchICalEvents(): Promise<ICalEvent[]> {
   if (!url) return []
 
   try {
-    const res = await fetch(url, { next: { revalidate: 3600 } })
+    // webcal:// is just http(s) for calendars; fetch() cannot open the scheme, so swap it.
+    const res = await fetch(url.replace(/^webcals?:\/\//i, "https://"), { next: { revalidate: 3600 } })
     if (!res.ok) return []
-    const text = await res.text()
-
-    const events: ICalEvent[] = []
-    const vevents = text.split("BEGIN:VEVENT").slice(1)
-
-    for (const vevent of vevents) {
-      function getProp(prop: string): string {
-        const match = vevent.match(new RegExp(`${prop}[^:]*:([^\\r\\n]+)`))
-        return match ? match[1].trim() : ""
-      }
-
-      function parseDate(raw: string): Date | null {
-        if (!raw) return null
-        const d = raw.replace("Z", "")
-        if (d.length === 8) {
-          return new Date(`${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}T00:00:00Z`)
-        }
-        return new Date(`${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}T${d.slice(9, 11)}:${d.slice(11, 13)}:${d.slice(13, 15)}${raw.endsWith("Z") ? "Z" : ""}`)
-      }
-
-      const uid = getProp("UID")
-      const summary = getProp("SUMMARY")
-      const rawStart = getProp("DTSTART")
-      const rawEnd = getProp("DTEND")
-      const location = getProp("LOCATION") || undefined
-      const description = getProp("DESCRIPTION") || undefined
-
-      const dtstart = parseDate(rawStart)
-      const dtend = parseDate(rawEnd)
-      if (!uid || !summary || !dtstart || !dtend) continue
-
-      events.push({ uid, summary, dtstart, dtend, location, description })
-    }
-
-    events.sort((a, b) => a.dtstart.getTime() - b.dtstart.getTime())
-    return events
+    return parseVEvents(await res.text()).map((e) => ({
+      uid: e.uid,
+      summary: e.summary,
+      dtstart: e.dtstart,
+      dtend: e.dtend,
+      location: e.location,
+      description: e.description,
+    }))
   } catch {
     return []
   }

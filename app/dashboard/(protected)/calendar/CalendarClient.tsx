@@ -42,8 +42,10 @@ function formatTime(d: Date) {
 }
 
 function isAllDay(e: CalendarEvent) {
-  return e.dtstart.getHours() === 0 && e.dtstart.getMinutes() === 0 &&
-    e.dtend.getHours() === 0 && e.dtend.getMinutes() === 0
+  // The parser sets allDay from the feed's VALUE=DATE flag (and custom events carry their own all_day),
+  // so we no longer infer it from a 00:00 clock - which broke once timezone-correct parsing shifted
+  // midnight values off 00:00.
+  return e.allDay
 }
 
 function minutesFromMidnight(d: Date) {
@@ -824,6 +826,7 @@ export default function CalendarClient({
     summary: ce.title,
     dtstart: new Date(ce.start_at),
     dtend: new Date(ce.end_at),
+    allDay: ce.all_day,
     location: ce.location,
     description: ce.description,
     feedColor: ce.colour,
