@@ -110,7 +110,11 @@ const RRULE_WINDOW_END = new Date(Date.now() + 400 * 86400000)
 
 async function fetchFeed(url: string, feedName: string, feedColor: string): Promise<CalendarEvent[]> {
   try {
-    const res = await fetch(url, { next: { revalidate: 3600 } })
+    // Apple Calendar's "Subscribe" gives a webcal:// URL, which fetch() cannot open. webcal is just
+    // http(s) for calendars, so swap the scheme - Apple (iCloud) and most providers serve the same
+    // feed over TLS. Without this an Apple feed silently returns no events while https feeds work.
+    const fetchUrl = url.replace(/^webcals?:\/\//i, "https://")
+    const res = await fetch(fetchUrl, { next: { revalidate: 3600 } })
     if (!res.ok) return []
     // Unfold wrapped lines first so long descriptions are not truncated at 75 chars
     const text = unfoldIcal(await res.text())

@@ -778,7 +778,7 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
       <div className="flex flex-col gap-2 pt-2 border-t border-border">
         <p className="text-xs font-medium text-muted-foreground">Add feed</p>
         <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Feed name (e.g. Timetable)" className="h-8 text-sm" />
-        <Input value={newUrl} onChange={(e) => setNewUrl(e.target.value)} placeholder="iCal URL (https://...)" className="h-8 font-mono text-xs" />
+        <Input value={newUrl} onChange={(e) => setNewUrl(e.target.value)} placeholder="iCal URL (https:// or webcal://)" className="h-8 font-mono text-xs" />
         <div className="flex items-center gap-2">
           <label className="text-xs text-muted-foreground">Colour:</label>
           {/* ColourPickerDialog for new feed - dialog only applies on confirm */}
