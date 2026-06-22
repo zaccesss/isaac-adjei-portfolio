@@ -36,20 +36,27 @@ alter table vault add column if not exists locked boolean default false;
 -- index on url so PostgREST can do ON CONFLICT (url) upserts.
 -- ============================================================
 
--- I delete all scraped entries so they do not block the index.
-delete from applications where status = 'scraped';
+-- These cleanups were a ONE-TIME step to let the unique index be created. They are now guarded so
+-- re-running this migration can NEVER wipe data again: the original `delete from applications where
+-- status = 'scraped'` here deleted every scraped row on replay - that was the "disappearing rows".
+-- The blanket scraped-delete is removed entirely (scraped rows with a null url do not block a unique
+-- index, and real url duplicates are handled below), and the duplicate cleanup only runs on a genuine
+-- first run (when the index does not yet exist).
+do $$
+begin
+  if not exists (select 1 from pg_class where relname = 'applications_url_unique') then
+    -- Remove duplicate urls in manual entries, keeping the newest, so the index can be built.
+    delete from applications
+    where id in (
+      select id from (
+        select id, row_number() over (partition by url order by created_at desc) as rn
+        from applications
+        where url is not null and url <> ''
+      ) t
+      where rn > 1
+    );
+  end if;
+end $$;
 
--- I delete duplicate urls in manual entries, keeping the newest.
-delete from applications
-where id in (
-  select id from (
-    select id, row_number() over (partition by url order by created_at desc) as rn
-    from applications
-    where url is not null and url <> ''
-  ) t
-  where rn > 1
-);
-
-drop index if exists applications_url_unique;
 create unique index if not exists applications_url_unique
   on applications (url);

@@ -17,7 +17,9 @@ jobs:
   # Playwright takes to install and warm up in the browser job.
   api-sources:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # Public repo = unlimited Actions minutes, so I give the run room to finish populating instead of
+    # being cancelled mid-run. The scraper's own SCRAPER_BUDGET_MIN (default 110) exits cleanly first.
+    timeout-minutes: 120
     env:
       # I set SCRAPER_MODE so main() skips The Trackr in this job.
       SCRAPER_MODE: api
@@ -61,7 +63,9 @@ jobs:
     # which breaks playwright install-deps. Switch back to ubuntu-latest once
     # Playwright >= 1.47 lands in requirements.txt.
     runs-on: ubuntu-22.04
-    timeout-minutes: 20
+    # The Trackr carries the internships, so I give this job the most room to finish scraping all
+    # categories (it used to be cut off at 17 min). Public repo, so the minutes are free.
+    timeout-minutes: 120
     env:
       # I set SCRAPER_MODE so main() runs only The Trackr in this job.
       SCRAPER_MODE: browser
