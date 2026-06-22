@@ -5,6 +5,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.22.0] - 2026-06-22
+
+A pre-Phase-5 hardening pass: a full audit of the dashboard, server actions, scraper and calendar found a batch of bugs, several of which silently lost data. All of the critical and high-severity ones are fixed and live.
+
+### Fixed
+
+- Dashboard: deleting an item in twelve sections (Health sections, workouts and nutrition, Body Metrics, University modules, deadlines, submissions, notes and resources, Library, Faith and Study) copied it to trash but never removed the original, so it never actually disappeared. All twelve now delete after backing up
+- Trash: restoring an item deleted the trash copy even when the restore itself failed, losing the only backup; permanently deleting or emptying trash left the underlying soft-deleted rows and their Storage files orphaned; deleting a file never removed the Storage object. All fixed, and restore is now soft-delete aware
+- Calendar and timetable: my own Routine and Timetable iCal feeds rendered invisible because timezone-qualified times were read as UTC and pushed events off the visible week. A single shared parser now converts a wall-clock time in its zone to the correct instant, detects all-day events, expands daily and monthly recurrence (not just weekly), and gives each recurring occurrence a unique key
+- Scraper: a re-run of one migration could delete every scraped row, and the scraper never refreshed existing entries. It now upserts by URL - new roles inserted, known roles refreshed in place, nothing ever deleted - and preserves my own status, notes, starred flag and applied date
+- Scraper: The Trackr rows (internships, placements, spring weeks) were stored almost empty - no location, the closing date set on 2 of 4400+ rows, and most with no clickable link. It now reads the Trackr column headers and pulls location, opening date, closing date, last-year opening and the real application link from the correct columns
+- Applications: "clear all jobs" targeted a table that does not exist, so it silently did nothing; it now clears the scraped rows it was meant to
+- Dashboard: delete, edit, move and status changes across applications (table and kanban), health, vault, goals, inventory, diary and streaks updated the screen optimistically with no way back, so a failed save left the UI showing a state the database had rejected until a refresh. Every one now snapshots and reverts on failure
+- Faith: the edit button showed a Star icon and the stats said "90 days" while summing all time. Vault: editing an entry visually reset its hidden and locked flags. Contacts: a fast double-click created the contact twice. Linear sync could create duplicate issues from a read-after-update race. The medication reminder intermittently returned a Cloudflare 403 from Discord for want of a User-Agent header. The nightly coding summary failed on a top-level await. All fixed
+- Dashboard search: a lone "%" matched every row; the home "last updated" stat was always a week stale; the share button swallowed a blocked clipboard write silently
+
+### Changed
+
+- Server-side database access now prefers the Supabase service-role key when it is set, falling back to the anon key, so the per-table "allow all" policies can be tightened later to lock the anon key out without breaking any server read or write
+- The scraper keeps a role for 14 days after its deadline passes rather than dropping it the instant the date ticks over, moved off a deprecated timestamp call, and id-validation now requires a uuid shape
+
+---
+
 ## [v2.21.0] - 2026-06-22
 
 ### Added
