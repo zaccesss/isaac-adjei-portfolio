@@ -1027,7 +1027,7 @@ export default function CalendarClient({
             editId={editEvent.uid}
             initial={{
               title: editEvent.summary,
-              date: editEvent.dtstart.toISOString().slice(0, 10),
+              date: toLocalDateTimeString(editEvent.dtstart).slice(0, 10),
               startTime: toLocalDateTimeString(editEvent.dtstart).slice(11),
               endTime: toLocalDateTimeString(editEvent.dtend).slice(11),
               location: editEvent.location,

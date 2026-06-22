@@ -54,7 +54,10 @@ export default function HabitsClient({
   const [, startTransition] = useTransition()
   const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
-  const todayLogs = new Set(logs.filter((l) => l.date === today).map((l) => l.habit_id))
+  // Local optimistic copy of today's check-ins so a tap toggles instantly, without the old
+  // window.location.reload that raced the in-flight server action and dropped check-ins. Seeded from
+  // the server logs on mount; revalidatePath keeps the rest of the data fresh on navigation.
+  const [todayLogs, setTodayLogs] = useState<Set<string>>(() => new Set(logs.filter((l) => l.date === today).map((l) => l.habit_id)))
 
   function getStreak(habitId: string): number {
     const habitLogs = logs
@@ -98,12 +101,15 @@ export default function HabitsClient({
 
   function handleCheckIn(habitId: string) {
     const isCheckedIn = todayLogs.has(habitId)
-    if (isCheckedIn) {
-      startTransition(() => void undoHabitCheckIn(habitId, today))
-    } else {
-      startTransition(() => void checkInHabit(habitId, today))
-    }
-    window.location.reload()
+    // Optimistically toggle, then fire the action. No reload - revalidatePath refreshes the data and
+    // the effect above re-syncs todayLogs, so a tap never interrupts its own write.
+    setTodayLogs((prev) => {
+      const next = new Set(prev)
+      if (isCheckedIn) next.delete(habitId)
+      else next.add(habitId)
+      return next
+    })
+    startTransition(() => void (isCheckedIn ? undoHabitCheckIn(habitId, today) : checkInHabit(habitId, today)))
   }
 
   async function handleDelete(id: string, name: string) {

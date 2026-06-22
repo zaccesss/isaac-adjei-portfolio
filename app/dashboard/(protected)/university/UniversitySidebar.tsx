@@ -70,7 +70,7 @@ export default function UniversitySidebar({ modules, urgentCount }: { modules: M
             {modules.map((m) => (
               <Link
                 key={m.id}
-                href={`/dashboard/university/deadlines?module=${m.id}`}
+                href="/dashboard/university/deadlines"
                 className="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors group"
               >
                 <span
