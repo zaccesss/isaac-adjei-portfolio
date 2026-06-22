@@ -77,6 +77,12 @@ IGDB_CLIENT_ID     = os.environ.get("IGDB_CLIENT_ID")
 IGDB_CLIENT_SECRET = os.environ.get("IGDB_CLIENT_SECRET")
 STEAM_API_KEY = os.environ.get("STEAM_API_KEY")
 STEAM_ID      = os.environ.get("STEAM_ID")
+# Tier 5 (fuzzy process -> IGDB) is opt-in and OFF by default. It guesses from ANY running
+# process name - and Windows runs hundreds of background processes I never opened - so it is the
+# only tier that can mislabel a non-game (it called the Codex CLI and the Win11 widget board
+# "games"). Everything I actually play is caught by the known/Steam/Epic/EA tiers, which never
+# guess. Set ENABLE_FUZZY_DETECTION=1 only if I want the best-effort catch-all back.
+ENABLE_FUZZY = os.environ.get("ENABLE_FUZZY_DETECTION", "").strip().lower() in ("1", "true", "yes", "on")
 # I poll every 60s - frequent enough for a live widget but light on the free Upstash command
 # budget. The /now page reads come from a CDN cache, so this write cadence is the main cost.
 INTERVAL = 60
@@ -149,12 +155,26 @@ _NON_GAME_BLOCKLIST = {
     # Development
     "code", "cursor", "devenv", "pycharm64", "idea64", "clion64", "webstorm64",
     "androidstudio64", "rider64", "goland64", "datagrip64", "vim", "nvim",
+    # AI / CLI / terminal / agent tools - "codex" (the CLI) matched an obscure IGDB game
+    # named "Codex", so AI coding tools get named here explicitly as well as gated below.
+    "codex", "claude", "claude-code", "gemini", "copilot", "aider", "cline",
+    "ollama", "lmstudio", "llm", "gh", "docker", "wsl", "wslhost", "wslservice",
+    "windowsterminal", "wt", "pwsh", "powershell", "cmd", "bash", "sh",
+    "tmux", "ssh", "ngrok",
     # System processes
     "svchost", "taskhost", "taskhostw", "taskmgr", "explorer", "dwm", "conhost",
     "searchhost", "searchindexer", "lsass", "winlogon", "csrss", "smss", "wininit",
     "services", "spoolsv", "audiodg", "runtimebroker", "sihost", "ctfmon",
     "shellexperiencehost", "startmenuexperiencehost", "fontdrvhost", "dllhost",
     "msdtc", "vssvc", "msiexec", "regsvr32", "werfault", "wermgr",
+    # Windows 11 shell extras - the widget board exe ("Widgets") fuzzy-matched the indie
+    # game "Widget Satchel" on IGDB and showed it as a game I was playing, so it lives here now.
+    "widgets", "widgetservice", "phoneexperiencehost", "crossdeviceservice",
+    "lockapp", "useroobebroker", "systemsettings", "applicationframehost",
+    "textinputhost", "smartscreen", "securityhealthsystray", "securityhealthservice",
+    "wsaclient", "gamebar", "gamebarftserver", "gamebarpresencewriter",
+    "gamingservices", "gamingservicesnet", "xbox", "xboxpcapp", "xboxapp",
+    "xboxgamebarwidgets", "gameinputsvc",
     # Media (not games)
     "spotify", "vlc", "obs64", "obs", "streamlabs", "audacity", "foobar2000",
     # Game launchers (not the games themselves)
@@ -180,6 +200,7 @@ print(
     f"  IGDB:      {'enabled' if IGDB_CLIENT_ID else 'disabled (set IGDB_CLIENT_ID + IGDB_CLIENT_SECRET)'}\n"
     f"  Steam API: {'enabled' if STEAM_API_KEY and STEAM_ID else 'disabled (set STEAM_API_KEY + STEAM_ID)'}\n"
     f"  Epic/EA:   auto (local manifest scan)\n"
+    f"  Fuzzy:     {'enabled (ENABLE_FUZZY_DETECTION set)' if ENABLE_FUZZY else 'OFF by default - set ENABLE_FUZZY_DETECTION=1 to enable'}\n"
     "Press Ctrl+C to stop.",
     flush=True,
 )
@@ -488,7 +509,16 @@ def _detect_ea(running: set[str]) -> str | None:
 _fuzzy_hits:  dict[str, str]   = {}   # cleaned_name -> matched game_name (permanent)
 _fuzzy_misses: dict[str, float] = {}  # cleaned_name -> timestamp (expire after 5 min)
 _FUZZY_TTL         = 300
-_FUZZY_THRESHOLD   = 0.65
+# I raised this from 0.65 after "Widgets" (the Win11 widget board) matched "Widget Satchel"
+# at ~0.67. A higher bar costs almost nothing here because any game I actually play is caught
+# by tiers 1-4 first; tier 5 only ever sees odd one-off exes, so I want it cautious.
+_FUZZY_THRESHOLD   = 0.8
+# A popularity gate on top of the name match. An EXACT name collision still scores 1.0 - that
+# is how "codex" (the CLI) matched an obscure IGDB game called "Codex" - so similarity alone is
+# not enough. Any game I genuinely play via this tier is reasonably well known; the false
+# positives are all niche titles that happen to share a name with a background process. So I
+# reject IGDB hits below this many ratings. Set to 0 to disable the gate.
+_FUZZY_MIN_RATINGS = 20
 
 
 def _clean_exe(exe: str) -> str:
@@ -548,7 +578,7 @@ def _detect_fuzzy(running: set[str]) -> str | None:
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "text/plain",
                 },
-                data=f'search "{cleaned}"; fields name; limit 1;',
+                data=f'search "{cleaned}"; fields name, total_rating_count; limit 1;',
                 timeout=5,
             )
             if not resp.ok:
@@ -558,13 +588,17 @@ def _detect_fuzzy(running: set[str]) -> str | None:
                 _fuzzy_misses[cleaned] = time.time()
                 continue
             igdb_name = results[0].get("name", "")
+            ratings = results[0].get("total_rating_count") or 0
             sim = difflib.SequenceMatcher(None, cleaned.lower(), igdb_name.lower()).ratio()
-            if sim >= _FUZZY_THRESHOLD:
-                print(f"[fuzzy] '{exe}' -> '{igdb_name}' (sim={sim:.2f})", flush=True)
+            # I require BOTH a close name and an established game: the name match alone let
+            # exact collisions like "Codex" through, and the rating gate catches those.
+            if sim >= _FUZZY_THRESHOLD and ratings >= _FUZZY_MIN_RATINGS:
+                print(f"[fuzzy] '{exe}' -> '{igdb_name}' (sim={sim:.2f}, ratings={ratings})", flush=True)
                 _fuzzy_hits[cleaned] = igdb_name
                 return igdb_name
             else:
-                print(f"[fuzzy] rejected '{exe}' -> '{igdb_name}' (sim={sim:.2f})", flush=True)
+                reason = "low sim" if sim < _FUZZY_THRESHOLD else f"only {ratings} ratings"
+                print(f"[fuzzy] rejected '{exe}' -> '{igdb_name}' ({reason}, sim={sim:.2f})", flush=True)
                 _fuzzy_misses[cleaned] = time.time()
         except Exception as e:
             print(f"[fuzzy] search failed for '{cleaned}': {e}", flush=True)
@@ -605,10 +639,12 @@ def get_current_game() -> tuple[str | None, str | None, str | None]:
     if name:
         return name, None, "ea"
 
-    # Tier 5: fuzzy process -> IGDB
-    name = _detect_fuzzy(running)
-    if name:
-        return name, None, "fuzzy"
+    # Tier 5: fuzzy process -> IGDB. Opt-in and OFF by default - it is the only tier that
+    # guesses, so I keep it disabled unless ENABLE_FUZZY_DETECTION is explicitly set.
+    if ENABLE_FUZZY:
+        name = _detect_fuzzy(running)
+        if name:
+            return name, None, "fuzzy"
 
     return None, None, None
 
