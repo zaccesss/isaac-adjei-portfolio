@@ -7,7 +7,7 @@ import { createDiaryEntry, updateDiaryEntry, deleteDiaryEntry, toggleDiaryHidden
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import RichTextEditor from "@/components/editor/RichTextEditor"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, BarChart2, MoreVertical, EyeOff, Eye, Pin, PinOff, Lock, Unlock } from "lucide-react"
@@ -130,7 +130,7 @@ function EntryForm({ initial, onSave, onCancel }: {
   return (
     <div className="flex flex-col gap-4">
       <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="What's on my mind today?" autoFocus />
-      <Textarea value={form.content} onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))} rows={8} placeholder="Write freely... this is just for me." className="resize-none" />
+      <RichTextEditor value={form.content} onChange={(md) => setForm((f) => ({ ...f, content: md }))} placeholder="Write freely... this is just for me." />
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">{wordCount} word{wordCount !== 1 ? "s" : ""}</span>
       </div>

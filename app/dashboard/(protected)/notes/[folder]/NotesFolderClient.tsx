@@ -9,7 +9,7 @@ import { createNote, updateNote, deleteNote, toggleNoteHidden, toggleNoteLocked,
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import RichTextEditor from "@/components/editor/RichTextEditor"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Plus, Pin, PinOff, Lock, Unlock, Search, Folder, Tag, Trash2, Eye, EyeOff, Edit2, Download, X, MoreVertical } from "lucide-react"
 import MarkdownContent from "@/components/shared/MarkdownContent"
@@ -49,7 +49,6 @@ export default function NotesFolderClient({
   const defaultFolder = folderSlug === "all" ? "General" : folder
   const [draft, setDraft] = useState({ title: "", content: "", folder: defaultFolder, tags: [] as string[], color: null as string | null, locked: false, pinned: false })
   const [newTag, setNewTag] = useState("")
-  const [preview, setPreview] = useState(false)
   const [unlockingNote, setUnlockingNote] = useState<Note | null>(null)
   const [, startTransition] = useTransition()
   const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
@@ -73,7 +72,6 @@ export default function NotesFolderClient({
     setDraft({ title: "", content: "", folder: defaultFolder, tags: [], color: null, locked: false, pinned: false })
     setSelected(null)
     setEditing(true)
-    setPreview(false)
   }
 
   function saveNew() {
@@ -134,7 +132,6 @@ export default function NotesFolderClient({
     } else {
       setSelected(note)
       setEditing(false)
-      setPreview(false)
     }
   }
 
@@ -235,9 +232,6 @@ export default function NotesFolderClient({
                   className="flex-1 font-semibold text-base border-0 border-b rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary"
                   autoFocus
                 />
-                <button type="button" onClick={() => setPreview((p) => !p)} className="p-1.5 rounded hover:bg-muted text-muted-foreground" title="Toggle preview">
-                  {preview ? <Edit2 className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
@@ -279,18 +273,11 @@ export default function NotesFolderClient({
                 </label>
               </div>
 
-              {preview ? (
-                <div className="flex-1 overflow-y-auto border border-border rounded-lg p-4">
-                  <MarkdownContent>{draft.content}</MarkdownContent>
-                </div>
-              ) : (
-                <Textarea
-                  value={draft.content}
-                  onChange={(e) => setDraft((d) => ({ ...d, content: e.target.value }))}
-                  placeholder="Write in markdown..."
-                  className="flex-1 resize-none font-mono text-sm"
-                />
-              )}
+              <RichTextEditor
+                value={draft.content}
+                onChange={(md) => setDraft((d) => ({ ...d, content: md }))}
+                placeholder="Write your note..."
+              />
 
               <div className="flex gap-2 justify-end">
                 <Button variant="ghost" size="sm" onClick={() => { setEditing(false); if (!selected) setSelected(null) }}>Cancel</Button>

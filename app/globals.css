@@ -142,3 +142,35 @@ html.theme-transitioning *::after {
 .animate-fade-up.stagger-7  { animation-delay: 0.49s; animation-fill-mode: both; }
 .animate-fade-up.stagger-8  { animation-delay: 0.56s; animation-fill-mode: both; }
 .animate-fade-up.stagger-9  { animation-delay: 0.63s; animation-fill-mode: both; }
+
+/* TipTap rich text editor (notes + diary). The prose classes handle headings, lists and code block
+   layout; I add only what prose does not cover - the empty-state placeholder, task-list checkboxes and
+   the lowlight syntax-highlight token colours. Scoped to .ProseMirror so nothing else is affected. */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.25rem;
+}
+.ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+.ProseMirror ul[data-type="taskList"] li > label {
+  margin-top: 0.2rem;
+}
+.ProseMirror ul[data-type="taskList"] li > div {
+  flex: 1 1 0%;
+}
+.ProseMirror .hljs-comment, .ProseMirror .hljs-quote { color: #6b7280; font-style: italic; }
+.ProseMirror .hljs-keyword, .ProseMirror .hljs-selector-tag, .ProseMirror .hljs-built_in { color: #8b5cf6; }
+.ProseMirror .hljs-string, .ProseMirror .hljs-attr { color: #10b981; }
+.ProseMirror .hljs-number, .ProseMirror .hljs-literal { color: #f59e0b; }
+.ProseMirror .hljs-title, .ProseMirror .hljs-section { color: #3b82f6; }
+.ProseMirror .hljs-attribute, .ProseMirror .hljs-name, .ProseMirror .hljs-tag { color: #ef4444; }
