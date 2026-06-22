@@ -43,16 +43,24 @@ export async function logActivity(action: string, detail?: string) {
   if (error) console.error("[activity_log]", error.message, error.details)
 }
 
+// Tables that "delete" by flipping is_deleted=true (the row stays) rather than removing it. Trash
+// restore/purge has to treat them specially: re-inserting their original id would hit a PK conflict.
+const SOFT_DELETE_TABLES = new Set(["calendar_events", "user_files"])
+
 async function moveToTrash(tableName: string, id: string, displayName?: string) {
-  const { data } = await supabase.from(tableName).select("*").eq("id", id).single()
-  if (data) {
-    await supabase.from("trash").insert({
-      table_name: tableName,
-      original_id: id,
-      display_name: displayName ?? null,
-      data,
-    })
-  }
+  // maybeSingle (not single) so a missing row reads as null rather than an error. If the read
+  // genuinely fails or the backup insert fails, throw so the calling delete aborts BEFORE removing
+  // the row - otherwise a failed backup would let the caller hard-delete with nothing recoverable.
+  const { data, error } = await supabase.from(tableName).select("*").eq("id", id).maybeSingle()
+  if (error) throw new Error(`Trash backup could not read ${tableName} ${id}: ${error.message}`)
+  if (!data) return
+  const { error: insErr } = await supabase.from("trash").insert({
+    table_name: tableName,
+    original_id: id,
+    display_name: displayName ?? null,
+    data,
+  })
+  if (insErr) throw new Error(`Trash backup failed for ${tableName} ${id}: ${insErr.message}`)
 }
 
 // Input validation helpers. I use runtime checks rather than a schema library to avoid
@@ -361,7 +369,7 @@ export async function createApplication(data: {
   void logActivity("application.create", `${data.company} - ${data.role}`)
   if (inserted) {
     void syncApplicationToLinear({ ...inserted, linear_issue_id: null }).then(async (issueId) => {
-      if (issueId) await supabase.from("applications").update({ linear_issue_id: issueId }).eq("id", inserted.id)
+      if (issueId) await supabase.from("applications").update({ linear_issue_id: issueId }).eq("id", inserted.id).is("linear_issue_id", null)
     })
   }
   revalidatePath("/dashboard/applications")
@@ -398,7 +406,7 @@ export async function updateApplication(id: string, data: Partial<{
   if (data.status) {
     const { data: row } = await supabase.from("applications").select("id,company,role,type,url,linear_issue_id").eq("id", id).single()
     if (row) void syncApplicationToLinear({ ...row, status: data.status }).then(async (issueId) => {
-      if (issueId && !row.linear_issue_id) await supabase.from("applications").update({ linear_issue_id: issueId }).eq("id", id)
+      if (issueId) await supabase.from("applications").update({ linear_issue_id: issueId }).eq("id", id).is("linear_issue_id", null)
     })
   }
   revalidatePath("/dashboard/applications")
@@ -808,6 +816,7 @@ export async function deleteHealthSection(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("health_sections", id)
+  await supabase.from("health_sections").delete().eq("id", id)
   void logActivity("health.section.delete", id)
   revalidatePath("/dashboard/health")
 }
@@ -851,6 +860,7 @@ export async function deleteHealthWorkout(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("health_workouts", id)
+  await supabase.from("health_workouts").delete().eq("id", id)
   void logActivity("health.workout.delete", id)
   revalidatePath("/dashboard/health")
 }
@@ -897,6 +907,7 @@ export async function deleteHealthNutrition(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("health_nutrition", id)
+  await supabase.from("health_nutrition").delete().eq("id", id)
   void logActivity("health.nutrition.delete", id)
   revalidatePath("/dashboard/health")
 }
@@ -1614,10 +1625,22 @@ export async function getGitHubContributions(): Promise<GitHubStats> {
 
 export async function clearAllJobs() {
   await requireAuth()
-  // I delete using neq on a dummy value to hit all rows without a WHERE clause,
-  // which Supabase's REST API otherwise disallows.
-  await supabase.from("jobs").delete().neq("id", "00000000-0000-0000-0000-000000000000")
-  void logActivity("scraper.cleared", "all scraped jobs")
+  // Scraped jobs live in `applications` with status='scraped' (there is no `jobs` table). I copy
+  // them to trash first (recoverable), then delete - tracked applications (any other status) are
+  // left untouched.
+  const { data } = await supabase.from("applications").select("*").eq("status", "scraped")
+  if (data && data.length > 0) {
+    await supabase.from("trash").insert(
+      data.map((row) => ({
+        table_name: "applications",
+        original_id: row.id,
+        display_name: [row.company, row.role].filter(Boolean).join(" - ") || "Scraped job",
+        data: row,
+      }))
+    )
+  }
+  await supabase.from("applications").delete().eq("status", "scraped")
+  void logActivity("scraper.cleared", `${data?.length ?? 0} scraped jobs moved to trash`)
   revalidatePath("/dashboard/applications")
 }
 
@@ -1759,23 +1782,62 @@ export async function restoreFromTrash(trashId: string) {
   if (!validId(trashId)) return INVALID
   const { data: item } = await supabase.from("trash").select("*").eq("id", trashId).single()
   if (!item) return INVALID
-  const { id: _id, ...row } = item.data as Record<string, unknown>
-  await supabase.from(item.table_name).insert({ id: item.original_id, ...row })
+
+  // Soft-delete tables still hold the row (is_deleted=true), so restore by clearing the flag - a
+  // re-insert would collide on the primary key. Hard-delete tables genuinely removed the row, so
+  // re-insert it from the snapshot.
+  const result = SOFT_DELETE_TABLES.has(item.table_name)
+    ? await supabase.from(item.table_name).update({ is_deleted: false }).eq("id", item.original_id)
+    : await supabase.from(item.table_name).insert({
+        ...(item.data as Record<string, unknown>),
+        id: item.original_id,
+      })
+  // Only drop the backup once the restore actually succeeded, so a failed restore never destroys the
+  // recovery copy.
+  if (result.error) return { error: result.error.message }
   await supabase.from("trash").delete().eq("id", trashId)
   void logActivity(`${item.table_name}.restore`, item.display_name ?? item.original_id)
+  revalidatePath("/dashboard", "layout")
 }
 
 export async function permanentlyDelete(trashId: string) {
   await requireAuth()
   if (!validId(trashId)) return INVALID
+  const { data: item } = await supabase.from("trash").select("*").eq("id", trashId).single()
+  if (item && SOFT_DELETE_TABLES.has(item.table_name)) {
+    // The underlying row is only soft-deleted, so a permanent delete must hard-delete it too,
+    // otherwise it lingers hidden forever. For files, also remove the actual blob from Storage.
+    await supabase.from(item.table_name).delete().eq("id", item.original_id)
+    if (item.table_name === "user_files") {
+      const path = (item.data as Record<string, unknown>)?.storage_path
+      if (typeof path === "string" && path) {
+        try { await supabase.storage.from("user-files").remove([path]) } catch {}
+      }
+    }
+  }
   await supabase.from("trash").delete().eq("id", trashId)
   void logActivity("trash.permanent_delete", trashId)
+  revalidatePath("/dashboard/trash")
 }
 
 export async function emptyTrash() {
   await requireAuth()
+  // Hard-delete the underlying rows + Storage blobs for any soft-deleted items first, so emptying
+  // the trash does not leave orphaned hidden rows or files behind.
+  const { data: items } = await supabase.from("trash").select("table_name, original_id, data")
+  for (const it of items ?? []) {
+    if (!SOFT_DELETE_TABLES.has(it.table_name)) continue
+    await supabase.from(it.table_name).delete().eq("id", it.original_id)
+    if (it.table_name === "user_files") {
+      const path = (it.data as Record<string, unknown>)?.storage_path
+      if (typeof path === "string" && path) {
+        try { await supabase.storage.from("user-files").remove([path]) } catch {}
+      }
+    }
+  }
   await supabase.from("trash").delete().neq("id", "00000000-0000-0000-0000-000000000000")
   void logActivity("trash.empty")
+  revalidatePath("/dashboard/trash")
 }
 
 // ─── Body Metrics ─────────────────────────────────────────────
@@ -1827,6 +1889,7 @@ export async function deleteBodyMetric(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("body_metrics", id)
+  await supabase.from("body_metrics").delete().eq("id", id)
   revalidatePath("/dashboard/health")
   void logActivity("body_metric.delete", id)
 }
@@ -1855,6 +1918,7 @@ export async function deleteUniModule(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_modules", id)
+  await supabase.from("uni_modules").delete().eq("id", id)
   revalidatePath("/dashboard/university")
   void logActivity("uni.module.delete", id)
 }
@@ -1888,7 +1952,7 @@ export async function createUniDeadline(data: {
   void logActivity("uni.deadline.create", data.title)
   if (inserted) {
     void syncDeadlineToLinear(inserted).then(async (issueId) => {
-      if (issueId) await supabase.from("uni_deadlines").update({ linear_issue_id: issueId }).eq("id", inserted.id)
+      if (issueId) await supabase.from("uni_deadlines").update({ linear_issue_id: issueId }).eq("id", inserted.id).is("linear_issue_id", null)
     })
   }
 }
@@ -1952,6 +2016,7 @@ export async function deleteUniDeadline(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_deadlines", id)
+  await supabase.from("uni_deadlines").delete().eq("id", id)
   revalidatePath("/dashboard/university")
   void logActivity("uni.deadline.delete", id)
 }
@@ -1978,6 +2043,7 @@ export async function deleteUniSubmission(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_submissions", id)
+  await supabase.from("uni_submissions").delete().eq("id", id)
   revalidatePath("/dashboard/university")
   void logActivity("uni.submission.delete", id)
 }
@@ -2013,6 +2079,7 @@ export async function deleteUniNote(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_notes", id)
+  await supabase.from("uni_notes").delete().eq("id", id)
   revalidatePath("/dashboard/university")
   void logActivity("uni.note.delete", id)
 }
@@ -2037,6 +2104,7 @@ export async function deleteUniResource(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_resources", id)
+  await supabase.from("uni_resources").delete().eq("id", id)
   revalidatePath("/dashboard/university")
   void logActivity("uni.resource.delete", id)
 }
@@ -2071,6 +2139,7 @@ export async function deleteLibraryBook(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_library_books", id)
+  await supabase.from("uni_library_books").delete().eq("id", id)
   revalidatePath("/dashboard/university")
   void logActivity("uni.library.delete", id)
 }
@@ -2106,6 +2175,7 @@ export async function deleteFaithEntry(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("faith_entries", id)
+  await supabase.from("faith_entries").delete().eq("id", id)
   revalidatePath("/dashboard/faith")
   void logActivity("faith.delete", id)
 }
@@ -2162,6 +2232,7 @@ export async function deleteStudySession(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("study_sessions", id)
+  await supabase.from("study_sessions").delete().eq("id", id)
   revalidatePath("/dashboard/study")
   void logActivity("study.delete", id)
 }
