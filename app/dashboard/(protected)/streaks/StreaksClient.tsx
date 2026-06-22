@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Trash2, Flame, Trophy, Check, Activity, Pencil, RotateCcw } from "lucide-react"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import { ColourPickerDialog } from "@/components/shared/ColourPickerDialog"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, Legend, PieChart, Pie } from "recharts"
 import {
   AnalyticsPeriodProvider,
@@ -475,6 +476,7 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
   const [editStreak, setEditStreak] = useState<Streak | null>(null)
   const [editForm, setEditForm] = useState(emptyForm)
   const [, startTransition] = useTransition()
+  const { confirm, dialog: confirmDialog } = useConfirmDialog()
 
   const checkedInCount = streaks.filter((s) =>
     logs.some((l) => l.streak_id === s.id && l.date === today && l.completed)
@@ -502,10 +504,26 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
     })
   }
 
-  function handleReset(id: string) {
-    // resetStreak clears every check-in for this streak; the action revalidates so the card
-    // falls back to a zero current and longest streak.
-    startTransition(() => void resetStreak(id))
+  async function handleReset(id: string) {
+    // Reset hard-deletes every check-in and, unlike a streak delete, does not go through trash, so I
+    // confirm first. I then clear this streak's logs from local state optimistically - revalidatePath
+    // alone does not refresh state I seeded from props, which is why the card looked unchanged before.
+    if (!(await confirm({
+      title: "Reset this streak?",
+      description: "This permanently clears every check-in for this streak and cannot be undone.",
+      confirmLabel: "Reset",
+      destructive: true,
+    }))) return
+    const prev = logs
+    setLogs((l) => l.filter((x) => x.streak_id !== id))
+    startTransition(async () => {
+      try {
+        const res = await resetStreak(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setLogs(prev)
+      }
+    })
   }
 
   function openEdit(streak: Streak) {
@@ -542,6 +560,7 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
+      {confirmDialog}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Streaks</h1>

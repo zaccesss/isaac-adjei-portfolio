@@ -2,6 +2,7 @@ import CalendarClient from "./CalendarClient"
 import { getIcalFeeds } from "@/app/dashboard/actions"
 import { supabase } from "@/lib/supabase"
 import { parseVEvents } from "@/lib/ical"
+import { buildRoutineIcal } from "@/lib/routine-ical"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 3600
@@ -25,24 +26,26 @@ const RRULE_WINDOW_END = new Date(Date.now() + 400 * 86400000)
 
 async function fetchFeed(url: string, feedName: string, feedColor: string): Promise<CalendarEvent[]> {
   try {
-    // Apple Calendar's "Subscribe" gives a webcal:// URL, which fetch() cannot open. webcal is just
-    // http(s) for calendars, so swap the scheme - Apple (iCloud) and most providers serve the same
-    // feed over TLS. Without this an Apple feed silently returns no events while https feeds work.
-    let fetchUrl = url.replace(/^webcals?:\/\//i, "https://")
-    // A same-origin feed (my self-hosted routine feed) silently returns nothing when the server fetches
-    // it back through Cloudflare during SSR - the request loops out to the proxy and comes back empty,
-    // which is why the World Cup feed (external) worked but Daily Routine never did. I route same-origin
-    // feeds straight at the Vercel deployment, bypassing Cloudflare, and send a browser User-Agent.
-    const internal = process.env.VERCEL_URL
-    if (internal && /^https?:\/\/(www\.)?isaacadjei\.me\//i.test(fetchUrl)) {
-      fetchUrl = fetchUrl.replace(/^https?:\/\/(www\.)?isaacadjei\.me/i, `https://${internal}`)
+    // My own routine feed is built in-process - I never fetch it over the network. A same-origin SSR
+    // fetch loops out through Cloudflare/Vercel and silently returns nothing in production, which is
+    // why the routine feed used to be invisible on the calendar while the external World Cup feed
+    // worked. Building the iCal inline removes the network hop entirely.
+    let rawText: string
+    if (/^(?:webcals?|https?):\/\/(?:www\.)?isaacadjei\.me\/api\/routine-ical\/?$/i.test(url)) {
+      rawText = buildRoutineIcal()
+    } else {
+      // Apple Calendar's "Subscribe" gives a webcal:// URL, which fetch() cannot open. webcal is just
+      // http(s) for calendars, so swap the scheme - Apple (iCloud) and most providers serve the same
+      // feed over TLS. Without this an Apple feed silently returns no events while https feeds work.
+      const fetchUrl = url.replace(/^webcals?:\/\//i, "https://")
+      const res = await fetch(fetchUrl, {
+        next: { revalidate: 3600 },
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; isaac-adjei-dashboard/1.0)" },
+      })
+      if (!res.ok) return []
+      rawText = await res.text()
     }
-    const res = await fetch(fetchUrl, {
-      next: { revalidate: 3600 },
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; isaac-adjei-dashboard/1.0)" },
-    })
-    if (!res.ok) return []
-    const events = parseVEvents(await res.text(), { start: RRULE_WINDOW_START, end: RRULE_WINDOW_END })
+    const events = parseVEvents(rawText, { start: RRULE_WINDOW_START, end: RRULE_WINDOW_END })
     return events.map((e) => ({
       uid: e.uid,
       summary: e.summary,

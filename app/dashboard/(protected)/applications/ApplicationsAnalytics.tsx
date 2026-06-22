@@ -22,6 +22,7 @@ type Application = {
   type: string
   status: string
   applied_date: string | null
+  created_at: string
   location: string | null
   category: string | null
 }
@@ -57,9 +58,12 @@ function ThemedTooltip({ active, payload, label }: { active?: boolean; payload?:
 function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
   const { period } = useAnalyticsPeriod()
 
+  // applied_date is unset on almost every row, so I fall back to created_at as the date basis -
+  // otherwise every period except "All" would filter down to nothing.
+  const appDate = (a: Application) => a.applied_date ?? a.created_at.slice(0, 10)
   const cutoff = periodStartDate(period)
   const filtered = cutoff
-    ? apps.filter((a) => a.applied_date && a.applied_date >= cutoff.toISOString().slice(0, 10))
+    ? apps.filter((a) => appDate(a) >= cutoff.toISOString().slice(0, 10))
     : apps
 
   // Status breakdown
@@ -103,15 +107,14 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
     start.setDate(end.getDate() - 6)
     const startIso = start.toISOString().slice(0, 10)
     const endIso = end.toISOString().slice(0, 10)
-    const count = apps.filter((a) => a.applied_date && a.applied_date >= startIso && a.applied_date <= endIso).length
+    const count = apps.filter((a) => appDate(a) >= startIso && appDate(a) <= endIso).length
     weeklyBar.push({ name: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), value: count })
   }
 
   // Monthly trend (all time, last 12 months)
   const monthlyCounts: Record<string, number> = {}
   for (const a of apps) {
-    if (!a.applied_date) continue
-    const month = a.applied_date.slice(0, 7)
+    const month = appDate(a).slice(0, 7)
     monthlyCounts[month] = (monthlyCounts[month] ?? 0) + 1
   }
   const monthlyBar = Object.entries(monthlyCounts)
@@ -340,11 +343,10 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
   )
 }
 
-export default function ApplicationsAnalytics({ apps, typeFilter }: { apps: Application[]; typeFilter?: string }) {
-  const filtered = typeFilter ? apps.filter(a => a.type === typeFilter) : apps
+export default function ApplicationsAnalytics({ apps }: { apps: Application[] }) {
   return (
     <AnalyticsPeriodProvider defaultPeriod="all">
-      <ApplicationsAnalyticsInner apps={filtered} />
+      <ApplicationsAnalyticsInner apps={apps} />
     </AnalyticsPeriodProvider>
   )
 }

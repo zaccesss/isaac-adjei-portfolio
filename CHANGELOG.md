@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.24.0] - 2026-06-22
+
+Three live bugs reported while verifying the post-audit deploy: the per-tab application analytics, the calendar routine feed and the streak reset button.
+
+### Fixed
+
+- Applications: the analytics panel inside each tab read "0 applications in view" on every tab because it matched a row's type against the tab's plural label ("Internships") instead of the stored value ("Internship"), so nothing matched. It now uses the same tab mapping the table uses, so each tab's stat cards, status breakdown, category split and funnel populate. The weekly and monthly trend charts also fall back to the row's created date when no applied date is set, so they stop rendering empty
+- Calendar: the Daily Routine feed showed nothing on the dashboard even though it renders correctly in Apple Calendar - the page was fetching my own feed over the network during server rendering, which loops through the CDN and comes back empty in production. The routine iCal is now built in-process with no network request, so its events appear alongside the other feeds
+- Streaks: the Reset button cleared the check-ins in the database but the card never changed, because it relied on a server revalidate that does not refresh state the page holds locally. Reset now updates the card immediately, reverts if the save fails, and asks for confirmation first since clearing check-ins cannot be undone
+
+---
+
 ## [v2.23.0] - 2026-06-22
 
 The remainder of the pre-Phase-5 audit: analytics across more dashboard sections, plus every remaining low and medium finding.
