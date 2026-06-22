@@ -34,6 +34,7 @@ type Application = {
   role: string
   type: string
   status: string
+  created_at: string
   url: string | null
   location: string | null
   notes: string | null
@@ -949,6 +950,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       role: data.role,
       type: data.type,
       status: data.status,
+      created_at: new Date().toISOString(),
       url: data.url || null,
       location: null,
       notes: data.notes || null,
@@ -1418,8 +1420,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       {view === "analytics" && (
         <div className="flex-1 overflow-auto min-h-0 px-4 pb-4 pt-3">
           <ApplicationsAnalytics
-            apps={apps.filter((a) => !a.archived)}
-            typeFilter={TAB_TYPES.find(t => t === activeTab)}
+            apps={apps.filter((a) => appBelongsToTab(a, activeTab) && !a.archived)}
           />
         </div>
       )}
