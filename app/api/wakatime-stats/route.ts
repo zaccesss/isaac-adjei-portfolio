@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase"
 import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 
 // AI assistant tools whose time counts in totals but are grouped as "Other" in the
@@ -22,11 +22,6 @@ const AI_EDITORS = new Set([
   "Avante",
   "Replit AI", "Ghostwriter",
 ])
-
-const supabase = createClient(
-  process.env.SUPABASE_URL || "https://placeholder.supabase.co",
-  process.env.SUPABASE_ANON_KEY || "placeholder",
-)
 
 type WakatimeRow = {
   date: string

@@ -412,7 +412,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
         }
         if (ps5) setPs5Data(ps5)
         if (github) setGithub(github)
-        if (l?.success) {
+        if (l?.data) {
           setLanyard(l.data)
           if (l.data.discord_status !== "offline") setLanyardLastOnline(Date.now())
         }

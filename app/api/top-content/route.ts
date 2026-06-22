@@ -1,13 +1,8 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase"
 import { posts } from "@/data/blog"
 import { getPublishedTILEntries } from "@/data/til"
 import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
-
-const supabase = createClient(
-  process.env.SUPABASE_URL || "https://placeholder.supabase.co",
-  process.env.SUPABASE_ANON_KEY || "placeholder",
-)
 
 export async function GET(req: Request) {
   if (!await checkRateLimit(publicApiLimiter, getIp(req))) {
