@@ -223,8 +223,13 @@ def _get_igdb_token() -> str | None:
         return None
 
 
-def _igdb_cover_by_name(game_name: str) -> str | None:
-    """Search IGDB by title and return cover URL. Used for tiers 1, 4 and 5."""
+def _igdb_art_by_name(game_name: str) -> str | None:
+    """
+    Search IGDB by title and return a LANDSCAPE image so the gaming PC card matches the look of
+    the PS5 card. I prefer an official artwork (key art) and fall back to the portrait cover.
+    I pick the most-rated match so a DLC, season or crew-pack entry never wins over the base game
+    (e.g. searching "Fortnite" otherwise returns a "Fortnite Crew Pack" with no artwork).
+    """
     token = _get_igdb_token()
     if not token:
         return None
@@ -238,60 +243,46 @@ def _igdb_cover_by_name(game_name: str) -> str | None:
                 # IGDB requires Content-Type text/plain for Apicalypse query bodies
                 "Content-Type": "text/plain",
             },
-            data=f'search "{igdb_title}"; fields name, cover.url; where cover != null; limit 1;',
+            data=(
+                f'search "{igdb_title}"; '
+                "fields name, total_rating_count, artworks.image_id, cover.image_id; "
+                "where (artworks != null | cover != null); limit 6;"
+            ),
             timeout=10,
         )
         resp.raise_for_status()
         results = resp.json()
-        if results and results[0].get("cover", {}).get("url"):
-            url = "https:" + results[0]["cover"]["url"].replace("/t_thumb/", "/t_cover_big/")
-            print(f"[igdb] name '{igdb_title}': {url}", flush=True)
+        if not results:
+            return None
+        # I pick the most-rated entry so the base game beats same-named DLC/season packs
+        best = max(results, key=lambda r: r.get("total_rating_count") or 0)
+        base = "https://images.igdb.com/igdb/image/upload"
+        artworks = best.get("artworks")
+        if artworks:
+            # t_720p is landscape (1280x720) and crops cleanly into the square card
+            url = f"{base}/t_720p/{artworks[0]['image_id']}.jpg"
+            print(f"[igdb] artwork '{best.get('name')}': {url}", flush=True)
+            return url
+        cover = best.get("cover")
+        if cover:
+            url = f"{base}/t_cover_big/{cover['image_id']}.jpg"
+            print(f"[igdb] cover '{best.get('name')}': {url}", flush=True)
             return url
     except Exception as e:
-        print(f"[igdb] name search failed for '{game_name}': {e}", flush=True)
+        print(f"[igdb] art search failed for '{game_name}': {e}", flush=True)
     return None
-
-
-def _igdb_cover_by_external_id(external_id: str, category: int) -> tuple[str | None, str | None]:
-    """
-    Look up a game on IGDB using its external platform ID.
-    I use this for Steam (category=1) and Epic (category=26) instead of name search
-    because external IDs give an exact match - no fuzzy matching needed.
-    Returns (game_name, cover_url).
-    """
-    token = _get_igdb_token()
-    if not token:
-        return None, None
-    try:
-        resp = requests.post(
-            "https://api.igdb.com/v4/external_games",
-            headers={
-                "Client-ID": IGDB_CLIENT_ID,
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "text/plain",
-            },
-            data=f'fields game.name, game.cover.url; where category = {category} & uid = "{external_id}"; limit 1;',
-            timeout=10,
-        )
-        resp.raise_for_status()
-        results = resp.json()
-        if results and results[0].get("game"):
-            game = results[0]["game"]
-            name = game.get("name")
-            cover = game.get("cover", {}).get("url")
-            url = ("https:" + cover.replace("/t_thumb/", "/t_cover_big/")) if cover else None
-            print(f"[igdb] external id={external_id} cat={category}: '{name}' -> {url}", flush=True)
-            return name, url
-    except Exception as e:
-        print(f"[igdb] external lookup failed id={external_id}: {e}", flush=True)
-    return None, None
 
 
 def get_game_image(game_name: str, source: str | None = None, external_id: str | None = None) -> str | None:
     """
-    Return cover art URL for game_name. I try IGDB first and fall back to hardcoded CDN URLs.
-    For steam/epic sources with a known external_id I use the external_games endpoint
-    (exact match) instead of name search to avoid wrong results.
+    Return a landscape image URL for game_name so EVERY gaming PC game matches the look of the
+    PS5 card. The card renders into a small square slot with object-cover, where a portrait cover
+    crops to an ugly vertical slice - so I want landscape key art for all of them. The same path
+    runs for every detected game (hardcoded, Steam, Epic, EA and fuzzy), so they are consistent.
+    Priority:
+      1. IGDB artwork (landscape key art) for any game, picking the most-rated match
+      2. Steam header (exact by App ID) as a reliable backstop if IGDB has nothing
+      3. A curated fallback last (some publisher CDNs hotlink-block with 403)
     """
     cache_key = f"{source}:{external_id or game_name}"
     if cache_key in _game_image_cache:
@@ -299,19 +290,20 @@ def get_game_image(game_name: str, source: str | None = None, external_id: str |
 
     url: str | None = None
 
-    if IGDB_CLIENT_ID and IGDB_CLIENT_SECRET and external_id:
-        # I map source to IGDB's platform category numbers: 1 = Steam, 26 = Epic Games Store
-        category = 1 if source == "steam" else 26 if source == "epic" else None
-        if category:
-            _, url = _igdb_cover_by_external_id(external_id, category)
+    # 1. IGDB landscape artwork - the good one, run for EVERY game
+    if IGDB_CLIENT_ID and IGDB_CLIENT_SECRET:
+        url = _igdb_art_by_name(game_name)
 
-    if url is None and IGDB_CLIENT_ID and IGDB_CLIENT_SECRET:
-        url = _igdb_cover_by_name(game_name)
+    # 2. Steam header - exact match by App ID, reliable when IGDB drew a blank
+    if url is None and source == "steam" and external_id:
+        url = f"https://cdn.cloudflare.steamstatic.com/steam/apps/{external_id}/header.jpg"
+        print(f"[image] steam header for appid={external_id}", flush=True)
 
+    # 3. Curated fallback - last resort only
     if url is None:
         url = FALLBACK_IMAGES.get(game_name)
         if url:
-            print(f"[igdb] fallback image for '{game_name}'", flush=True)
+            print(f"[image] curated fallback for '{game_name}'", flush=True)
 
     _game_image_cache[cache_key] = url
     return url

@@ -21,6 +21,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Live status: device cards could show "last seen 37m ago" while the daemons were running. Cloudflare's Browser Cache TTL was holding the snapshot in the browser for its 4-hour default, overriding the origin's short cache, so a tab kept serving a frozen copy. The client now fetches with `cache: "no-store"` (the request still hits the 15s edge cache, so it stays cheap) and the Browser Cache TTL now respects the origin headers
 - Live status: the edge caching introduced in v2.19.0 and v2.20.0 was still not taking effect because the site sits behind Cloudflare, whose free plan does not cache API routes without an explicit rule (responses came back `cf-cache-status: DYNAMIC`). Three Cloudflare cache rules now edge-cache `/api/live-status`, `/api/spotify` and the device routes, so reads are finally viewer-independent and Upstash stays well within its monthly command budget
+- Live status: the gaming PC card showed a broken game image - the daemon's hardcoded fallback art (such as Fortnite's Epic banner) is hotlink-blocked and returns HTTP 403, and the IGDB cover it otherwise used is portrait box-art that crops to an ugly vertical slice in the card's square image slot. Every detected game now resolves a landscape IGDB artwork from the reliable images.igdb.com CDN and picks the most-rated match so a DLC or season pack never beats the base game, matching the look of the PS5 card. Steam titles fall back to their Steam header, with a curated image as the last resort
 
 ---
 
