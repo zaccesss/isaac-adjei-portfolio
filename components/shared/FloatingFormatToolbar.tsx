@@ -191,7 +191,12 @@ export default function FloatingFormatToolbar() {
   return createPortal(
     <div
       ref={toolbarRef}
-      style={{ position: "fixed", top: toolbar.y, left: toolbar.x, zIndex: 9999 }}
+      // data-floating-toolbar lets the shared Dialog recognise the toolbar and not dismiss when it
+      // is pressed. pointerEvents:auto overrides the pointer-events:none that a Radix modal Dialog
+      // puts on <body> - without it the toolbar (portaled to body) is unhoverable and clicks fall
+      // through to the overlay, closing the dialog instead of formatting.
+      data-floating-toolbar=""
+      style={{ position: "fixed", top: toolbar.y, left: toolbar.x, zIndex: 9999, pointerEvents: "auto" }}
     >
       <div className="flex items-center gap-0.5 rounded-lg bg-zinc-800 border border-zinc-700 shadow-lg px-1 py-1">
         {toolbar.isMarkdown && (
