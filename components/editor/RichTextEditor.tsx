@@ -4,7 +4,7 @@
 // (MarkdownContent) and the .md export keep working unchanged. The content classes mirror
 // MarkdownContent's prose styling so the editor and the rendered note look the same.
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Link from "@tiptap/extension-link"
@@ -48,6 +48,8 @@ export default function RichTextEditor({ value, onChange, placeholder }: {
   // document, while my own keystrokes never trigger a reset - this avoids a caret jump and the
   // re-sync loop that markdown normalisation would otherwise cause.
   const lastSynced = useRef(value)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -93,9 +95,25 @@ export default function RichTextEditor({ value, onChange, placeholder }: {
     if (url === "") { editor.chain().focus().unsetLink().run(); return }
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run()
   }
-  const addImage = () => {
-    const url = window.prompt("Image URL")
-    if (url) editor.chain().focus().setImage({ src: url }).run()
+  // I upload the chosen image to the private bucket and insert the auth-gated proxy URL, so images in
+  // notes and diary entries stay private rather than living at a public storage URL.
+  const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file) return
+    setUploading(true)
+    try {
+      const form = new FormData()
+      form.append("file", file)
+      const res = await fetch("/api/dashboard/upload-note-image", { method: "POST", body: form })
+      const json = await res.json()
+      if (res.ok && json.url) editor.chain().focus().setImage({ src: json.url }).run()
+      else window.alert(json.error || "Image upload failed")
+    } catch {
+      window.alert("Image upload failed")
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
@@ -116,11 +134,12 @@ export default function RichTextEditor({ value, onChange, placeholder }: {
         <Tb title="Code block" active={editor.isActive("codeBlock")} onClick={() => editor.chain().focus().toggleCodeBlock().run()}><Code className="h-3.5 w-3.5" /></Tb>
         <Tb title="Quote" active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()}><Quote className="h-3.5 w-3.5" /></Tb>
         <Tb title="Link" active={editor.isActive("link")} onClick={addLink}><LinkIcon className="h-3.5 w-3.5" /></Tb>
-        <Tb title="Image" onClick={addImage}><ImageIcon className="h-3.5 w-3.5" /></Tb>
+        <Tb title={uploading ? "Uploading..." : "Image"} disabled={uploading} onClick={() => fileInputRef.current?.click()}><ImageIcon className="h-3.5 w-3.5" /></Tb>
         <span className="w-px h-4 bg-border mx-0.5" />
         <Tb title="Undo" disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()}><Undo className="h-3.5 w-3.5" /></Tb>
         <Tb title="Redo" disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()}><Redo className="h-3.5 w-3.5" /></Tb>
       </div>
+      <input ref={fileInputRef} type="file" accept="image/*" aria-label="Upload image" className="hidden" onChange={handleImageFile} />
       <EditorContent editor={editor} className="px-3 overflow-y-auto flex-1 min-h-0" />
     </div>
   )

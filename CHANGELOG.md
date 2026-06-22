@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.27.0] - 2026-06-22
+
+Two public-site fixes (the lab coding stats and the live Discord card) plus image upload in the notes and diary editor.
+
+### Fixed
+
+- The lab "In the code" stats and the top-content widgets read with the old anon key, which the database lockdown now blocks, so they showed zeros. They use the server key again like every other server read
+- The /now Discord card showed me as offline even when I was online and active, because the client checked a field the live-status endpoint no longer returns. It reads the right field again
+
+### Added
+
+- The notes and diary editor can now insert images by picking a file from my device. Images upload to private storage and load through an auth-gated link, so they stay as private as the rest of my notes
+
+---
+
 ## [v2.26.0] - 2026-06-22
 
 Notes and diary now have a proper rich text editor.
