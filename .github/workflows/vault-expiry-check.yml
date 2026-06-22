@@ -28,6 +28,8 @@ jobs:
       - name: Run vault expiry check
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # Use the service-role key (it bypasses RLS) like the other workflows, so this keeps working
+          # once the per-table allow-all policies are dropped and the anon key is locked out.
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: node scripts/vault-expiry-check.js
