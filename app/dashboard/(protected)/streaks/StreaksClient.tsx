@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { createStreak, updateStreak, deleteStreak, checkInStreak, undoStreakCheckIn } from "../../actions"
+import { createStreak, updateStreak, deleteStreak, resetStreak, checkInStreak, undoStreakCheckIn } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Trash2, Flame, Trophy, Check, Activity, Pencil } from "lucide-react"
+import { Plus, Trash2, Flame, Trophy, Check, Activity, Pencil, RotateCcw } from "lucide-react"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import { ColourPickerDialog } from "@/components/shared/ColourPickerDialog"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, Legend, PieChart, Pie } from "recharts"
@@ -375,11 +375,12 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
   )
 }
 
-function StreakCard({ streak, logs, today, onDelete, onEdit, onCheckIn }: {
+function StreakCard({ streak, logs, today, onDelete, onReset, onEdit, onCheckIn }: {
   streak: Streak
   logs: Log[]
   today: string
   onDelete: (id: string) => void
+  onReset: (id: string) => void
   onEdit: (streak: Streak) => void
   onCheckIn: (streakId: string, date: string, undo: boolean) => void
 }) {
@@ -406,6 +407,15 @@ function StreakCard({ streak, logs, today, onDelete, onEdit, onCheckIn }: {
             className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
           >
             <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onReset(streak.id)}
+            aria-label="Reset streak"
+            title="Reset streak (clears all check-ins)"
+            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
           </button>
           <button
             type="button"
@@ -490,6 +500,12 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
         setStreaks(prev)
       }
     })
+  }
+
+  function handleReset(id: string) {
+    // resetStreak clears every check-in for this streak; the action revalidates so the card
+    // falls back to a zero current and longest streak.
+    startTransition(() => void resetStreak(id))
   }
 
   function openEdit(streak: Streak) {
@@ -583,6 +599,7 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
                 logs={logs}
                 today={today}
                 onDelete={handleDelete}
+                onReset={handleReset}
                 onEdit={openEdit}
                 onCheckIn={handleCheckIn}
               />

@@ -685,6 +685,7 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
   const [localFeeds, setLocalFeeds] = useState<IcalFeed[]>(feeds.filter((f) => !f.url.startsWith("env:")))
   const [editingUrl, setEditingUrl] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
+  const [editUrl, setEditUrl] = useState("")
   const [newUrl, setNewUrl] = useState("")
   const [newName, setNewName] = useState("")
   const [newColor, setNewColor] = useState(FEED_COLORS[localFeeds.length % FEED_COLORS.length])
@@ -716,10 +717,12 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
   function startRename(f: IcalFeed) {
     setEditingUrl(f.url)
     setEditName(f.name)
+    setEditUrl(f.url)
   }
 
   function commitRename(url: string) {
-    if (editName.trim()) save(localFeeds.map((f) => f.url === url ? { ...f, name: editName.trim() } : f))
+    // I let an edit change both the name and the URL - the URL used to be fixed once a feed was added.
+    save(localFeeds.map((f) => f.url === url ? { ...f, name: editName.trim() || f.name, url: editUrl.trim() || f.url } : f))
     setEditingUrl(null)
   }
 
@@ -747,15 +750,25 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
                 />
               )}
               {isEditing ? (
-                <input
-                  autoFocus
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onBlur={() => commitRename(f.url)}
-                  onKeyDown={(e) => { if (e.key === "Enter") commitRename(f.url); if (e.key === "Escape") setEditingUrl(null) }}
-                  className="flex-1 text-sm bg-transparent border-b border-primary outline-none"
-                  aria-label="Rename feed"
-                />
+                <div className="flex-1 flex flex-col gap-1">
+                  <input
+                    autoFocus
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") commitRename(f.url); if (e.key === "Escape") setEditingUrl(null) }}
+                    className="text-sm bg-transparent border-b border-primary outline-none"
+                    aria-label="Feed name"
+                  />
+                  <input
+                    value={editUrl}
+                    onChange={(e) => setEditUrl(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") commitRename(f.url); if (e.key === "Escape") setEditingUrl(null) }}
+                    className="text-xs font-mono bg-transparent border-b border-primary/50 outline-none"
+                    aria-label="Feed URL"
+                    placeholder="iCal URL"
+                  />
+                  <button type="button" onClick={() => commitRename(f.url)} className="self-start text-[10px] text-primary hover:underline">save</button>
+                </div>
               ) : (
                 <span className="flex-1 truncate">{f.name}</span>
               )}
@@ -763,7 +776,7 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
                 <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">env</span>
               ) : (
                 <div className="flex items-center gap-1">
-                  <button type="button" title="Rename" onClick={() => startRename(f)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  <button type="button" title="Edit name and URL" onClick={() => startRename(f)} className="text-muted-foreground hover:text-foreground transition-colors">
                     <Pencil className="h-3 w-3" />
                   </button>
                   <button type="button" title={`Remove ${f.name}`} onClick={() => removeFeed(f.url)} className="text-muted-foreground hover:text-destructive transition-colors">
