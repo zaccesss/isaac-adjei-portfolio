@@ -351,7 +351,13 @@ export default function VaultTypeClient({
     if (editEntry) {
       // I replace the edited entry in-place so the list does not flicker or reorder
       const prev = entries
-      setEntries((p) => p.map((e) => e.id === saved.id ? saved : e))
+      // The edit form does not carry the hidden/locked flags, so I keep the ones
+      // already on the entry rather than letting the optimistic object reset them.
+      setEntries((p) => p.map((e) => {
+        if (e.id !== saved.id) return e
+        const f = e as VaultEntry & { hidden?: boolean; locked?: boolean }
+        return { ...saved, hidden: f.hidden, locked: f.locked }
+      }))
       const { id: _savedId, fields: _fields, ...patch } = saved
       void _savedId; void _fields
       startTransition(async () => {
