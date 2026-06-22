@@ -480,8 +480,16 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
   }
 
   function handleDelete(id: string) {
+    const prev = streaks
     setStreaks((s) => s.filter((x) => x.id !== id))
-    startTransition(() => void deleteStreak(id))
+    startTransition(async () => {
+      try {
+        const res = await deleteStreak(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setStreaks(prev)
+      }
+    })
   }
 
   function openEdit(streak: Streak) {
@@ -491,8 +499,17 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
 
   function handleSaveEdit() {
     if (!editStreak || !editForm.name.trim()) return
-    setStreaks((s) => s.map((x) => x.id === editStreak.id ? { ...x, ...editForm, description: editForm.description || null } : x))
-    startTransition(() => void updateStreak(editStreak.id, { name: editForm.name, icon: editForm.icon, description: editForm.description, color: editForm.color }))
+    const prev = streaks
+    const editId = editStreak.id
+    setStreaks((s) => s.map((x) => x.id === editId ? { ...x, ...editForm, description: editForm.description || null } : x))
+    startTransition(async () => {
+      try {
+        const res = await updateStreak(editId, { name: editForm.name, icon: editForm.icon, description: editForm.description, color: editForm.color })
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setStreaks(prev)
+      }
+    })
     setEditStreak(null)
   }
 

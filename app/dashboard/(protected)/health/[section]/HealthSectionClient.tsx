@@ -251,9 +251,17 @@ export default function HealthSectionClient({
   }
 
   function handleDeleteSection(id: string) {
+    const prev = sections
     setSections((s) => s.filter((x) => x.id !== id))
     if (selectedSection?.id === id) setSelectedSection(null)
-    startTransition(() => void deleteHealthSection(id))
+    startTransition(async () => {
+      try {
+        const res = await deleteHealthSection(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setSections(prev)
+      }
+    })
   }
 
   function handleAddWorkout() {
@@ -280,18 +288,42 @@ export default function HealthSectionClient({
   }
 
   function handleDeleteWorkout(id: string) {
+    const prev = workouts
     setWorkouts((w) => w.filter((x) => x.id !== id))
-    startTransition(() => void deleteHealthWorkout(id))
+    startTransition(async () => {
+      try {
+        const res = await deleteHealthWorkout(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setWorkouts(prev)
+      }
+    })
   }
 
   function handleUpdateNutrition(id: string, data: Partial<Nutrition>) {
+    const prev = nutrition
     setNutrition((n) => n.map((x) => x.id === id ? { ...x, ...data } : x))
-    startTransition(() => void updateHealthNutrition(id, data))
+    startTransition(async () => {
+      try {
+        const res = await updateHealthNutrition(id, data)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setNutrition(prev)
+      }
+    })
   }
 
   function handleDeleteNutrition(id: string) {
+    const prev = nutrition
     setNutrition((n) => n.filter((x) => x.id !== id))
-    startTransition(() => void deleteHealthNutrition(id))
+    startTransition(async () => {
+      try {
+        const res = await deleteHealthNutrition(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setNutrition(prev)
+      }
+    })
   }
 
   function handleAddNutritionCat() {
@@ -384,8 +416,17 @@ export default function HealthSectionClient({
                   if (!workoutForm.day_label.trim()) return
                   const exercises = workoutForm.exercises.filter((e) => e.name.trim())
                   if (editWorkout) {
-                    setWorkouts((w) => w.map((x) => x.id === editWorkout.id ? { ...x, day_label: workoutForm.day_label, exercises, notes: workoutForm.notes || null } : x))
-                    startTransition(() => void updateHealthWorkout(editWorkout.id, { day_label: workoutForm.day_label, exercises, notes: workoutForm.notes }))
+                    const prev = workouts
+                    const editWorkoutId = editWorkout.id
+                    setWorkouts((w) => w.map((x) => x.id === editWorkoutId ? { ...x, day_label: workoutForm.day_label, exercises, notes: workoutForm.notes || null } : x))
+                    startTransition(async () => {
+                      try {
+                        const res = await updateHealthWorkout(editWorkoutId, { day_label: workoutForm.day_label, exercises, notes: workoutForm.notes })
+                        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+                      } catch {
+                        setWorkouts(prev)
+                      }
+                    })
                     setEditWorkout(null)
                   } else {
                     handleAddWorkout()

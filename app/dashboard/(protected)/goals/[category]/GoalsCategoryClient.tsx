@@ -64,15 +64,32 @@ export default function GoalsCategoryClient({ goals: initial, category }: { goal
   function handleEdit(data: typeof emptyForm) {
     if (!editGoal) return
     // I update locally first so the card reflects the change while the server action runs in the background
-    setGoals((prev) => prev.map((g) => g.id === editGoal.id ? { ...g, ...data } : g))
+    const prev = goals
+    const editId = editGoal.id
+    setGoals((p) => p.map((g) => g.id === editId ? { ...g, ...data } : g))
     setEditGoal(null)
-    startTransition(() => void updateGoal(editGoal.id, data))
+    startTransition(async () => {
+      try {
+        const res = await updateGoal(editId, data)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setGoals(prev)
+      }
+    })
   }
 
   function handleDelete(id: string) {
     // I remove optimistically so the card disappears immediately rather than waiting for the server
-    setGoals((prev) => prev.filter((g) => g.id !== id))
-    startTransition(() => void deleteGoal(id))
+    const prev = goals
+    setGoals((p) => p.filter((g) => g.id !== id))
+    startTransition(async () => {
+      try {
+        const res = await deleteGoal(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setGoals(prev)
+      }
+    })
   }
 
   return (

@@ -255,14 +255,31 @@ export default function InventoryCategoryClient({
 
   function handleEdit(data: typeof emptyForm) {
     if (!editItem) return
-    setItems((prev) => prev.map((i) => i.id === editItem.id ? { ...i, ...data } : i))
+    const prev = items
+    const editId = editItem.id
+    setItems((p) => p.map((i) => i.id === editId ? { ...i, ...data } : i))
     setEditItem(null)
-    startTransition(() => void updateInventoryItem(editItem.id, data))
+    startTransition(async () => {
+      try {
+        const res = await updateInventoryItem(editId, data)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setItems(prev)
+      }
+    })
   }
 
   function handleDelete(id: string) {
-    setItems((prev) => prev.filter((i) => i.id !== id))
-    startTransition(() => void deleteInventoryItem(id))
+    const prev = items
+    setItems((p) => p.filter((i) => i.id !== id))
+    startTransition(async () => {
+      try {
+        const res = await deleteInventoryItem(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setItems(prev)
+      }
+    })
   }
 
   return (

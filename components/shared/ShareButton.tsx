@@ -12,6 +12,7 @@ interface ShareButtonProps {
 
 export default function ShareButton({ title, url }: ShareButtonProps) {
   const [copied, setCopied] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   async function handleShare() {
     const shareUrl = url ?? window.location.href
@@ -27,7 +28,12 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
       await navigator.clipboard.writeText(shareUrl)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2000)
-    } catch {}
+    } catch {
+      // Clipboard can be blocked (no permission, insecure context) - show a brief hint instead of
+      // swallowing the failure silently.
+      setFailed(true)
+      window.setTimeout(() => setFailed(false), 2000)
+    }
   }
 
   return (
@@ -37,6 +43,8 @@ export default function ShareButton({ title, url }: ShareButtonProps) {
           <Button variant="ghost" size="icon" onClick={handleShare} aria-label="Share this page">
             {copied ? (
               <span className="text-xs font-medium">Copied!</span>
+            ) : failed ? (
+              <span className="text-xs font-medium text-destructive">Copy failed</span>
             ) : (
               <Share2 className="h-4 w-4" />
             )}
