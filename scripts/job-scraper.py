@@ -727,6 +727,7 @@ def detect_category(company: str, role: str) -> str:
 SCRAPER_FIELDS = {
     "company", "role", "type", "location", "deadline", "opening_date",
     "salary_range", "work_mode", "source", "sponsors_visa", "category", "last_scraped_at",
+    "last_year_opening", "housing_location",
 }
 
 
@@ -771,6 +772,8 @@ def insert_job(job: dict, existing_keys: set) -> bool:
         "applied_date": None,
         "deadline":     job.get("deadline"),
         "opening_date": job.get("opening_date"),
+        "last_year_opening": job.get("last_year_opening"),
+        "housing_location":  normalize_location(job.get("housing_location", "")) or None,
         "salary_range": job.get("salary_range", ""),
         "work_mode":    job.get("work_mode", ""),
         "source":       job.get("source", ""),
@@ -831,6 +834,30 @@ def insert_job(job: dict, existing_keys: set) -> bool:
 
 
 # ─── THE TRACKR (Playwright - JS rendered) ──────────────────────────────────
+
+def _parse_trackr_date(s: "str | None") -> "str | None":
+    """Parse a Trackr date cell ('21 May 26', '21 May 2026', '21/05/2026') to
+    YYYY-MM-DD, or None for blanks and rolling/TBC placeholders."""
+    if not s:
+        return None
+    s = s.strip()
+    if not s or s.lower() in ("-", "tbc", "tbd", "n/a", "na", "rolling", "asap", "open"):
+        return None
+    for fmt in ("%d %b %y", "%d %b %Y", "%d/%m/%Y", "%d/%m/%y", "%d %B %Y", "%d %B %y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(s, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            pass
+    return None
+
+
+def _trackr_col(cells, colmap: "dict[str, int]", key: str) -> str:
+    """Return the trimmed text of the mapped column for this row, or ''."""
+    idx = colmap.get(key)
+    if idx is None or idx >= len(cells):
+        return ""
+    return (cells[idx].inner_text() or "").strip()
+
 
 def scrape_trackr_all(existing_keys: set) -> int:
     """Scrape all four Trackr categories using a headless browser.
@@ -912,6 +939,24 @@ def scrape_trackr_all(existing_keys: set) -> int:
                 )
                 print(f"     Found {len(rows)} rows")
 
+                # I map the column headers to indices once per page so each
+                # field is read from the correct column. Header wording varies,
+                # so I match on keywords; unmatched fields fall back to the date
+                # scan further down.
+                colmap: "dict[str, int]" = {}
+                for _i, _h in enumerate(page.query_selector_all(
+                    "table thead th, table thead td, [role='columnheader']"
+                )):
+                    _label = (_h.inner_text() or "").strip().lower()
+                    if "location" in _label:
+                        colmap.setdefault("location", _i)
+                    elif "last year" in _label or "last-year" in _label:
+                        colmap.setdefault("last_year", _i)
+                    elif "open" in _label:
+                        colmap.setdefault("opening", _i)
+                    elif "clos" in _label or "deadline" in _label:
+                        colmap.setdefault("closing", _i)
+
                 for row in rows:
                     cells = row.query_selector_all("td, [role='cell']")
                     # I skip rows with fewer than 2 cells because they are
@@ -947,10 +992,17 @@ def scrape_trackr_all(existing_keys: set) -> int:
                         prog_el.inner_text().strip()
                         if prog_el else ""
                     )
-                    job_url = (
-                        prog_el.get_attribute("href")
-                        if prog_el else ""
-                    )
+                    # I capture the application link, preferring an external
+                    # "apply" link over a the-trackr.com internal page so the
+                    # dashboard opens the real posting.
+                    job_url = ""
+                    for _a in all_links:
+                        _href = _a.get_attribute("href") or ""
+                        if _href.startswith("http") and "the-trackr.com" not in _href:
+                            job_url = _href
+                            break
+                    if not job_url and prog_el:
+                        job_url = prog_el.get_attribute("href") or ""
                     # I prepend the origin when the href is relative so the
                     # stored URL is always absolute.
                     if job_url and not job_url.startswith("http"):
@@ -958,34 +1010,34 @@ def scrape_trackr_all(existing_keys: set) -> int:
                             f"https://app.the-trackr.com{job_url}"
                         )
 
-                    # I parse dates from the remaining cells. The Trackr shows
-                    # "21 May 26" style dates. I try multiple format strings
-                    # because the year is sometimes 2-digit and sometimes 4.
-                    opening_date = closing_date = None
-                    for cell in cells[2:]:
-                        text = cell.inner_text().strip()
-                        for fmt in (
-                            "%d %b %y",
-                            "%d %b %Y",
-                            "%d/%m/%Y",
-                            "%d/%m/%y",
-                        ):
-                            try:
-                                dt = datetime.strptime(text, fmt)
-                                # I assume the first date is the opening date
-                                # and the second is the deadline.
-                                if not opening_date:
-                                    opening_date = dt.strftime(
-                                        "%Y-%m-%d"
-                                    )
-                                else:
-                                    closing_date = dt.strftime(
-                                        "%Y-%m-%d"
-                                    )
+                    # I read the date and location columns by name. Where a
+                    # header was not matched I fall back to scanning the
+                    # trailing cells for the first two parseable dates (opening
+                    # then closing), preserving the old behaviour.
+                    opening_date = _parse_trackr_date(
+                        _trackr_col(cells, colmap, "opening")
+                    )
+                    closing_date = _parse_trackr_date(
+                        _trackr_col(cells, colmap, "closing")
+                    )
+                    last_year_opening = _parse_trackr_date(
+                        _trackr_col(cells, colmap, "last_year")
+                    )
+                    if opening_date is None and closing_date is None:
+                        _seen_dates = []
+                        for cell in cells[2:]:
+                            _d = _parse_trackr_date(
+                                (cell.inner_text() or "").strip()
+                            )
+                            if _d:
+                                _seen_dates.append(_d)
+                            if len(_seen_dates) == 2:
                                 break
-                            except ValueError:
-                                # I try the next format if this one fails.
-                                pass
+                        if _seen_dates:
+                            opening_date = _seen_dates[0]
+                            if len(_seen_dates) > 1:
+                                closing_date = _seen_dates[1]
+                    location = _trackr_col(cells, colmap, "location")
 
                     # I silently skip rows where company or programme could
                     # not be parsed.
@@ -1011,16 +1063,19 @@ def scrape_trackr_all(existing_keys: set) -> int:
                         if _SENIOR_ROLE_RE.search(programme):
                             continue
 
-                    # I store the opening date in notes because there is no
-                    # dedicated column for it.
                     if insert_job({
-                        "company":      company,
-                        "role":         programme,
-                        "type":         job_type,
-                        "url":          job_url or "",
-                        "source":       "The Trackr",
-                        "deadline":     closing_date,
-                        "opening_date": opening_date,
+                        "company":           company,
+                        "role":              programme,
+                        "type":              job_type,
+                        "url":               job_url or "",
+                        "source":            "The Trackr",
+                        "deadline":          closing_date,
+                        "opening_date":      opening_date,
+                        "location":          location,
+                        "last_year_opening": last_year_opening,
+                        # I reuse the job's city for the housing search link so
+                        # the dashboard's "Find Housing" column is populated.
+                        "housing_location":  location,
                     }, existing_keys):
                         count += 1
 
