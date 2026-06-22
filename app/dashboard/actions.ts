@@ -710,6 +710,16 @@ export async function deleteStreak(id: string) {
   revalidatePath("/dashboard/streaks")
 }
 
+export async function resetStreak(id: string) {
+  await requireAuth()
+  if (!validId(id)) return INVALID
+  // I clear every check-in for this streak so the current and longest streak both fall back to zero.
+  const { error } = await supabase.from("streak_logs").delete().eq("streak_id", id)
+  if (error) return { error: error.message }
+  void logActivity("streak.reset", id)
+  revalidatePath("/dashboard/streaks")
+}
+
 export async function checkInStreak(streakId: string, date: string) {
   await requireAuth()
   // I upsert on the composite key (streak_id, date) so re-checking the same day is idempotent
