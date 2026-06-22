@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.26.0] - 2026-06-22
+
+Notes and diary now have a proper rich text editor.
+
+### Changed
+
+- The notes and diary editors are now a rich text editor (TipTap) with headings, bold, italic, lists, checklists, code blocks with syntax highlighting, quotes, links and images, a formatting toolbar and keyboard shortcuts. Existing notes are untouched and still export as markdown
+
+---
+
 ## [v2.25.0] - 2026-06-22
 
 Phase 5 logging and automation - the dashboard records more of what happens and the daily digest nudges me to follow up with people.
