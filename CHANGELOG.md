@@ -5,6 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.21.0] - 2026-06-22
+
+### Added
+
+- Live status: the MacBook and Lenovo cards now show a real battery gauge - the inner bar fills to the actual percentage and shifts colour as it drains (the site blue when healthy, amber below 30%, red at or below 20%), with a charging bolt overlaid while plugged in. Replaces the fixed battery icon
+- Live status: the Gaming PC card was rebuilt to mirror the PS5 card. CPU and GPU now render as small live sparklines accumulated client-side from the existing polls (one point per daemon write, so no extra Redis or server load), the current game shows underneath only while a game is actually running, and the last game played shows when the PC is offline (from a new `gpc:last-game` key the daemon writes whenever a game is detected). The cover art the daemon was already fetching is finally surfaced, and the old "CPU: x% | GPU: y%" text line is gone
+
+### Changed
+
+- Live status: the MacBook daemon now derives its timezone directly from the GPS coordinates (CoreLocationCLI plus the offline `timezonefinder`) instead of from the IP address, so the clock follows the exact zone even in large multi-timezone countries; ipinfo stays the fallback. The daemon resolves CoreLocationCLI by absolute path because launchd runs it with a minimal PATH that excludes Homebrew, which had been silently forcing the ipinfo fallback
+- Live status: the "online now" window on each device card was widened so a card stays "online" through the full write-plus-edge-cache-plus-poll lag instead of briefly flipping to "last seen" while the device is genuinely on; the charging bolt on the new battery gauge was enlarged for legibility
+
+### Fixed
+
+- Live status: device cards could show "last seen 37m ago" while the daemons were running. Cloudflare's Browser Cache TTL was holding the snapshot in the browser for its 4-hour default, overriding the origin's short cache, so a tab kept serving a frozen copy. The client now fetches with `cache: "no-store"` (the request still hits the 15s edge cache, so it stays cheap) and the Browser Cache TTL now respects the origin headers
+- Live status: the edge caching introduced in v2.19.0 and v2.20.0 was still not taking effect because the site sits behind Cloudflare, whose free plan does not cache API routes without an explicit rule (responses came back `cf-cache-status: DYNAMIC`). Three Cloudflare cache rules now edge-cache `/api/live-status`, `/api/spotify` and the device routes, so reads are finally viewer-independent and Upstash stays well within its monthly command budget
+
+---
+
 ## [v2.20.0] - 2026-06-21
 
 ### Fixed
