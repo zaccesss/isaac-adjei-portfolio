@@ -15,12 +15,16 @@ async function fetchDigestData(hoursBack: number) {
   const since = new Date(now.getTime() - hoursBack * 60 * 60 * 1000)
   const sinceIso = since.toISOString()
   const sinceDate = sinceIso.split("T")[0]
+  // Contacts are not time-windowed like the rest - I surface anyone flagged for follow-up or not
+  // contacted in over 30 days so the digest nudges me to reach out rather than just reporting stats.
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
 
   const [
     { data: goals },
     { data: applications },
     { data: streakLogs },
     { data: diaryEntries },
+    { data: followUps },
   ] = await Promise.all([
     supabase
       .from("goals")
@@ -40,6 +44,12 @@ async function fetchDigestData(hoursBack: number) {
       .select("id,mood,created_at")
       .gte("created_at", sinceIso)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("contacts")
+      .select("id,name,last_contact,follow_up")
+      .or(`follow_up.eq.true,last_contact.lt.${thirtyDaysAgo}`)
+      .order("last_contact", { ascending: true, nullsFirst: true })
+      .limit(10),
   ])
 
   return {
@@ -47,12 +57,13 @@ async function fetchDigestData(hoursBack: number) {
     applications: applications ?? [],
     streakLogs: streakLogs ?? [],
     diaryEntries: diaryEntries ?? [],
+    followUps: followUps ?? [],
     sinceIso,
   }
 }
 
 function buildEmbeds(data: Awaited<ReturnType<typeof fetchDigestData>>, label: string) {
-  const { goals, applications, streakLogs, diaryEntries } = data
+  const { goals, applications, streakLogs, diaryEntries, followUps } = data
 
   const goalsDone = goals.filter((g) => g.status === "done")
   const goalsInProgress = goals.filter((g) => g.status !== "done")
@@ -122,6 +133,19 @@ function buildEmbeds(data: Awaited<ReturnType<typeof fetchDigestData>>, label: s
     fields.push({
       name: "Applied today",
       value: lines.join("\n"),
+      inline: false,
+    })
+  }
+
+  // I list contacts due a follow-up so the digest nudges me to reach out, not just reports stats.
+  if (followUps.length > 0) {
+    const followLines = followUps
+      .slice(0, 5)
+      .map((c) => `- ${c.name}${c.last_contact ? ` (last contacted ${c.last_contact})` : " (never contacted)"}`)
+    if (followUps.length > 5) followLines.push(`- ...and ${followUps.length - 5} more`)
+    fields.push({
+      name: "Follow-ups due",
+      value: followLines.join("\n"),
       inline: false,
     })
   }

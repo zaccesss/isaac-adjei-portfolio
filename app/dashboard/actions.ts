@@ -966,6 +966,7 @@ export async function setConfig(key: string, value: unknown) {
   // The default profile bounds invalidation by its own stale/expire window, so a theme change could
   // lag a navigation or two - { expire: 0 } makes the next read pick up the new value straight away.
   if (key === "theme_preference") revalidateTag("config-theme", { expire: 0 })
+  void logActivity("settings.change", key)
 }
 
 export type IcalFeed = { url: string; name: string; color: string }
