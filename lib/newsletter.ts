@@ -2,15 +2,7 @@
 // Shared by /api/newsletter-issues (REST endpoint) and /newsletter/feed.xml (RSS feed)
 // so both routes call Beehiiv directly rather than one HTTP-fetching the other.
 
-import { Redis } from "@upstash/redis"
-
-let redis: Redis | null = null
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  })
-}
+import { redis } from "@/lib/redis"
 
 export const NEWSLETTER_CACHE_KEY = "beehiiv:issues"
 const CACHE_TTL = 600

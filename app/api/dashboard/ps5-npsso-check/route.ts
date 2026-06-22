@@ -3,15 +3,7 @@
 // cookie expires after 60 days, so that gives a 10-day window to renew before the
 // Cloudflare Worker stops being able to read PSN presence.
 import { NextRequest, NextResponse } from "next/server"
-import { Redis } from "@upstash/redis"
-
-let redis: Redis | null = null
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  })
-}
+import { redis } from "@/lib/redis"
 
 // I warn at 50 days so there is a 10-day window to renew before the 60-day expiry
 const WARN_AFTER_DAYS = 50

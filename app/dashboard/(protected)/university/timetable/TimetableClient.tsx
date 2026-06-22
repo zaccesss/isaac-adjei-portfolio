@@ -85,13 +85,20 @@ function notesKey(uid: string, date: Date) {
 }
 
 function EventCard({ e }: { e: ICalEvent }) {
-  const [att, setAtt] = useState<Attendance | null>(
-    () => typeof window !== "undefined" ? localStorage.getItem(attendanceKey(e.uid, e.dtstart)) as Attendance | null : null
-  )
-  const [note, setNote] = useState(
-    () => typeof window !== "undefined" ? localStorage.getItem(notesKey(e.uid, e.dtstart)) ?? "" : ""
-  )
+  const [att, setAtt] = useState<Attendance | null>(null)
+  const [note, setNote] = useState("")
   const [showNote, setShowNote] = useState(false)
+
+  // I read localStorage in an effect (not a useState initialiser) so the server and the first
+  // client render agree - reading it during render causes a hydration mismatch.
+  useEffect(() => {
+    // A one-time read of persisted state from localStorage on mount is the legitimate
+    // external-sync case the rule allows; it cannot run during SSR, so the setState is fine here.
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setAtt(localStorage.getItem(attendanceKey(e.uid, e.dtstart)) as Attendance | null)
+    setNote(localStorage.getItem(notesKey(e.uid, e.dtstart)) ?? "")
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [e.uid, e.dtstart])
 
   function mark(status: Attendance) {
     const next = att === status ? null : status

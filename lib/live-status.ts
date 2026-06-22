@@ -454,10 +454,51 @@ export async function getGithubActivity(): Promise<GithubActivity> {
 
 const DISCORD_USER_ID = "1087417301583790212"
 
-export async function getLanyard(): Promise<unknown> {
-  return fetch(`https://api.lanyard.rest/v1/users/${DISCORD_USER_ID}`)
+// Only the fields the Discord card actually renders. Lanyard's raw payload also carries the full
+// Discord user object, KV store, platform flags and Spotify track IDs - none of which the client
+// needs, so I project down to this shape before it leaves the server.
+interface LanyardActivity {
+  type: number
+  name: string
+  details?: string
+  state?: string
+  timestamps?: { start?: number; end?: number }
+  assets?: { large_image?: string; large_text?: string; small_image?: string; small_text?: string }
+  application_id?: string
+}
+
+export interface LanyardPublic {
+  data: {
+    discord_status: string
+    activities: LanyardActivity[]
+  }
+}
+
+export async function getLanyard(): Promise<LanyardPublic | null> {
+  const raw = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_USER_ID}`)
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null)
+
+  const data = (raw as { data?: { discord_status?: string; activities?: LanyardActivity[] } } | null)?.data
+  if (!data) return null
+
+  // I rebuild each activity field by field so nothing extra rides along.
+  const activities: LanyardActivity[] = (data.activities ?? []).map((a) => ({
+    type: a.type,
+    name: a.name,
+    details: a.details,
+    state: a.state,
+    timestamps: a.timestamps && { start: a.timestamps.start, end: a.timestamps.end },
+    assets: a.assets && {
+      large_image: a.assets.large_image,
+      large_text: a.assets.large_text,
+      small_image: a.assets.small_image,
+      small_text: a.assets.small_text,
+    },
+    application_id: a.application_id,
+  }))
+
+  return { data: { discord_status: data.discord_status ?? "offline", activities } }
 }
 
 // ---------------------------------------------------------------------------
@@ -474,7 +515,7 @@ export interface LiveSnapshot {
   gpc: GpcStatus
   ps5: PS5Status
   github: GithubActivity
-  lanyard: unknown
+  lanyard: LanyardPublic | null
 }
 
 export async function getLiveSnapshot(): Promise<LiveSnapshot> {

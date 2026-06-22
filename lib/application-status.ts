@@ -118,7 +118,9 @@ export function isInPipeline(status: string): boolean {
 // touched since being scraped. Must be called with the RAW (pre-normalised) status, since the
 // scraper writes the literal "scraped" sentinel that normaliseStatus() maps away from.
 export function isTrackedApplication(app: { type: string; status: string }): boolean {
-  return app.type !== "Full-time Job" && app.status.toLowerCase() !== "scraped"
+  // I compare on lowercase so a casing variant of the type ("full-time job") still matches the
+  // hard-coded sentinel - the status side was already lowercased for the same reason.
+  return app.type.toLowerCase() !== "full-time job" && app.status.toLowerCase() !== "scraped"
 }
 
 export type FunnelStage = "not_started" | "applied" | "assessment" | "interview" | "offer" | "rejected"

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useMemo, useTransition } from "react"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
@@ -9,13 +9,14 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   CheckCircle2, Plus, Trash2, Target,
-  TrendingUp, Calendar, FlaskConical, Pencil
+  TrendingUp, Calendar, FlaskConical, Pencil, BarChart3
 } from "lucide-react"
 import { ColourPickerDialog } from "@/components/shared/ColourPickerDialog"
 import {
   createHabit, updateHabit, deleteHabit, checkInHabit, undoHabitCheckIn,
 } from "@/app/dashboard/actions"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
+import { StatCard, BarChart } from "@/components/analytics"
 
 const SUPPLEMENT_PRESETS = ["Creatine", "Whey", "Vitamin D", "Omega-3", "Magnesium"]
 const HABIT_COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6", "#ef4444", "#8b5cf6", "#f97316"]
@@ -81,6 +82,49 @@ export default function HabitsClient({
     }
     return streak
   }
+
+  // I compute the 30-day analytics once over the logs and habits I already have in state. The check-in
+  // counts use the full logs history (not just today's optimistic set) so the chart reflects real data.
+  const analytics = useMemo(() => {
+    const totalHabits = habits.length
+    const checkedToday = new Set(logs.filter((l) => l.date === today).map((l) => l.habit_id))
+    const checkedInToday = habits.filter((h) => checkedToday.has(h.id)).length
+
+    // Build the trailing 30-day window ending today
+    const days: string[] = []
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today)
+      d.setDate(d.getDate() - i)
+      days.push(d.toISOString().split("T")[0])
+    }
+    const windowSet = new Set(days)
+
+    // Per-day check-in counts across all habits, for the bar chart
+    const perDay = new Map<string, number>(days.map((d) => [d, 0]))
+    let windowCheckIns = 0
+    logs.forEach((l) => {
+      if (windowSet.has(l.date)) {
+        perDay.set(l.date, (perDay.get(l.date) ?? 0) + 1)
+        windowCheckIns++
+      }
+    })
+    const dailyCounts = days.map((d) => ({
+      name: new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+      count: perDay.get(d) ?? 0,
+    }))
+
+    // Completion % over the window = check-ins / (habits * 30 days) of possible check-ins
+    const completionPct = totalHabits > 0
+      ? Math.round((windowCheckIns / (totalHabits * 30)) * 100)
+      : 0
+
+    // Best current streak across all habits, reusing the same logic as the per-habit rows
+    const bestStreak = habits.reduce((best, h) => Math.max(best, getStreak(h.id)), 0)
+
+    return { totalHabits, checkedInToday, completionPct, bestStreak, dailyCounts }
+    // getStreak is a stable closure over logs/today; logs and habits are the real inputs
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [habits, logs, today])
 
   function handleAdd() {
     if (!newHabitName.trim()) return
@@ -152,6 +196,28 @@ export default function HabitsClient({
           New habit
         </Button>
       </div>
+
+      {habits.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm font-semibold">Habit analytics</p>
+            <span className="text-xs text-muted-foreground">- last 30 days</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard label="Total habits" value={analytics.totalHabits} />
+            <StatCard label="Checked in today" value={`${analytics.checkedInToday} / ${analytics.totalHabits}`} />
+            <StatCard label="30-day completion" value={`${analytics.completionPct}%`} />
+            <StatCard label="Best streak" value={analytics.bestStreak} />
+          </div>
+
+          <div className="border border-border rounded-xl p-4">
+            <p className="text-sm font-medium mb-3">Check-ins per day</p>
+            <BarChart data={analytics.dailyCounts} dataKey="count" xKey="name" height={120} />
+          </div>
+        </div>
+      )}
 
       {adding && (
         <div className="flex items-center gap-2">

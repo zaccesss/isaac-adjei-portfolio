@@ -2,7 +2,7 @@
 // I show an overview of goals grouped by life category (Personal, Academic, Career etc.)
 // and let me navigate into each category to see individual goal cards with progress bars.
 
-import { useState, useTransition } from "react"
+import { useState, useMemo, useTransition } from "react"
 import Link from "next/link"
 import { createGoal } from "../../actions"
 import { Button } from "@/components/ui/button"
@@ -11,8 +11,9 @@ import MarkdownEditor from "@/components/shared/MarkdownEditor"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Edit2, Trash2, Target, TrendingUp, BookOpen, Heart, DollarSign, Sparkles } from "lucide-react"
+import { Plus, Edit2, Trash2, Target, TrendingUp, BookOpen, Heart, DollarSign, Sparkles, BarChart3 } from "lucide-react"
 import MarkdownContent from "@/components/shared/MarkdownContent"
+import { StatCard, BarChart } from "@/components/analytics"
 
 type Goal = {
   id: string
@@ -204,6 +205,27 @@ export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
   const total = goals.length
   const done = goals.filter((g) => g.status === "done").length
 
+  // I compute the headline stats and the per-category progress chart once over the goals I already
+  // have in state - no extra fetch. Average progress is the mean of every goal's progress field.
+  const stats = useMemo(() => {
+    const inProgress = goals.filter((g) => g.status === "in_progress").length
+    const avgProgress = total > 0
+      ? Math.round(goals.reduce((sum, g) => sum + (g.progress ?? 0), 0) / total)
+      : 0
+
+    // Mean progress per category, only for categories that actually have goals
+    const byCategory = CATEGORIES
+      .map((cat) => {
+        const catGoals = goals.filter((g) => g.category === cat)
+        if (catGoals.length === 0) return null
+        const avg = Math.round(catGoals.reduce((sum, g) => sum + (g.progress ?? 0), 0) / catGoals.length)
+        return { name: cat, progress: avg }
+      })
+      .filter((d): d is { name: string; progress: number } => d !== null)
+
+    return { inProgress, avgProgress, byCategory }
+  }, [goals, total])
+
   function handleAdd(data: typeof emptyForm) {
     // I prepend a local optimistic record so the new goal appears instantly before the DB round-trip
     const optimistic: Goal = { ...data, id: crypto.randomUUID(), description: data.description || null, target_date: data.target_date || null, category: addCategory }
@@ -231,6 +253,29 @@ export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
           </DialogContent>
         </Dialog>
       </div>
+
+      {total > 0 && (
+        <div className="flex flex-col gap-4 border-t border-border pt-6">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm font-semibold">Goal analytics</p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard label="Total goals" value={total} />
+            <StatCard label="Completed" value={done} />
+            <StatCard label="In progress" value={stats.inProgress} />
+            <StatCard label="Average progress" value={`${stats.avgProgress}%`} />
+          </div>
+
+          {stats.byCategory.length > 0 && (
+            <div className="border border-border rounded-xl p-4">
+              <p className="text-sm font-medium mb-3">Average progress by category</p>
+              <BarChart data={stats.byCategory} dataKey="progress" xKey="name" valueFormatter={(v) => `${v}%`} />
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {CATEGORIES.map((cat) => (

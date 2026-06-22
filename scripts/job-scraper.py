@@ -725,12 +725,14 @@ def detect_category(company: str, role: str) -> str:
 
 
 # Columns the scraper owns and may overwrite on an existing row. Everything else (status, notes,
-# starred, applied_date, cv_required, cover_letter_required) is user-owned and is NEVER touched on an
-# update, so a re-scrape refreshes stale data without clobbering my dashboard edits.
+# starred, applied_date) is user-owned and is NEVER touched on an update, so a re-scrape refreshes
+# stale data - including the CV / cover letter / written-answers facts now read from The Trackr -
+# without clobbering my dashboard edits.
 SCRAPER_FIELDS = {
     "company", "role", "type", "location", "deadline", "opening_date",
     "salary_range", "work_mode", "source", "sponsors_visa", "category", "last_scraped_at",
-    "last_year_opening", "housing_location",
+    "last_year_opening", "housing_location", "cv_required", "cover_letter_required",
+    "written_answers",
 }
 
 
@@ -789,8 +791,9 @@ def insert_job(job: dict, existing_keys: set) -> bool:
         "category":     detect_category(job["company"], job["role"]),
         # The dashboard stores these as the text labels "Yes"/"No"/"Optional", so I write matching
         # strings rather than a Python bool that PostgREST would coerce to "true".
-        "cv_required":            "Yes",
+        "cv_required":            job.get("cv_required") or "Yes",
         "cover_letter_required":  _cover_letter_label(job.get("cover_letter_required")),
+        "written_answers":        job.get("written_answers"),
     }
     # Only the scraper-owned columns are written to an existing row.
     patch = {k: v for k, v in record.items() if k in SCRAPER_FIELDS}
@@ -961,6 +964,14 @@ def scrape_trackr_all(existing_keys: set) -> int:
                         colmap.setdefault("opening", _i)
                     elif "clos" in _label or "deadline" in _label:
                         colmap.setdefault("closing", _i)
+                    elif _label == "cv":
+                        colmap.setdefault("cv", _i)
+                    elif "cover" in _label:
+                        colmap.setdefault("cover", _i)
+                    elif "written" in _label:
+                        colmap.setdefault("written", _i)
+                    elif "sponsor" in _label:
+                        colmap.setdefault("sponsors", _i)
 
                 for row in rows:
                     cells = row.query_selector_all("td, [role='cell']")
@@ -1043,6 +1054,13 @@ def scrape_trackr_all(existing_keys: set) -> int:
                             if len(_seen_dates) > 1:
                                 closing_date = _seen_dates[1]
                     location = _trackr_col(cells, colmap, "location")
+                    # The Trackr lists the real per-role CV / cover letter /
+                    # written-answers / visa-sponsorship values, so I read them
+                    # rather than hardcoding "Yes" for every row.
+                    cv_req = _trackr_col(cells, colmap, "cv")
+                    cover_req = _trackr_col(cells, colmap, "cover")
+                    written = _trackr_col(cells, colmap, "written")
+                    sponsors = _trackr_col(cells, colmap, "sponsors")
 
                     # I silently skip rows where company or programme could
                     # not be parsed.
@@ -1081,6 +1099,10 @@ def scrape_trackr_all(existing_keys: set) -> int:
                         # I reuse the job's city for the housing search link so
                         # the dashboard's "Find Housing" column is populated.
                         "housing_location":  location,
+                        "cv_required":            cv_req or None,
+                        "cover_letter_required":  cover_req or None,
+                        "written_answers":        written or None,
+                        "sponsors_visa":          sponsors or None,
                     }, existing_keys):
                         count += 1
 

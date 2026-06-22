@@ -81,7 +81,8 @@ export default function NotesFolderClient({
     const optimistic: Note = {
       id: crypto.randomUUID(),
       ...draft,
-      pinned: false,
+      // I keep the draft's pinned value rather than forcing false, so a note created
+      // pinned stays pinned in the optimistic row and matches what createNote persists.
       hidden: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
