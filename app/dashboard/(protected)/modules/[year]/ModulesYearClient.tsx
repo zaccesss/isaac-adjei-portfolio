@@ -127,11 +127,15 @@ function AssessmentForm({ initial, moduleId, onClose }: {
   moduleId: string
   onClose: (saved: Assessment | null) => void
 }) {
+  // The DB folds the quiz format into the type string, e.g. "quiz (online)". I split it back out so
+  // editing pre-fills both the Type select and the Quiz format select - otherwise the combined string
+  // matches no Type option and the Type field renders blank.
+  const _quizMatch = initial?.type?.match(/^quiz \((.+)\)$/i)
   // I initialise from `initial` so the form doubles as an edit form with pre-filled values
   const [form, setForm] = useState({
     name: initial?.name ?? "",
-    type: initial?.type ?? "coursework",
-    quizFormat: "",     // I separate quizFormat from type so the DB stores the combined string e.g. "quiz (online)"
+    type: _quizMatch ? "quiz" : (initial?.type ?? "coursework"),
+    quizFormat: _quizMatch ? _quizMatch[1] : "",
     weight_percent: initial?.weight_percent ?? 0,
     mark_achieved: initial?.mark_achieved?.toString() ?? "",
     mark_max: initial?.mark_max ?? 100,

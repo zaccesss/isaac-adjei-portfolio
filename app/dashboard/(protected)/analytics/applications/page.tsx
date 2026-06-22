@@ -7,11 +7,22 @@ export const dynamic = "force-dynamic"
 export const metadata = { title: "Applications Analytics", robots: "noindex, nofollow" }
 
 export default async function ApplicationsAnalyticsPage() {
-  const { data } = await supabase
-    .from("applications")
-    .select("id, company, role, type, status, applied_date, location, category")
-    .eq("archived", false)
-    .order("created_at", { ascending: false })
+  // PostgREST caps a single select at 1000 rows, so with thousands of scraped roles the analytics
+  // only ever saw the first 1000 (that is why "Total" stuck at 1000). I page through in 1000-row
+  // batches and combine them so every application is counted.
+  const cols = "id, company, role, type, status, applied_date, location, category"
+  const q = () =>
+    supabase.from("applications").select(cols).eq("archived", false).order("created_at", { ascending: false })
+  const first = await q().range(0, 999)
+  const data = first.data ?? []
+  if (first.data && first.data.length === 1000) {
+    for (let from = 1000; ; from += 1000) {
+      const { data: page } = await q().range(from, from + 999)
+      if (!page || page.length === 0) break
+      data.push(...page)
+      if (page.length < 1000) break
+    }
+  }
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -29,7 +40,7 @@ export default async function ApplicationsAnalyticsPage() {
         <span className="ml-auto text-[10px] font-mono text-muted-foreground/60">all types combined</span>
       </div>
       <div className="flex-1 overflow-auto px-4 pb-4">
-        <ApplicationsAnalytics apps={data ?? []} />
+        <ApplicationsAnalytics apps={data} />
       </div>
     </div>
   )
