@@ -28,6 +28,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token
     },
   },
+  events: {
+    // I record sign-ins and sign-outs in the activity log. I use a dynamic import so the Supabase
+    // client is never bundled into the edge middleware (which imports this module), and I
+    // fire-and-forget inside a try/catch so a logging failure can never block authentication.
+    async signIn({ profile }) {
+      try {
+        const { supabase } = await import("@/lib/supabase")
+        await supabase.from("activity_log").insert({
+          action: "auth.login",
+          detail: (profile as { login?: string })?.login ?? null,
+        })
+      } catch {}
+    },
+    async signOut() {
+      try {
+        const { supabase } = await import("@/lib/supabase")
+        await supabase.from("activity_log").insert({ action: "auth.logout" })
+      } catch {}
+    },
+  },
   pages: {
     // I redirect both sign-in and errors to the same login page to avoid leaking which step failed
     signIn: "/dashboard/login",

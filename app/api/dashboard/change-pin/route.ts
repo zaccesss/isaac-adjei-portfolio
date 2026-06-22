@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifyPin, changePinHash } from "@/lib/pin"
 import { auth } from "@/auth"
+import { logActivity } from "@/app/dashboard/actions"
 
 export async function POST(req: NextRequest) {
   // I guard this route with the GitHub session so only I can change the PIN even if the API is discovered
@@ -21,5 +22,7 @@ export async function POST(req: NextRequest) {
   if (!valid) return NextResponse.json({ error: "Current PIN is wrong" }, { status: 403 })
 
   await changePinHash(newPin)
+  // I record the PIN change in the activity log (the route already verified the session above).
+  await logActivity("settings.change", "pin")
   return NextResponse.json({ ok: true })
 }

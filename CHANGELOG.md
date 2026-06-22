@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.25.0] - 2026-06-22
+
+Phase 5 logging and automation - the dashboard records more of what happens and the daily digest nudges me to follow up with people.
+
+### Added
+
+- The daily digest now has a "Follow-ups due" section listing contacts I have flagged or have not contacted in over 30 days
+- Sign-ins, sign-outs, PIN changes and theme changes are now recorded in the activity log
+
+---
+
 ## [v2.24.0] - 2026-06-22
 
 Three live bugs reported while verifying the post-audit deploy: the per-tab application analytics, the calendar routine feed and the streak reset button.
