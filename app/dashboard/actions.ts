@@ -91,7 +91,9 @@ function optNum(v: unknown, min = 0, max = 1_000_000): boolean {
 }
 
 function validId(id: unknown): boolean {
-  return typeof id === "string" && id.trim().length > 0 && id.length <= 100
+  // Every table primary key is a uuid, so I require that shape rather than any
+  // non-empty string - this rejects malformed or injected ids early.
+  return typeof id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
 }
 
 // ─── Goals ──────────────────────────────────────────────────

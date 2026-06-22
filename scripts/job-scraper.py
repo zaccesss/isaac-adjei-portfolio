@@ -39,7 +39,7 @@ import hashlib
 import requests
 from bs4 import BeautifulSoup
 from supabase import create_client, Client
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 # I use whole-word matching for "intern" so words like "internal" and
 # "international" do not trigger a false positive intern classification.
@@ -266,9 +266,12 @@ def is_date_relevant(closing_date_str: "str | None", cutoff: "datetime | None" =
         return True  # no deadline = include (unknown)
     try:
         d = datetime.strptime(closing_date_str, "%Y-%m-%d")
-        now = datetime.now()
+        # I keep roles whose deadline passed within the last 14 days so a freshly
+        # closed posting still shows (late applications are sometimes accepted)
+        # rather than dropping it the instant the date ticks over.
+        grace = datetime.now() - timedelta(days=14)
         effective_cutoff = cutoff if cutoff is not None else CYCLE_CUTOFF
-        return d >= effective_cutoff and d >= now
+        return d >= effective_cutoff and d >= grace
     except ValueError:
         return True
 
@@ -779,7 +782,7 @@ def insert_job(job: dict, existing_keys: set) -> bool:
         "source":       job.get("source", ""),
         # I default starred to False; I manually star interesting roles later.
         "starred":      False,
-        "last_scraped_at": datetime.utcnow().isoformat(),
+        "last_scraped_at": datetime.now(timezone.utc).isoformat(),
         "sponsors_visa": job.get("sponsors_visa", None),
         "category":     detect_category(job["company"], job["role"]),
         # The dashboard stores these as the text labels "Yes"/"No"/"Optional", so I write matching
@@ -2664,7 +2667,7 @@ def refresh_seen_timestamps() -> None:
     if not _seen_urls:
         return
     seen_list = list(_seen_urls)
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     BATCH = 100
     try:
         for i in range(0, len(seen_list), BATCH):
