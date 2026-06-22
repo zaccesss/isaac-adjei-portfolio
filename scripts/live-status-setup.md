@@ -66,13 +66,44 @@ Everything else is device-specific and covered below.
 ## 1. Gaming PC (Windows, NSSM) - `gpc-daemon.py`
 
 Writes live CPU%, GPU% (NVIDIA via `pynvml`), the current game and its cover art. It detects
-the game through five tiers in priority order, returning the first match:
+the game through up to five tiers in priority order, returning the first match. The first four
+are deterministic - they only ever report a real game - and tier 5 is opt-in:
 
 1. **`KNOWN_GAMES`** - a hardcoded exe map. Instant, no API calls, zero false positives.
 2. **Steam Web API** - any Steam game, needs `STEAM_API_KEY` + `STEAM_ID`.
 3. **Epic Games** - reads local `.item` manifests, automatic.
 4. **EA App** - reads local `installerdata.xml` manifests, automatic.
-5. **Fuzzy** - cleans the process name and searches IGDB, with a similarity filter.
+5. **Fuzzy** - cleans the process name and searches IGDB. **Off by default** (see below).
+
+### Tier 5 (fuzzy) is opt-in and off by default
+
+Tier 5 is the only tier that *guesses*: it cleans up **any** running exe name - and Windows runs
+hundreds of background processes I never opened - and asks IGDB if it looks like a game. That
+backfired twice: the Windows 11 widget board (`Widgets.exe`) matched the indie game "Widget
+Satchel", and the Codex CLI (`codex.exe`) matched an obscure game literally called "Codex". No
+heuristic can be a hard guarantee, so the daemon **does not run tier 5 unless I opt in** by
+setting `ENABLE_FUZZY_DETECTION=1`. With it off (the default), only the four deterministic tiers
+run, so a non-game can never show up as a game I am playing. The startup banner prints the
+current state (`Fuzzy: OFF by default` or `enabled`).
+
+**The reliable way to add a game is `KNOWN_GAMES`**, not fuzzy: one line maps the exe to a
+display name and it is detected instantly with zero false-positive risk (cover art is fetched
+automatically). See "Adding a game" below.
+
+If I ever do enable tier 5, two guards still apply to keep it as tight as possible (though never
+perfect):
+
+- **`_NON_GAME_BLOCKLIST`** - an explicit deny-list of process names that are never games:
+  browsers, dev tools, **AI/CLI tools (Codex, Claude, Gemini, Copilot, Ollama, ...)**,
+  terminals, launchers and Windows shell processes (including the widget board). Anything in
+  here is skipped before IGDB is ever queried.
+- **A two-part match test** - a tier 5 hit must clear *both* `_FUZZY_THRESHOLD` (name
+  similarity, `0.8`) **and** `_FUZZY_MIN_RATINGS` (`20` IGDB ratings). The rating gate is the
+  real catch-all: an exact name collision still scores `1.0` on similarity, so requiring an
+  *established* game rejects the obscure titles that random app names happen to collide with.
+
+If a non-game ever slips through with fuzzy enabled, add its exe name (without `.exe`) to
+`_NON_GAME_BLOCKLIST` - or just leave fuzzy off, which is the safe default.
 
 The cover image for every detected game is a landscape IGDB artwork (with a Steam header and a
 curated image as fallbacks) so the card matches the look of the PS5 card.
@@ -139,6 +170,7 @@ lines like `[hh:mm:ss] cpu=44% gpu=38% game=Fortnite [known] -> 200`.
 | `IGDB_CLIENT_ID` / `_CLIENT_SECRET` | no (cover art) | Twitch developer console (`dev.twitch.tv/console`), Confidential client - see the IGDB section below |
 | `STEAM_API_KEY` | no (Steam detection) | `steamcommunity.com/dev/apikey`, any domain (e.g. `localhost`) |
 | `STEAM_ID` | no (Steam detection) | Steam64 ID - if your profile is `/profiles/7656119...` that number is it, otherwise convert your `/id/<name>` URL at `steamid.io` |
+| `ENABLE_FUZZY_DETECTION` | no (off by default) | Set to `1` only to turn the best-effort fuzzy tier back on. Leave unset for the safe, real-games-only default - see the tier 5 section above |
 
 > **Steam profiles:** set Steam -> Edit Profile -> Privacy -> "Game details" to **Public**, or the
 > Steam API never reports the current game.
