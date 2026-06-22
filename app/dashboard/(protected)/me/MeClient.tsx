@@ -99,7 +99,7 @@ function EditableList({ items, onSave }: { items: string[]; onSave: (items: stri
         {items.map((item) => (
           <Badge key={item} variant="secondary" className="text-xs">{item}</Badge>
         ))}
-        <button type="button" onClick={() => setEditing(true)} className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">edit</button>
+        <button type="button" onClick={() => { setDraft(items); setEditing(true) }} className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">edit</button>
       </div>
     )
   }

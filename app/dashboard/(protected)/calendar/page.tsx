@@ -28,8 +28,19 @@ async function fetchFeed(url: string, feedName: string, feedColor: string): Prom
     // Apple Calendar's "Subscribe" gives a webcal:// URL, which fetch() cannot open. webcal is just
     // http(s) for calendars, so swap the scheme - Apple (iCloud) and most providers serve the same
     // feed over TLS. Without this an Apple feed silently returns no events while https feeds work.
-    const fetchUrl = url.replace(/^webcals?:\/\//i, "https://")
-    const res = await fetch(fetchUrl, { next: { revalidate: 3600 } })
+    let fetchUrl = url.replace(/^webcals?:\/\//i, "https://")
+    // A same-origin feed (my self-hosted routine feed) silently returns nothing when the server fetches
+    // it back through Cloudflare during SSR - the request loops out to the proxy and comes back empty,
+    // which is why the World Cup feed (external) worked but Daily Routine never did. I route same-origin
+    // feeds straight at the Vercel deployment, bypassing Cloudflare, and send a browser User-Agent.
+    const internal = process.env.VERCEL_URL
+    if (internal && /^https?:\/\/(www\.)?isaacadjei\.me\//i.test(fetchUrl)) {
+      fetchUrl = fetchUrl.replace(/^https?:\/\/(www\.)?isaacadjei\.me/i, `https://${internal}`)
+    }
+    const res = await fetch(fetchUrl, {
+      next: { revalidate: 3600 },
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; isaac-adjei-dashboard/1.0)" },
+    })
     if (!res.ok) return []
     const events = parseVEvents(await res.text(), { start: RRULE_WINDOW_START, end: RRULE_WINDOW_END })
     return events.map((e) => ({
