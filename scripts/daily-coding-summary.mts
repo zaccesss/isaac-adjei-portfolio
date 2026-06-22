@@ -1,5 +1,7 @@
 // I send a nightly Discord message comparing today's coding time to my 30-day average so I can track consistency without opening the dashboard.
-// Run via GitHub Actions: npx tsx scripts/daily-coding-summary.ts
+// Run via GitHub Actions: npx tsx scripts/daily-coding-summary.mts
+// The .mts extension forces ESM, where top-level await is allowed (tsx was emitting CJS for .ts,
+// which rejects the top-level awaits below and broke the nightly run).
 
 export {}
 

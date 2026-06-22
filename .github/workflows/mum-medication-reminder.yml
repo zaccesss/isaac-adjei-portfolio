@@ -93,7 +93,9 @@ jobs:
           req = urllib.request.Request(
               webhook_url,
               data=data,
-              headers={"Content-Type": "application/json"}
+              # Discord (behind Cloudflare) intermittently 403s requests that have no User-Agent, which
+              # is why this reminder failed at random hours. A plain urllib request sends none, so set one.
+              headers={"Content-Type": "application/json", "User-Agent": "isaac-adjei-medication-reminder/1.0"}
           )
           urllib.request.urlopen(req)
           print(f"Reminder sent for: {[m['name'] for m in medications]}")

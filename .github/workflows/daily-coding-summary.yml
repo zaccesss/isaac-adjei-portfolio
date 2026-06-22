@@ -31,4 +31,4 @@ jobs:
           # I use the service role key so the script can read all rows without RLS blocking it
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: npx tsx scripts/daily-coding-summary.ts
+        run: npx tsx scripts/daily-coding-summary.mts
