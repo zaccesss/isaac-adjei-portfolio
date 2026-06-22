@@ -28,6 +28,17 @@ type ChangeEntry = {
 // I list releases newest-first.
 const releases: ChangeEntry[] = [
   {
+    version: "v2.21.0",
+    date: "2026-06-22",
+    added: [
+      "/now: the MacBook and Lenovo cards now show a proper battery gauge that fills to the real level and shifts from blue to amber to red as it drains, with a bolt while charging",
+      "/now: the Gaming PC card was rebuilt to match the PS5 one - CPU and GPU now show as small live graphs, the game I am playing shows underneath while I play, and the last game I played shows once the PC is off",
+    ],
+    fixed: [
+      "/now, homepage and /lab: the device cards no longer get stuck on an old 'last seen' time while a device is actually online - they stay live now, and the clock follows my exact timezone from GPS when I travel",
+    ],
+  },
+  {
     version: "v2.19.0",
     date: "2026-06-21",
     changed: [
