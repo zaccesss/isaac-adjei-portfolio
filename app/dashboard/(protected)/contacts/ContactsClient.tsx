@@ -3,7 +3,7 @@
 // contact details and follow-up flags. I surface a follow-up queue for anyone I have not
 // contacted in over 30 days so important relationships do not go cold.
 
-import { useState, useTransition } from "react"
+import { useState, useRef, useTransition } from "react"
 import { Users, Plus, X, ExternalLink, Mail, Phone, Bell, BellOff, Pencil, Github, Trash2 } from "lucide-react"
 import type { Contact } from "@/app/dashboard/actions"
 import { createContact, updateContact, deleteContact, bulkDeleteContacts } from "@/app/dashboard/actions"
@@ -161,23 +161,33 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
   const [, startTransition] = useTransition()
   const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
+  // I guard against a double-click firing two creates (and inserting the contact
+  // twice) before the form closes.
+  const savingRef = useRef(false)
+
   async function handleCreate(form: FormState) {
-    const result = await createContact({
-      name: form.name,
-      company: form.company || undefined,
-      role: form.role || undefined,
-      how_met: form.how_met || undefined,
-      email: form.email || undefined,
-      phone: form.phone || undefined,
-      linkedin_url: form.linkedin_url || undefined,
-      github_url: form.github_url || undefined,
-      last_contact: form.last_contact || null,
-      notes: form.notes || undefined,
-    })
-    if (result && !("error" in result)) {
-      setContacts((p) => [result as Contact, ...p])
+    if (savingRef.current) return
+    savingRef.current = true
+    try {
+      const result = await createContact({
+        name: form.name,
+        company: form.company || undefined,
+        role: form.role || undefined,
+        how_met: form.how_met || undefined,
+        email: form.email || undefined,
+        phone: form.phone || undefined,
+        linkedin_url: form.linkedin_url || undefined,
+        github_url: form.github_url || undefined,
+        last_contact: form.last_contact || null,
+        notes: form.notes || undefined,
+      })
+      if (result && !("error" in result)) {
+        setContacts((p) => [result as Contact, ...p])
+      }
+      setAdding(false)
+    } finally {
+      savingRef.current = false
     }
-    setAdding(false)
   }
 
   async function handleUpdate(id: string, form: FormState) {
