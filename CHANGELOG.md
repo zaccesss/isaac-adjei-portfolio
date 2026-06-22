@@ -5,6 +5,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.23.0] - 2026-06-22
+
+The remainder of the pre-Phase-5 audit: analytics across more dashboard sections, plus every remaining low and medium finding.
+
+### Added
+
+- Analytics on Goals, Habits, Contacts, Inventory and Vault - a row of stat cards and a chart on each, matching the Streaks layout and computed from data already on the page. Inventory and Vault also get a search box that filters the list as you type
+
+### Fixed
+
+- "Clear all applications" no longer deletes the scraped Jobs-tab rows, only the tracked ones; bulk deletes and clear-all now stop if the trash backup fails instead of deleting anyway; syncing to Linear counts real failures separately from genuine skips; creating a scraped-shaped application no longer trips the manual-entry validation; the activity logger requires auth; tracked-status matching is case-insensitive; and a theme change no longer lags because its cache tag expires immediately
+- The OpenSource status dropdown saves once instead of twice; new notes can be created pinned (a Pin toggle sits beside Lock in the editor); the calendar UNTIL rule is compared in UTC so recurring events end on the right day; blog reactions are rate limited and reject non-emoji keys; the read-event route uses edge-safe base64; and the timetable card reads its saved attendance and notes in an effect so the first render no longer mismatches
+- The scraper reads the real CV, cover letter, written-answers and visa-sponsorship values from the matching Trackr columns instead of writing "Yes" for every role, and refreshes them on each run
+
+### Changed
+
+- One shared Redis client across the API routes instead of a new connection per file; getLanyard returns only the fields the live status card renders rather than the full Discord payload
+
+---
+
 ## [v2.22.0] - 2026-06-22
 
 A pre-Phase-5 hardening pass: a full audit of the dashboard, server actions, scraper and calendar found a batch of bugs, several of which silently lost data. All of the critical and high-severity ones are fixed and live.

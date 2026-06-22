@@ -272,6 +272,11 @@ export default function NotesFolderClient({
                   <input type="checkbox" checked={draft.locked} onChange={(e) => setDraft((d) => ({ ...d, locked: e.target.checked }))} className="sr-only" />
                   {draft.locked ? "Locked" : "Lock"}
                 </label>
+                <label className="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer">
+                  <Pin className="h-3 w-3" />
+                  <input type="checkbox" checked={draft.pinned} onChange={(e) => setDraft((d) => ({ ...d, pinned: e.target.checked }))} className="sr-only" />
+                  {draft.pinned ? "Pinned" : "Pin"}
+                </label>
               </div>
 
               {preview ? (
