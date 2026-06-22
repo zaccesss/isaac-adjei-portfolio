@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# I push live gaming PC stats (CPU, GPU, current game) to Upstash Redis every 30 seconds so my portfolio dashboard can show real-time hardware usage and what game I am playing.
+# I push live gaming PC stats (CPU, GPU, current game) to Upstash Redis every 60 seconds so my portfolio dashboard can show real-time hardware usage and what game I am playing.
 """
-Gaming PC daemon - writes CPU%, GPU%, current game and timestamp to Upstash Redis every 30s.
+Gaming PC daemon - writes CPU%, GPU%, current game and timestamp to Upstash Redis every 60s.
 No battery - desktop only. Runs as a Windows service via NSSM.
 GPU: NVIDIA GeForce RTX 4060 via pynvml.
 
@@ -650,6 +650,20 @@ def write_status() -> None:
         "game_image":  game_image,
     }
 
+    commands = [
+        # I set a 600-second TTL so the key disappears if the daemon stops, signalling the PC is offline
+        ["SET", "gpc:status",     json.dumps(payload), "EX", 600],
+        # I also write a TTL-free key so the dashboard can show the last-known state when offline
+        ["SET", "gpc:last-known", json.dumps(payload)],
+    ]
+    # I persist the last game I actually played to its own TTL-free key, written ONLY while a game is
+    # detected. The dashboard shows this when the PC is offline (like the PS5 card). It lives apart
+    # from gpc:last-known so quitting to the desktop before shutdown does not wipe it with game=null.
+    if game_name:
+        commands.append(
+            ["SET", "gpc:last-game", json.dumps({"game": game_name, "game_image": game_image})]
+        )
+
     try:
         res = requests.post(
             f"{UPSTASH_URL}/pipeline",
@@ -657,12 +671,7 @@ def write_status() -> None:
                 "Authorization": f"Bearer {UPSTASH_TOKEN}",
                 "Content-Type": "application/json",
             },
-            json=[
-                # I set a 600-second TTL so the key disappears if the daemon stops, signalling the PC is offline
-                ["SET", "gpc:status",     json.dumps(payload), "EX", 600],
-                # I also write a TTL-free key so the dashboard can show the last-known state when offline
-                ["SET", "gpc:last-known", json.dumps(payload)],
-            ],
+            json=commands,
             timeout=10,
         )
         ts       = time.strftime("%H:%M:%S")

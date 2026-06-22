@@ -55,10 +55,14 @@ interface LenovoData {
 interface GamingPCData {
   online: boolean
   lastSeen: string | null
-  gpu: string | null
-  cpu: string | null
+  // Raw percentages (0-100), kept as numbers so the sparklines can plot them; the % suffix is
+  // added at render time.
+  gpu: number | null
+  cpu: number | null
   currentGame: string | null
   gameImage: string | null
+  lastGame: string | null
+  lastGameImage: string | null
   device: string | null
 }
 
@@ -95,6 +99,11 @@ interface LanyardData {
 }
 
 const DISCORD_USER_ID = "1087417301583790212"
+
+// How many CPU/GPU samples the Gaming PC sparklines keep. One point is appended per genuinely new
+// daemon write (deduped by timestamp), so at the daemon's 60s cadence this is roughly the last
+// ~16 minutes of trend. Purely client-side - no extra Redis or server load.
+const GPC_SPARK_SAMPLES = 16
 
 // I build the activity icon URL from Lanyard's asset data following Discord's CDN format
 function activityIconUrl(activity: LanyardActivity): string | null {
@@ -282,6 +291,39 @@ function BatteryGauge({ level, charging }: { level: number; charging: boolean })
   )
 }
 
+// A compact, Task-Manager-style sparkline for the Gaming PC CPU/GPU rows. Fixed 0-100 scale (the
+// values are percentages), filled area under the line, tinted via currentColor so the caller picks
+// the colour. The SVG stretches to fill its flex container (preserveAspectRatio="none") while the
+// stroke stays a constant 1px (vectorEffect). Data is client-accumulated from the polls already
+// happening, so this adds nothing server-side.
+function Sparkline({ data }: { data: number[] }) {
+  const VW = 100 // viewBox width; the SVG scales horizontally to fill its container
+  const VH = 14
+  // Need two points to draw a line; duplicate a lone sample so it renders as a flat line.
+  const pts = data.length === 0 ? [0, 0] : data.length === 1 ? [data[0], data[0]] : data
+  const step = VW / (pts.length - 1)
+  const coords = pts.map((v, i) => {
+    const clamped = Math.max(0, Math.min(100, v))
+    return [i * step, VH - (clamped / 100) * VH] as const
+  })
+  const line = coords.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(2)}`).join(" ")
+  const area = `0,${VH} ${line} ${VW},${VH}`
+  return (
+    <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="none" className="block h-3.5 w-full overflow-visible" aria-hidden>
+      <polygon points={area} fill="currentColor" fillOpacity={0.15} />
+      <polyline
+        points={line}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  )
+}
+
 export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysShowDiscord?: boolean }) {
   const [time, setTime] = useState("")
   const [tz, setTz] = useState("")
@@ -292,7 +334,11 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
     weatherCondition: null, weatherEmoji: null, tempC: null,
   })
   const [lenovo, setLenovo] = useState<LenovoData>({ battery: null, charging: null, lastSeen: null, device: null })
-  const [gamingPC, setGamingPC] = useState<GamingPCData>({ online: false, lastSeen: null, gpu: null, cpu: null, currentGame: null, gameImage: null, device: "ZACCESS-GPC" })
+  const [gamingPC, setGamingPC] = useState<GamingPCData>({ online: false, lastSeen: null, gpu: null, cpu: null, currentGame: null, gameImage: null, lastGame: null, lastGameImage: null, device: "ZACCESS-GPC" })
+  // Client-accumulated CPU/GPU history for the Gaming PC sparklines, plus the timestamp of the last
+  // sample I appended so I plot each daemon write once rather than re-plotting on every poll.
+  const [gpcHistory, setGpcHistory] = useState<{ cpu: number; gpu: number }[]>([])
+  const lastGpcSampleRef = useRef<string | null>(null)
   // I never read this value - the setter is all I need to force a re-render every second so Discord elapsed timestamps stay live
   const [, setActivityTick] = useState(0)
   const [github, setGithub] = useState<GithubData>({ repo: null, relativeTime: null })
@@ -343,15 +389,26 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
         if (lenovo) setLenovo(lenovo)
         if (gpc) {
           setGamingPC({
-            online:      gpc.online,
-            lastSeen:    gpc.lastSeen,
-            device:      gpc.device,
-            // I format the percentages here because the API returns raw numbers and the card needs the % suffix
-            cpu:         gpc.cpu !== null ? `${gpc.cpu}%` : null,
-            gpu:         gpc.gpu !== null ? `${gpc.gpu}%` : null,
-            currentGame: gpc.game,
-            gameImage:   gpc.game_image ?? null,
+            online:        gpc.online,
+            lastSeen:      gpc.lastSeen,
+            device:        gpc.device,
+            cpu:           gpc.cpu,
+            gpu:           gpc.gpu,
+            currentGame:   gpc.game,
+            gameImage:     gpc.gameImage ?? null,
+            lastGame:      gpc.lastGame ?? null,
+            lastGameImage: gpc.lastGameImage ?? null,
           })
+          // Append one sparkline sample per genuinely new daemon write (deduped by timestamp), so
+          // the graph tracks real samples instead of re-plotting the same value every 20s poll.
+          // Reset the trend when the PC goes offline so the next session starts clean.
+          if (gpc.online && gpc.lastSeen && gpc.lastSeen !== lastGpcSampleRef.current) {
+            lastGpcSampleRef.current = gpc.lastSeen
+            setGpcHistory((h) => [...h, { cpu: gpc.cpu ?? 0, gpu: gpc.gpu ?? 0 }].slice(-GPC_SPARK_SAMPLES))
+          } else if (!gpc.online) {
+            lastGpcSampleRef.current = null
+            setGpcHistory((h) => (h.length ? [] : h))
+          }
         }
         if (ps5) setPs5Data(ps5)
         if (github) setGithub(github)
@@ -681,21 +738,51 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                     {gamingPC.lastSeen ? gSeenText : "offline"}
                   </span>
                 </div>
-                {gOnline && (gamingPC.cpu || gamingPC.gpu) && (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {gamingPC.cpu && <>CPU: {gamingPC.cpu}</>}
-                    {gamingPC.cpu && gamingPC.gpu && <span className="mx-1 text-foreground/30 dark:text-foreground/25">|</span>}
-                    {gamingPC.gpu && <>GPU: {gamingPC.gpu}</>}
-                  </p>
+                {/* CPU + GPU as small live graphs - only while online. Each row is label +
+                    sparkline + the current %, kept tight so the card stays compact. */}
+                {gOnline && (
+                  <div className="space-y-1 pt-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/60 w-7 shrink-0">CPU</span>
+                      <span className="text-primary flex-1 min-w-0">
+                        <Sparkline data={gpcHistory.map((s) => s.cpu)} />
+                      </span>
+                      <span className="text-[10px] font-mono tabular-nums text-muted-foreground w-9 text-right shrink-0">
+                        {gamingPC.cpu !== null ? `${gamingPC.cpu}%` : "n/a"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/60 w-7 shrink-0">GPU</span>
+                      <span className="text-emerald-500 flex-1 min-w-0">
+                        <Sparkline data={gpcHistory.map((s) => s.gpu)} />
+                      </span>
+                      <span className="text-[10px] font-mono tabular-nums text-muted-foreground w-9 text-right shrink-0">
+                        {gamingPC.gpu !== null ? `${gamingPC.gpu}%` : "n/a"}
+                      </span>
+                    </div>
+                  </div>
                 )}
+                {/* Current game - only while I am actually in a game */}
                 {gOnline && gamingPC.currentGame && (
-                  <div className="flex items-start justify-between gap-2 mt-0.5">
+                  <div className="flex items-start justify-between gap-2 pt-0.5">
                     <div className="min-w-0">
                       <p className="text-xs text-muted-foreground">Playing</p>
                       <p className="text-xs font-medium truncate">{gamingPC.currentGame}</p>
                     </div>
                     {gamingPC.gameImage && (
-                      <Image src={gamingPC.gameImage} alt={gamingPC.currentGame} width={40} height={40} className="h-10 w-10 rounded shrink-0 object-cover" unoptimized />
+                      <img src={gamingPC.gameImage} alt={gamingPC.currentGame} className="h-10 w-10 rounded shrink-0 object-cover" />
+                    )}
+                  </div>
+                )}
+                {/* Last game played - only when offline, dimmed (mirrors the PS5 card) */}
+                {!gOnline && gamingPC.lastGame && (
+                  <div className="flex items-start justify-between gap-2 pt-0.5 opacity-40">
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">Last played</p>
+                      <p className="text-xs text-muted-foreground truncate">{gamingPC.lastGame}</p>
+                    </div>
+                    {gamingPC.lastGameImage && (
+                      <img src={gamingPC.lastGameImage} alt={gamingPC.lastGame} className="h-10 w-10 rounded shrink-0 object-cover" />
                     )}
                   </div>
                 )}
