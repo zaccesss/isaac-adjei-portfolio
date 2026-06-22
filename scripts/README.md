@@ -2,6 +2,8 @@
 
 Python daemons, CV generation scripts and utility scripts.
 
+> The live status device daemons (MacBook, Lenovo, Gaming PC) and the PS5 worker have a full setup and architecture guide in [live-status-setup.md](live-status-setup.md).
+
 ## Overview
 
 | Script | Language | Description |
