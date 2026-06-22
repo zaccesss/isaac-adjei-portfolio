@@ -91,10 +91,10 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
               {!editNote && (
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Module</label>
-                  <Select value={form.module_id} onValueChange={(v) => setForm((f) => ({ ...f, module_id: v }))}>
+                  <Select value={form.module_id || "none"} onValueChange={(v) => setForm((f) => ({ ...f, module_id: v === "none" ? "" : v }))}>
                     <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {modules.map((m) => <SelectItem key={m.id} value={m.id}>{m.code} - {m.name}</SelectItem>)}
                     </SelectContent>
                   </Select>

@@ -60,20 +60,20 @@ export default function SubmissionsClient({ submissions, modules, deadlines }: {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Module</label>
-                  <Select value={form.module_id} onValueChange={(v) => setForm((f) => ({ ...f, module_id: v }))}>
+                  <Select value={form.module_id || "none"} onValueChange={(v) => setForm((f) => ({ ...f, module_id: v === "none" ? "" : v }))}>
                     <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {modules.map((m) => <SelectItem key={m.id} value={m.id}>{m.code}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Deadline (optional)</label>
-                  <Select value={form.deadline_id} onValueChange={(v) => setForm((f) => ({ ...f, deadline_id: v }))}>
+                  <Select value={form.deadline_id || "none"} onValueChange={(v) => setForm((f) => ({ ...f, deadline_id: v === "none" ? "" : v }))}>
                     <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {deadlines.map((d) => <SelectItem key={d.id} value={d.id}>{d.title}</SelectItem>)}
                     </SelectContent>
                   </Select>
