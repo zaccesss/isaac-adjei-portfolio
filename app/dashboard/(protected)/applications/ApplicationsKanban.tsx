@@ -49,8 +49,16 @@ export default function ApplicationsKanban({ applications: initial }: { applicat
     const id = e.dataTransfer.getData("text/plain")
     const col = COLUMNS.find((c) => c.id === columnId)
     if (!col || !id) return
-    setApps((prev) => prev.map((a) => a.id === id ? { ...a, status: col.targetStatus } : a))
-    startTransition(() => void updateApplication(id, { status: col.targetStatus }))
+    const prev = apps
+    setApps((p) => p.map((a) => a.id === id ? { ...a, status: col.targetStatus } : a))
+    startTransition(async () => {
+      try {
+        const res = await updateApplication(id, { status: col.targetStatus })
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setApps(prev)
+      }
+    })
     setDragging(null)
     setOver(null)
   }

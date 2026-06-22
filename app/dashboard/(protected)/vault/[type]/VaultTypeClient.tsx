@@ -234,8 +234,8 @@ function VaultForm({ initial, fixedType, onClose }: {
     if (!form.name.trim()) return
     const data = { ...form, type }
     if (initial?.id) {
-      // I optimistically close with the updated entry so the list reflects the change immediately
-      startTransition(() => void updateVaultEntry(initial.id!, data))
+      // I optimistically close with the updated entry so the list reflects the change immediately.
+      // The parent fires updateVaultEntry so it can revert the list if the save fails.
       onClose({ id: initial.id!, ...data, fields: {} } as VaultEntry)
     } else {
       // I await createVaultEntry so I get the DB-generated id back before calling onClose
@@ -328,6 +328,7 @@ export default function VaultTypeClient({
   const [addOpen, setAddOpen] = useState(false)
   // I keep editEntry as a state var rather than a boolean so the form can receive the entry to pre-populate
   const [editEntry, setEditEntry] = useState<VaultEntry | null>(null)
+  const [, startTransition] = useTransition()
   const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   const filtered = entries
@@ -349,7 +350,18 @@ export default function VaultTypeClient({
     if (!saved) { setAddOpen(false); setEditEntry(null); return }
     if (editEntry) {
       // I replace the edited entry in-place so the list does not flicker or reorder
-      setEntries((prev) => prev.map((e) => e.id === saved.id ? saved : e))
+      const prev = entries
+      setEntries((p) => p.map((e) => e.id === saved.id ? saved : e))
+      const { id: _savedId, fields: _fields, ...patch } = saved
+      void _savedId; void _fields
+      startTransition(async () => {
+        try {
+          const res = await updateVaultEntry(saved.id, patch as Parameters<typeof updateVaultEntry>[1])
+          if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+        } catch {
+          setEntries(prev)
+        }
+      })
     } else {
       // I insert then re-sort so the new entry lands in its correct alphabetical position
       setEntries((prev) => [...prev, saved].sort((a, b) => a.name.localeCompare(b.name)))
@@ -367,8 +379,16 @@ export default function VaultTypeClient({
     })
     if (!ok) return
     // I remove locally first so the card disappears immediately - the server call runs after
-    setEntries((prev) => prev.filter((e) => e.id !== id))
-    deleteVaultEntry(id)
+    const prev = entries
+    setEntries((p) => p.filter((e) => e.id !== id))
+    startTransition(async () => {
+      try {
+        const res = await deleteVaultEntry(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setEntries(prev)
+      }
+    })
   }
 
   function handleToggle(id: string, field: "hidden" | "locked", value: boolean) {

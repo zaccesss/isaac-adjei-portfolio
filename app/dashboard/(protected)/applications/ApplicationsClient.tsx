@@ -999,8 +999,9 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   function handleEdit(data: FormData) {
     if (!editApp) return
     const cat = data.category || detectCategory(data.company, data.role)
-    setApps((prev) =>
-      prev.map((a) =>
+    const prev = apps
+    setApps((p) =>
+      p.map((a) =>
         a.id === editApp.id
           ? {
               ...a,
@@ -1023,30 +1024,36 @@ export default function ApplicationsClient({ applications: initial }: { applicat
           : a
       )
     )
+    const editId = editApp.id
     setEditApp(null)
-    startTransition(() =>
-      void updateApplication(editApp.id, {
-        company: data.company,
-        role: data.role,
-        type: data.type,
-        status: data.status,
-        url: data.url || "",
-        notes: data.notes || "",
-        applied_date: data.applied_date || "",
-        deadline: data.deadline || "",
-        starred: data.starred,
-        salary_range: data.salary_range,
-        source: data.source,
-        opening_date: data.opening_date || undefined,
-        last_year_opening: data.last_year_opening || undefined,
-        housing_location: data.housing_location || undefined,
-        cv_required: data.cv_required || undefined,
-        cover_letter_required: data.cover_letter_required || undefined,
-        written_answers: data.written_answers || undefined,
-        sponsors_visa: data.sponsors_visa || undefined,
-        category: cat || undefined,
-      })
-    )
+    startTransition(async () => {
+      try {
+        const res = await updateApplication(editId, {
+          company: data.company,
+          role: data.role,
+          type: data.type,
+          status: data.status,
+          url: data.url || "",
+          notes: data.notes || "",
+          applied_date: data.applied_date || "",
+          deadline: data.deadline || "",
+          starred: data.starred,
+          salary_range: data.salary_range,
+          source: data.source,
+          opening_date: data.opening_date || undefined,
+          last_year_opening: data.last_year_opening || undefined,
+          housing_location: data.housing_location || undefined,
+          cv_required: data.cv_required || undefined,
+          cover_letter_required: data.cover_letter_required || undefined,
+          written_answers: data.written_answers || undefined,
+          sponsors_visa: data.sponsors_visa || undefined,
+          category: cat || undefined,
+        })
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setApps(prev)
+      }
+    })
   }
 
   async function handleDelete(id: string) {
@@ -1057,8 +1064,16 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       destructive: true,
     })
     if (!ok) return
-    setApps((prev) => prev.filter((a) => a.id !== id))
-    startTransition(() => void deleteApplication(id))
+    const prev = apps
+    setApps((p) => p.filter((a) => a.id !== id))
+    startTransition(async () => {
+      try {
+        const res = await deleteApplication(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setApps(prev)
+      }
+    })
   }
 
   async function handleBulkDelete() {
@@ -1070,8 +1085,16 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       destructive: true,
     })
     if (!ok) return
-    setApps((prev) => prev.filter((a) => !bulkSelected.has(a.id)))
-    startTransition(() => void bulkDeleteApplications(ids))
+    const prev = apps
+    setApps((p) => p.filter((a) => !bulkSelected.has(a.id)))
+    startTransition(async () => {
+      try {
+        const res = await bulkDeleteApplications(ids)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setApps(prev)
+      }
+    })
   }
 
   async function handleArchive(id: string) {
@@ -1083,13 +1106,29 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       destructive: false,
     })
     if (!ok) return
-    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, archived: true } : a)))
-    startTransition(() => void archiveApplication(id))
+    const prev = apps
+    setApps((p) => p.map((a) => (a.id === id ? { ...a, archived: true } : a)))
+    startTransition(async () => {
+      try {
+        const res = await archiveApplication(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setApps(prev)
+      }
+    })
   }
 
   function handleReopen(id: string) {
-    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, archived: false } : a)))
-    startTransition(() => void reopenApplication(id))
+    const prev = apps
+    setApps((p) => p.map((a) => (a.id === id ? { ...a, archived: false } : a)))
+    startTransition(async () => {
+      try {
+        const res = await reopenApplication(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setApps(prev)
+      }
+    })
   }
 
   function handleSavePrep(prep: InterviewPrep) {
@@ -1099,8 +1138,16 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   }
 
   function handleStatusChange(id: string, newDisplayStatus: string) {
-    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, status: newDisplayStatus } : a)))
-    startTransition(() => void updateApplication(id, { status: newDisplayStatus }))
+    const prev = apps
+    setApps((p) => p.map((a) => (a.id === id ? { ...a, status: newDisplayStatus } : a)))
+    startTransition(async () => {
+      try {
+        const res = await updateApplication(id, { status: newDisplayStatus })
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setApps(prev)
+      }
+    })
   }
 
   function editFormInitial(app: Application): FormData {

@@ -267,9 +267,18 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
 
   function handleEdit(data: typeof emptyForm) {
     if (!editEntry) return
-    setEntries((prev) => prev.map((e) => e.id === editEntry.id ? { ...e, ...data, mood: data.mood || null } : e))
+    const prev = entries
+    const editId = editEntry.id
+    setEntries((p) => p.map((e) => e.id === editId ? { ...e, ...data, mood: data.mood || null } : e))
     setEditEntry(null)
-    startTransition(() => void updateDiaryEntry(editEntry.id, { title: data.title, content: data.content, mood: data.mood }))
+    startTransition(async () => {
+      try {
+        const res = await updateDiaryEntry(editId, { title: data.title, content: data.content, mood: data.mood })
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setEntries(prev)
+      }
+    })
   }
 
   async function handleDelete(id: string) {
@@ -280,8 +289,16 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
       destructive: true,
     })
     if (!ok) return
-    setEntries((prev) => prev.filter((e) => e.id !== id))
-    startTransition(() => void deleteDiaryEntry(id))
+    const prev = entries
+    setEntries((p) => p.filter((e) => e.id !== id))
+    startTransition(async () => {
+      try {
+        const res = await deleteDiaryEntry(id)
+        if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
+      } catch {
+        setEntries(prev)
+      }
+    })
   }
 
   function handleToggle(id: string, field: "hidden" | "pinned" | "locked", value: boolean) {
