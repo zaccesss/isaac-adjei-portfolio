@@ -113,9 +113,12 @@ TECH_KEYWORDS = [
 # running each other's scrapers.
 SCRAPER_MODE = os.environ.get("SCRAPER_MODE", "all")  # "api" | "browser" | "all"
 
-# Hard wall-clock budget so the script exits cleanly before GitHub Actions kills it.
-# api job has 25 min timeout → 22 min budget. browser job has 20 min → 17 min budget.
-_BUDGET_SECONDS = 22 * 60 if SCRAPER_MODE == "api" else 17 * 60
+# Hard wall-clock budget so the script exits cleanly before GitHub Actions kills the job. The repo is
+# public, so Actions minutes are unlimited and the old 17-22 min cap (which got runs cancelled before
+# they could finish and write their summary) is lifted. SCRAPER_BUDGET_MIN lets each workflow job tune
+# it; the default 110 min sits a few minutes under the 120 min job timeout so the run still exits
+# cleanly. A higher budget matters most for the browser/Trackr job, which carries the internships.
+_BUDGET_SECONDS = int(os.environ.get("SCRAPER_BUDGET_MIN", "110")) * 60
 _RUN_START = time.time()
 
 def _over_budget() -> bool:
@@ -411,6 +414,8 @@ def load_existing_keys() -> set:
             dedupe_key(r["company"], r["role"], r.get("url") or "")
             for r in (res.data or [])
         }
+        # Remember which URLs already exist so insert_job updates them in place rather than skipping.
+        _existing_urls.update(r["url"] for r in (res.data or []) if r.get("url"))
         if not existing_keys:
             # I warn here because an empty result on a populated DB usually
             # means RLS is blocking the SELECT - the upsert below will still
@@ -682,6 +687,9 @@ def fetch_lever_details(slug: str, posting_id: str) -> dict:
 # I collect URLs seen this run so I can batch-refresh last_scraped_at at the
 # end without overwriting user-set status, notes or other fields.
 _seen_urls: set[str] = set()
+# URLs already in the DB at load time, so insert_job knows whether to insert a new row or refresh the
+# scraper-owned fields of an existing one (upsert-by-URL, never delete, never clobber user edits).
+_existing_urls: set[str] = set()
 # I collect newly inserted student jobs for the end-of-run Discord alert.
 _new_jobs: list[dict] = []
 
@@ -713,6 +721,27 @@ def detect_category(company: str, role: str) -> str:
     return "Software Engineering"
 
 
+# Columns the scraper owns and may overwrite on an existing row. Everything else (status, notes,
+# starred, applied_date, cv_required, cover_letter_required) is user-owned and is NEVER touched on an
+# update, so a re-scrape refreshes stale data without clobbering my dashboard edits.
+SCRAPER_FIELDS = {
+    "company", "role", "type", "location", "deadline", "opening_date",
+    "salary_range", "work_mode", "source", "sponsors_visa", "category", "last_scraped_at",
+}
+
+
+def _cover_letter_label(v):
+    # Scrapers pass True/False/None (or occasionally a string); the dashboard stores the text labels
+    # "Yes"/"No"/"Optional", so normalise to that rather than a Python bool that becomes "true".
+    if v is True:
+        return "Yes"
+    if v is False:
+        return "No"
+    if isinstance(v, str) and v.strip():
+        return v
+    return None
+
+
 def insert_job(job: dict, existing_keys: set) -> bool:
     # I use a different date cutoff for full-time jobs (Jan 2026) vs internships (Sep 2025)
     cutoff = JOB_CUTOFF if job.get("type") == "Full-time Job" else CYCLE_CUTOFF
@@ -725,16 +754,7 @@ def insert_job(job: dict, existing_keys: set) -> bool:
     if url and not is_url_alive(url):
         return False
 
-    # I check the in-memory set before hitting the DB so deduplication costs
-    # zero network round trips.
     key = dedupe_key(job["company"], job["role"], job.get("url", ""))
-    if key in existing_keys:
-        # I add the URL to the seen set so last_scraped_at is refreshed at the
-        # end of the run - but I never re-insert or upsert here, which would
-        # overwrite statuses or notes the user has set in the dashboard.
-        if url:
-            _seen_urls.add(url)
-        return False
 
     record = {
         "company":  job["company"],
@@ -759,29 +779,53 @@ def insert_job(job: dict, existing_keys: set) -> bool:
         "last_scraped_at": datetime.utcnow().isoformat(),
         "sponsors_visa": job.get("sponsors_visa", None),
         "category":     detect_category(job["company"], job["role"]),
-        # Almost every scraped role requires a CV; I default True and let the
-        # user update the rare exceptions manually.
-        "cv_required":            True,
-        # Detected from job description text where the ATS returns it.
-        "cover_letter_required":  job.get("cover_letter_required", None),
+        # The dashboard stores these as the text labels "Yes"/"No"/"Optional", so I write matching
+        # strings rather than a Python bool that PostgREST would coerce to "true".
+        "cv_required":            "Yes",
+        "cover_letter_required":  _cover_letter_label(job.get("cover_letter_required")),
     }
+    # Only the scraper-owned columns are written to an existing row.
+    patch = {k: v for k, v in record.items() if k in SCRAPER_FIELDS}
 
-    try:
-        # I use upsert with ignore_duplicates so that if the pre-load SELECT
-        # returned 0 rows (e.g. a transient RLS issue), the DB-level unique
-        # constraint on url silently skips duplicates rather than raising 23505.
-        supabase.table("applications").upsert(record, ignore_duplicates=True).execute()
-        # I add the key to the in-memory set immediately so subsequent
-        # duplicates within the same run are caught without another DB query.
-        existing_keys.add(key)
+    # Known URL -> refresh the scraper-owned fields in place. I never delete and never duplicate, and
+    # status/notes/starred/applied_date stay exactly as I left them in the dashboard.
+    if url and url in _existing_urls:
+        try:
+            supabase.table("applications").update(patch).eq("url", url).execute()
+        except Exception as e:
+            print(f"  ~ update failed {job['company']}: {e}")
+        _seen_urls.add(url)
+        return False
+
+    # URL-less duplicate already seen this run (no DB unique constraint protects these).
+    if key in existing_keys:
         if url:
             _seen_urls.add(url)
-        jtype = record.get("type", "")
-        if jtype != "Full-time Job":
+        return False
+
+    try:
+        # A genuinely new row. Plain insert (not upsert-ignore) so a pre-load miss does not silently
+        # drop the refresh - the 23505 path below turns a surprise URL conflict into a field update.
+        supabase.table("applications").insert(record).execute()
+        existing_keys.add(key)
+        if url:
+            _existing_urls.add(url)
+            _seen_urls.add(url)
+        if record.get("type") != "Full-time Job":
             _new_jobs.append(job)
         print(f"  + {job['company']} | {job['role']} {url}")
         return True
     except Exception as e:
+        # 23505 = the URL already exists but the pre-load missed it (e.g. an RLS hiccup). Refresh the
+        # scraper fields instead of dropping the row on the floor.
+        if url and "23505" in str(e):
+            try:
+                supabase.table("applications").update(patch).eq("url", url).execute()
+            except Exception:
+                pass
+            _existing_urls.add(url)
+            _seen_urls.add(url)
+            return False
         print(f"  ! Failed to insert {job['company']}: {e}")
         return False
 
@@ -1096,7 +1140,7 @@ def scrape_company_sites_playwright(existing_keys: set) -> int:
                         "url": url,
                         "type": infer_type(title),
                         "cv_required": True,
-                    })
+                    }, existing_keys)
                     existing_keys.add(key)
                     count += 1
 
@@ -1176,7 +1220,7 @@ def scrape_company_sites_playwright(existing_keys: set) -> int:
                     "url": url,
                     "type": infer_type(title),
                     "cv_required": True,
-                })
+                }, existing_keys)
                 existing_keys.add(key)
                 count += 1
 
@@ -1251,7 +1295,7 @@ def scrape_company_sites_playwright(existing_keys: set) -> int:
                     "url": url,
                     "type": infer_type(title),
                     "cv_required": True,
-                })
+                }, existing_keys)
                 existing_keys.add(key)
                 count += 1
 
@@ -1317,7 +1361,7 @@ def scrape_company_sites_playwright(existing_keys: set) -> int:
                     "url": url,
                     "type": infer_type(title),
                     "cv_required": True,
-                })
+                }, existing_keys)
                 existing_keys.add(key)
                 count += 1
 
@@ -1388,7 +1432,7 @@ def scrape_company_sites_playwright(existing_keys: set) -> int:
                     "url": url,
                     "type": infer_type(title),
                     "cv_required": True,
-                })
+                }, existing_keys)
                 existing_keys.add(key)
                 count += 1
 
@@ -2584,10 +2628,8 @@ def main():
 
     print(f"Job scraper starting at {datetime.now().isoformat()} (SCRAPER_MODE={SCRAPER_MODE})")
 
-    # I only run cleanup functions in the api/all job so the browser job does
-    # not compete with the api job to delete and refresh rows in parallel.
-    # I load existing keys after the optional stale delete so the set reflects
-    # current DB state regardless of which mode is running.
+    # I load the existing keys (and the URL set) up front so insert_job knows whether to insert a new
+    # row or refresh an existing one. Nothing is ever deleted - the scraper only inserts and updates.
     existing_keys = load_existing_keys()
     print(f"Found {len(existing_keys)} existing applications in DB")
 
@@ -2747,9 +2789,8 @@ def main():
             total += n
             _record_stat("Remotive", n)
 
-        # I refresh timestamps for all entries seen this run without overwriting
-        # any user-set fields - this is what keeps jobs alive past the 30-day
-        # stale delete without resetting statuses the user has changed.
+        # I refresh last_scraped_at for everything seen this run, without touching any user-set
+        # field. The scraper never deletes rows, so this is purely a freshness stamp.
         refresh_seen_timestamps()
 
     # I send a Discord alert with all newly found student roles so I know
