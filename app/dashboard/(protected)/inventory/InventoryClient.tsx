@@ -1,9 +1,12 @@
 "use client"
 
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Package, Cpu, Dumbbell, Gamepad2, Music } from "lucide-react"
+import { Package, Cpu, Dumbbell, Gamepad2, Music, Search, BarChart3 } from "lucide-react"
 import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
+import { Input } from "@/components/ui/input"
+import { StatCard, PieChart } from "@/components/analytics"
 
 type Item = {
   id: string
@@ -42,10 +45,35 @@ const CATEGORY_GRADIENTS: Record<string, { gradient: string; accent: string; ico
 const DEFAULT_STYLE = { gradient: "from-muted/40 to-muted/20", accent: "border-border", iconClass: "text-muted-foreground" }
 
 export default function InventoryClient({ items }: { items: Item[] }) {
+  const [search, setSearch] = useState("")
+
   // I derive unique categories from the actual items rather than a hardcoded list
   // so custom categories created by the user always appear
   const categories = Array.from(new Set(items.map((i) => i.category))).sort()
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0)
+
+  // I filter by name case-insensitively, then drive the category grid off the matches so the
+  // overview narrows as I type. Empty search shows everything.
+  const filteredItems = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return items
+    return items.filter((i) => i.name.toLowerCase().includes(q))
+  }, [items, search])
+  const filteredCategories = Array.from(new Set(filteredItems.map((i) => i.category))).sort()
+
+  // I compute the headline stats and the count-by-category pie once over the full inventory.
+  // Total value sums price_paid (a string|null) times quantity, skipping rows without a price.
+  const analytics = useMemo(() => {
+    const totalValue = items.reduce((sum, i) => {
+      const price = i.price_paid ? parseFloat(i.price_paid) : NaN
+      return Number.isFinite(price) ? sum + price * i.quantity : sum
+    }, 0)
+    const byCategory = categories.map((cat) => ({
+      name: cat,
+      value: items.filter((i) => i.category === cat).length,
+    }))
+    return { totalValue, byCategory }
+  }, [items, categories])
 
   return (
     <motion.div
@@ -69,14 +97,54 @@ export default function InventoryClient({ items }: { items: Item[] }) {
         </div>
       ) : null}
 
+      {items.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm font-semibold">Inventory analytics</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <StatCard label="Total items" value={totalItems} />
+            <StatCard label="Total value" value={`£${analytics.totalValue.toLocaleString("en-GB", { maximumFractionDigits: 0 })}`} />
+            <StatCard label="Categories" value={categories.length} />
+          </div>
+
+          {analytics.byCategory.length > 0 && (
+            <div className="border border-border rounded-xl p-4">
+              <p className="text-sm font-medium mb-3">Items by category</p>
+              <PieChart data={analytics.byCategory} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {items.length > 0 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search items by name..."
+            className="pl-9"
+          />
+        </div>
+      )}
+
+      {items.length > 0 && filteredCategories.length === 0 ? (
+        <div className="text-center py-10 text-muted-foreground text-sm">
+          No items match &ldquo;{search}&rdquo;.
+        </div>
+      ) : null}
+
       <motion.div
         className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"
         variants={dashboardGrid}
         initial="hidden"
         animate="visible"
       >
-        {categories.map((cat) => {
-          const catItems = items.filter((i) => i.category === cat)
+        {filteredCategories.map((cat) => {
+          const catItems = filteredItems.filter((i) => i.category === cat)
           const Icon = CATEGORY_ICONS[cat] ?? Package
           const style = CATEGORY_GRADIENTS[cat] ?? DEFAULT_STYLE
           const totalQty = catItems.reduce((sum, i) => sum + i.quantity, 0)

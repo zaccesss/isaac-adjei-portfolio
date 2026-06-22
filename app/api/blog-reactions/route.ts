@@ -4,15 +4,8 @@
 // type can be a preset name OR any emoji character for custom reactions.
 
 import { NextRequest, NextResponse } from "next/server"
-import { Redis } from "@upstash/redis"
-
-let redis: Redis | null = null
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  })
-}
+import { redis } from "@/lib/redis"
+import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 
 // All 8 pinned + 12 picker extras - stored by emoji character
 export const PRESET_TYPES = [
@@ -32,10 +25,15 @@ function customSetKey(slug: string) {
 }
 
 function isValidType(type: string): boolean {
-  // Allow presets or any single-character emoji (unicode)
+  // Allow presets first.
   if ((PRESET_TYPES as readonly string[]).includes(type)) return true
-  // Allow emoji: 1-4 unicode code points (covers most emoji including ZWJ sequences)
-  return type.length > 0 && type.length <= 8 && /\p{Emoji}/u.test(type)
+  // For custom reactions, require a real pictographic emoji. \p{Emoji} is too loose:
+  // bare ASCII digits, "#" and "*" carry the Emoji property and would pass, letting a key
+  // like "5" or "a#" through. \p{Extended_Pictographic} matches genuine emoji glyphs only,
+  // and I reject anything that is purely ASCII so plain text can never be a reaction key.
+  if (type.length === 0 || type.length > 8) return false
+  if (/^[\x00-\x7F]*$/.test(type)) return false
+  return /\p{Extended_Pictographic}/u.test(type)
 }
 
 export async function GET(req: NextRequest) {
@@ -77,6 +75,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit the incr/decr path so a single client cannot inflate counts in a loop.
+  if (!(await checkRateLimit(publicApiLimiter, getIp(req)))) {
+    return NextResponse.json({ error: "rate limited" }, { status: 429 })
+  }
   try {
     const body = await req.json() as { slug: string; type: string; action?: string }
     const { slug, type } = body

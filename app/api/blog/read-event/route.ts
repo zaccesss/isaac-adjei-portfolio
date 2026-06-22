@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { Redis } from "@upstash/redis"
+import { redis } from "@/lib/redis"
 import { supabase } from "@/lib/supabase"
-
-let redis: Redis | null = null
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  })
-}
 
 const VALID_DEPTHS = new Set([25, 50, 75, 100])
 const VALID_SLUG = /^[a-z0-9-]{1,120}$/
@@ -61,7 +53,9 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const ipHash = ip === "unknown" ? "unknown" : Buffer.from(ip).toString("base64").slice(0, 12)
+  // btoa (not Buffer) so this stays edge-safe. ASCII-only IPs encode fine; I strip any
+  // non-Latin1 bytes first so btoa never throws on an odd x-forwarded-for value.
+  const ipHash = ip === "unknown" ? "unknown" : btoa(ip.replace(/[^\x00-\xFF]/g, "")).slice(0, 12)
 
   await supabase.from("blog_read_events").upsert(
     {

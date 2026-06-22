@@ -3,8 +3,8 @@
 // contact details and follow-up flags. I surface a follow-up queue for anyone I have not
 // contacted in over 30 days so important relationships do not go cold.
 
-import { useState, useRef, useTransition } from "react"
-import { Users, Plus, X, ExternalLink, Mail, Phone, Bell, BellOff, Pencil, Github, Trash2 } from "lucide-react"
+import { useState, useRef, useMemo, useTransition } from "react"
+import { Users, Plus, X, ExternalLink, Mail, Phone, Bell, BellOff, Pencil, Github, Trash2, BarChart3 } from "lucide-react"
 import type { Contact } from "@/app/dashboard/actions"
 import { createContact, updateContact, deleteContact, bulkDeleteContacts } from "@/app/dashboard/actions"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
@@ -12,6 +12,7 @@ import { useBulkSelect } from "@/hooks/useBulkSelect"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import MarkdownEditor from "@/components/shared/MarkdownEditor"
 import PhoneField from "@/components/shared/PhoneField"
+import { StatCard, BarChart } from "@/components/analytics"
 
 const HOW_MET_OPTIONS = [
   "Career fair", "LinkedIn", "Coffee chat", "Referral",
@@ -241,6 +242,31 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
   const followUpQueue = contacts.filter((c) => c.follow_up || needsFollowUp(c))
   const displayed = filter === "follow-up" ? followUpQueue : contacts
 
+  // I compute the headline stats and a "how we met" breakdown once over the contacts I already hold.
+  // "Contacted this month" counts anyone whose last_contact falls in the current calendar month.
+  const analytics = useMemo(() => {
+    const now = new Date()
+    const month = now.getMonth()
+    const year = now.getFullYear()
+    const contactedThisMonth = contacts.filter((c) => {
+      if (!c.last_contact) return false
+      const d = new Date(c.last_contact + "T00:00:00")
+      return d.getMonth() === month && d.getFullYear() === year
+    }).length
+
+    // Count by how_met so the chart shows where my network comes from; skip blanks
+    const counts = new Map<string, number>()
+    contacts.forEach((c) => {
+      if (!c.how_met) return
+      counts.set(c.how_met, (counts.get(c.how_met) ?? 0) + 1)
+    })
+    const byHowMet = [...counts.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+
+    return { contactedThisMonth, byHowMet }
+  }, [contacts])
+
   const { selected, toggle, toggleAll, remove: removeFromSelected, allSelected, someSelected } = useBulkSelect(displayed)
 
   async function handleBulkDelete() {
@@ -306,6 +332,28 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
           </button>
         </div>
       </div>
+
+      {contacts.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm font-semibold">Contact analytics</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <StatCard label="Total contacts" value={contacts.length} />
+            <StatCard label="Follow-ups pending" value={followUpQueue.length} />
+            <StatCard label="Contacted this month" value={analytics.contactedThisMonth} />
+          </div>
+
+          {analytics.byHowMet.length > 0 && (
+            <div className="border border-border rounded-xl p-4">
+              <p className="text-sm font-medium mb-3">How we met</p>
+              <BarChart data={analytics.byHowMet} dataKey="count" xKey="name" />
+            </div>
+          )}
+        </div>
+      )}
 
       {adding && (
         <ContactForm onSave={handleCreate} onCancel={() => setAdding(false)} />

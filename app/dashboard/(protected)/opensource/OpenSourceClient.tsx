@@ -532,7 +532,8 @@ export default function OpenSourceClient({
                         autoFocus
                         ref={editRef as React.RefObject<HTMLSelectElement>}
                         defaultValue={row.status}
-                        onBlur={(e) => handleCellSave(row.id, "status", e.target.value)}
+                        // Picking an option both changes and blurs the select. I save on change only
+                        // so the update fires once, not twice (an onBlur here double-fired it).
                         onChange={(e) => handleCellSave(row.id, "status", e.target.value)}
                         className="border border-border rounded px-2 py-0.5 text-sm bg-background"
                       >

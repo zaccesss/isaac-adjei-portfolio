@@ -97,14 +97,20 @@ export function expandRRule(
   const duration = dtend.getTime() - dtstart.getTime()
   const interval = parseInt(rrule.match(/INTERVAL=(\d+)/)?.[1] ?? "1", 10) || 1
   const untilRaw = rrule.match(/UNTIL=([^;]+)/)?.[1]
-  const until = untilRaw ? parseICalDate(untilRaw)?.date ?? null : null
+  // UNTIL is an absolute, usually Z-suffixed (UTC), instant. A date-only UNTIL bounds the
+  // whole calendar day, so I push it to end-of-day UTC. I compare instants with getTime()
+  // below so the cutoff is evaluated in UTC, never against a local wall-clock reading.
+  const untilParsed = untilRaw ? parseICalDate(untilRaw) : null
+  const until = untilParsed
+    ? (untilParsed.allDay ? untilParsed.date.getTime() + 86400000 - 1 : untilParsed.date.getTime())
+    : null
   const countMatch = rrule.match(/COUNT=(\d+)/)
   const maxCount = countMatch ? parseInt(countMatch[1], 10) : Infinity
 
   const results: Array<{ start: Date; end: Date }> = []
   const push = (start: Date) => {
     if (start < dtstart) return
-    if (until && start > until) return
+    if (until !== null && start.getTime() > until) return
     if (start < windowStart || start > windowEnd) return
     results.push({ start, end: new Date(start.getTime() + duration) })
   }

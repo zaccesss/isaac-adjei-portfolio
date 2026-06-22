@@ -3,16 +3,8 @@
 // year since the account was created and cache results in Redis for 10 minutes.
 
 import { NextResponse } from "next/server"
-import { Redis } from "@upstash/redis"
+import { redis } from "@/lib/redis"
 import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
-
-let redis: Redis | null = null
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  })
-}
 
 const GITHUB_USER = "zaccesss"
 const CACHE_KEY = "github:stats:v4"

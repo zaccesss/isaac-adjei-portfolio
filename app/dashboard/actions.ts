@@ -36,9 +36,11 @@ async function readConfig(key: string) {
 //     created_at timestamptz NOT NULL DEFAULT now()
 //   );
 export async function logActivity(action: string, detail?: string) {
-  // No requireAuth here on purpose: logActivity is a fire-and-forget helper invoked only from
-  // already-authenticated actions (void logActivity(...)). An auth check could throw after the
-  // request context has ended, producing an unhandled rejection.
+  // logActivity is an exported server action, so it is a publicly callable POST endpoint and must
+  // gate on auth like every other action. All internal callers already run after their own auth
+  // check (the API routes 401 before reaching here, the actions call requireAuth first), so this
+  // guard never trips for legitimate calls - it only blocks a direct unauthenticated invocation.
+  await requireAuth()
   const { error } = await supabase.from("activity_log").insert({ action, detail: detail ?? null })
   if (error) console.error("[activity_log]", error.message, error.details)
 }
@@ -343,16 +345,20 @@ export async function createApplication(data: {
   category?: string
 }) {
   await requireAuth()
+  // Scraper-shaped rows (status='scraped') arrive with only the bare minimum populated, so I relax
+  // role/type/starred to optional for them and require just a company + status. Manually-created
+  // rows still go through the full strict validation below.
+  const isScraped = data.status === "scraped"
   if (
     !validStr(data.company) ||
-    !validStr(data.role) ||
-    !validStr(data.type) ||
+    (!isScraped && !validStr(data.role)) ||
+    (!isScraped && !validStr(data.type)) ||
     !optStr(data.applied_date) ||
     !optStr(data.deadline) ||
     !validStr(data.status) ||
     !optStr(data.notes, MAX_LONG_TEXT) ||
     !optStr(data.url) ||
-    typeof data.starred !== "boolean" ||
+    (!isScraped && typeof data.starred !== "boolean") ||
     !optStr(data.salary_range) ||
     !optStr(data.location) ||
     !optStr(data.work_mode) ||
@@ -426,7 +432,13 @@ export async function deleteApplication(id: string) {
 export async function bulkDeleteApplications(ids: string[]) {
   await requireAuth()
   if (!ids.length || ids.some((id) => !validId(id))) return INVALID
-  for (const id of ids) await moveToTrash("applications", id)
+  // I back up every row to trash first and return early if any backup fails, so the delete below
+  // never removes a row that could not be recovered.
+  try {
+    for (const id of ids) await moveToTrash("applications", id)
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Trash backup failed" }
+  }
   await supabase.from("applications").delete().in("id", ids)
   void logActivity("application.bulk_delete", `${ids.length} applications`)
   revalidatePath("/dashboard/applications")
@@ -926,7 +938,8 @@ export async function getConfig(key: string) {
 }
 
 // I cache the theme preference for 5 minutes so every protected dashboard page navigation
-// doesn't fire a Supabase round trip. revalidateTag("config-theme") in setConfig clears this immediately on change.
+// doesn't fire a Supabase round trip. setConfig expires the "config-theme" tag on change so the
+// new value is picked up straight away.
 export const getCachedTheme = unstable_cache(
   () => readConfig("theme_preference"),
   ["theme_preference"],
@@ -939,7 +952,10 @@ export async function setConfig(key: string, value: unknown) {
   // I upsert on the key column so the first write creates the row and subsequent ones update it
   // - no separate "does this key exist?" check needed, which would waste a round trip
   await supabase.from("config").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" })
-  if (key === "theme_preference") revalidateTag("config-theme", "default")
+  // I expire the theme cache immediately (expire: 0) rather than via the "default" cache-life profile.
+  // The default profile bounds invalidation by its own stale/expire window, so a theme change could
+  // lag a navigation or two - { expire: 0 } makes the next read pick up the new value straight away.
+  if (key === "theme_preference") revalidateTag("config-theme", { expire: 0 })
 }
 
 export type IcalFeed = { url: string; name: string; color: string }
@@ -1248,22 +1264,6 @@ export async function getDashboardSummary() {
 
 // ─── Global Search ────────────────────────────────────────────────────────────
 
-export async function getDashboardSearchData() {
-  await requireAuth()
-  const [goals, notes, diary, applications] = await Promise.all([
-    supabase.from("goals").select("id, title, category, status").order("created_at", { ascending: false }).limit(50),
-    supabase.from("notes").select("id, title, folder").order("updated_at", { ascending: false }).limit(50),
-    supabase.from("diary").select("id, title, mood, created_at").order("created_at", { ascending: false }).limit(50),
-    supabase.from("applications").select("id, company, role, status").order("applied_date", { ascending: false }).limit(50),
-  ])
-  return {
-    goals: goals.data ?? [],
-    notes: notes.data ?? [],
-    diary: diary.data ?? [],
-    applications: applications.data ?? [],
-  }
-}
-
 // Real-time ilike search across all major tables. Called client-side via server action
 // so the Supabase service key never touches the browser and we get proper debouncing.
 export async function searchDashboard(q: string) {
@@ -1486,7 +1486,13 @@ export async function bulkDeleteOpenSourceContributions(ids: string[]) {
   await requireAuth()
   // I validate each ID individually before sending the bulk delete.
   if (!ids.length || ids.some((id) => !validId(id))) return INVALID
-  for (const id of ids) await moveToTrash("opensource_contributions", id)
+  // I back up every row to trash first and return early if any backup fails, so the delete below
+  // never removes a row that could not be recovered.
+  try {
+    for (const id of ids) await moveToTrash("opensource_contributions", id)
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Trash backup failed" }
+  }
   await supabase.from("opensource_contributions").delete().in("id", ids)
   void logActivity("opensource.bulk_delete", `${ids.length} rows`)
   revalidatePath("/dashboard/opensource")
@@ -1632,7 +1638,7 @@ export async function clearAllJobs() {
   // left untouched.
   const { data } = await supabase.from("applications").select("*").eq("status", "scraped")
   if (data && data.length > 0) {
-    await supabase.from("trash").insert(
+    const { error: insErr } = await supabase.from("trash").insert(
       data.map((row) => ({
         table_name: "applications",
         original_id: row.id,
@@ -1640,6 +1646,9 @@ export async function clearAllJobs() {
         data: row,
       }))
     )
+    // I abort before deleting if the trash backup failed, otherwise the scraped rows would be gone
+    // with nothing recoverable.
+    if (insErr) return { error: insErr.message }
   }
   await supabase.from("applications").delete().eq("status", "scraped")
   void logActivity("scraper.cleared", `${data?.length ?? 0} scraped jobs moved to trash`)
@@ -1648,9 +1657,11 @@ export async function clearAllJobs() {
 
 export async function clearAllApplications() {
   await requireAuth()
-  const { data } = await supabase.from("applications").select("*").neq("id", "00000000-0000-0000-0000-000000000000")
+  // I exclude status='scraped' from BOTH the read and the delete so this only clears tracked
+  // applications - the scraped Jobs tab is cleared separately by clearAllJobs.
+  const { data } = await supabase.from("applications").select("*").neq("status", "scraped")
   if (data && data.length > 0) {
-    await supabase.from("trash").insert(
+    const { error: insErr } = await supabase.from("trash").insert(
       data.map((row) => ({
         table_name: "applications",
         original_id: row.id,
@@ -1658,8 +1669,11 @@ export async function clearAllApplications() {
         data: row,
       }))
     )
+    // I abort before deleting if the trash backup failed, otherwise the rows would be gone with
+    // nothing recoverable.
+    if (insErr) return { error: insErr.message }
   }
-  await supabase.from("applications").delete().neq("id", "00000000-0000-0000-0000-000000000000")
+  await supabase.from("applications").delete().neq("status", "scraped")
   void logActivity("application.cleared", `${data?.length ?? 0} applications moved to trash`)
   revalidatePath("/dashboard/applications")
 }
@@ -1752,7 +1766,13 @@ export async function deleteContact(id: string) {
 export async function bulkDeleteContacts(ids: string[]) {
   await requireAuth()
   if (!ids.length || ids.some((id) => !validId(id))) return INVALID
-  for (const id of ids) await moveToTrash("contacts", id)
+  // I back up every row to trash first and return early if any backup fails, so the delete below
+  // never removes a row that could not be recovered.
+  try {
+    for (const id of ids) await moveToTrash("contacts", id)
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Trash backup failed" }
+  }
   await supabase.from("contacts").delete().in("id", ids)
   void logActivity("contact.bulk_delete", `${ids.length} contacts`)
   revalidatePath("/dashboard/contacts")
@@ -1975,43 +1995,57 @@ export async function updateUniDeadline(id: string, data: Partial<{
   }
 }
 
-export async function bulkSyncApplicationsToLinear(): Promise<{ synced: number; skipped: number }> {
+export async function bulkSyncApplicationsToLinear(): Promise<{ synced: number; skipped: number; failed: number }> {
   await requireAuth()
   const { data: apps } = await supabase
     .from("applications")
     .select("id, company, role, type, status, url, linear_issue_id")
     .is("linear_issue_id", null)
     .neq("status", "Not Applied")
-  if (!apps) return { synced: 0, skipped: 0 }
+  if (!apps) return { synced: 0, skipped: 0, failed: 0 }
 
+  // I count three distinct outcomes: synced (issue created/updated), failed (the sync attempt threw)
+  // and skipped (everything else - e.g. Linear not configured or an unmapped status, the remainder).
+  // A genuine failure must not be reported as a benign skip.
   let synced = 0
+  let failed = 0
   for (const a of apps) {
-    const issueId = await syncApplicationToLinear(a)
-    if (issueId) {
-      await supabase.from("applications").update({ linear_issue_id: issueId }).eq("id", a.id)
-      synced++
+    try {
+      const issueId = await syncApplicationToLinear(a)
+      if (issueId) {
+        await supabase.from("applications").update({ linear_issue_id: issueId }).eq("id", a.id)
+        synced++
+      }
+    } catch {
+      failed++
     }
   }
-  return { synced, skipped: apps.length - synced }
+  return { synced, failed, skipped: apps.length - synced - failed }
 }
 
-export async function bulkSyncDeadlinesToLinear(): Promise<{ synced: number; skipped: number }> {
+export async function bulkSyncDeadlinesToLinear(): Promise<{ synced: number; skipped: number; failed: number }> {
   await requireAuth()
   const { data: deadlines } = await supabase
     .from("uni_deadlines")
     .select("id, title, type, due_date, status, linear_issue_id")
     .is("linear_issue_id", null)
-  if (!deadlines) return { synced: 0, skipped: 0 }
+  if (!deadlines) return { synced: 0, skipped: 0, failed: 0 }
 
+  // Same three-way accounting as bulkSyncApplicationsToLinear: a thrown sync is a failure, not a skip.
   let synced = 0
+  let failed = 0
   for (const d of deadlines) {
-    const issueId = await syncDeadlineToLinear(d)
-    if (issueId) {
-      await supabase.from("uni_deadlines").update({ linear_issue_id: issueId }).eq("id", d.id)
-      synced++
+    try {
+      const issueId = await syncDeadlineToLinear(d)
+      if (issueId) {
+        await supabase.from("uni_deadlines").update({ linear_issue_id: issueId }).eq("id", d.id)
+        synced++
+      }
+    } catch {
+      failed++
     }
   }
-  return { synced, skipped: deadlines.length - synced }
+  return { synced, failed, skipped: deadlines.length - synced - failed }
 }
 
 export async function deleteUniDeadline(id: string) {
