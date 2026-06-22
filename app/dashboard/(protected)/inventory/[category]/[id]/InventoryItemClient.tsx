@@ -2,7 +2,7 @@
 // I show the detail view for a single inventory item with editable fields and a warranty warning.
 // I live at /dashboard/inventory/[category]/[id] so each item has a bookmarkable URL.
 
-import { useState, useTransition } from "react"
+import { Fragment, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft, Edit2, Trash2, ExternalLink } from "lucide-react"
@@ -282,10 +282,10 @@ export default function InventoryItemClient({
           return specs ? (
             <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-sm border-t border-border/50 pt-3 mt-1">
               {specs.map(({ key, value }) => (
-                <>
-                  <dt key={`dt-${key}`} className="text-muted-foreground/70 whitespace-nowrap">{key}</dt>
-                  <dd key={`dd-${key}`} className="text-muted-foreground">{value}</dd>
-                </>
+                <Fragment key={key}>
+                  <dt className="text-muted-foreground/70 whitespace-nowrap">{key}</dt>
+                  <dd className="text-muted-foreground">{value}</dd>
+                </Fragment>
               ))}
             </dl>
           ) : (
@@ -302,10 +302,10 @@ export default function InventoryItemClient({
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-4">Details</p>
           <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-3 text-sm">
             {detailFields.map(({ label, value }) => (
-              <>
-                <dt key={`dt-${label}`} className="text-muted-foreground whitespace-nowrap">{label}</dt>
-                <dd key={`dd-${label}`} className="text-foreground">{value}</dd>
-              </>
+              <Fragment key={label}>
+                <dt className="text-muted-foreground whitespace-nowrap">{label}</dt>
+                <dd className="text-foreground">{value}</dd>
+              </Fragment>
             ))}
           </dl>
         </div>

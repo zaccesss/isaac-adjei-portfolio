@@ -11,6 +11,7 @@ import {
   updateAssessmentMark, updateAssessment, createAssessment, deleteAssessment,
   updateModuleStatus, updateModule, createModule, deleteModule,
 } from "../../../actions"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -242,6 +243,7 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
   // I keep a draft object for module edits so half-typed changes do not corrupt the displayed name
   const [modDraft, setModDraft] = useState({ name: mod.name, code: mod.code ?? "", credits: mod.credits ?? 15, summary: mod.summary ?? "", rules: mod.rules ?? "" })
   const [, startTransition] = useTransition()
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   // I split graded and pass/fail into separate lists so the table sections are always consistent
   const graded = mod.assessments.filter((a) => !a.is_pass_fail)
@@ -276,7 +278,14 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
     setEditAss(null)
   }
 
-  function handleDeleteAssessment(id: string) {
+  async function handleDeleteAssessment(id: string) {
+    const assessment = mod.assessments.find((a) => a.id === id)
+    const ok = await showConfirm({
+      title: assessment ? `Delete "${assessment.name}"?` : "Delete assessment?",
+      description: "This assessment and its mark will be permanently deleted.",
+      destructive: true,
+    })
+    if (!ok) return
     // I update local state first so the row disappears instantly
     setMod((m) => ({ ...m, assessments: m.assessments.filter((a) => a.id !== id) }))
     startTransition(() => void deleteAssessment(id))
@@ -450,6 +459,7 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
           <AssessmentForm initial={editAss ?? undefined} moduleId={mod.id} onClose={handleAssessmentSaved} />
         </DialogContent>
       </Dialog>
+      {confirmDialogNode}
     </div>
   )
 }
@@ -516,6 +526,7 @@ export default function ModulesYearClient({
   const [selectedModule, setSelectedModule] = useState<Module | null>(null)
   const [addModOpen, setAddModOpen] = useState(false)
   const [, startTransition] = useTransition()
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   if (selectedModule) {
     // I read the module from local state so any assessment edits made in ModuleDetail
@@ -555,7 +566,14 @@ export default function ModulesYearClient({
   const credits = completed.reduce((s, m) => s + (m.credits ?? 0), 0)
   const totalCredits = mods.reduce((s, m) => s + (m.credits ?? 0), 0)
 
-  function handleDeleteModule(id: string) {
+  async function handleDeleteModule(id: string) {
+    const mod = mods.find((m) => m.id === id)
+    const ok = await showConfirm({
+      title: mod ? `Delete "${mod.name}"?` : "Delete module?",
+      description: "This module and all its assessments and marks will be permanently deleted.",
+      destructive: true,
+    })
+    if (!ok) return
     setMods((prev) => prev.filter((m) => m.id !== id))
     startTransition(() => void deleteModule(id))
   }
@@ -654,6 +672,7 @@ export default function ModulesYearClient({
           <AddModuleForm yearSlug={yearSlug} onClose={(mod) => { if (mod) setMods((m) => [...m, mod]); setAddModOpen(false) }} />
         </DialogContent>
       </Dialog>
+      {confirmDialogNode}
     </motion.div>
   )
 }

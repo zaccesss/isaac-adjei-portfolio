@@ -8,6 +8,7 @@
 import { useState, useTransition } from "react"
 import Link from "next/link"
 import { createApplication, updateApplication, deleteApplication, archiveApplication, reopenApplication, bulkDeleteApplications } from "../../actions"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useBulkSelect } from "@/hooks/useBulkSelect"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -847,6 +848,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const [editApp, setEditApp] = useState<Application | null>(null)
   const [prepApp, setPrepApp] = useState<Application | null>(null)
   const [, startTransition] = useTransition()
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   const isEvent = activeTab === "Events"
   const today = new Date()
@@ -1047,19 +1049,40 @@ export default function ApplicationsClient({ applications: initial }: { applicat
     )
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
+    const app = apps.find((a) => a.id === id)
+    const ok = await showConfirm({
+      title: app ? `Delete ${app.company} - ${app.role}?` : "Delete application?",
+      description: "This application will be permanently deleted.",
+      destructive: true,
+    })
+    if (!ok) return
     setApps((prev) => prev.filter((a) => a.id !== id))
     startTransition(() => void deleteApplication(id))
   }
 
-  function handleBulkDelete() {
+  async function handleBulkDelete() {
     const ids = [...bulkSelected]
     if (!ids.length) return
+    const ok = await showConfirm({
+      title: `Delete ${ids.length} application${ids.length === 1 ? "" : "s"}?`,
+      description: `${ids.length} selected application${ids.length === 1 ? "" : "s"} will be permanently deleted.`,
+      destructive: true,
+    })
+    if (!ok) return
     setApps((prev) => prev.filter((a) => !bulkSelected.has(a.id)))
     startTransition(() => void bulkDeleteApplications(ids))
   }
 
-  function handleArchive(id: string) {
+  async function handleArchive(id: string) {
+    const app = apps.find((a) => a.id === id)
+    const ok = await showConfirm({
+      title: app ? `Archive ${app.company} - ${app.role}?` : "Archive application?",
+      description: "This application will be moved to the archive. You can reopen it later.",
+      confirmLabel: "Archive",
+      destructive: false,
+    })
+    if (!ok) return
     setApps((prev) => prev.map((a) => (a.id === id ? { ...a, archived: true } : a)))
     startTransition(() => void archiveApplication(id))
   }
@@ -1456,6 +1479,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
           onSave={handleSavePrep}
         />
       )}
+      {confirmDialogNode}
     </div>
   )
 }

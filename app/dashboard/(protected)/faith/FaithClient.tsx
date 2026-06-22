@@ -9,7 +9,7 @@ import MarkdownContent from "@/components/shared/MarkdownContent"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, BookOpen, Cross, Church, Heart, Star, Check, Clock } from "lucide-react"
+import { Plus, Trash2, BookOpen, Cross, Church, Heart, Star, Pencil, Check, Clock } from "lucide-react"
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
 
 type FaithEntry = {
@@ -117,8 +117,11 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
 
   const todayEntries = entries.filter((e) => e.date === today)
   const streak = calcStreak(entries, today)
-  const totalMinutes = entries.reduce((s, e) => s + (e.duration_m ?? 0), 0)
-  const uniqueDays = new Set(entries.filter((e) => e.completed).map((e) => e.date)).size
+  // Windowed to the last 90 days so the values match the "90d" label and the charts below.
+  const cutoff90 = new Date(new Date(today).getTime() - 90 * 86400000).toISOString().split("T")[0]
+  const recentEntries = entries.filter((e) => e.date >= cutoff90)
+  const totalMinutes = recentEntries.reduce((s, e) => s + (e.duration_m ?? 0), 0)
+  const uniqueDays = new Set(recentEntries.filter((e) => e.completed).map((e) => e.date)).size
 
   // Weekly bar chart: last 4 weeks, count of entries per week
   const weeks = Array.from({ length: 12 }, (_, i) => {
@@ -234,7 +237,7 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
         {[
           { label: "Current streak", value: streak, suffix: streak === 1 ? "day" : "days", icon: "🔥" },
           { label: "Days active (90d)", value: uniqueDays, suffix: "days", icon: "✅" },
-          { label: "Total minutes", value: totalMinutes, suffix: "min", icon: "⏱" },
+          { label: "Total minutes (90d)", value: totalMinutes, suffix: "min", icon: "⏱" },
           { label: "Today", value: todayEntries.length, suffix: todayEntries.length === 1 ? "entry" : "entries", icon: "📖" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-border/60 bg-card p-4 space-y-1">
@@ -315,7 +318,7 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                   <Button size="icon" variant="ghost" className="h-7 w-7" title="Edit entry" onClick={() => openEdit(e)}>
-                    <Star className="h-3.5 w-3.5" />
+                    <Pencil className="h-3.5 w-3.5" />
                   </Button>
                   <Button
                     size="icon"

@@ -6,6 +6,7 @@
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
 import { createNote, updateNote, deleteNote, toggleNoteHidden, toggleNoteLocked, toggleNotePinned } from "@/app/dashboard/actions"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -51,6 +52,7 @@ export default function NotesFolderClient({
   const [preview, setPreview] = useState(false)
   const [unlockingNote, setUnlockingNote] = useState<Note | null>(null)
   const [, startTransition] = useTransition()
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   // I derive all tags from the live notes array so they stay in sync after edits
   const allTags = Array.from(new Set(notes.flatMap((n) => n.tags)))
@@ -99,7 +101,14 @@ export default function NotesFolderClient({
     startTransition(() => void updateNote(selected.id, draft))
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
+    const note = notes.find((x) => x.id === id)
+    const ok = await showConfirm({
+      title: note ? `Delete "${note.title}"?` : "Delete note?",
+      description: "This note will be permanently deleted.",
+      destructive: true,
+    })
+    if (!ok) return
     setNotes((n) => n.filter((x) => x.id !== id))
     if (selected?.id === id) setSelected(null)
     startTransition(() => void deleteNote(id))
@@ -336,6 +345,7 @@ export default function NotesFolderClient({
           )}
         </div>
       </div>
+      {confirmDialogNode}
     </motion.div>
   )
 }

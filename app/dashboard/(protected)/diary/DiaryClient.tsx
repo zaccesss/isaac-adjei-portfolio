@@ -4,6 +4,7 @@
 
 import { useState, useTransition } from "react"
 import { createDiaryEntry, updateDiaryEntry, deleteDiaryEntry, toggleDiaryHidden, toggleDiaryPinned, toggleDiaryLocked } from "../../actions"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -244,6 +245,7 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
   const [editEntry, setEditEntry] = useState<Entry | null>(null)
   const [showHidden, setShowHidden] = useState(false)
   const [, startTransition] = useTransition()
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   function handleAdd(data: typeof emptyForm) {
     // I place the new entry at the top because diary entries are always shown newest-first
@@ -270,7 +272,14 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
     startTransition(() => void updateDiaryEntry(editEntry.id, { title: data.title, content: data.content, mood: data.mood }))
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
+    const entry = entries.find((e) => e.id === id)
+    const ok = await showConfirm({
+      title: entry ? `Delete "${entry.title}"?` : "Delete entry?",
+      description: "This diary entry will be permanently deleted.",
+      destructive: true,
+    })
+    if (!ok) return
     setEntries((prev) => prev.filter((e) => e.id !== id))
     startTransition(() => void deleteDiaryEntry(id))
   }
@@ -345,6 +354,7 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
           )}
         </DialogContent>
       </Dialog>
+      {confirmDialogNode}
     </div>
   )
 }

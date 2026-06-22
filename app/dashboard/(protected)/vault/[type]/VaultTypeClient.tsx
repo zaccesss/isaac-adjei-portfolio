@@ -6,6 +6,7 @@
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
 import { createVaultEntry, updateVaultEntry, deleteVaultEntry, toggleVaultHidden, toggleVaultLocked } from "@/app/dashboard/actions"
+import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -327,6 +328,7 @@ export default function VaultTypeClient({
   const [addOpen, setAddOpen] = useState(false)
   // I keep editEntry as a state var rather than a boolean so the form can receive the entry to pre-populate
   const [editEntry, setEditEntry] = useState<VaultEntry | null>(null)
+  const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   const filtered = entries
     .filter((e) => {
@@ -356,7 +358,14 @@ export default function VaultTypeClient({
     setEditEntry(null)
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
+    const entry = entries.find((e) => e.id === id)
+    const ok = await showConfirm({
+      title: entry ? `Delete "${entry.name}"?` : "Delete entry?",
+      description: "This entry will be permanently deleted.",
+      destructive: true,
+    })
+    if (!ok) return
     // I remove locally first so the card disappears immediately - the server call runs after
     setEntries((prev) => prev.filter((e) => e.id !== id))
     deleteVaultEntry(id)
@@ -429,6 +438,7 @@ export default function VaultTypeClient({
           {editEntry && <VaultForm fixedType={type} initial={editEntry} onClose={handleSaved} />}
         </DialogContent>
       </Dialog>
+      {confirmDialogNode}
     </motion.div>
   )
 }
