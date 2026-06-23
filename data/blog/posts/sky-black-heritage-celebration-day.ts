@@ -9,7 +9,7 @@ const _sky_black_heritage_celebration_day: BlogPost = {
     description:
       "Reflections on being invited to Sky Campus, Osterley, as a finalist for the Black Heritage Undergraduate of the Year award. What the day taught me about Sky, about career, and about the importance of representation.",
     tags: ["Sky", "Career", "Award", "Black Heritage", "Networking", "Personal"],
-    published: true,
+    published: false,
     content: [
       {
         type: "h2",
