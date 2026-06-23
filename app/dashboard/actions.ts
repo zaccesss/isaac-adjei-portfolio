@@ -1949,6 +1949,95 @@ export async function deleteBodyMetric(id: string) {
   void logActivity("body_metric.delete", id)
 }
 
+// ─── Weight Tracker (weight goal, food and workout logs) ───────
+
+export async function logWeight(date: string, value: number) {
+  await requireAuth()
+  if (!validStr(date) || !validNum(value, 0, 999)) return INVALID
+  const { error } = await supabase.from("body_metrics").insert({ date, metric: "weight_kg", value, unit: "kg" })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/health/weight-loss")
+  revalidatePath("/dashboard/health")
+  void logActivity("weight.log", `${value}kg`)
+}
+
+export async function setWeightGoal(data: { startWeight: number; targetWeight: number; startDate: string; targetDate: string }) {
+  await requireAuth()
+  if (!validNum(data.startWeight, 0, 999) || !validNum(data.targetWeight, 0, 999)) return INVALID
+  if (!validStr(data.startDate) || !validStr(data.targetDate)) return INVALID
+  const { error } = await supabase.from("config").upsert(
+    {
+      key: "weight_goal",
+      value: { startWeight: data.startWeight, targetWeight: data.targetWeight, startDate: data.startDate, targetDate: data.targetDate },
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" },
+  )
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/health/weight-loss")
+  void logActivity("weight.goal", `target ${data.targetWeight}kg by ${data.targetDate}`)
+}
+
+export async function createNutritionLog(data: {
+  date: string
+  meal: string
+  name: string
+  calories: number
+  protein_g?: number
+  carbs_g?: number
+  fat_g?: number
+}) {
+  await requireAuth()
+  if (!validStr(data.date) || !validStr(data.meal) || !validStr(data.name)) return INVALID
+  if (!validNum(data.calories, 0, 20000)) return INVALID
+  const { error } = await supabase.from("nutrition_logs").insert({
+    date: data.date,
+    meal: data.meal,
+    name: data.name.trim(),
+    calories: data.calories,
+    protein_g: data.protein_g ?? null,
+    carbs_g: data.carbs_g ?? null,
+    fat_g: data.fat_g ?? null,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/health/weight-loss")
+  void logActivity("nutrition.log", `${data.name}: ${data.calories}kcal`)
+}
+
+export async function deleteNutritionLog(id: string) {
+  await requireAuth()
+  if (!validId(id)) return INVALID
+  await supabase.from("nutrition_logs").delete().eq("id", id)
+  revalidatePath("/dashboard/health/weight-loss")
+  void logActivity("nutrition.delete", id)
+}
+
+export async function createWorkoutLog(data: { date: string; type: string; duration_min?: number; calories?: number; notes?: string }) {
+  await requireAuth()
+  if (!validStr(data.date) || !validStr(data.type)) return INVALID
+  if (data.duration_min !== undefined && !validNum(data.duration_min, 0, 1440)) return INVALID
+  if (data.calories !== undefined && !validNum(data.calories, 0, 20000)) return INVALID
+  if (!optStr(data.notes)) return INVALID
+  const { error } = await supabase.from("workout_logs").insert({
+    date: data.date,
+    type: data.type,
+    duration_min: data.duration_min ?? null,
+    calories: data.calories ?? null,
+    notes: data.notes?.trim() || null,
+  })
+  if (error) return { error: error.message }
+  revalidatePath("/dashboard/health/weight-loss")
+  void logActivity("workout.log", data.type)
+}
+
+export async function deleteWorkoutLog(id: string) {
+  await requireAuth()
+  if (!validId(id)) return INVALID
+  await supabase.from("workout_logs").delete().eq("id", id)
+  revalidatePath("/dashboard/health/weight-loss")
+  void logActivity("workout.delete", id)
+}
+
 // ─── University ──────────────────────────────────────────────
 
 export async function createUniModule(data: {
