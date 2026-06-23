@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.34.0] - 2026-06-23
+
+### Added
+
+- The University Submissions log gained a "submitted in" period selector with In-period, Total logged and Modules cards, scoping the log to what I submitted in the chosen range
+
+---
+
 ## [v2.33.0] - 2026-06-23
 
 Richer, fully interactive analytics and a sidebar tidy-up.
