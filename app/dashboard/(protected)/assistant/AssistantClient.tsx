@@ -179,7 +179,7 @@ export default function AssistantClient({ configured, initialChats, providers }:
             <Sparkles className="h-5 w-5 text-primary shrink-0" />
             <div className="min-w-0">
               <h1 className="text-lg font-semibold leading-tight">Assistant</h1>
-              <p className="text-xs text-muted-foreground truncate">Read-only - reads your data to answer, never changes it. Not saved unless you save it.</p>
+              <p className="text-xs text-muted-foreground truncate">Read-only - reads my data to answer, never changes it. Not saved unless I save it.</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -196,7 +196,7 @@ export default function AssistantClient({ configured, initialChats, providers }:
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
               <Bot className="h-10 w-10 text-muted-foreground" />
-              <p className="text-sm font-medium">Ask me about your week, applications, coding, faith, health or goals.</p>
+              <p className="text-sm font-medium">Ask about my week, projects, applications, coding, faith or goals.</p>
               <div className="flex flex-wrap gap-2 justify-center max-w-md">
                 {SUGGESTIONS.map((s) => (
                   <button key={s} type="button" onClick={() => submit(s)} className="text-xs border border-border rounded-full px-3 py-1.5 hover:border-primary/40 hover:bg-muted/50 transition-colors">{s}</button>

@@ -9,6 +9,14 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
 import { auth } from "@/auth"
 import { supabase } from "@/lib/supabase"
 import { checkRateLimit, heavyApiLimiter, getIp } from "@/lib/ratelimit"
+import { projects } from "@/data/projects"
+import { experiences } from "@/data/experience"
+import { education } from "@/data/education"
+import { professionalSkillGroups } from "@/data/skills"
+import { societies } from "@/data/societies"
+import { posts } from "@/data/blog"
+import { tilEntries } from "@/data/til"
+import { publications } from "@/data/respub"
 
 // My in-dashboard AI assistant. It is READ-ONLY by construction: it can read a fixed allow-list of my
 // own non-sensitive sections (via the getDashboardData tool) and stream back text. It has NO write or
@@ -20,7 +28,7 @@ export const maxDuration = 60
 
 // The ONLY sections the assistant can ever read. Everything else (vault, diary, notes, contacts, us, me,
 // activity log, settings, trash) is intentionally absent - there is no tool path to it.
-const SECTIONS = ["applications", "coding", "streaks", "habits", "goals", "faith", "study", "health", "content", "university", "calendar", "inventory", "wishlist"] as const
+const SECTIONS = ["applications", "coding", "streaks", "habits", "goals", "faith", "study", "content", "university", "calendar", "inventory", "wishlist", "portfolio"] as const
 
 const since = (days: number) => new Date(Date.now() - days * 86400000).toISOString().slice(0, 10)
 
@@ -37,13 +45,16 @@ async function readSection(section: (typeof SECTIONS)[number]): Promise<string> 
       return `By status: ${Object.entries(byStatus).map(([s, c]) => `${s}: ${c}`).join(", ")}. Tracked applications: ${tracked.length}. Recent: ${recent || "none"}`
     }
     if (section === "coding") {
-      const { data } = await supabase.from("wakatime_daily").select("date,total_seconds,languages").gte("date", since(90))
-      const wd = (data ?? []) as { date: string; total_seconds: number | null; languages: { name: string; total_seconds: number }[] | null }[]
+      const { data } = await supabase.from("wakatime_daily").select("date,total_seconds,languages,projects,editors,operating_systems").gte("date", since(90))
+      type Item = { name: string; total_seconds: number }
+      const wd = (data ?? []) as { date: string; total_seconds: number | null; languages: Item[] | null; projects: Item[] | null; editors: Item[] | null; operating_systems: Item[] | null }[]
       const h = (from: string) => (wd.filter((r) => r.date >= from).reduce((a, r) => a + (r.total_seconds ?? 0), 0) / 3600).toFixed(1)
-      const lt: Record<string, number> = {}
-      for (const r of wd) for (const l of r.languages ?? []) lt[l.name] = (lt[l.name] ?? 0) + (l.total_seconds ?? 0)
-      const top = Object.entries(lt).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([n, s]) => `${n} (${(s / 3600).toFixed(1)}h)`).join(", ")
-      return `Coding hours - today ${h(today)}, 7d ${h(since(7))}, 30d ${h(since(30))}, 90d ${h(since(90))}. Top languages (90d): ${top || "none"}`
+      const topOf = (key: "languages" | "projects" | "editors" | "operating_systems", n: number) => {
+        const agg: Record<string, number> = {}
+        for (const r of wd) for (const it of (r[key] as Item[] | null) ?? []) agg[it.name] = (agg[it.name] ?? 0) + (it.total_seconds ?? 0)
+        return Object.entries(agg).sort((a, b) => b[1] - a[1]).slice(0, n).map(([nm, s]) => `${nm} (${(s / 3600).toFixed(1)}h)`).join(", ") || "none"
+      }
+      return `Coding hours - today ${h(today)}, 7d ${h(since(7))}, 30d ${h(since(30))}, 90d ${h(since(90))}. Top languages: ${topOf("languages", 6)}. Top projects: ${topOf("projects", 6)}. Editors: ${topOf("editors", 4)}. OS: ${topOf("operating_systems", 3)}`
     }
     if (section === "streaks") {
       const [{ data: streaks }, { data: logs }] = await Promise.all([
@@ -83,15 +94,6 @@ async function readSection(section: (typeof SECTIONS)[number]): Promise<string> 
       for (const r of rows) bySubject[r.subject] = (bySubject[r.subject] ?? 0) + (r.duration_m ?? 0)
       return `Study last 60d: ${totalH}h total. By subject: ${Object.entries(bySubject).sort((a, b) => b[1] - a[1]).map(([s, m]) => `${s} ${(m / 60).toFixed(1)}h`).join(", ") || "none"}`
     }
-    if (section === "health") {
-      const [{ data: workouts }, { data: metrics }] = await Promise.all([
-        supabase.from("health_workouts").select("date,type").gte("date", since(30)).order("date", { ascending: false }).limit(30),
-        supabase.from("body_metrics").select("metric,value,unit,date").order("date", { ascending: false }).limit(12),
-      ])
-      const latest: Record<string, string> = {}
-      for (const m of metrics ?? []) if (!latest[m.metric]) latest[m.metric] = `${m.value}${m.unit ?? ""} (${m.date})`
-      return `Workouts last 30d: ${(workouts ?? []).length}. Latest body metrics: ${Object.entries(latest).map(([k, v]) => `${k} ${v}`).join(", ") || "none"}`
-    }
     if (section === "content") {
       const [{ data: os }, { count: reads }] = await Promise.all([
         supabase.from("opensource_contributions").select("repo,title,status").order("created_at", { ascending: false }).limit(20),
@@ -124,6 +126,18 @@ async function readSection(section: (typeof SECTIONS)[number]): Promise<string> 
       const { data } = await supabase.from("wishlist").select("name,category,status,priority").order("created_at", { ascending: false }).limit(80)
       const rows = data ?? []
       return `Wishlist (${rows.length}): ${rows.map((r) => `${r.name}${r.category ? ` [${r.category}]` : ""}${r.priority ? ` (priority ${r.priority})` : ""}${r.status ? ` - ${r.status}` : ""}`).join("; ") || "nothing on it"}`
+    }
+    if (section === "portfolio") {
+      // All public site content, imported statically - safe to share in full.
+      const proj = projects.map((p) => `${p.title} (${p.category}): ${p.technologies.slice(0, 5).join(", ")}`).join("; ")
+      const exp = experiences.map((e) => `${e.role} at ${e.company}${e.startDate ? ` (${e.startDate})` : ""}`).join("; ")
+      const edu = education.map((e) => `${e.degree} in ${e.field}, ${e.institution}${e.grade ? ` - ${e.grade}` : ""}`).join("; ")
+      const skl = professionalSkillGroups.map((g) => `${g.label}: ${g.skills.slice(0, 8).join(", ")}`).join("; ")
+      const soc = societies.map((s) => `${s.name} (${s.role})`).join("; ")
+      const blg = posts.map((p) => `${p.title}${p.tags?.length ? ` [${p.tags.slice(0, 3).join(", ")}]` : ""}`).join("; ")
+      const til = tilEntries.map((t) => t.title).join("; ")
+      const pub = publications.map((p) => `${p.title} (${p.venue}, ${p.year})`).join("; ")
+      return `Projects: ${proj}\nExperience: ${exp}\nEducation: ${edu}\nSkills: ${skl}\nSocieties: ${soc}\nBlog posts: ${blg}\nTILs: ${til}\nResearch: ${pub}`
     }
     return "Unknown section."
   } catch {
@@ -214,11 +228,12 @@ export async function POST(req: Request) {
     "help real people.",
     "",
     "You can also look up his live dashboard data when a question calls for it, using the getDashboardData",
-    "tool: applications, coding, streaks, habits, goals, faith, study, health, content, university,",
-    "calendar, inventory, wishlist. Reach for it on questions about his own life and numbers; otherwise",
-    "just talk normally. You can only read it and never change anything, and his private sections (vault,",
-    "diary, notes, contacts, us, me) are not available to you.",
-    "This is Isaac's own private data behind his login, so treat anything personal (health, faith, plans)",
+    "tool: applications, coding, streaks, habits, goals, faith, study, content, university,",
+    "calendar, inventory, wishlist, and portfolio (public projects, experience, education, skills,",
+    "societies, blog posts, TILs and research). Reach for it on questions about his life, work or numbers;",
+    "otherwise just talk normally. You can only read it and never change anything, and his private",
+    "sections (vault, diary, notes, contacts, us, me) are not available to you.",
+    "This is Isaac's own private data behind his login, so treat anything personal (faith, plans, details)",
     "with discretion. If you ever notice something that looks like a security risk or a secret in what you",
     "read (a password, API key or token), do not repeat it back and tell him so he can remove it.",
     "When you show code, always put it in a fenced markdown code block with the language (for example",

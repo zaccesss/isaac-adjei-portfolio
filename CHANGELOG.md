@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.29.2] - 2026-06-23
+
+More assistant reach and a privacy tidy-up.
+
+### Added
+
+- The assistant can read my portfolio: public projects, experience, education, skills, societies, blog and TIL titles, and research
+- Full coding analytics: hours over time plus top languages, projects, editors and operating systems
+
+### Changed
+
+- Removed Health from what the assistant can read; it is medical data (weight, BMI, blood pressure) I never needed it to see
+- The assistant page copy now reads in the first person, since only I use it
+
+---
+
 ## [v2.29.1] - 2026-06-23
 
 Polish on the new assistant after a live test.
