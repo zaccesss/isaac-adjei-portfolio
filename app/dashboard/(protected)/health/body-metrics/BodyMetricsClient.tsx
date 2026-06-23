@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Trash2, TrendingUp, TrendingDown, Minus, Pencil } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
+import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod } from "@/components/analytics"
 
 type Metric = {
   id: string
@@ -36,7 +37,7 @@ function metricLabel(m: string) {
 
 const COLOURS = ["hsl(var(--primary))", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444", "#06b6d4", "#f97316"]
 
-export default function BodyMetricsClient({ metrics }: { metrics: Metric[] }) {
+function BodyMetricsClientInner({ metrics }: { metrics: Metric[] }) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [selectedMetric, setSelectedMetric] = useState<string>("weight_kg")
@@ -94,14 +95,16 @@ export default function BodyMetricsClient({ metrics }: { metrics: Metric[] }) {
     })
   }
 
+  const { period } = useAnalyticsPeriod()
+  const periodMetrics = filterByPeriod(metrics, period, (m) => m.date)
   const allMetricTypes = [...new Set(metrics.map((m) => m.metric))]
   const displayMetric = selectedMetric && metrics.some((m) => m.metric === selectedMetric)
     ? selectedMetric
     : allMetricTypes[0] ?? "weight_kg"
 
-  const chartData = metrics
+  const chartData = periodMetrics
     .filter((m) => m.metric === displayMetric)
-    .slice(0, 30)
+    .slice(0, 120)
     .reverse()
     .map((m) => ({ date: m.date.slice(5), value: m.value }))
 
@@ -215,6 +218,10 @@ export default function BodyMetricsClient({ metrics }: { metrics: Metric[] }) {
               ))}
             </div>
           )}
+
+          <div className="flex justify-end">
+            <PeriodSelector />
+          </div>
 
           {/* Chart for selected metric */}
           {chartData.length > 1 && (
@@ -343,5 +350,13 @@ export default function BodyMetricsClient({ metrics }: { metrics: Metric[] }) {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function BodyMetricsClient(props: { metrics: Metric[] }) {
+  return (
+    <AnalyticsPeriodProvider defaultPeriod="90d">
+      <BodyMetricsClientInner {...props} />
+    </AnalyticsPeriodProvider>
   )
 }
