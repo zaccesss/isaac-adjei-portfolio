@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.28.0] - 2026-06-23
+
+A read-only in-dashboard AI assistant.
+
+### Added
+
+- A new Assistant page in the dashboard - a chat that reads a snapshot of my own data (applications, coding, streaks, goals, deadlines) and answers questions or drafts text. It is read-only by design so it can never change or delete anything, sits behind my login and is rate limited. A model dropdown switches between Gemini, Groq Llama 3.3, DeepSeek R1, DeepSeek V3 and Llama, with automatic fallback if one is unavailable
+
+---
+
 ## [v2.27.0] - 2026-06-22
 
 Two public-site fixes (the lab coding stats and the live Discord card) plus image upload in the notes and diary editor.

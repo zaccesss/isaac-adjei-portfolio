@@ -8,7 +8,7 @@ import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
   Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users,
-  Brain, Church, School, CheckSquare, CalendarDays, ChevronDown, FolderOpen
+  Brain, Church, School, CheckSquare, CalendarDays, ChevronDown, FolderOpen, Sparkles
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -19,6 +19,7 @@ type NavGroup = { group: string; icon?: React.ComponentType<{ className?: string
 
 const nav: (NavItem | NavGroup)[] = [
   { href: "/dashboard/me", label: "Me", icon: User },
+  { href: "/dashboard/assistant", label: "Assistant", icon: Sparkles },
   { href: "/dashboard/us", label: "Us", icon: Heart },
   { href: "/dashboard/goals", label: "Goals", icon: Target },
   { href: "/dashboard/applications", label: "Applications", icon: Briefcase },
