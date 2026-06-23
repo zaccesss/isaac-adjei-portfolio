@@ -29,13 +29,20 @@ async function q(table: string) {
   return data ?? []
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   // I require an authenticated dashboard session - this endpoint returns the entire personal
   // database, so it must never be reachable without the GitHub session.
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
 
-  const entries = await Promise.all(EXPORT_TABLES.map(async (t) => [t, await q(t)] as const))
+  // Optional ?tables=applications,goals exports only those tables; with no param it exports everything.
+  const requested = new URL(req.url).searchParams.get("tables")
+  const selected = requested
+    ? EXPORT_TABLES.filter((t) => requested.split(",").map((s) => s.trim()).includes(t))
+    : [...EXPORT_TABLES]
+  const tables = selected.length > 0 ? selected : [...EXPORT_TABLES]
+
+  const entries = await Promise.all(tables.map(async (t) => [t, await q(t)] as const))
   const bundle = {
     exported_at: new Date().toISOString(),
     version: "1.1",

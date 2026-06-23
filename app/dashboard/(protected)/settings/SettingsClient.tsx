@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   KeyRound, Shield, Cpu, Clock, CheckCircle2, XCircle,
-  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity, Trash2, Plug, GraduationCap, Briefcase, Download
+  RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity, Trash2, Plug, GraduationCap, Briefcase, Download, Wrench
 } from "lucide-react"
 import { SiSpotify } from "react-icons/si"
 import { setConfig, clearAllJobs, clearAllApplications, bulkSyncDeadlinesToLinear, bulkSyncApplicationsToLinear } from "@/app/dashboard/actions"
@@ -59,10 +59,133 @@ function StatusBadge({ status, lastRun }: { status: "success" | "failure" | "unk
   )
 }
 
+function MaintenancePanel() {
+  const [enabled, setEnabled] = useState(false)
+  const [message, setMessage] = useState("")
+  const [loaded, setLoaded] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [status, setStatus] = useState<{ text: string; ok: boolean } | null>(null)
+
+  useEffect(() => {
+    fetch("/api/dashboard/maintenance")
+      .then((r) => r.json())
+      .then((d: { enabled?: boolean; message?: string }) => {
+        setEnabled(Boolean(d.enabled))
+        setMessage(typeof d.message === "string" ? d.message : "")
+      })
+      .catch(() => {})
+      .finally(() => setLoaded(true))
+  }, [])
+
+  async function save(next: { enabled: boolean; message: string }) {
+    setSaving(true)
+    setStatus(null)
+    try {
+      const res = await fetch("/api/dashboard/maintenance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      })
+      if (!res.ok) throw new Error()
+      setStatus({ text: next.enabled ? "Maintenance is ON - logged-out visitors see the maintenance page." : "Maintenance is OFF.", ok: true })
+    } catch {
+      setStatus({ text: "Could not save. Try again.", ok: false })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function toggle() {
+    const next = !enabled
+    setEnabled(next)
+    void save({ enabled: next, message })
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium">Public maintenance mode</p>
+          <p className="text-xs text-muted-foreground">When on, logged-out visitors see a maintenance page. You always keep full access to the site and dashboard.</p>
+        </div>
+        <button
+          type="button"
+          onClick={toggle}
+          disabled={!loaded || saving}
+          aria-label="Toggle maintenance mode"
+          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${enabled ? "bg-primary" : "bg-muted"}`}
+        >
+          <span className={`inline-block h-5 w-5 transform rounded-full bg-background shadow transition-transform ${enabled ? "translate-x-5" : "translate-x-0.5"}`} />
+        </button>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-medium text-muted-foreground">Custom message</label>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={2}
+          maxLength={500}
+          placeholder="Fixing something, back soon..."
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+        <div className="flex items-center gap-3">
+          <Button type="button" size="sm" variant="outline" disabled={saving} onClick={() => save({ enabled, message })}>Save message</Button>
+          <a href="/maintenance" target="_blank" rel="noreferrer" className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">Preview page</a>
+        </div>
+      </div>
+      {status && <span className={`text-xs ${status.ok ? "text-green-600" : "text-destructive"}`}>{status.text}</span>}
+    </div>
+  )
+}
+
+// Friendly sections mapped to the real table names, so I can export just one part (e.g. Applications)
+// instead of the whole database. Table names must match the export route's EXPORT_TABLES.
+const EXPORT_SECTIONS: { label: string; tables: string[] }[] = [
+  { label: "Applications", tables: ["applications"] },
+  { label: "Goals", tables: ["goals"] },
+  { label: "Streaks", tables: ["streaks", "streak_logs"] },
+  { label: "Habits", tables: ["habits", "habit_logs"] },
+  { label: "Health", tables: ["health_sections", "health_workouts", "health_nutrition", "body_metrics"] },
+  { label: "Faith", tables: ["faith_entries"] },
+  { label: "Study", tables: ["study_sessions"] },
+  { label: "University", tables: ["uni_modules", "uni_deadlines", "uni_submissions", "uni_notes", "uni_resources", "uni_library_books", "modules", "assessments"] },
+  { label: "Calendar", tables: ["calendar_events"] },
+  { label: "Notes", tables: ["notes"] },
+  { label: "Diary", tables: ["diary"] },
+  { label: "Vault", tables: ["vault"] },
+  { label: "Contacts", tables: ["contacts"] },
+  { label: "Wishlist", tables: ["wishlist"] },
+  { label: "Inventory", tables: ["inventory_items"] },
+  { label: "Open Source", tables: ["opensource_contributions"] },
+  { label: "Files", tables: ["user_files"] },
+  { label: "Coding", tables: ["wakatime_daily"] },
+  { label: "Activity log", tables: ["activity_log"] },
+]
+
 function ExportImportPanel() {
   const [importing, setImporting] = useState(false)
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(EXPORT_SECTIONS.map((s) => s.label)))
+
+  function toggleSection(label: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(label)) next.delete(label)
+      else next.add(label)
+      return next
+    })
+  }
+
+  function exportSelected() {
+    const tables = EXPORT_SECTIONS.filter((s) => selected.has(s.label)).flatMap((s) => s.tables)
+    if (tables.length === 0) return
+    const a = document.createElement("a")
+    a.href = `/api/export?tables=${encodeURIComponent(tables.join(","))}`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -98,6 +221,29 @@ function ExportImportPanel() {
           <Download className="h-3.5 w-3.5" /> Export JSON
         </a>
       </div>
+
+      <details className="rounded-md border border-border/60 bg-background/40">
+        <summary className="cursor-pointer px-3 py-2 text-sm font-medium select-none">Export specific sections</summary>
+        <div className="px-3 pb-3 flex flex-col gap-3">
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            {EXPORT_SECTIONS.map((s) => (
+              <label key={s.label} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                <input type="checkbox" checked={selected.has(s.label)} onChange={() => toggleSection(s.label)} className="rounded" />
+                {s.label}
+              </label>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={() => setSelected(new Set(EXPORT_SECTIONS.map((x) => x.label)))}>All</Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => setSelected(new Set())}>None</Button>
+            <Button type="button" size="sm" onClick={exportSelected} disabled={selected.size === 0} className="ml-auto gap-1.5">
+              <Download className="h-3.5 w-3.5" /> Export selected
+            </Button>
+          </div>
+          <p className="text-[11px] text-muted-foreground">Importing a partial file only restores the sections it contains, so this doubles as selective import.</p>
+        </div>
+      </details>
+
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium">Import from backup</p>
@@ -842,6 +988,15 @@ export default function SettingsClient() {
           Export all your data as a single JSON file. Import restores from a previously exported file - existing records with matching IDs are overwritten.
         </p>
         <ExportImportPanel />
+      </section>
+
+      {/* Maintenance */}
+      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+        <div className="flex items-center gap-2">
+          <Wrench className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Maintenance</h2>
+        </div>
+        <MaintenancePanel />
       </section>
 
       {/* Data Management */}

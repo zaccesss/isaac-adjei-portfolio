@@ -7,7 +7,7 @@
 
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Activity, RefreshCw, Plug, Unplug, Timer, Mountain, Route, CalendarDays, Gauge, Trophy } from "lucide-react"
+import { Activity, RefreshCw, Plug, Unplug, Timer, Mountain, Route, CalendarDays, Gauge, Trophy, TrendingUp, Clock } from "lucide-react"
 import {
   AnalyticsPeriodProvider,
   PeriodSelector,
@@ -306,6 +306,29 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
     .reverse()
     .map((a) => ({ name: (a.start_date ?? "").slice(5, 10), pace: Math.round((a.moving_time_s as number) / ((a.distance_m as number) / 1000)) }))
 
+  // Cumulative distance - running total across the period's buckets (built functionally so it stays pure).
+  const cumulativeDistance = distanceBuckets.reduce<{ name: string; total: number }[]>((acc, b) => {
+    const total = (acc.length > 0 ? acc[acc.length - 1].total : 0) + b.distance
+    return [...acc, { name: b.name, total: Math.round(total * 10) / 10 }]
+  }, [])
+
+  // Time of day - activities grouped by part of day.
+  const tod = { Morning: 0, Afternoon: 0, Evening: 0, Night: 0 }
+  for (const a of filtered) {
+    if (!a.start_date) continue
+    const h = new Date(a.start_date).getHours()
+    if (h >= 5 && h < 12) tod.Morning++
+    else if (h >= 12 && h < 17) tod.Afternoon++
+    else if (h >= 17 && h < 21) tod.Evening++
+    else tod.Night++
+  }
+  const timeOfDay = [
+    { name: "Morning", count: tod.Morning },
+    { name: "Afternoon", count: tod.Afternoon },
+    { name: "Evening", count: tod.Evening },
+    { name: "Night", count: tod.Night },
+  ]
+
   // Recent activities follow the selector; capped so a long history can never lag the page.
   const recent = filtered.slice(0, 50)
 
@@ -385,6 +408,7 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
 
           {/* Charts grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Row 1: Distance + Distance by sport */}
             <section className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Route className="h-4 w-4 text-muted-foreground" />
@@ -393,32 +417,6 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
               </div>
               {distanceBuckets.length > 0 ? (
                 <BarChart data={distanceBuckets} dataKey="distance" colour="#FC4C02" valueFormatter={(v) => `${v} km`} />
-              ) : (
-                <p className="text-xs text-muted-foreground py-12 text-center">No activities in this period.</p>
-              )}
-            </section>
-
-            <section className="rounded-xl border border-border bg-card p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Timer className="h-4 w-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold">Heart-rate trend</h2>
-                <span className="text-xs text-muted-foreground">avg bpm per activity</span>
-              </div>
-              {hrSeries.length > 1 ? (
-                <LineChart data={hrSeries} dataKey="hr" colour="#ef4444" valueFormatter={(v) => `${v} bpm`} />
-              ) : (
-                <p className="text-xs text-muted-foreground py-12 text-center">No heart-rate data in this period.</p>
-              )}
-            </section>
-
-            <section className="rounded-xl border border-border bg-card p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Mountain className="h-4 w-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold">Sport split</h2>
-                <span className="text-xs text-muted-foreground">by activity count</span>
-              </div>
-              {sportPie.length > 0 ? (
-                <PieChart data={sportPie} />
               ) : (
                 <p className="text-xs text-muted-foreground py-12 text-center">No activities in this period.</p>
               )}
@@ -440,6 +438,34 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
               </div>
             </section>
 
+            {/* Row 2: Heart-rate + Pace trend */}
+            <section className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Timer className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Heart-rate trend</h2>
+                <span className="text-xs text-muted-foreground">avg bpm per activity</span>
+              </div>
+              {hrSeries.length > 1 ? (
+                <LineChart data={hrSeries} dataKey="hr" colour="#ef4444" valueFormatter={(v) => `${v} bpm`} />
+              ) : (
+                <p className="text-xs text-muted-foreground py-12 text-center">No heart-rate data in this period.</p>
+              )}
+            </section>
+
+            <section className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Gauge className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Pace trend</h2>
+                <span className="text-xs text-muted-foreground">runs, min/km (lower is faster)</span>
+              </div>
+              {paceSeries.length > 1 ? (
+                <LineChart data={paceSeries} dataKey="pace" colour="#FC4C02" valueFormatter={fmtPaceSec} />
+              ) : (
+                <p className="text-xs text-muted-foreground py-12 text-center">Not enough runs in this period.</p>
+              )}
+            </section>
+
+            {/* Row 3: Training by day + Sport split */}
             <section className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center gap-2 mb-2">
                 <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -455,14 +481,41 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
 
             <section className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Gauge className="h-4 w-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold">Pace trend</h2>
-                <span className="text-xs text-muted-foreground">runs, min/km (lower is faster)</span>
+                <Mountain className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Sport split</h2>
+                <span className="text-xs text-muted-foreground">by activity count</span>
               </div>
-              {paceSeries.length > 1 ? (
-                <LineChart data={paceSeries} dataKey="pace" colour="#10b981" valueFormatter={fmtPaceSec} />
+              {sportPie.length > 0 ? (
+                <PieChart data={sportPie} />
               ) : (
-                <p className="text-xs text-muted-foreground py-12 text-center">Not enough runs in this period.</p>
+                <p className="text-xs text-muted-foreground py-12 text-center">No activities in this period.</p>
+              )}
+            </section>
+
+            {/* Row 4: Cumulative distance + Time of day */}
+            <section className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Cumulative distance</h2>
+                <span className="text-xs text-muted-foreground">running total this period</span>
+              </div>
+              {cumulativeDistance.length > 1 ? (
+                <LineChart data={cumulativeDistance} dataKey="total" colour="#FC4C02" valueFormatter={(v) => `${v} km`} />
+              ) : (
+                <p className="text-xs text-muted-foreground py-12 text-center">No activities in this period.</p>
+              )}
+            </section>
+
+            <section className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Time of day</h2>
+                <span className="text-xs text-muted-foreground">activities by part of day</span>
+              </div>
+              {filtered.length > 0 ? (
+                <BarChart data={timeOfDay} dataKey="count" colour="#FC4C02" valueFormatter={(v) => `${v}`} />
+              ) : (
+                <p className="text-xs text-muted-foreground py-12 text-center">No activities in this period.</p>
               )}
             </section>
           </div>

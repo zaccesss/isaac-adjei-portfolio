@@ -43,7 +43,7 @@ export default async function UniversityOverviewPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">University</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Year 2 - Academic hub</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Academic hub</p>
         </div>
         <Button size="sm" variant="outline" asChild>
           <Link href="/dashboard/university/deadlines">
