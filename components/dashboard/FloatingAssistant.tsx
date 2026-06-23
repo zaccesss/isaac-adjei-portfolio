@@ -61,8 +61,8 @@ export default function FloatingAssistant() {
     const t = input.trim()
     if (!t || busy) return
     setInput("")
-    // Defaults to Groq Llama 3.3, the fastest reliable free model, for a quick answer.
-    sendMessage({ text: t }, { body: { model: "groq" } })
+    // Defaults to Gemini 2.5 Flash - free, fast and the most accurate free model at sticking to my data.
+    sendMessage({ text: t }, { body: { model: "gemini" } })
   }
 
   return (
