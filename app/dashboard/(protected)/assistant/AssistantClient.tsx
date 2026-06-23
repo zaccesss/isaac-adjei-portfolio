@@ -7,38 +7,43 @@
 import { useRef, useState } from "react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
-import { Send, Sparkles, Bot, User, Paperclip, Plus, X, Save, Trash2, PanelLeft } from "lucide-react"
+import { Send, Sparkles, Bot, User, Paperclip, Plus, X, Save, Trash2, PanelLeft, Square } from "lucide-react"
+import { toast } from "sonner"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import { saveAiChat, getAiChat, deleteAiChat } from "@/app/dashboard/actions"
 
 type SavedChat = { id: string; title: string; created_at: string }
 
+// Each model carries its provider so the dropdown can show a live "add key" hint from the server's view
+// of which keys are actually set, rather than a static label. Tier wording (free / rate-limited / trial /
+// paid) stays in the label so I know what to expect before I pick one.
 const MODELS = [
-  { id: "gemini", label: "Gemini 2.5 Flash (free, fast)" },
-  { id: "google:gemini-2.5-pro", label: "Gemini 2.5 Pro (free)" },
-  { id: "groq", label: "Groq Llama 3.3 (free, fastest)" },
-  { id: "groq:openai/gpt-oss-120b", label: "GPT-OSS 120B (free)" },
-  { id: "openrouter:qwen/qwen3-next-80b-a3b-instruct:free", label: "Qwen3 80B (free)" },
-  { id: "openrouter:qwen/qwen3-coder:free", label: "Qwen3 Coder (free)" },
-  { id: "openrouter:meta-llama/llama-3.3-70b-instruct:free", label: "Llama 3.3 70B (free)" },
-  { id: "openrouter:google/gemma-4-31b-it:free", label: "Gemma 4 31B (free)" },
-  // Claude - activate by adding ANTHROPIC_API_KEY in Vercel (paid).
-  { id: "anthropic:claude-opus-4-8", label: "Claude Opus 4.8 (needs key)" },
-  { id: "anthropic:claude-sonnet-4-6", label: "Claude Sonnet 4.6 (needs key)" },
-  { id: "anthropic:claude-fable-5", label: "Claude Fable 5 (needs key)" },
-  { id: "anthropic:claude-haiku-4-5-20251001", label: "Claude Haiku 4.5 (needs key)" },
-  // OpenAI - activate by adding OPENAI_API_KEY in Vercel (paid).
-  { id: "openai:gpt-5", label: "GPT-5 (needs key)" },
-  { id: "openai:gpt-4.1", label: "GPT-4.1 (needs key)" },
-  { id: "openai:gpt-4o", label: "GPT-4o (needs key)" },
-  // Frontier open models - activate by adding their key (free signup credits, then paid).
-  { id: "deepseek:deepseek-chat", label: "DeepSeek V4 (needs key)" },
-  { id: "deepseek:deepseek-reasoner", label: "DeepSeek R1 (needs key)" },
-  { id: "kimi:kimi-k2.6", label: "Kimi K2.6 (needs key)" },
-  { id: "glm:glm-4.6", label: "GLM-4.6 (needs key)" },
-  { id: "github:openai/gpt-4o", label: "GPT-4o via GitHub (free, needs token)" },
-  { id: "github:openai/o1", label: "o1 via GitHub (free, needs token)" },
-  { id: "minimax:MiniMax-M3", label: "MiniMax M3 (needs key)" },
+  // Free and reliable - no spend, work right now
+  { id: "gemini", label: "Gemini 2.5 Flash (free, fast)", provider: "google" },
+  { id: "groq", label: "Groq Llama 3.3 (free, fastest)", provider: "groq" },
+  { id: "groq:openai/gpt-oss-120b", label: "GPT-OSS 120B (free)", provider: "groq" },
+  { id: "github:openai/gpt-4o", label: "GPT-4o via GitHub (free, capped)", provider: "github" },
+  // Free tier but rate-limited - may be busy or slow
+  { id: "openrouter:qwen/qwen3-next-80b-a3b-instruct:free", label: "Qwen3 80B (free, rate-limited)", provider: "openrouter" },
+  { id: "openrouter:qwen/qwen3-coder:free", label: "Qwen3 Coder (free, rate-limited)", provider: "openrouter" },
+  { id: "openrouter:meta-llama/llama-3.3-70b-instruct:free", label: "Llama 3.3 70B (free, rate-limited)", provider: "openrouter" },
+  { id: "openrouter:google/gemma-4-31b-it:free", label: "Gemma 4 31B (free, rate-limited)", provider: "openrouter" },
+  { id: "github:openai/o1", label: "o1 via GitHub (free, capped)", provider: "github" },
+  // Trial signup credits, then paid
+  { id: "deepseek:deepseek-v4-flash", label: "DeepSeek V4 Flash (trial credit)", provider: "deepseek" },
+  { id: "deepseek:deepseek-v4-pro", label: "DeepSeek V4 Pro (trial credit)", provider: "deepseek" },
+  { id: "kimi:kimi-k2.6", label: "Kimi K2.6 (trial credit)", provider: "moonshot" },
+  { id: "glm:glm-4.6", label: "GLM-4.6 (trial credit)", provider: "zai" },
+  // Paid - need a funded plan even once the key is set
+  { id: "google:gemini-2.5-pro", label: "Gemini 2.5 Pro (paid Google plan)", provider: "google" },
+  { id: "anthropic:claude-opus-4-8", label: "Claude Opus 4.8 (paid)", provider: "anthropic" },
+  { id: "anthropic:claude-sonnet-4-6", label: "Claude Sonnet 4.6 (paid)", provider: "anthropic" },
+  { id: "anthropic:claude-fable-5", label: "Claude Fable 5 (paid)", provider: "anthropic" },
+  { id: "anthropic:claude-haiku-4-5-20251001", label: "Claude Haiku 4.5 (paid)", provider: "anthropic" },
+  { id: "openai:gpt-5", label: "GPT-5 (paid)", provider: "openai" },
+  { id: "openai:gpt-4.1", label: "GPT-4.1 (paid)", provider: "openai" },
+  { id: "openai:gpt-4o", label: "GPT-4o (paid)", provider: "openai" },
+  { id: "minimax:MiniMax-M3", label: "MiniMax M3 (paid)", provider: "minimax" },
 ]
 
 const SUGGESTIONS = [
@@ -49,7 +54,44 @@ const SUGGESTIONS = [
   "Suggest a Bible passage I haven't read recently",
 ]
 
-export default function AssistantClient({ configured, initialChats }: { configured: boolean; initialChats: SavedChat[] }) {
+// Vercel caps a serverless request body at 4.5MB and base64 inflates a file by ~1.37x, so a phone photo
+// blows past it. I downscale images to <=1568px (what vision models use internally anyway) and re-encode
+// as JPEG before sending, and reject any non-image file that is still too large rather than let Vercel
+// bounce it with an opaque error.
+const MAX_DIM = 1568
+const MAX_BYTES = 3_000_000
+
+async function shrinkImage(file: File): Promise<File> {
+  if (!file.type.startsWith("image/")) return file
+  try {
+    const bitmap = await createImageBitmap(file)
+    const scale = Math.min(1, MAX_DIM / Math.max(bitmap.width, bitmap.height))
+    if (scale === 1 && file.size <= MAX_BYTES) return file
+    const w = Math.round(bitmap.width * scale)
+    const h = Math.round(bitmap.height * scale)
+    const canvas = document.createElement("canvas")
+    canvas.width = w
+    canvas.height = h
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return file
+    ctx.drawImage(bitmap, 0, 0, w, h)
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85))
+    return blob ? new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" }) : file
+  } catch {
+    return file
+  }
+}
+
+function readAsDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
+export default function AssistantClient({ configured, initialChats, providers }: { configured: boolean; initialChats: SavedChat[]; providers: Record<string, boolean> }) {
   const [model, setModel] = useState("gemini")
   const [input, setInput] = useState("")
   const [files, setFiles] = useState<FileList | null>(null)
@@ -57,16 +99,28 @@ export default function AssistantClient({ configured, initialChats }: { configur
   const [saving, setSaving] = useState(false)
   const [showChats, setShowChats] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { messages, setMessages, sendMessage, status, error } = useChat({
+  const { messages, setMessages, sendMessage, status, error, stop } = useChat({
     transport: new DefaultChatTransport({ api: "/api/dashboard/assistant" }),
   })
   const busy = status === "submitted" || status === "streaming"
 
-  function submit(text: string) {
+  async function submit(text: string) {
     const t = text.trim()
     if ((!t && !files?.length) || busy) return
+    let parts: { type: "file"; mediaType: string; filename: string; url: string }[] | undefined
+    if (files?.length) {
+      const processed = await Promise.all(Array.from(files).map(shrinkImage))
+      const totalBytes = processed.reduce((sum, f) => sum + f.size, 0)
+      if (totalBytes > MAX_BYTES) {
+        toast.error(`Those files total about ${(totalBytes / 1e6).toFixed(1)}MB. Vercel caps a request at 4.5MB, so attach fewer or smaller files (images shrink automatically).`)
+        return
+      }
+      parts = await Promise.all(
+        processed.map(async (f) => ({ type: "file" as const, mediaType: f.type, filename: f.name, url: await readAsDataURL(f) })),
+      )
+    }
     setInput("")
-    sendMessage({ text: t, files: files ?? undefined }, { body: { model } })
+    sendMessage({ text: t, files: parts }, { body: { model } })
     setFiles(null)
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
@@ -133,12 +187,12 @@ export default function AssistantClient({ configured, initialChats }: { configur
               <Save className="h-3.5 w-3.5" />{saving ? "Saving" : "Save"}
             </button>
             <select value={model} onChange={(e) => setModel(e.target.value)} aria-label="Model" className="text-xs border border-border rounded-md px-2 py-1.5 bg-background">
-              {MODELS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+              {MODELS.map((m) => <option key={m.id} value={m.id}>{m.label}{providers[m.provider] ? "" : " - add key"}</option>)}
             </select>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-4">
+        <div className="flex-1 overflow-y-auto py-4 pr-2 flex flex-col gap-4">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
               <Bot className="h-10 w-10 text-muted-foreground" />
@@ -196,9 +250,15 @@ export default function AssistantClient({ configured, initialChats }: { configur
             placeholder={configured ? "Ask anything, or attach an image/PDF..." : "Add GROQ_API_KEY or GOOGLE_AI_API_KEY in Vercel to enable"}
             className="flex-1 border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
           />
-          <button type="submit" disabled={busy || (!input.trim() && !files?.length)} aria-label="Send" className="h-9 w-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 shrink-0">
-            <Send className="h-4 w-4" />
-          </button>
+          {busy ? (
+            <button type="button" onClick={() => stop()} aria-label="Stop" title="Stop generating" className="h-9 w-9 rounded-lg bg-muted text-foreground flex items-center justify-center shrink-0 hover:bg-muted/70">
+              <Square className="h-3.5 w-3.5" />
+            </button>
+          ) : (
+            <button type="submit" disabled={!input.trim() && !files?.length} aria-label="Send" className="h-9 w-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 shrink-0">
+              <Send className="h-4 w-4" />
+            </button>
+          )}
         </form>
       </div>
     </div>
