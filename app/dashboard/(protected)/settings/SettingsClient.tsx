@@ -130,7 +130,7 @@ function MaintenancePanel() {
         />
         <div className="flex items-center gap-3">
           <Button type="button" size="sm" variant="outline" disabled={saving} onClick={() => save({ enabled, message })}>Save message</Button>
-          <a href="/maintenance" target="_blank" rel="noreferrer" className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">Preview page</a>
+          <a href={`/maintenance${message ? `?preview=${encodeURIComponent(message)}` : ""}`} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">Preview page</a>
         </div>
       </div>
       {status && <span className={`text-xs ${status.ok ? "text-green-600" : "text-destructive"}`}>{status.text}</span>}
