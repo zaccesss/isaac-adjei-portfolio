@@ -13,7 +13,8 @@ export const metadata = { title: "Under maintenance", robots: "noindex, nofollow
 export default async function MaintenancePage({ searchParams }: { searchParams: Promise<{ preview?: string }> }) {
   const [{ enabled, message }, jar, params] = await Promise.all([getMaintenance(), cookies(), searchParams])
   const isOwner = jar.has("authjs.session-token") || jar.has("__Secure-authjs.session-token")
-  if (!enabled && !isOwner) redirect("/")
+  // Hide it from non-owners in production only; in local dev I can always open it to preview the design.
+  if (!enabled && !isOwner && process.env.NODE_ENV === "production") redirect("/")
 
   const shown =
     (isOwner && typeof params.preview === "string" ? params.preview : message) ||

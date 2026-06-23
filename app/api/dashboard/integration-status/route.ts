@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { stravaConnected } from "@/lib/strava"
 
 export async function GET() {
   const session = await auth()
@@ -10,5 +11,6 @@ export async function GET() {
     wakatime: Boolean(process.env.WAKATIME_API_KEY),
     linearCareers: Boolean(process.env.LINEAR_API_KEY && process.env.LINEAR_TEAM_ID),
     linearUniversity: Boolean(process.env.LINEAR_API_KEY && process.env.LINEAR_UNI_TEAM_ID),
+    strava: await stravaConnected(),
   }, { headers: { "Cache-Control": "no-store" } })
 }

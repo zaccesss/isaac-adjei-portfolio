@@ -12,7 +12,7 @@ import {
   KeyRound, Shield, Cpu, Clock, CheckCircle2, XCircle,
   RefreshCw, Lock, Sun, Moon, Palette, Mail, MessageSquare, FileText, Activity, Trash2, Plug, GraduationCap, Briefcase, Download, Wrench
 } from "lucide-react"
-import { SiSpotify } from "react-icons/si"
+import { SiSpotify, SiStrava } from "react-icons/si"
 import { setConfig, clearAllJobs, clearAllApplications, bulkSyncDeadlinesToLinear, bulkSyncApplicationsToLinear } from "@/app/dashboard/actions"
 
 type ScraperStatus = {
@@ -299,8 +299,10 @@ export default function SettingsClient() {
   const [dataLoading, setDataLoading] = useState(false)
 
   const [integrationStatus, setIntegrationStatus] = useState<{
-    spotify: boolean; wakatime: boolean; linearCareers: boolean; linearUniversity: boolean
+    spotify: boolean; wakatime: boolean; linearCareers: boolean; linearUniversity: boolean; strava: boolean
   } | null>(null)
+  const [stravaSyncLoading, setStravaSyncLoading] = useState(false)
+  const [stravaSyncMessage, setStravaSyncMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [linearSyncLoading, setLinearSyncLoading] = useState(false)
   const [linearSyncMessage, setLinearSyncMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [linearAppSyncLoading, setLinearAppSyncLoading] = useState(false)
@@ -343,7 +345,7 @@ export default function SettingsClient() {
         setDiscordDigestStatus(data.discord)
       }
       if (integrationRes.status === "fulfilled" && integrationRes.value.ok) {
-        const data = await integrationRes.value.json() as { spotify: boolean; wakatime: boolean; linearCareers: boolean; linearUniversity: boolean }
+        const data = await integrationRes.value.json() as { spotify: boolean; wakatime: boolean; linearCareers: boolean; linearUniversity: boolean; strava: boolean }
         setIntegrationStatus(data)
       }
 
@@ -549,6 +551,24 @@ export default function SettingsClient() {
       setLinearAppSyncMessage({ text: "Sync failed. Check LINEAR_API_KEY and LINEAR_TEAM_ID in Vercel.", ok: false })
     } finally {
       setLinearAppSyncLoading(false)
+    }
+  }
+
+  async function handleStravaSync() {
+    setStravaSyncLoading(true)
+    setStravaSyncMessage(null)
+    try {
+      const res = await fetch("/api/strava/sync", { method: "POST" })
+      const data = (await res.json().catch(() => ({}))) as { synced?: number; error?: string }
+      setStravaSyncMessage(
+        res.ok
+          ? { text: `Synced ${data.synced ?? 0} activities.`, ok: true }
+          : { text: data.error === "strava_unreachable" ? "Could not reach Strava, try again." : "Sync failed.", ok: false },
+      )
+    } catch {
+      setStravaSyncMessage({ text: "Sync failed.", ok: false })
+    } finally {
+      setStravaSyncLoading(false)
     }
   }
 
@@ -898,6 +918,7 @@ export default function SettingsClient() {
               { label: "WakaTime", connected: integrationStatus.wakatime, icon: <Activity className="h-3.5 w-3.5 shrink-0" /> },
               { label: "Linear (Careers)", connected: integrationStatus.linearCareers, icon: <Plug className="h-3.5 w-3.5 shrink-0" /> },
               { label: "Linear (University)", connected: integrationStatus.linearUniversity, icon: <GraduationCap className="h-3.5 w-3.5 shrink-0" /> },
+              { label: "Strava", connected: integrationStatus.strava, icon: <SiStrava className="h-3.5 w-3.5 shrink-0" /> },
             ].map(({ label, connected, icon }) => (
               <div key={label} className="flex items-center justify-between py-1 border-b border-border/40 last:border-0">
                 <div className="flex items-center gap-2 text-sm">
@@ -973,6 +994,33 @@ export default function SettingsClient() {
               <span className={`text-xs ${linearSyncMessage.ok ? "text-green-600" : "text-destructive"}`}>
                 {linearSyncMessage.text}
               </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2">
+              <SiStrava className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-sm font-medium">Sync Strava activities</span>
+            </div>
+            <p className="text-xs text-muted-foreground pl-6">
+              Pulls my recent runs and rides into the fitness analytics. Auto-syncs daily; this runs it now.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            {integrationStatus?.strava ? (
+              <Button variant="outline" size="sm" onClick={() => void handleStravaSync()} disabled={stravaSyncLoading} className="flex items-center gap-1.5">
+                <RefreshCw className={`h-3.5 w-3.5 ${stravaSyncLoading ? "animate-spin" : ""}`} />
+                {stravaSyncLoading ? "Syncing..." : "Sync activities"}
+              </Button>
+            ) : (
+              <a href="/api/strava/auth" className="inline-flex items-center gap-1.5 rounded-md bg-[#FC4C02] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#e34402] transition-colors">
+                <Plug className="h-3.5 w-3.5" /> Connect Strava
+              </a>
+            )}
+            {stravaSyncMessage && (
+              <span className={`text-xs ${stravaSyncMessage.ok ? "text-green-600" : "text-destructive"}`}>{stravaSyncMessage.text}</span>
             )}
           </div>
         </div>
