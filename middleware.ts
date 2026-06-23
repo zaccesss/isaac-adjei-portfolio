@@ -52,15 +52,18 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Public routes: show the maintenance page to logged-out visitors when maintenance is on. The owner
-  // (logged in), the maintenance page itself and API routes are never rewritten.
+  // Public routes: send logged-out visitors to the maintenance page when maintenance is on. I redirect
+  // (not rewrite) so the URL actually becomes /maintenance - that is what makes it render bare, because the
+  // shared PublicShell and command menu strip their chrome by matching the path. A rewrite keeps the
+  // original URL, so they would render the maintenance content under the normal header and footer. The
+  // owner (logged in), the maintenance page itself and API routes are never redirected.
   if (
     !loggedIn &&
     pathname !== "/maintenance" &&
     !pathname.startsWith("/api/") &&
     (await maintenanceOn())
   ) {
-    return NextResponse.rewrite(new URL("/maintenance", req.url))
+    return NextResponse.redirect(new URL("/maintenance", req.url))
   }
 
   return NextResponse.next()
