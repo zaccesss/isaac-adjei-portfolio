@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.31.0] - 2026-06-23
+
+The Applications tracker now shows every scraped role, and clearing them is honest.
+
+### Changed
+
+- The Applications tracker now loads every application, not just the most recent 1000. It previously capped scraped listings at 1000 rows, so its tab totals disagreed with the Applications analytics page (which already counts all of them). The tracker now pages through the whole table so the two always match, and it renders the rows in windows with infinite scroll, so even tens of thousands of scraped roles never freeze the page
+- "Clear scraped jobs" in Settings now permanently deletes every scraped listing in one pass. The old version backed them up to trash first, but the backup silently capped at 1000 rows while the delete removed all of them, so most were never really recoverable, and copying thousands of re-scrapeable rows into trash on every clear just moved the clutter. It still only ever touches status 'scraped', so anything I have applied to, interviewed for, been offered, rejected from or saved is kept untouched, and my real pipeline and its analytics survive any number of clears
+
+---
+
 ## [v2.30.1] - 2026-06-23
 
 ### Fixed
