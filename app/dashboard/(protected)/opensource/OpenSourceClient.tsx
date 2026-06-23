@@ -15,6 +15,7 @@ import {
 } from "@/app/dashboard/actions"
 import { Github, ExternalLink, Plus, Trash2, Download, Pencil } from "lucide-react"
 import MarkdownContent from "@/components/shared/MarkdownContent"
+import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod } from "@/components/analytics"
 
 // I define the valid status values and their badge colours in one place
 // so the table cells and the add-row select are always in sync.
@@ -55,7 +56,7 @@ const EMPTY_NEW_ROW: NewRow = {
   submitted_at: new Date().toISOString().slice(0, 16),
 }
 
-export default function OpenSourceClient({
+function OpenSourceClientInner({
   initial,
 }: {
   initial: OpenSourceContribution[]
@@ -84,17 +85,15 @@ export default function OpenSourceClient({
 
   // I surface errors and success messages inline rather than using a toast library.
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null)
+  const { period } = useAnalyticsPeriod()
 
   // ── Derived values ────────────────────────────────────────────────────────
 
-  // I compute the three stat cards from the current rows array.
+  // Stat cards: "in period" follows the selector (by submitted date); "all time" stays as a reference.
+  const periodRows = filterByPeriod(rows, period, (r) => r.submitted_at)
   const total = rows.length
-  const mergedCount = rows.filter((r) => r.status === "merged").length
-  const thisMonthCount = rows.filter((r) => {
-    const now = new Date()
-    const d = new Date(r.submitted_at)
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
-  }).length
+  const inPeriodCount = periodRows.length
+  const mergedCount = periodRows.filter((r) => r.status === "merged").length
 
   // I apply search and status filter, then optional sort.
   const filtered = rows
@@ -258,27 +257,30 @@ export default function OpenSourceClient({
     <div className="flex flex-col gap-6">
 
       {/* Page header */}
-      <div className="flex items-center gap-3">
-        <Github className="h-6 w-6 text-muted-foreground" />
-        <div>
-          <h1 className="text-xl font-semibold leading-tight">Open Source</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Track pull requests and contributions to open source projects.</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Github className="h-6 w-6 text-muted-foreground" />
+          <div>
+            <h1 className="text-xl font-semibold leading-tight">Open Source</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Track pull requests and contributions to open source projects.</p>
+          </div>
         </div>
+        <PeriodSelector />
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-3 gap-3">
         <div className="border border-border rounded-lg p-4 bg-card">
-          <p className="text-xs text-muted-foreground">Total</p>
-          <p className="text-2xl font-bold mt-1">{total}</p>
+          <p className="text-xs text-muted-foreground">In period</p>
+          <p className="text-2xl font-bold mt-1">{inPeriodCount}</p>
         </div>
         <div className="border border-border rounded-lg p-4 bg-card">
           <p className="text-xs text-muted-foreground">Merged</p>
           <p className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">{mergedCount}</p>
         </div>
         <div className="border border-border rounded-lg p-4 bg-card">
-          <p className="text-xs text-muted-foreground">This month</p>
-          <p className="text-2xl font-bold mt-1">{thisMonthCount}</p>
+          <p className="text-xs text-muted-foreground">All time</p>
+          <p className="text-2xl font-bold mt-1">{total}</p>
         </div>
       </div>
 
@@ -616,6 +618,14 @@ export default function OpenSourceClient({
       </div>
       {confirmDialogNode}
     </div>
+  )
+}
+
+export default function OpenSourceClient(props: { initial: OpenSourceContribution[] }) {
+  return (
+    <AnalyticsPeriodProvider defaultPeriod="1y">
+      <OpenSourceClientInner {...props} />
+    </AnalyticsPeriodProvider>
   )
 }
 

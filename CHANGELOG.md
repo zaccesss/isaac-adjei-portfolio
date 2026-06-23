@@ -5,6 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.35.0] - 2026-06-23
+
+### Added
+
+- Blog and TIL analytics are now period-aware and richer: an opens-over-time chart plus the funnel, heatmap, top posts and completion all recomputed from dated read events for the selected range
+- Open Source contributions analytics gained a period selector (in-period, merged, all-time) driven by the submitted date
+
+### Changed
+
+- The University section menu is now collapsible so the selected page can use the full width, and the choice persists across reloads
+- Calendar feed toggles now persist: an unticked feed stays hidden across reloads until I re-tick it
+
+### Fixed
+
+- Removed the duplicate "Year 2" label on the University overview
+
+---
+
 ## [v2.34.0] - 2026-06-23
 
 ### Added
