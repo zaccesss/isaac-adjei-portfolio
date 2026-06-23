@@ -7,7 +7,7 @@
 
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Activity, RefreshCw, Plug, Unplug, Timer, Mountain, Route } from "lucide-react"
+import { Activity, RefreshCw, Plug, Unplug, Timer, Mountain, Route, CalendarDays, Gauge, Trophy } from "lucide-react"
 import {
   AnalyticsPeriodProvider,
   PeriodSelector,
@@ -34,7 +34,10 @@ function fmtDuration(seconds: number): string {
 }
 function fmtPace(distanceM: number | null, movingS: number | null): string {
   if (!distanceM || !movingS || distanceM < 100) return "-"
-  const secPerKm = movingS / (distanceM / 1000)
+  return fmtPaceSec(movingS / (distanceM / 1000))
+}
+function fmtPaceSec(secPerKm: number): string {
+  if (!secPerKm) return "-"
   const m = Math.floor(secPerKm / 60)
   const s = Math.round(secPerKm % 60)
   return `${m}:${String(s).padStart(2, "0")} /km`
@@ -273,7 +276,38 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
     .slice(0, 5)
   const maxSportDist = Math.max(1, ...sportBars.map((s) => s.value))
 
-  const recent = filtered.slice(0, 12)
+  // Personal bests within the selected period
+  const longestRun = filtered.reduce((m, a) => Math.max(m, a.distance_m ?? 0), 0)
+  const longestTime = filtered.reduce((m, a) => Math.max(m, a.moving_time_s ?? 0), 0)
+  const mostElevation = filtered.reduce((m, a) => Math.max(m, a.total_elevation_gain_m ?? 0), 0)
+  const paces = filtered
+    .filter((a) => (a.distance_m ?? 0) >= 1000 && (a.moving_time_s ?? 0) > 0)
+    .map((a) => (a.moving_time_s as number) / ((a.distance_m as number) / 1000))
+  const fastestPace = paces.length ? Math.min(...paces) : 0
+  const dayKm = new Map<string, number>()
+  for (const a of filtered) {
+    if (!a.start_date) continue
+    const d = a.start_date.slice(0, 10)
+    dayKm.set(d, (dayKm.get(d) ?? 0) + km(a.distance_m))
+  }
+  const biggestDay = Math.max(0, ...dayKm.values())
+
+  // Training by day of week (distance, Mon..Sun)
+  const dow = [0, 0, 0, 0, 0, 0, 0]
+  for (const a of filtered) {
+    if (!a.start_date) continue
+    dow[(new Date(a.start_date).getDay() + 6) % 7] += km(a.distance_m)
+  }
+  const dowBars = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((name, i) => ({ name, distance: Math.round(dow[i] * 10) / 10 }))
+
+  // Pace trend (runs only, oldest to newest) - seconds per km
+  const paceSeries = [...filtered]
+    .filter((a) => (a.sport_type ?? "").toLowerCase().includes("run") && (a.distance_m ?? 0) >= 1000 && (a.moving_time_s ?? 0) > 0)
+    .reverse()
+    .map((a) => ({ name: (a.start_date ?? "").slice(5, 10), pace: Math.round((a.moving_time_s as number) / ((a.distance_m as number) / 1000)) }))
+
+  // Recent activities follow the selector; capped so a long history can never lag the page.
+  const recent = filtered.slice(0, 50)
 
   // ── Not connected: hero ──
   if (!connected && activities.length === 0) {
@@ -323,6 +357,21 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
             <StatCard label="Moving time" value={fmtDuration(totalMoving)} />
             <StatCard label="Elevation" value={`${Math.round(totalElevation).toLocaleString()} m`} />
           </div>
+
+          {/* Personal bests */}
+          <section>
+            <div className="flex items-center gap-2 mb-2">
+              <Trophy className="h-4 w-4 text-amber-500" />
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Personal bests in this period</h2>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+              <StatCard label="Longest" value={longestRun ? fmtKm(longestRun) : "-"} />
+              <StatCard label="Fastest pace" value={fmtPaceSec(fastestPace)} />
+              <StatCard label="Longest time" value={longestTime ? fmtDuration(longestTime) : "-"} />
+              <StatCard label="Most climb" value={`${Math.round(mostElevation)} m`} />
+              <StatCard label="Biggest day" value={biggestDay ? `${biggestDay.toFixed(1)} km` : "-"} />
+            </div>
+          </section>
 
           {/* Heatmap */}
           <section className="rounded-xl border border-border bg-card p-4">
@@ -390,11 +439,40 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
                 )}
               </div>
             </section>
+
+            <section className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Training by day</h2>
+                <span className="text-xs text-muted-foreground">distance by weekday</span>
+              </div>
+              {dowBars.some((d) => d.distance > 0) ? (
+                <BarChart data={dowBars} dataKey="distance" colour="#FC4C02" valueFormatter={(v) => `${v} km`} />
+              ) : (
+                <p className="text-xs text-muted-foreground py-12 text-center">No activities in this period.</p>
+              )}
+            </section>
+
+            <section className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Gauge className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Pace trend</h2>
+                <span className="text-xs text-muted-foreground">runs, min/km (lower is faster)</span>
+              </div>
+              {paceSeries.length > 1 ? (
+                <LineChart data={paceSeries} dataKey="pace" colour="#10b981" valueFormatter={fmtPaceSec} />
+              ) : (
+                <p className="text-xs text-muted-foreground py-12 text-center">Not enough runs in this period.</p>
+              )}
+            </section>
           </div>
 
           {/* Recent activities */}
           <section className="rounded-xl border border-border bg-card p-4">
-            <h2 className="text-sm font-semibold mb-3">Recent activities</h2>
+            <div className="flex items-baseline gap-2 mb-3">
+              <h2 className="text-sm font-semibold">Recent activities</h2>
+              <span className="text-xs text-muted-foreground">{recent.length} of {filtered.length} in this period</span>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs border-collapse">
                 <thead>

@@ -27,8 +27,8 @@ const nav: (NavItem | NavGroup)[] = [
     group: "University",
     items: [
       { href: "/dashboard/university", label: "Overview", icon: School },
-      { href: "/dashboard/course", label: "Course", icon: GraduationCap, sub: true },
-      { href: "/dashboard/modules", label: "Modules", icon: BookOpen, sub: true },
+      { href: "/dashboard/course", label: "Course", icon: GraduationCap },
+      { href: "/dashboard/modules", label: "Modules", icon: BookOpen },
     ],
   },
   {
@@ -68,9 +68,9 @@ const nav: (NavItem | NavGroup)[] = [
     group: "Analytics",
     items: [
       { href: "/dashboard/coding", label: "Coding", icon: Code2 },
-      { href: "/dashboard/blog-analytics", label: "Posts", icon: BarChart2, sub: true },
-      { href: "/dashboard/analytics/applications", label: "Applications", icon: Briefcase, sub: true },
-      { href: "/dashboard/health/analytics", label: "Fitness", icon: Dumbbell, sub: true },
+      { href: "/dashboard/blog-analytics", label: "Posts", icon: BarChart2 },
+      { href: "/dashboard/analytics/applications", label: "Applications", icon: Briefcase },
+      { href: "/dashboard/health/analytics", label: "Fitness", icon: Dumbbell },
     ],
   },
   {
@@ -82,6 +82,22 @@ const nav: (NavItem | NavGroup)[] = [
     ],
   },
 ]
+
+// Every nav destination, so active state can pick the most specific match: a child route like
+// /dashboard/health/analytics lights up only Fitness, never also its parent /dashboard/health.
+const ALL_HREFS = new Set<string>([
+  ...nav.flatMap((e) => ("items" in e ? e.items.map((i) => i.href) : [e.href])),
+  "/dashboard/settings",
+])
+
+function isNavActive(pathname: string, href: string): boolean {
+  if (pathname === href) return true
+  if (!pathname.startsWith(href + "/")) return false
+  for (const h of ALL_HREFS) {
+    if (h !== href && h.length > href.length && (pathname === h || pathname.startsWith(h + "/"))) return false
+  }
+  return true
+}
 
 function useCollapsedGroups(pathname: string) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => {
@@ -102,7 +118,7 @@ function useCollapsedGroups(pathname: string) {
   }
 
   function isGroupCollapsed(entry: NavGroup): boolean {
-    const groupActive = entry.items.some((i) => pathname === i.href || pathname.startsWith(i.href + "/"))
+    const groupActive = entry.items.some((i) => isNavActive(pathname, i.href))
     if (groupActive) return false
     return collapsed.has(entry.group)
   }
@@ -121,7 +137,7 @@ function NavGroupSection({
   sidebarCollapsed: boolean
   onNavigate: () => void
 }) {
-  const groupActive = entry.items.some((i) => pathname === i.href || pathname.startsWith(i.href + "/"))
+  const groupActive = entry.items.some((i) => isNavActive(pathname, i.href))
   const { isGroupCollapsed, toggle } = useCollapsedGroups(pathname)
   const isCollapsed = isGroupCollapsed(entry)
 
@@ -129,7 +145,7 @@ function NavGroupSection({
     return (
       <div className="mt-1">
         {entry.items.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + "/")
+          const active = isNavActive(pathname, href)
           return (
             <Link key={href} href={href} onClick={onNavigate} title={label}
               className={`flex justify-center px-2.5 py-1.5 rounded-md text-sm transition-colors ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
@@ -153,7 +169,7 @@ function NavGroupSection({
         <ChevronDown className={`h-3 w-3 transition-transform duration-150 ${isCollapsed ? "-rotate-90" : ""}`} />
       </button>
       {!isCollapsed && entry.items.map(({ href, label, icon: Icon, sub }) => {
-        const active = pathname === href || pathname.startsWith(href + "/")
+        const active = isNavActive(pathname, href)
         return (
           <Link key={href} href={href} onClick={onNavigate}
             className={`flex items-center gap-2.5 ${sub ? "pl-5 pr-2.5" : "px-2.5"} py-1.5 rounded-md text-sm transition-colors ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
@@ -212,7 +228,7 @@ export default function DashboardSidebar({
         }
 
         const { href, label, icon: Icon } = entry
-        const active = pathname === href || pathname.startsWith(href + "/")
+        const active = isNavActive(pathname, href)
         return (
           <Link
             key={href}
@@ -234,7 +250,7 @@ export default function DashboardSidebar({
   const bottomNav = (isMobile: boolean) => (
     <div className="flex flex-col gap-0.5 border-t border-border/60 pt-2 mt-1">
       {(() => {
-        const active = pathname === "/dashboard/settings" || pathname.startsWith("/dashboard/settings/")
+        const active = isNavActive(pathname, "/dashboard/settings")
         return (
           <Link
             href="/dashboard/settings"
