@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.33.0] - 2026-06-23
+
+Richer, fully interactive analytics and a sidebar tidy-up.
+
+### Added
+
+- Strava now syncs automatically every day, and each day with an activity auto-ticks a Fitness habit (created on first sync). I can still tick or untick it by hand, and through the Discord bot once that lands. A manual change is never overwritten by a sync
+
+### Changed
+
+- Every chart now follows the period selector. The Coding weekly charts used to be stuck at 13 weeks; they now scale with the range (24h to All). The Strava distance bars and recent-activities table follow it too, and the recent list shows up to 50 in the chosen period instead of a fixed 12
+- The Applications analytics cards gained period-over-period trend arrows and a conversion-from-applied progress section (assessment, interview, offer)
+- The Strava analytics page gained personal bests (longest run, fastest pace, longest time, most climb, biggest day), a training-by-day-of-week chart and a pace trend line beside heart rate
+- Study, Habits, Faith and Body Metrics now have the same period selector driving their stat cards and charts, replacing the old fixed 30 and 90 day windows
+
+### Fixed
+
+- Sidebar items are now all the same size; the first item in the Analytics and University groups no longer renders larger than the rest
+- Sidebar highlighting now lights up only the most specific page. Opening Fitness analytics no longer also highlights Health, because a child route like /dashboard/health/analytics was matching its parent /dashboard/health
+
+---
+
 ## [v2.32.0] - 2026-06-23
 
 ### Added

@@ -6,6 +6,7 @@ import {
 } from "recharts"
 import {
   StatCard,
+  ProgressBar,
   DEFAULT_CHART_COLOURS,
   AnalyticsPeriodProvider,
   PeriodSelector,
@@ -133,6 +134,21 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
   const interviewRate = applied > 0 ? Math.round((atInterview / applied) * 100) : 0
   const offerRate = applied > 0 ? Math.round((offers / applied) * 100) : 0
 
+  // Previous equal-length period, so the stat cards show a trend arrow against the selected period.
+  let prevTotal = 0
+  let prevApplied = 0
+  if (cutoff) {
+    const span = today.getTime() - cutoff.getTime()
+    const prevStartIso = new Date(cutoff.getTime() - span).toISOString().slice(0, 10)
+    const prevEndIso = cutoff.toISOString().slice(0, 10)
+    const prev = apps.filter((a) => appDate(a) >= prevStartIso && appDate(a) < prevEndIso)
+    prevTotal = prev.length
+    prevApplied = computeFunnelCounts(prev.map((a) => a.status)).applied
+  }
+  const pctDelta = (cur: number, prev: number) => (prev > 0 ? Math.round(((cur - prev) / prev) * 100) : null)
+  const totalDelta = pctDelta(total, prevTotal)
+  const appliedDelta = pctDelta(applied, prevApplied)
+
   // Funnel
   const funnelData = [
     { name: "Applied",    value: applied,     colour: "#6366f1" },
@@ -162,12 +178,22 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard label="Total" value={total} />
-        <StatCard label="Applied" value={applied} />
+        <StatCard label="Total" value={total} trend={totalDelta !== null ? { delta: totalDelta } : undefined} />
+        <StatCard label="Applied" value={applied} trend={appliedDelta !== null ? { delta: appliedDelta } : undefined} />
         <StatCard label="Rejected" value={rejected} />
         <StatCard label="Offers" value={offers} />
         <StatCard label="Interview rate" value={`${interviewRate}%`} />
         <StatCard label="Offer rate" value={`${offerRate}%`} />
+      </div>
+
+      {/* Conversion progress from applied */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <h3 className="text-sm font-semibold mb-3">Conversion from applied</h3>
+        <div className="flex flex-col gap-2.5">
+          <ProgressBar label="Assessment" value={atOA} max={applied || 1} colorClassName="bg-violet-500" />
+          <ProgressBar label="Interview" value={atInterview} max={applied || 1} colorClassName="bg-amber-500" />
+          <ProgressBar label="Offer" value={offers} max={applied || 1} colorClassName="bg-green-500" />
+        </div>
       </div>
 
       {/* Status pie + Category bar */}

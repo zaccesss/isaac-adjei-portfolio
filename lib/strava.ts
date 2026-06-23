@@ -117,10 +117,34 @@ async function getAccessToken(): Promise<string | null> {
 
 // Pull my recent activities into strava_activities, upserting by strava_id so re-syncs never duplicate.
 // Returns how many activities were written, or -1 if Strava could not be reached.
+// When activities sync, I auto-tick a "Fitness" habit for each day that has an activity, so my training
+// shows up in Habits automatically. I can still tick or untick it by hand (and via the Discord bot later).
+// The habit is created on first sync if it does not exist, and I only insert days that have no log yet so
+// a manual change is never overwritten.
+async function markFitnessHabit(dates: string[]): Promise<void> {
+  if (dates.length === 0) return
+  let { data: habit } = await supabase.from("habits").select("id").ilike("name", "fitness").maybeSingle()
+  if (!habit) {
+    const { data: created } = await supabase
+      .from("habits")
+      .insert({ name: "Fitness", color: "#FC4C02", description: null, frequency: "daily", active: true })
+      .select("id")
+      .single()
+    habit = created
+  }
+  if (!habit) return
+  const habitId = habit.id as string
+  const { data: existing } = await supabase.from("habit_logs").select("date").eq("habit_id", habitId).in("date", dates)
+  const have = new Set((existing ?? []).map((l) => l.date as string))
+  const toInsert = dates.filter((d) => !have.has(d)).map((date) => ({ habit_id: habitId, date, completed: true }))
+  if (toInsert.length > 0) await supabase.from("habit_logs").insert(toInsert)
+}
+
 export async function syncStravaActivities(pages = 3): Promise<number> {
   const token = await getAccessToken()
   if (!token) return -1
   let synced = 0
+  const activityDates = new Set<string>()
   for (let page = 1; page <= pages; page++) {
     const res = await fetch(`https://www.strava.com/api/v3/athlete/activities?per_page=100&page=${page}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -142,10 +166,12 @@ export async function syncStravaActivities(pages = 3): Promise<number> {
       max_heartrate: a.max_heartrate ?? null,
       start_date: a.start_date ?? null,
     }))
+    for (const a of activities) if (a.start_date) activityDates.add(a.start_date.slice(0, 10))
     await supabase.from("strava_activities").upsert(rows, { onConflict: "strava_id" })
     synced += rows.length
     if (activities.length < 100) break
   }
+  await markFitnessHabit([...activityDates])
   return synced
 }
 

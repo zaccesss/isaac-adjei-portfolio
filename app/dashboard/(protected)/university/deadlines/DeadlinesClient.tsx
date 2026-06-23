@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Check, AlertTriangle } from "lucide-react"
+import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, StatCard } from "@/components/analytics"
 
 type Module = { id: string; code: string; name: string; color: string }
 type Deadline = {
@@ -41,11 +42,21 @@ function daysUntil(d: string) {
   return Math.ceil((new Date(d).getTime() - Date.now()) / 86400000)
 }
 
-export default function DeadlinesClient({ deadlines, modules }: { deadlines: Deadline[]; modules: Module[] }) {
+function DeadlinesClientInner({ deadlines, modules }: { deadlines: Deadline[]; modules: Module[] }) {
   const [open, setOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState("active")
   const [isPending, startTransition] = useTransition()
   const today = new Date().toISOString().split("T")[0]
+  const { period } = useAnalyticsPeriod()
+  // Deadlines are forward-looking, so the selector means "due within the next N days" (All = no limit).
+  const horizonDays = period === "24h" ? 1 : period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : period === "1y" ? 365 : null
+  const horizonEnd = (() => {
+    if (horizonDays === null) return null
+    const d = new Date()
+    d.setDate(d.getDate() + horizonDays)
+    return d.toISOString()
+  })()
+  const inHorizon = (d: Deadline) => horizonEnd === null || d.due_date <= horizonEnd
 
   const [form, setForm] = useState({
     module_id: "", title: "", type: "assignment",
@@ -80,12 +91,19 @@ export default function DeadlinesClient({ deadlines, modules }: { deadlines: Dea
   }
 
   const filtered = deadlines.filter((d) => {
+    if (!inHorizon(d)) return false
     if (statusFilter === "active") return d.status !== "graded"
     if (statusFilter === "graded") return d.status === "graded"
     return true
   })
 
   const overdue = filtered.filter((d) => daysUntil(d.due_date) < 0 && d.status !== "submitted" && d.status !== "graded")
+
+  // Stats follow the period horizon (deadlines due within the selected window)
+  const inWindow = deadlines.filter(inHorizon)
+  const statUpcoming = inWindow.filter((d) => daysUntil(d.due_date) >= 0 && d.status !== "submitted" && d.status !== "graded").length
+  const statOverdue = inWindow.filter((d) => daysUntil(d.due_date) < 0 && d.status !== "submitted" && d.status !== "graded").length
+  const statSubmitted = inWindow.filter((d) => d.status === "submitted" || d.status === "graded").length
 
   return (
     <div className="p-6 space-y-6 max-w-3xl">
@@ -145,6 +163,18 @@ export default function DeadlinesClient({ deadlines, modules }: { deadlines: Dea
             </form>
           </DialogContent>
         </Dialog>
+      </div>
+
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Due within</p>
+        <PeriodSelector />
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard label="In window" value={inWindow.length} />
+        <StatCard label="Upcoming" value={statUpcoming} />
+        <StatCard label="Overdue" value={statOverdue} />
+        <StatCard label="Submitted" value={statSubmitted} />
       </div>
 
       {overdue.length > 0 && (
@@ -215,5 +245,13 @@ export default function DeadlinesClient({ deadlines, modules }: { deadlines: Dea
         </div>
       )}
     </div>
+  )
+}
+
+export default function DeadlinesClient(props: { deadlines: Deadline[]; modules: Module[] }) {
+  return (
+    <AnalyticsPeriodProvider defaultPeriod="30d">
+      <DeadlinesClientInner {...props} />
+    </AnalyticsPeriodProvider>
   )
 }

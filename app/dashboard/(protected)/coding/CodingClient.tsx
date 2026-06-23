@@ -62,6 +62,16 @@ const PERIOD_CHART_DAYS: Record<AnalyticsPeriod, number> = {
   all: 30,
 }
 
+// How many weeks to show in the weekly bar charts per period, so they follow the selector too
+const PERIOD_CHART_WEEKS: Record<AnalyticsPeriod, number> = {
+  "24h": 4,
+  "7d": 4,
+  "30d": 6,
+  "90d": 13,
+  "1y": 52,
+  all: 52,
+}
+
 function formatHours(seconds: number) {
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
@@ -337,13 +347,14 @@ function CodingInner({
     })
   }, [ghDays, numDays])
 
-  // --- Weekly charts (always last 13 weeks — independent period, gives stable trend) ---
+  // --- Weekly charts (number of weeks follows the selected period) ---
+  const numWeeks = PERIOD_CHART_WEEKS[period]
   const weeklyCodings = useMemo(() => {
     const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
     const today = new Date()
-    return Array.from({ length: 13 }, (_, w) => {
+    return Array.from({ length: numWeeks }, (_, w) => {
       const end = new Date(today)
-      end.setDate(today.getDate() - (12 - w) * 7)
+      end.setDate(today.getDate() - (numWeeks - 1 - w) * 7)
       let total = 0
       for (let d = 6; d >= 0; d--) {
         const day = new Date(end)
@@ -352,15 +363,15 @@ function CodingInner({
       }
       return { name: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), seconds: total }
     })
-  }, [rows])
+  }, [rows, numWeeks])
 
   const weeklyGH = useMemo(() => {
     if (!ghDays.length) return []
     const byDate = new Map(ghDays.map((d) => [d.date, d.count]))
     const today = new Date()
-    return Array.from({ length: 13 }, (_, w) => {
+    return Array.from({ length: numWeeks }, (_, w) => {
       const end = new Date(today)
-      end.setDate(today.getDate() - (12 - w) * 7)
+      end.setDate(today.getDate() - (numWeeks - 1 - w) * 7)
       let total = 0
       for (let d = 6; d >= 0; d--) {
         const day = new Date(end)
@@ -369,7 +380,7 @@ function CodingInner({
       }
       return { name: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), count: total }
     })
-  }, [ghDays])
+  }, [ghDays, numWeeks])
 
   // --- GitHub breakdown uses server-fetched totals (full-year aggregate) ---
   const ghBreakdownData = ghTotals && (ghTotals.commits + ghTotals.pullRequests + ghTotals.reviews + ghTotals.issues) > 0

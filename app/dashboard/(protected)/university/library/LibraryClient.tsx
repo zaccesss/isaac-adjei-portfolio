@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Trash2, Check, BookOpen } from "lucide-react"
+import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, StatCard } from "@/components/analytics"
 
 type Module = { id: string; code: string; name: string }
 type Book = {
@@ -19,7 +20,7 @@ function daysUntil(d: string) {
   return Math.ceil((new Date(d).getTime() - Date.now()) / 86400000)
 }
 
-export default function LibraryClient({ books, modules }: { books: Book[]; modules: Module[] }) {
+function LibraryClientInner({ books, modules }: { books: Book[]; modules: Module[] }) {
   const [open, setOpen] = useState(false)
   const [showReturned, setShowReturned] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -38,6 +39,18 @@ export default function LibraryClient({ books, modules }: { books: Book[]; modul
   const active = books.filter((b) => !b.returned_at)
   const returned = books.filter((b) => b.returned_at)
   const display = showReturned ? returned : active
+
+  const { period } = useAnalyticsPeriod()
+  // Loans are forward-looking, so the selector means "due within the next N days" (All = no limit).
+  const horizonDays = period === "24h" ? 1 : period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : period === "1y" ? 365 : null
+  const horizonEnd = (() => {
+    if (horizonDays === null) return null
+    const d = new Date()
+    d.setDate(d.getDate() + horizonDays)
+    return d.toISOString().split("T")[0]
+  })()
+  const dueInWindow = active.filter((b) => horizonEnd === null || b.due_date <= horizonEnd).length
+  const overdueCount = active.filter((b) => daysUntil(b.due_date) < 0).length
 
   return (
     <div className="p-6 space-y-6 max-w-3xl">
@@ -92,6 +105,18 @@ export default function LibraryClient({ books, modules }: { books: Book[]; modul
         </Dialog>
       </div>
 
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Due within</p>
+        <PeriodSelector />
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard label="On loan" value={active.length} />
+        <StatCard label="Due in window" value={dueInWindow} />
+        <StatCard label="Overdue" value={overdueCount} />
+        <StatCard label="Returned" value={returned.length} />
+      </div>
+
       <div className="flex gap-2">
         {[["active", `On loan (${active.length})`], ["returned", `Returned (${returned.length})`]].map(([v, l]) => (
           <button key={v} onClick={() => setShowReturned(v === "returned")} className={`text-xs px-3 py-1 rounded-full border transition-colors ${(v === "returned") === showReturned ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>{l}</button>
@@ -136,5 +161,13 @@ export default function LibraryClient({ books, modules }: { books: Book[]; modul
         </div>
       )}
     </div>
+  )
+}
+
+export default function LibraryClient(props: { books: Book[]; modules: Module[] }) {
+  return (
+    <AnalyticsPeriodProvider defaultPeriod="30d">
+      <LibraryClientInner {...props} />
+    </AnalyticsPeriodProvider>
   )
 }

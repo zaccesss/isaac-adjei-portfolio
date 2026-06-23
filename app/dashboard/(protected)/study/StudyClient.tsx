@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Clock, BookOpen, Pencil } from "lucide-react"
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, YAxis } from "recharts"
+import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod } from "@/components/analytics"
 
 type Session = {
   id: string
@@ -41,7 +42,7 @@ function fmtMinutes(m: number): string {
   return rem === 0 ? `${h}h` : `${h}h ${rem}m`
 }
 
-export default function StudyClient({ sessions, today }: { sessions: Session[]; today: string }) {
+function StudyClientInner({ sessions, today }: { sessions: Session[]; today: string }) {
   const [open, setOpen] = useState(false)
   const [editSession, setEditSession] = useState<Session | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -101,25 +102,29 @@ export default function StudyClient({ sessions, today }: { sessions: Session[]; 
     startTransition(async () => { await deleteStudySession(id) })
   }
 
+  const { period } = useAnalyticsPeriod()
   const subjects = [...new Set(sessions.map((s) => s.subject))].sort()
   const filtered = subjectFilter === "all" ? sessions : sessions.filter((s) => s.subject === subjectFilter)
 
-  const totalMinutes = sessions.reduce((a, s) => a + s.duration_m, 0)
+  // Stats and charts follow the period selector; the session list below stays complete.
+  const periodSessions = filterByPeriod(sessions, period, (s) => s.date)
+  const totalMinutes = periodSessions.reduce((a, s) => a + s.duration_m, 0)
   const todayMinutes = sessions.filter((s) => s.date === today).reduce((a, s) => a + s.duration_m, 0)
-  const uniqueDays = new Set(sessions.map((s) => s.date)).size
+  const uniqueDays = new Set(periodSessions.map((s) => s.date)).size
   const avgPerDay = uniqueDays > 0 ? Math.round(totalMinutes / uniqueDays) : 0
 
-  // Subject breakdown
+  // Subject breakdown (within the period)
   const bySubject = subjects.map((subj) => ({
     subject: subj.length > 12 ? subj.slice(0, 12) + "…" : subj,
     fullSubject: subj,
-    minutes: sessions.filter((s) => s.subject === subj).reduce((a, s) => a + s.duration_m, 0),
-  })).sort((a, b) => b.minutes - a.minutes)
+    minutes: periodSessions.filter((s) => s.subject === subj).reduce((a, s) => a + s.duration_m, 0),
+  })).filter((b) => b.minutes > 0).sort((a, b) => b.minutes - a.minutes)
 
-  // Daily totals for the last 30 days
-  const dailyData = Array.from({ length: 30 }, (_, i) => {
+  // Daily totals across a window that follows the period
+  const numDays = period === "24h" || period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365
+  const dailyData = Array.from({ length: numDays }, (_, i) => {
     const d = new Date(today)
-    d.setDate(d.getDate() - (29 - i))
+    d.setDate(d.getDate() - (numDays - 1 - i))
     const ds = d.toISOString().split("T")[0]
     const minutes = sessions.filter((s) => s.date === ds).reduce((a, s) => a + s.duration_m, 0)
     return { day: ds.slice(5), minutes }
@@ -226,10 +231,14 @@ export default function StudyClient({ sessions, today }: { sessions: Session[]; 
         </Dialog>
       </div>
 
+      <div className="flex justify-end">
+        <PeriodSelector />
+      </div>
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Total (90d)", value: fmtMinutes(totalMinutes), icon: "📚" },
+          { label: "Total", value: fmtMinutes(totalMinutes), icon: "📚" },
           { label: "Today", value: fmtMinutes(todayMinutes), icon: "⏱" },
           { label: "Avg per study day", value: fmtMinutes(avgPerDay), icon: "📊" },
           { label: "Subjects", value: subjects.length, icon: "🗂" },
@@ -244,10 +253,10 @@ export default function StudyClient({ sessions, today }: { sessions: Session[]; 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Daily minutes - 30 day line chart */}
         <div className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
-          <p className="text-sm font-medium">Daily minutes (30 days)</p>
+          <p className="text-sm font-medium">Daily minutes</p>
           <ResponsiveContainer width="100%" height={100}>
             <LineChart data={dailyData}>
-              <XAxis dataKey="day" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} interval={6} />
+              <XAxis dataKey="day" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} interval={Math.ceil(numDays / 8)} />
               <YAxis hide />
               <Tooltip
                 contentStyle={{ fontSize: 12, borderRadius: 6 }}
@@ -266,7 +275,7 @@ export default function StudyClient({ sessions, today }: { sessions: Session[]; 
 
         {/* Subject breakdown */}
         <div className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
-          <p className="text-sm font-medium">By subject (90 days)</p>
+          <p className="text-sm font-medium">By subject</p>
           {bySubject.length === 0 ? (
             <p className="text-sm text-muted-foreground">No sessions yet</p>
           ) : (
@@ -362,5 +371,13 @@ export default function StudyClient({ sessions, today }: { sessions: Session[]; 
         )}
       </div>
     </div>
+  )
+}
+
+export default function StudyClient(props: { sessions: Session[]; today: string }) {
+  return (
+    <AnalyticsPeriodProvider defaultPeriod="30d">
+      <StudyClientInner {...props} />
+    </AnalyticsPeriodProvider>
   )
 }
