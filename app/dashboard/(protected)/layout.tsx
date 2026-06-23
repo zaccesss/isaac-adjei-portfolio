@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import DashboardSidebar from "../components/DashboardSidebar"
 import InactivityGuard from "@/components/dashboard/InactivityGuard"
 import QuickCapture from "@/components/dashboard/QuickCapture"
+import FloatingAssistant from "@/components/dashboard/FloatingAssistant"
 import ShortcutHelp from "@/components/dashboard/ShortcutHelp"
 import ThemeSync from "@/components/dashboard/ThemeSync"
 import FloatingFormatToolbar from "@/components/shared/FloatingFormatToolbar"
@@ -38,6 +39,7 @@ export default async function ProtectedDashboardLayout({
         {children}
       </main>
       <QuickCapture />
+      <FloatingAssistant />
       <ShortcutHelp />
       {/* Floating text formatting toolbar - appears on text selection across all dashboard inputs */}
       <FloatingFormatToolbar />

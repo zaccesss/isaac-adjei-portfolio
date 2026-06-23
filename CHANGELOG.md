@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.30.0] - 2026-06-23
+
+### Added
+
+- A floating quick-ask AI panel on the dashboard pages whose data the assistant can read (applications, coding, university, calendar and the rest). It reuses the same read-only assistant on a fast free model for a quick question without leaving the page, and never appears on my private pages
+
+---
+
 ## [v2.29.2] - 2026-06-23
 
 More assistant reach and a privacy tidy-up.

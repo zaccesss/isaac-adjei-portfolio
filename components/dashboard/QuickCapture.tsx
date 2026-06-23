@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Plus } from "lucide-react"
+import { Plus, Sparkles } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { isZaccessPage } from "@/components/dashboard/FloatingAssistant"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -313,6 +315,12 @@ function HealthTab({ onDone }: { onDone: () => void }) {
 
 export default function QuickCapture() {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+
+  function openZaccess() {
+    setOpen(false)
+    window.dispatchEvent(new Event("zaccess:open"))
+  }
 
   function handleDone(label: string) {
     setOpen(false)
@@ -335,6 +343,11 @@ export default function QuickCapture() {
           <DialogHeader>
             <DialogTitle>Quick capture</DialogTitle>
           </DialogHeader>
+          {isZaccessPage(pathname) && (
+            <button type="button" onClick={openZaccess} className="w-full flex items-center justify-center gap-1.5 text-sm border border-border rounded-md px-2.5 py-2 mb-2 hover:bg-muted transition-colors">
+              <Sparkles className="h-4 w-4 text-primary" />ZACCESS
+            </button>
+          )}
           <Tabs defaultValue="diary">
             <TabsList className="w-full grid grid-cols-3 sm:grid-cols-5 mb-1">
               <TabsTrigger value="diary">Diary</TabsTrigger>
