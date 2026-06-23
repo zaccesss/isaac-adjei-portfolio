@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Dumbbell, Salad, Footprints, Scale, Activity } from "lucide-react"
+import { Dumbbell, Salad, Footprints, Scale, Activity, TrendingDown } from "lucide-react"
 import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
 
 type Section = {
@@ -153,6 +153,20 @@ export default function HealthClient({ sections, workouts, nutrition }: {
             <div>
               <p className="font-semibold text-sm group-hover:text-primary transition-colors">Activity Analytics</p>
               <p className="text-xs text-muted-foreground">Strava runs, rides and training trends</p>
+            </div>
+          </Link>
+        </motion.div>
+        <motion.div variants={dashboardCard}>
+          <Link
+            href="/dashboard/health/weight-loss"
+            className="flex flex-col gap-3 p-4 rounded-xl border bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border-emerald-500/20 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <TrendingDown className="h-5 w-5 text-emerald-500" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm group-hover:text-primary transition-colors">Weight Loss</p>
+              <p className="text-xs text-muted-foreground">Goal, weight, calories and workouts</p>
             </div>
           </Link>
         </motion.div>

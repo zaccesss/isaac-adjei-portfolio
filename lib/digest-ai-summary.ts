@@ -56,6 +56,7 @@ export type DigestFacts = {
   // body metrics
   currentWeight: number | null
   weightChange: number | null
+  weightGoal: string | null
 }
 
 // The best free models, in order of preference. Each is included only if its key is set, so the chain is
@@ -108,6 +109,7 @@ export async function digestAiSummary(facts: DigestFacts): Promise<string | null
     facts.currentWeight != null
       ? `Weight: ${facts.currentWeight}kg${facts.weightChange != null && facts.weightChange !== 0 ? ` (${facts.weightChange > 0 ? "up" : "down"} ${Math.abs(facts.weightChange)}kg this period)` : ""}`
       : null,
+    facts.weightGoal ? `Weight-loss goal: ${facts.weightGoal}` : null,
     facts.expiringItems > 0
       ? `Expiring soon (vault keys, cards or warranties): ${facts.expiringItems}${facts.expiringSoon ? ` - ${facts.expiringSoon}` : ""}`
       : null,
@@ -122,9 +124,10 @@ export async function digestAiSummary(facts: DigestFacts): Promise<string | null
     "content, diary).",
     "Use ONLY the figures given. Never invent numbers, companies, names or events.",
     "If a figure is 0, leave it out rather than padding, but do gently note a quiet patch if most are 0.",
-    "If a weight is given, comment on the trend: if it is falling, affirm the progress towards losing weight",
-    "and, from the rate of change, give a gentle sense of pace; if it is flat or rising, encouragingly nudge",
-    "one helpful habit (a calorie deficit, more steps, consistency). Be supportive, never preachy.",
+    "If a weight is given, comment on the trend; if a weight-loss goal projection is given, lead with it",
+    "(say whether you are on track or behind and the estimated date) and give a gentle sense of pace. If",
+    "weight is flat or rising, encouragingly nudge one habit (a calorie deficit, more steps, consistency).",
+    "Be supportive, never preachy.",
     "Always call out, as priorities, any university deadlines or calendar events coming up, contacts due a",
     "follow-up, and anything expiring soon (an API key, card or warranty) so nothing slips.",
     "Use UK English. No em dashes or en dashes (use a comma, full stop or brackets). No Oxford commas.",

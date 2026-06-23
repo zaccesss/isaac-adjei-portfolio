@@ -66,6 +66,7 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
     readsR,
     osR,
     weightR,
+    weightGoalR,
     expiring,
   ] = await Promise.all([
     supabase.from("goals").select("status,updated_at").gte("updated_at", sinceIso),
@@ -106,6 +107,7 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
     supabase.from("blog_read_events").select("id", { count: "exact", head: true }).gte("created_at", sinceIso),
     supabase.from("opensource_contributions").select("id", { count: "exact", head: true }).gte("created_at", sinceIso),
     supabase.from("body_metrics").select("value,date").eq("metric", "weight_kg").order("date", { ascending: false }).limit(90),
+    supabase.from("config").select("value").eq("key", "weight_goal").maybeSingle(),
     getExpiringItems(),
   ])
 
@@ -156,6 +158,33 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
   const weightChange =
     currentWeight != null && windowWeights.length >= 2 ? round1(currentWeight - windowWeights[windowWeights.length - 1].value) : null
 
+  // Weight-loss goal projection: how far to target, and a date estimated from the last 28 days' rate.
+  const goal = (weightGoalR.data?.value as { startWeight: number; targetWeight: number; targetDate: string } | undefined) ?? null
+  let weightGoal: string | null = null
+  if (goal && currentWeight != null) {
+    const remaining = round1(currentWeight - goal.targetWeight)
+    const fmt = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+    if (remaining <= 0) {
+      weightGoal = `reached your ${goal.targetWeight}kg goal`
+    } else {
+      const cutoff28 = new Date(now.getTime() - 28 * 86_400_000).toISOString().slice(0, 10)
+      const recent28 = weightLogs.filter((w) => w.date >= cutoff28)
+      const oldest28 = recent28[recent28.length - 1]
+      let ratePerWeek: number | null = null
+      if (oldest28 && oldest28.date < weightLogs[0].date) {
+        const days = (new Date(weightLogs[0].date).getTime() - new Date(oldest28.date).getTime()) / 86_400_000
+        if (days >= 3) ratePerWeek = ((oldest28.value - currentWeight) / days) * 7
+      }
+      if (ratePerWeek != null && ratePerWeek > 0) {
+        const projected = new Date(now.getTime() + (remaining / ratePerWeek) * 7 * 86_400_000)
+        const onTrack = projected <= new Date(goal.targetDate)
+        weightGoal = `${remaining}kg to your ${goal.targetWeight}kg goal, ${onTrack ? "on track for" : "behind, projected"} ${fmt(projected)} (target ${fmt(new Date(goal.targetDate))})`
+      } else {
+        weightGoal = `${remaining}kg to your ${goal.targetWeight}kg goal`
+      }
+    }
+  }
+
   // Posts and TILs published in the window, from the static content (their dates are the publish dates).
   const published =
     posts.filter((p) => (p as { date?: string }).date && new Date((p as { date: string }).date) >= since).length +
@@ -198,6 +227,7 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
     openSource: osR.count ?? 0,
     currentWeight,
     weightChange,
+    weightGoal,
   }
 
   const appliedList = apps
