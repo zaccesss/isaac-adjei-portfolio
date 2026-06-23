@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, BookOpen, Cross, Church, Heart, Star, Pencil, Check, Clock } from "lucide-react"
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
+import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod } from "@/components/analytics"
 
 type FaithEntry = {
   id: string
@@ -58,7 +59,7 @@ function calcStreak(entries: FaithEntry[], today: string): number {
   return streak
 }
 
-export default function FaithClient({ entries, today }: { entries: FaithEntry[]; today: string }) {
+function FaithClientInner({ entries, today }: { entries: FaithEntry[]; today: string }) {
   const [open, setOpen] = useState(false)
   const [editEntry, setEditEntry] = useState<FaithEntry | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -115,18 +116,19 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
     startTransition(async () => { await deleteFaithEntry(id) })
   }
 
+  const { period } = useAnalyticsPeriod()
   const todayEntries = entries.filter((e) => e.date === today)
   const streak = calcStreak(entries, today)
-  // Windowed to the last 90 days so the values match the "90d" label and the charts below.
-  const cutoff90 = new Date(new Date(today).getTime() - 90 * 86400000).toISOString().split("T")[0]
-  const recentEntries = entries.filter((e) => e.date >= cutoff90)
-  const totalMinutes = recentEntries.reduce((s, e) => s + (e.duration_m ?? 0), 0)
-  const uniqueDays = new Set(recentEntries.filter((e) => e.completed).map((e) => e.date)).size
+  // Stats and charts follow the period selector; the entries list below stays complete.
+  const periodEntries = filterByPeriod(entries, period, (e) => e.date)
+  const totalMinutes = periodEntries.reduce((s, e) => s + (e.duration_m ?? 0), 0)
+  const uniqueDays = new Set(periodEntries.filter((e) => e.completed).map((e) => e.date)).size
 
-  // Weekly bar chart: last 4 weeks, count of entries per week
-  const weeks = Array.from({ length: 12 }, (_, i) => {
+  // Weekly bar chart: number of weeks follows the period
+  const numWeeks = period === "24h" || period === "7d" ? 4 : period === "30d" ? 6 : period === "90d" ? 13 : period === "1y" ? 26 : 52
+  const weeks = Array.from({ length: numWeeks }, (_, i) => {
     const weekStart = new Date(today)
-    weekStart.setDate(weekStart.getDate() - (11 - i) * 7)
+    weekStart.setDate(weekStart.getDate() - (numWeeks - 1 - i) * 7)
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
     const ws = weekStart.toISOString().split("T")[0]
@@ -137,7 +139,7 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
 
   const typeBreakdown = FAITH_TYPES.map((ft) => ({
     ...ft,
-    count: entries.filter((e) => e.type === ft.value).length,
+    count: periodEntries.filter((e) => e.type === ft.value).length,
   })).filter((ft) => ft.count > 0)
 
   return (
@@ -232,12 +234,16 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
         </Dialog>
       </div>
 
+      <div className="flex justify-end">
+        <PeriodSelector />
+      </div>
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Current streak", value: streak, suffix: streak === 1 ? "day" : "days", icon: "🔥" },
-          { label: "Days active (90d)", value: uniqueDays, suffix: "days", icon: "✅" },
-          { label: "Total minutes (90d)", value: totalMinutes, suffix: "min", icon: "⏱" },
+          { label: "Days active", value: uniqueDays, suffix: "days", icon: "✅" },
+          { label: "Total minutes", value: totalMinutes, suffix: "min", icon: "⏱" },
           { label: "Today", value: todayEntries.length, suffix: todayEntries.length === 1 ? "entry" : "entries", icon: "📖" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-border/60 bg-card p-4 space-y-1">
@@ -251,7 +257,7 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Weekly activity chart */}
         <div className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
-          <p className="text-sm font-medium">Weekly activity (12 weeks)</p>
+          <p className="text-sm font-medium">Weekly activity</p>
           <ResponsiveContainer width="100%" height={100}>
             <BarChart data={weeks} barSize={14}>
               <XAxis dataKey="week" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
@@ -270,7 +276,7 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
 
         {/* Type breakdown */}
         <div className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
-          <p className="text-sm font-medium">By type (90 days)</p>
+          <p className="text-sm font-medium">By type</p>
           {typeBreakdown.length === 0 ? (
             <p className="text-sm text-muted-foreground">No entries yet</p>
           ) : (
@@ -337,5 +343,13 @@ export default function FaithClient({ entries, today }: { entries: FaithEntry[];
         )}
       </div>
     </div>
+  )
+}
+
+export default function FaithClient(props: { entries: FaithEntry[]; today: string }) {
+  return (
+    <AnalyticsPeriodProvider defaultPeriod="30d">
+      <FaithClientInner {...props} />
+    </AnalyticsPeriodProvider>
   )
 }

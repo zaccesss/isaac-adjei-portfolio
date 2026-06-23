@@ -16,7 +16,7 @@ import {
   createHabit, updateHabit, deleteHabit, checkInHabit, undoHabitCheckIn,
 } from "@/app/dashboard/actions"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
-import { StatCard, BarChart } from "@/components/analytics"
+import { StatCard, BarChart, AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod } from "@/components/analytics"
 
 const SUPPLEMENT_PRESETS = ["Creatine", "Whey", "Vitamin D", "Omega-3", "Magnesium"]
 const HABIT_COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6", "#ef4444", "#8b5cf6", "#f97316"]
@@ -38,7 +38,7 @@ type HabitLog = {
   created_at: string
 }
 
-export default function HabitsClient({
+function HabitsClientInner({
   habits: initial,
   logs,
   today,
@@ -54,6 +54,8 @@ export default function HabitsClient({
   const [editForm, setEditForm] = useState({ name: "", description: "", color: HABIT_COLORS[0] })
   const [, startTransition] = useTransition()
   const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
+  const { period } = useAnalyticsPeriod()
+  const numDays = period === "24h" || period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365
 
   // Local optimistic copy of today's check-ins so a tap toggles instantly, without the old
   // window.location.reload that raced the in-flight server action and dropped check-ins. Seeded from
@@ -90,9 +92,9 @@ export default function HabitsClient({
     const checkedToday = new Set(logs.filter((l) => l.date === today).map((l) => l.habit_id))
     const checkedInToday = habits.filter((h) => checkedToday.has(h.id)).length
 
-    // Build the trailing 30-day window ending today
+    // Build the trailing window ending today; its length follows the period selector
     const days: string[] = []
-    for (let i = 29; i >= 0; i--) {
+    for (let i = numDays - 1; i >= 0; i--) {
       const d = new Date(today)
       d.setDate(d.getDate() - i)
       days.push(d.toISOString().split("T")[0])
@@ -115,7 +117,7 @@ export default function HabitsClient({
 
     // Completion % over the window = check-ins / (habits * 30 days) of possible check-ins
     const completionPct = totalHabits > 0
-      ? Math.round((windowCheckIns / (totalHabits * 30)) * 100)
+      ? Math.round((windowCheckIns / (totalHabits * numDays)) * 100)
       : 0
 
     // Best current streak across all habits, reusing the same logic as the per-habit rows
@@ -124,7 +126,7 @@ export default function HabitsClient({
     return { totalHabits, checkedInToday, completionPct, bestStreak, dailyCounts }
     // getStreak is a stable closure over logs/today; logs and habits are the real inputs
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [habits, logs, today])
+  }, [habits, logs, today, numDays])
 
   function handleAdd() {
     if (!newHabitName.trim()) return
@@ -199,16 +201,18 @@ export default function HabitsClient({
 
       {habits.length > 0 && (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            <p className="text-sm font-semibold">Habit analytics</p>
-            <span className="text-xs text-muted-foreground">- last 30 days</span>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm font-semibold">Habit analytics</p>
+            </div>
+            <PeriodSelector />
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard label="Total habits" value={analytics.totalHabits} />
             <StatCard label="Checked in today" value={`${analytics.checkedInToday} / ${analytics.totalHabits}`} />
-            <StatCard label="30-day completion" value={`${analytics.completionPct}%`} />
+            <StatCard label="Completion" value={`${analytics.completionPct}%`} />
             <StatCard label="Best streak" value={analytics.bestStreak} />
           </div>
 
@@ -401,5 +405,13 @@ export default function HabitsClient({
 
       {confirmDialogNode}
     </motion.div>
+  )
+}
+
+export default function HabitsClient(props: { habits: Habit[]; logs: HabitLog[]; today: string }) {
+  return (
+    <AnalyticsPeriodProvider defaultPeriod="30d">
+      <HabitsClientInner {...props} />
+    </AnalyticsPeriodProvider>
   )
 }
