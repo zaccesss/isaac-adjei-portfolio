@@ -1,6 +1,8 @@
 -- Weight-loss tracker: food/calorie logs and manual workout logs.
 -- Weight itself reuses body_metrics (metric = 'weight_kg'); auto-synced workouts reuse strava_activities;
 -- the weight goal (start/target weight + target date) lives in the config table under key 'weight_goal'.
+-- RLS is auto-enabled with no policy by the ensure_rls event trigger, so both tables are reachable only
+-- through the service-role server (the public anon key cannot read them), matching the other tables here.
 
 create table if not exists nutrition_logs (
   id          uuid primary key default gen_random_uuid(),
@@ -17,9 +19,6 @@ create table if not exists nutrition_logs (
 
 create index if not exists nutrition_logs_date_idx on nutrition_logs (date desc);
 
-alter table nutrition_logs enable row level security;
-create policy "allow all" on nutrition_logs for all using (true) with check (true);
-
 create table if not exists workout_logs (
   id           uuid primary key default gen_random_uuid(),
   date         date not null default current_date,
@@ -31,9 +30,6 @@ create table if not exists workout_logs (
 );
 
 create index if not exists workout_logs_date_idx on workout_logs (date desc);
-
-alter table workout_logs enable row level security;
-create policy "allow all" on workout_logs for all using (true) with check (true);
 
 -- Down:
 -- drop table if exists nutrition_logs;
