@@ -2,6 +2,7 @@ import Image from "next/image"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { getMaintenance } from "@/lib/maintenance"
+import ThemeToggle from "@/components/shared/ThemeToggle"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Under maintenance", robots: "noindex, nofollow" }
@@ -21,8 +22,13 @@ export default async function MaintenancePage({ searchParams }: { searchParams: 
     "I'm fixing something or making a few improvements. Be back soon!"
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-6 px-6 py-16 text-center bg-background text-foreground">
-      <Image src="/Media/giphy.gif" alt="" width={220} height={220} unoptimized priority className="rounded-2xl h-auto w-[220px]" />
+    <main className="relative min-h-screen flex flex-col items-center justify-center gap-6 px-6 py-16 text-center bg-background text-foreground">
+      {/* A single theme toggle - the only chrome on this otherwise bare page, so a visitor can flip
+          dark/light without the full site header (which would dead-end every nav link back here). */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <Image src="/Media/giphy.gif" alt="" width={320} height={180} unoptimized priority className="rounded-2xl h-auto w-[220px]" />
       <div className="max-w-md flex flex-col gap-3">
         <h1 className="text-2xl font-bold">Under maintenance</h1>
         <p className="text-muted-foreground whitespace-pre-wrap">{shown}</p>
