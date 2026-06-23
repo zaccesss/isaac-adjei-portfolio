@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.30.1] - 2026-06-23
+
+### Fixed
+
+- My own applications were silently disappearing from the Applications page. The table holds thousands of scraped job listings and a single query is capped at 1000 rows, so the scraper's recent rows were filling that window and evicting my older real applications. The page now loads my real applications in their own query so they can never be pushed out
+- Re-applied two assistant tweaks lost in a merge race: the accuracy guardrail (only state facts that are in the data, never invent companies or numbers) and the quick panel defaulting to Gemini Flash
+
+---
+
 ## [v2.30.0] - 2026-06-23
 
 ### Added
