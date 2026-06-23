@@ -250,7 +250,7 @@ export default function SettingsClient() {
   async function handleClearJobs() {
     const confirmed = await showConfirm({
       title: "Clear all scraped jobs?",
-      description: "This permanently removes all jobs fetched by the scraper. Jobs you added manually are not affected.",
+      description: "This permanently deletes every listing the scraper added. Anything you've applied to, interviewed for, been offered, rejected from or saved is kept - your real applications and analytics are never touched. The scraper refills current openings on its next run.",
       confirmLabel: "Clear jobs",
       destructive: true,
     })
@@ -857,7 +857,7 @@ export default function SettingsClient() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Clear scraped jobs</p>
-              <p className="text-xs text-muted-foreground">Remove all jobs fetched by the scraper from the jobs table.</p>
+              <p className="text-xs text-muted-foreground">Permanently remove every listing the scraper added. Applications you&apos;ve applied to, saved or changed the status of are kept.</p>
             </div>
             <Button
               variant="destructive"

@@ -5,7 +5,7 @@
 
 // SQL already applied - all new columns are in the applications table.
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect, useRef } from "react"
 import Link from "next/link"
 import { createApplication, updateApplication, deleteApplication, archiveApplication, reopenApplication, bulkDeleteApplications } from "../../actions"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
@@ -151,6 +151,12 @@ function detectCategory(company: string, role: string): Category {
 
 const TAB_TYPES = ["Internships", "Industrial Placements", "Graduate Schemes", "Spring Weeks", "Events", "Jobs"] as const
 type Tab = (typeof TAB_TYPES)[number]
+
+// The table can hold tens of thousands of scraped roles, so I never mount a whole tab at once. I render an
+// initial window and grow it as the sentinel scrolls into view (infinite scroll). All counts, filters and
+// bulk actions still run over the full set - only the number of mounted rows is windowed.
+const INITIAL_ROWS = 200
+const ROW_PAGE = 400
 
 // I map the raw type field to a tab rather than relying on exact string equality because the
 // job scraper writes inconsistent casing and the legacy "scraped" type predates the current taxonomy
@@ -837,6 +843,9 @@ function ApplicationsFunnel({ apps }: { apps: Application[] }) {
 export default function ApplicationsClient({ applications: initial }: { applications: Application[] }) {
   const [apps, setApps] = useState<Application[]>(initial)
   const [activeTab, setActiveTab] = useState<Tab>("Internships")
+  const [visibleCount, setVisibleCount] = useState(INITIAL_ROWS)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
   const [search, setSearch] = useState("")
   const [filterOpenStatus, setFilterOpenStatus] = useState("All")
   const [filterCoverLetter, setFilterCoverLetter] = useState("All")
@@ -939,6 +948,35 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   for (const cat of CATEGORIES) {
     grouped[cat].sort((a, b) => locPriority(a.location) - locPriority(b.location))
   }
+
+  // Windowed rendering - walk the groups in display order and only mount up to `visibleCount` rows in
+  // total, so a tab with thousands of scraped roles never freezes. Everything below this still works over
+  // the full `filtered`/`grouped` set (counts, stats, bulk select); only the mounted rows are limited.
+  let rowBudget = visibleCount
+  const visibleGroups: { cat: string; apps: Application[] }[] = []
+  for (const cat of CATEGORIES) {
+    const catApps = grouped[cat]
+    if (!catApps || catApps.length === 0) continue
+    if (rowBudget <= 0) break
+    visibleGroups.push({ cat, apps: catApps.slice(0, rowBudget) })
+    rowBudget -= Math.min(catApps.length, rowBudget)
+  }
+  const renderedCount = visibleGroups.reduce((n, g) => n + g.apps.length, 0)
+  const hasMore = renderedCount < filtered.length
+
+  // Grow the window when the sentinel scrolls near the bottom of the table viewport (infinite scroll).
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setVisibleCount((v) => v + ROW_PAGE)
+      },
+      { root: scrollRef.current, rootMargin: "600px" },
+    )
+    io.observe(sentinel)
+    return () => io.disconnect()
+  }, [activeTab, view, filtered.length, hasMore])
 
   // ─── Handlers ───────────────────────────────────────────────
 
@@ -1259,7 +1297,11 @@ export default function ApplicationsClient({ applications: initial }: { applicat
             <button
               key={tab}
               type="button"
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab)
+                setVisibleCount(INITIAL_ROWS)
+                scrollRef.current?.scrollTo({ top: 0 })
+              }}
               className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === tab
                   ? "border-foreground text-foreground"
@@ -1426,7 +1468,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       )}
 
       {/* Table */}
-      {view === "table" && <div className="flex-1 overflow-auto min-h-0 px-4 pb-4">
+      {view === "table" && <div ref={scrollRef} className="flex-1 overflow-auto min-h-0 px-4 pb-4">
         {!hasAnyFiltered ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <p className="text-sm font-medium">No applications found</p>
@@ -1471,28 +1513,37 @@ export default function ApplicationsClient({ applications: initial }: { applicat
                 </tr>
               </thead>
               <tbody>
-                {CATEGORIES.map((cat) => {
-                  const catApps = grouped[cat]
-                  if (!catApps || catApps.length === 0) return null
-                  return (
-                    <CategoryGroup
-                      key={cat}
-                      category={cat}
-                      apps={catApps}
-                      onEdit={setEditApp}
-                      onDelete={handleDelete}
-                      onArchive={handleArchive}
-                      onReopen={handleReopen}
-                      onStatusChange={handleStatusChange}
-                      onPrep={setPrepApp}
-                      isEvent={isEvent}
-                      selectedIds={bulkSelected}
-                      onToggleSelect={bulkToggle}
-                    />
-                  )
-                })}
+                {visibleGroups.map(({ cat, apps }) => (
+                  <CategoryGroup
+                    key={cat}
+                    category={cat}
+                    apps={apps}
+                    onEdit={setEditApp}
+                    onDelete={handleDelete}
+                    onArchive={handleArchive}
+                    onReopen={handleReopen}
+                    onStatusChange={handleStatusChange}
+                    onPrep={setPrepApp}
+                    isEvent={isEvent}
+                    selectedIds={bulkSelected}
+                    onToggleSelect={bulkToggle}
+                  />
+                ))}
               </tbody>
             </table>
+            {hasMore && (
+              <div className="flex flex-col items-center gap-2 py-4 text-xs text-muted-foreground">
+                <span>Showing {renderedCount.toLocaleString()} of {filtered.length.toLocaleString()}</span>
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((v) => v + ROW_PAGE)}
+                  className="rounded-md border border-border px-3 py-1.5 font-medium text-foreground hover:bg-muted transition-colors"
+                >
+                  Show more
+                </button>
+                <div ref={sentinelRef} className="h-px w-full" aria-hidden />
+              </div>
+            )}
           </div>
         )}
       </div>}

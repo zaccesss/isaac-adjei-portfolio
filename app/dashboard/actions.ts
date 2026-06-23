@@ -1644,26 +1644,22 @@ export async function getGitHubContributions(): Promise<GitHubStats> {
 
 export async function clearAllJobs() {
   await requireAuth()
-  // Scraped jobs live in `applications` with status='scraped' (there is no `jobs` table). I copy
-  // them to trash first (recoverable), then delete - tracked applications (any other status) are
-  // left untouched.
-  const { data } = await supabase.from("applications").select("*").eq("status", "scraped")
-  if (data && data.length > 0) {
-    const { error: insErr } = await supabase.from("trash").insert(
-      data.map((row) => ({
-        table_name: "applications",
-        original_id: row.id,
-        display_name: [row.company, row.role].filter(Boolean).join(" - ") || "Scraped job",
-        data: row,
-      }))
-    )
-    // I abort before deleting if the trash backup failed, otherwise the scraped rows would be gone
-    // with nothing recoverable.
-    if (insErr) return { error: insErr.message }
-  }
-  await supabase.from("applications").delete().eq("status", "scraped")
-  void logActivity("scraper.cleared", `${data?.length ?? 0} scraped jobs moved to trash`)
+  // Scraped jobs live in `applications` with status='scraped' (there is no separate `jobs` table).
+  // They are re-scrapeable listings, so I delete them outright rather than flooding the trash with
+  // thousands of rows every time I declutter (the old trash backup also silently capped at 1000 rows
+  // while the delete removed every row, so most were never really recoverable). Crucially, ONLY
+  // status='scraped' is touched: anything I have applied to, interviewed for, been offered or rejected
+  // from, or saved (any other status) keeps its row, so my real pipeline and its analytics survive
+  // every clear, however many times I run it.
+  const { count } = await supabase
+    .from("applications")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "scraped")
+  const { error } = await supabase.from("applications").delete().eq("status", "scraped")
+  if (error) return { error: error.message }
+  void logActivity("scraper.cleared", `${count ?? 0} scraped jobs cleared`)
   revalidatePath("/dashboard/applications")
+  revalidatePath("/dashboard/analytics/applications")
 }
 
 export async function clearAllApplications() {
