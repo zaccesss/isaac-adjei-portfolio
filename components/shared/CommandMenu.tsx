@@ -6,7 +6,7 @@
 // Shortcuts adapt to the user's OS: ⌘H on Mac, Ctrl+H on Windows/Linux.
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import {
   CommandDialog,
   CommandEmpty,
@@ -27,10 +27,13 @@ import { useModKey } from "@/hooks/useModKey"
 export default function CommandMenu() {
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
   const { shortcut } = useModKey()
   const shiftShortcut = (key: string) => `⇧${key}`
 
   useEffect(() => {
+    // The maintenance page is a deliberate dead end - don't wire up the menu's keyboard shortcuts there.
+    if (pathname === "/maintenance") return
     const down = (e: KeyboardEvent) => {
       if (e.key === "i" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
@@ -91,12 +94,15 @@ export default function CommandMenu() {
     }
     document.addEventListener("keydown", down)
     return () => document.removeEventListener("keydown", down)
-  }, [open, router])
+  }, [open, router, pathname])
 
   const go = (path: string) => {
     setOpen(false)
     router.push(path)
   }
+
+  // Never render the command menu on the bare maintenance page (it would be another way off it).
+  if (pathname === "/maintenance") return null
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
