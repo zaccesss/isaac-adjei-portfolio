@@ -19,10 +19,10 @@ type NavGroup = { group: string; icon?: React.ComponentType<{ className?: string
 
 const nav: (NavItem | NavGroup)[] = [
   { href: "/dashboard/me", label: "Me", icon: User },
-  { href: "/dashboard/assistant", label: "Assistant", icon: Sparkles },
   { href: "/dashboard/us", label: "Us", icon: Heart },
   { href: "/dashboard/goals", label: "Goals", icon: Target },
   { href: "/dashboard/applications", label: "Applications", icon: Briefcase },
+  { href: "/dashboard/opensource", label: "Open Source", icon: Github },
   {
     group: "University",
     items: [
@@ -69,12 +69,17 @@ const nav: (NavItem | NavGroup)[] = [
     items: [
       { href: "/dashboard/coding", label: "Coding", icon: Code2 },
       { href: "/dashboard/blog-analytics", label: "Posts", icon: BarChart2, sub: true },
-      { href: "/dashboard/opensource", label: "Open Source", icon: Github },
       { href: "/dashboard/analytics/applications", label: "Applications", icon: Briefcase, sub: true },
     ],
   },
-  { href: "/dashboard/activity", label: "Activity log", icon: Activity },
-  { href: "/dashboard/trash", label: "Trash", icon: Trash2 },
+  {
+    group: "More",
+    items: [
+      { href: "/dashboard/assistant", label: "Assistant", icon: Sparkles },
+      { href: "/dashboard/activity", label: "Activity log", icon: Activity },
+      { href: "/dashboard/trash", label: "Trash", icon: Trash2 },
+    ],
+  },
 ]
 
 function useCollapsedGroups(pathname: string) {

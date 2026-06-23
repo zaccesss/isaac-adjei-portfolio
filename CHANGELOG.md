@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.29.0] - 2026-06-23
+
+The dashboard assistant got a big upgrade - it can read my data on demand, handle images and PDFs, and save chats.
+
+### Added
+
+- The assistant now reads an allow-list of my own data on demand (applications, coding, streaks, habits, goals, faith, study, health, content) to answer real questions. It has no way to reach my private sections (vault, diary, notes, university, contacts) - there is simply no tool for them
+- Attach an image or PDF and it analyses it (via Gemini)
+- Save a chat to come back to later, with per-chat delete - nothing is saved unless I choose to
+- A wide model dropdown: free models (Gemini 2.5 Flash and Pro, Groq Llama 3.3, GPT-OSS 120B, Qwen3 80B, Qwen3 Coder, Llama 3.3, Gemma 4 and GPT-4o free via GitHub) plus key-gated ones that light up when I add their key (Claude Opus/Sonnet/Fable/Haiku, GPT-5/4.1/4o, DeepSeek, Kimi, GLM, MiniMax). Images and PDFs are routed to Gemini automatically
+
+---
+
 ## [v2.28.0] - 2026-06-23
 
 A read-only in-dashboard AI assistant.

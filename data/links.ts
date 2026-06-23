@@ -223,6 +223,13 @@ export const profileLinks: LinkItem[] = [
   },
   // Social
   {
+    title: "Bluesky",
+    description: "Posts and updates on Bluesky",
+    url: "https://bsky.app/profile/isaacadjei.me",
+    icon: "bluesky",
+    category: "social",
+  },
+  {
     title: "X (Twitter)",
     description: "Thoughts, takes and live updates",
     url: "https://x.com/zaccesss",

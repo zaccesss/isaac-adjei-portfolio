@@ -17,6 +17,7 @@ import {
   FaPinterest,
   FaThreads,
   FaPlaystation,
+  FaBluesky,
 } from "react-icons/fa6"
 import {
   SiCodeforces,
@@ -63,6 +64,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   mail: Mail,
   twitter: FaXTwitter,
   threads: FaThreads,
+  bluesky: FaBluesky,
   instagram: FaInstagram,
   tiktok: FaTiktok,
   pinterest: FaPinterest,
@@ -103,6 +105,7 @@ const brandClasses: Record<string, { bg: string; icon: string }> = {
   substack: { bg: "bg-[#FF6719]/10", icon: "text-[#FF6719]" },
   twitter: { bg: "bg-gray-900/10", icon: "text-gray-900 dark:text-gray-100" },
   threads: { bg: "bg-gray-900/10", icon: "text-gray-900 dark:text-gray-100" },
+  bluesky: { bg: "bg-sky-500/10", icon: "text-sky-500" },
   instagram: { bg: "bg-[#E1306C]/10", icon: "text-[#E1306C]" },
   tiktok: { bg: "bg-gray-900/10", icon: "text-gray-900 dark:text-gray-100" },
   pinterest: { bg: "bg-[#E60023]/10", icon: "text-[#E60023]" },
