@@ -2499,3 +2499,35 @@ export async function createDownloadSignedUrl(path: string) {
   if (error) return { error: error.message }
   return data
 }
+
+// ─── AI assistant saved chats ─────────────────────────────────
+// Opt-in only: nothing is stored unless I press "Save this chat". I keep the full message array as
+// jsonb so a saved chat reloads exactly as it was, and I can delete any chat individually.
+
+export async function saveAiChat(title: string, messages: unknown) {
+  await requireAuth()
+  if (!validStr(title)) return INVALID
+  const { data } = await supabase.from("ai_chats").insert({ title: title.slice(0, 120), messages }).select("id,title,created_at").single()
+  void logActivity("assistant.save_chat", title)
+  return data
+}
+
+export async function getAiChats() {
+  await requireAuth()
+  const { data } = await supabase.from("ai_chats").select("id,title,created_at").order("created_at", { ascending: false }).limit(50)
+  return data ?? []
+}
+
+export async function getAiChat(id: string) {
+  await requireAuth()
+  if (!validId(id)) return null
+  const { data } = await supabase.from("ai_chats").select("messages").eq("id", id).single()
+  return data?.messages ?? null
+}
+
+export async function deleteAiChat(id: string) {
+  await requireAuth()
+  if (!validId(id)) return INVALID
+  await supabase.from("ai_chats").delete().eq("id", id)
+  void logActivity("assistant.delete_chat", id)
+}
