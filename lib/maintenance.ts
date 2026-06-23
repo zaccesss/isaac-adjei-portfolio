@@ -22,7 +22,9 @@ export async function setMaintenance(state: MaintenanceState): Promise<void> {
     .upsert({ key: KEY, value: state, updated_at: new Date().toISOString() }, { onConflict: "key" })
   // Mirror the flag to Redis for the edge middleware. Never throw if Redis is unavailable.
   try { await redis?.set(KEY, state.enabled ? "1" : "0") } catch {}
-  if (state.enabled) await purgeCloudflareCache()
+  // Purge on every toggle so turning maintenance on AND off both take effect immediately - off restores
+  // the real pages at once instead of serving a cached maintenance page until the cache expires.
+  await purgeCloudflareCache()
 }
 
 // Purge the Cloudflare cache so freshly-enabled maintenance is instant. No-op (and never throws) if the
