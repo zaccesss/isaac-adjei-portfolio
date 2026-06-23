@@ -1,8 +1,12 @@
-// I guard /dashboard at the edge (redirect to login when logged out) and gate the public site behind a
-// maintenance page when I flip the toggle in Settings. I (logged in) always bypass maintenance.
+// I guard /dashboard at the edge (a quick redirect to login when there is no session cookie) and gate the
+// public site behind a maintenance page when I flip the toggle in Settings. I (logged in) bypass it.
+//
+// I deliberately do NOT wrap this in NextAuth's auth(), so it never needs AUTH_SECRET on public pages and
+// never runs the session machinery for every public request. That is safe because the protected dashboard
+// layout re-verifies the real session server-side (its own auth() + redirect), and maintenance is not a
+// security boundary - it just hides the public site - so a session-cookie presence check is enough here.
 
-import { auth } from "@/auth"
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 
 // Edge-side read of the maintenance flag from Upstash (mirrored by lib/maintenance.setMaintenance). I cache
 // it briefly per edge instance to avoid a Redis call on every request, and FAIL OPEN (never block) on any
@@ -27,24 +31,31 @@ async function maintenanceOn(): Promise<boolean> {
   }
 }
 
-export default auth(async (req) => {
+// NextAuth v5 session cookie names (plain on http/dev, __Secure- prefixed on https/prod).
+function hasSession(req: NextRequest): boolean {
+  return req.cookies.has("authjs.session-token") || req.cookies.has("__Secure-authjs.session-token")
+}
+
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // NextAuth callbacks, the login page and dashboard API handlers always pass through.
   if (pathname.startsWith("/api/auth")) return NextResponse.next()
   if (pathname === "/dashboard/login") return NextResponse.next()
   if (pathname.startsWith("/api/dashboard")) return NextResponse.next()
 
-  // Dashboard pages: auth guard. The owner always has full access; maintenance never blocks the dashboard.
+  const loggedIn = hasSession(req)
+
+  // Dashboard pages: fast edge redirect when there is no session cookie. The protected layout re-verifies
+  // the real session server-side, so this is only a UX guard, not the security boundary.
   if (pathname.startsWith("/dashboard")) {
-    if (!req.auth) return NextResponse.redirect(new URL("/dashboard/login", req.url))
+    if (!loggedIn) return NextResponse.redirect(new URL("/dashboard/login", req.url))
     return NextResponse.next()
   }
 
   // Public routes: show the maintenance page to logged-out visitors when maintenance is on. The owner
   // (logged in), the maintenance page itself and API routes are never rewritten.
   if (
-    !req.auth &&
+    !loggedIn &&
     pathname !== "/maintenance" &&
     !pathname.startsWith("/api/") &&
     (await maintenanceOn())
@@ -53,7 +64,7 @@ export default auth(async (req) => {
   }
 
   return NextResponse.next()
-})
+}
 
 export const config = {
   // Run on everything except Next internals and static assets (anything with a file extension), so the
