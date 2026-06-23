@@ -18,7 +18,7 @@ function alertDays(type: string): number {
   return ALERT_DAYS[type] ?? ALERT_DAYS.default
 }
 
-type ExpiringItem = {
+export type ExpiringItem = {
   source: "vault" | "inventory"
   name: string
   type: string
@@ -45,10 +45,9 @@ function parseCardExpiry(mmyy: string): string | null {
   return `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`
 }
 
-export async function checkVaultExpiry(): Promise<{ ok: boolean; sent: boolean; count: number }> {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL
-  if (!webhookUrl) return { ok: true, sent: false, count: 0 }
-
+// I gather everything within its type-specific warning window, soonest first, WITHOUT sending anything,
+// so the cron alert and the digests share one source of truth for what is expiring.
+export async function getExpiringItems(): Promise<ExpiringItem[]> {
   const expiring: ExpiringItem[] = []
 
   // I check api_key entries with an ISO date expiry
@@ -95,9 +94,16 @@ export async function checkVaultExpiry(): Promise<{ ok: boolean; sent: boolean; 
     }
   }
 
-  if (expiring.length === 0) return { ok: true, sent: false, count: 0 }
-
   expiring.sort((a, b) => a.daysLeft - b.daysLeft)
+  return expiring
+}
+
+export async function checkVaultExpiry(): Promise<{ ok: boolean; sent: boolean; count: number }> {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL
+  if (!webhookUrl) return { ok: true, sent: false, count: 0 }
+
+  const expiring = await getExpiringItems()
+  if (expiring.length === 0) return { ok: true, sent: false, count: 0 }
 
   const fields = expiring.map((item) => ({
     name: `${item.name} (${item.type})`,
