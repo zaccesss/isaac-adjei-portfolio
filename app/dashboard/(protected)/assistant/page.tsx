@@ -9,6 +9,20 @@ export const metadata = { title: "Assistant | Isaac Adjei", robots: "noindex, no
 
 export default async function AssistantPage() {
   const configured = !!(process.env.GROQ_API_KEY || process.env.GOOGLE_AI_API_KEY || process.env.OPENROUTER_API_KEY)
+  // I pass which providers actually have a key set (never the keys themselves) so the model dropdown can
+  // show a live "add key" hint instead of a label that lies about what is configured.
+  const providers = {
+    google: !!process.env.GOOGLE_AI_API_KEY,
+    groq: !!process.env.GROQ_API_KEY,
+    openrouter: !!process.env.OPENROUTER_API_KEY,
+    github: !!process.env.GITHUB_MODELS_TOKEN,
+    deepseek: !!process.env.DEEPSEEK_API_KEY,
+    moonshot: !!process.env.MOONSHOT_API_KEY,
+    zai: !!process.env.ZAI_API_KEY,
+    anthropic: !!process.env.ANTHROPIC_API_KEY,
+    openai: !!process.env.OPENAI_API_KEY,
+    minimax: !!process.env.MINIMAX_API_KEY,
+  }
   const chats = await getAiChats()
-  return <AssistantClient configured={configured} initialChats={chats} />
+  return <AssistantClient configured={configured} initialChats={chats} providers={providers} />
 }

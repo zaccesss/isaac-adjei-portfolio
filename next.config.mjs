@@ -28,6 +28,9 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ["lucide-react"],
+    // Saved assistant chats can carry a downscaled image as a data URL, so I lift the default 1MB
+    // server-action body cap a little. Images are shrunk client-side first, so this stays modest.
+    serverActions: { bodySizeLimit: "4mb" },
   },
   async headers() {
     return [

@@ -18,9 +18,9 @@ import { checkRateLimit, heavyApiLimiter, getIp } from "@/lib/ratelimit"
 export const runtime = "nodejs"
 export const maxDuration = 60
 
-// The ONLY sections the assistant can ever read. Everything else (vault, diary, notes, university,
-// contacts, us, me, inventory, wishlist, activity log, settings, trash) is intentionally absent.
-const SECTIONS = ["applications", "coding", "streaks", "habits", "goals", "faith", "study", "health", "content"] as const
+// The ONLY sections the assistant can ever read. Everything else (vault, diary, notes, contacts, us, me,
+// activity log, settings, trash) is intentionally absent - there is no tool path to it.
+const SECTIONS = ["applications", "coding", "streaks", "habits", "goals", "faith", "study", "health", "content", "university", "calendar", "inventory", "wishlist"] as const
 
 const since = (days: number) => new Date(Date.now() - days * 86400000).toISOString().slice(0, 10)
 
@@ -70,8 +70,10 @@ async function readSection(section: (typeof SECTIONS)[number]): Promise<string> 
       return `Open goals (${open.length}): ${open.map((g) => `${g.title} [${g.category ?? "general"}, ${g.status}]`).join("; ") || "none"}. Completed: ${rows.length - open.length}`
     }
     if (section === "faith") {
-      const { data } = await supabase.from("faith_entries").select("type,date,notes").order("date", { ascending: false }).limit(40)
-      return (data ?? []).map((f) => `${f.date} ${f.type}${f.notes ? `: ${String(f.notes).slice(0, 120)}` : ""}`).join("\n") || "no faith entries logged"
+      // I read only the type and date here, never the free-text notes, so personal reflections never
+      // leave the database for an external model.
+      const { data } = await supabase.from("faith_entries").select("type,date").order("date", { ascending: false }).limit(60)
+      return (data ?? []).map((f) => `${f.date} ${f.type}`).join("; ") || "no faith entries logged"
     }
     if (section === "study") {
       const { data } = await supabase.from("study_sessions").select("subject,duration_m,date").gte("date", since(60)).order("date", { ascending: false })
@@ -96,6 +98,32 @@ async function readSection(section: (typeof SECTIONS)[number]): Promise<string> 
         supabase.from("blog_read_events").select("id", { count: "exact", head: true }),
       ])
       return `Open-source contributions (${(os ?? []).length}): ${(os ?? []).map((c) => `${c.repo}${c.title ? ` - ${c.title}` : ""} [${c.status ?? ""}]`).join("; ") || "none"}. Total blog post reads tracked: ${reads ?? 0}`
+    }
+    if (section === "university") {
+      const [{ data: mods }, { data: deadlines }] = await Promise.all([
+        supabase.from("uni_modules").select("code,name,credits,target_grade,semester").eq("active", true).order("order_index"),
+        supabase.from("uni_deadlines").select("title,type,due_date,weight_pct,status,grade_received").gte("due_date", since(14)).order("due_date", { ascending: true }).limit(15),
+      ])
+      const modList = (mods ?? []).map((m) => `${m.code ?? ""} ${m.name}${m.target_grade ? ` (target ${m.target_grade})` : ""}`).join("; ")
+      const dueList = (deadlines ?? []).map((d) => `${d.title} [${d.type ?? "task"}, due ${d.due_date}${d.weight_pct ? `, ${d.weight_pct}%` : ""}, ${d.status ?? "pending"}${d.grade_received != null ? `, grade ${d.grade_received}` : ""}]`).join("; ")
+      return `Active modules: ${modList || "none"}. Deadlines from two weeks ago onward (${(deadlines ?? []).length}): ${dueList || "none"}`
+    }
+    if (section === "calendar") {
+      // I send the title and time only, not the location, so my whereabouts do not leave the database.
+      const { data } = await supabase.from("calendar_events").select("title,start_at,event_type").eq("is_deleted", false).gte("start_at", new Date().toISOString()).order("start_at", { ascending: true }).limit(20)
+      return `Upcoming events (${(data ?? []).length}): ${(data ?? []).map((e) => `${e.title}${e.start_at ? ` @ ${String(e.start_at).slice(0, 16).replace("T", " ")}` : ""}`).join("; ") || "none scheduled"}`
+    }
+    if (section === "inventory") {
+      const { data } = await supabase.from("inventory_items").select("name,category,quantity").order("created_at", { ascending: false }).limit(80)
+      const rows = data ?? []
+      const byCat: Record<string, number> = {}
+      for (const r of rows) byCat[r.category ?? "other"] = (byCat[r.category ?? "other"] ?? 0) + 1
+      return `Inventory: ${rows.length} items. By category: ${Object.entries(byCat).map(([c, n]) => `${c}: ${n}`).join(", ") || "none"}. Items: ${rows.slice(0, 30).map((r) => `${r.name}${r.quantity && r.quantity > 1 ? ` x${r.quantity}` : ""}`).join("; ") || "none"}`
+    }
+    if (section === "wishlist") {
+      const { data } = await supabase.from("wishlist").select("name,category,status,priority").order("created_at", { ascending: false }).limit(80)
+      const rows = data ?? []
+      return `Wishlist (${rows.length}): ${rows.map((r) => `${r.name}${r.category ? ` [${r.category}]` : ""}${r.priority ? ` (priority ${r.priority})` : ""}${r.status ? ` - ${r.status}` : ""}`).join("; ") || "nothing on it"}`
     }
     return "Unknown section."
   } catch {
@@ -167,13 +195,37 @@ export async function POST(req: Request) {
   }
 
   const system = [
-    "You are Isaac's personal dashboard assistant.",
-    "You are READ-ONLY. You can read his data with the getDashboardData tool and answer or draft text,",
-    "but you cannot change, add or delete anything. Call the tool when a question needs real data.",
-    "Available sections: applications, coding, streaks, habits, goals, faith, study, health, content.",
-    "You have NO access to private sections (vault, diary, notes, university, contacts). If asked about",
-    "those, say plainly that they are private and you cannot read them. Be concise, practical and use UK",
-    "English. For a Bible-verse suggestion, read the faith section first so you do not repeat recent reading.",
+    "You are Isaac's personal assistant inside his private dashboard. Be warm, encouraging, opinionated and",
+    "genuinely useful, like a sharp friend who knows him well. Answer anything: chat, give your honest",
+    "opinion and advice, teach, brainstorm, and help him write, plan, study, code or decide. When he asks",
+    "for a judgement (such as whether something is good or enough), give a real, thoughtful answer; never",
+    "refuse or hide behind being an AI.",
+    "",
+    "About Isaac, so you can be personal and specific: he is Isaac Adjei, known as Zac, an Electronic",
+    "Engineering and Computer Science student at Aston University, Birmingham, aiming for a First Class BEng.",
+    "He grew up in Ghana (Adisadel College) and moved to the UK in 2022. He has monocular vision after",
+    "losing sight in his right eye to retinoblastoma at age two, which fuels his passion for accessible",
+    "technology. He works across the stack: bare-metal C and C++ and PCB design (KiCad, Proteus), Next.js",
+    "and TypeScript on the web, and Python ML (TensorFlow, PyTorch), and he is job-hunting for graduate and",
+    "placement roles. He is a committed Christian, plays piano, trains at the gym and cycles. He was a 2026",
+    "Top 40 Finalist for the Black Heritage Undergraduate of the Year. Projects include Phaemos (predictive",
+    "maintenance), a 4x4x4 NeoPixel LED cube, an open-source Git course and Zaccess, an OCR and",
+    "text-to-speech accessibility tool. He prizes excellence, discipline, faith and building things that",
+    "help real people.",
+    "",
+    "You can also look up his live dashboard data when a question calls for it, using the getDashboardData",
+    "tool: applications, coding, streaks, habits, goals, faith, study, health, content, university,",
+    "calendar, inventory, wishlist. Reach for it on questions about his own life and numbers; otherwise",
+    "just talk normally. You can only read it and never change anything, and his private sections (vault,",
+    "diary, notes, contacts, us, me) are not available to you.",
+    "This is Isaac's own private data behind his login, so treat anything personal (health, faith, plans)",
+    "with discretion. If you ever notice something that looks like a security risk or a secret in what you",
+    "read (a password, API key or token), do not repeat it back and tell him so he can remove it.",
+    "When you show code, always put it in a fenced markdown code block with the language (for example",
+    "```python) so it renders as a copyable block.",
+    "Use UK English. Never use em dashes or en dashes (use a comma, full stop or brackets instead) and do",
+    "not use Oxford commas. For a Bible-verse suggestion, glance at the faith section first so you avoid",
+    "repeating recent reading.",
   ].join("\n")
 
   const result = streamText({

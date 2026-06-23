@@ -5,6 +5,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.29.1] - 2026-06-23
+
+Polish on the new assistant after a live test.
+
+### Fixed
+
+- Attaching a large image no longer fails with a Vercel payload-too-large error. Images are downscaled to 1568px max and re-encoded in the browser before sending (what vision models use internally anyway), so phone photos just work. Multiple files are capped at a safe total with a friendly message instead of a cryptic error
+- The assistant now talks like a warm, opinionated personal assistant that knows my background, instead of a strict data terminal that refused opinions and kept saying "dashboard data". It still only reads an allow-list of my data and can never touch private sections
+- Saved chats that include an image now save reliably (lifted the server-action body limit to 4mb)
+- A Stop button cancels a hung or slow model so the input can never get stuck
+- The chat scrollbar no longer overlaps the message avatars
+- Code in replies renders in a proper box with a one-click Copy button, and the assistant is told to fence its code blocks
+
+### Changed
+
+- The model menu is grouped and labelled honestly by what actually works: reliable free (Gemini Flash, Groq, GitHub GPT-4o), rate-limited free (OpenRouter Qwen/Llama/Gemma), trial-credit (DeepSeek, Kimi, GLM) and paid (Gemini Pro, Claude, GPT, MiniMax), and each option shows a live "add key" hint based on which keys are actually set
+- DeepSeek switched to the current deepseek-v4-flash and deepseek-v4-pro ids (the old chat and reasoner names retire in July 2026)
+- The assistant can now also read university (modules and deadlines), calendar, inventory and wishlist on top of the existing sections; diary, vault, us, me, notes and contacts stay private
+- Tightened what leaves for a model: faith notes and calendar locations are never sent, each section reads only the minimum it needs, and the assistant is told to flag any secret it spots and never repeat it back
+- The assistant names us and me explicitly as private sections it cannot read
+
+---
+
 ## [v2.29.0] - 2026-06-23
 
 The dashboard assistant got a big upgrade - it can read my data on demand, handle images and PDFs, and save chats.
