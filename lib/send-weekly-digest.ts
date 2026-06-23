@@ -177,7 +177,7 @@ export async function sendWeeklyDigest(): Promise<DigestResult> {
   const endDate = formatDate(now.toISOString())
 
   const { facts, expiring } = await gatherDigestData(7 * 24, "the past week")
-  const summary = await digestAiSummary(facts)
+  const summary = await digestAiSummary(facts, true)
   const html = buildEmailHtml(startDate, endDate, facts, summary, expiring)
 
   const subject = `Your week in review - ${startDate} to ${endDate}`

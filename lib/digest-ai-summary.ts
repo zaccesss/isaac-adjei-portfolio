@@ -82,7 +82,7 @@ function summaryCandidates(): LanguageModel[] {
   return out
 }
 
-export async function digestAiSummary(facts: DigestFacts): Promise<string | null> {
+export async function digestAiSummary(facts: DigestFacts, detailed = false): Promise<string | null> {
   const models = summaryCandidates()
   if (models.length === 0) return null
 
@@ -118,10 +118,12 @@ export async function digestAiSummary(facts: DigestFacts): Promise<string | null
     .join("\n")
 
   const system = [
-    "You write a short, warm summary for Isaac's personal dashboard digest, covering his whole week or day.",
-    "Write 4 to 6 sentences, addressed to Isaac as 'you', encouraging and specific, touching the areas that",
-    "actually have activity (applications, coding, study, fitness, weight, faith, goals, streaks, habits,",
-    "content, diary).",
+    "You write a warm, personal summary for Isaac's dashboard digest, covering his whole week or day.",
+    detailed
+      ? "Write two thorough paragraphs (roughly 9 to 14 sentences) that walk through every area that has any activity, weaving in the actual figures, so it reads as a proper, detailed rundown and leaves nothing relevant out."
+      : "Write 3 to 5 sentences, kept tight.",
+    "Address Isaac as 'you', be encouraging and specific, and cover the areas that actually have activity",
+    "(applications, coding, study, fitness, weight, faith, goals, streaks, habits, content, diary).",
     "Use ONLY the figures given. Never invent numbers, companies, names or events.",
     "If a figure is 0, leave it out rather than padding, but do gently note a quiet patch if most are 0.",
     "If a weight is given, comment on the trend; if a weight-loss goal projection is given, lead with it",

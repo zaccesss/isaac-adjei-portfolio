@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Plus, Trash2, Target, Flame, Dumbbell, Scale, Utensils, TrendingDown } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Target, Flame, Dumbbell, Scale, Utensils, TrendingDown, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   logWeight,
@@ -147,16 +147,23 @@ export default function WeightLossClient({
 
   return (
     <div className="p-6 space-y-6 max-w-3xl">
-      <div className="flex items-center gap-3">
-        <Link href="/dashboard/health" className="text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <TrendingDown className="h-6 w-6 text-primary" /> Weight loss
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Goal, weight, food and workouts</p>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/health" className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <TrendingDown className="h-6 w-6 text-primary" /> Weight loss
+            </h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Goal, weight, food and workouts</p>
+          </div>
         </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/dashboard/health/weight-loss/analytics">
+            <BarChart3 className="h-3.5 w-3.5 mr-1.5" /> Analytics
+          </Link>
+        </Button>
       </div>
 
       {/* Goal & progress */}
@@ -279,7 +286,7 @@ export default function WeightLossClient({
           <span className="text-sm font-normal text-muted-foreground">({caloriesIn} kcal)</span>
         </h2>
         <div className="flex flex-wrap items-end gap-2">
-          <select className={input} value={nMeal} onChange={(e) => setNMeal(e.target.value)}>
+          <select aria-label="Meal" className={input} value={nMeal} onChange={(e) => setNMeal(e.target.value)}>
             {MEALS.map((m) => (
               <option key={m} value={m}>
                 {m}
@@ -304,6 +311,7 @@ export default function WeightLossClient({
                 <span>{n.calories} kcal</span>
                 <button
                   type="button"
+                  aria-label="Delete"
                   onClick={() => start(async () => { await deleteNutritionLog(n.id); refresh() })}
                   className="text-muted-foreground hover:text-destructive"
                 >
@@ -322,7 +330,7 @@ export default function WeightLossClient({
           <Dumbbell className="h-4 w-4 text-primary" /> Workouts
         </h2>
         <div className="flex flex-wrap items-end gap-2">
-          <select className={input} value={woType} onChange={(e) => setWoType(e.target.value)}>
+          <select aria-label="Workout type" className={input} value={woType} onChange={(e) => setWoType(e.target.value)}>
             {WORKOUT_TYPES.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -346,6 +354,7 @@ export default function WeightLossClient({
                 <span>{[w.duration_min ? `${w.duration_min}m` : "", w.calories ? `${w.calories}kcal` : ""].filter(Boolean).join(" · ")}</span>
                 <button
                   type="button"
+                  aria-label="Delete"
                   onClick={() => start(async () => { await deleteWorkoutLog(w.id); refresh() })}
                   className="hover:text-destructive"
                 >
