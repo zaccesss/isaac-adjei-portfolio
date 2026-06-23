@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.32.0] - 2026-06-23
+
+### Added
+
+- A private Strava activity analytics page, reachable from the Health overview and the Analytics menu. I connect Strava once, my runs and rides sync into the dashboard, and the page charts a 52-week training heatmap, weekly distance, heart-rate trend, sport split and distance by sport, with stat cards for activities, distance, moving time and elevation over any period. Everything renders from synced rows so the page is instant, and a Sync button pulls fresh activities on demand. My tokens stay server-side and nothing is shared publicly
+
+---
+
 ## [v2.31.0] - 2026-06-23
 
 The Applications tracker now shows every scraped role, and clearing them is honest.

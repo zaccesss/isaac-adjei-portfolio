@@ -70,6 +70,7 @@ const nav: (NavItem | NavGroup)[] = [
       { href: "/dashboard/coding", label: "Coding", icon: Code2 },
       { href: "/dashboard/blog-analytics", label: "Posts", icon: BarChart2, sub: true },
       { href: "/dashboard/analytics/applications", label: "Applications", icon: Briefcase, sub: true },
+      { href: "/dashboard/health/analytics", label: "Fitness", icon: Dumbbell, sub: true },
     ],
   },
   {
