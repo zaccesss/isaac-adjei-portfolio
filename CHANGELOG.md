@@ -5,6 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.36.0] - 2026-06-23
+
+### Added
+
+- A public maintenance mode I toggle from Settings, with a custom message and a maintenance page at /maintenance (reusing the lab GIF and a contact line). Logged-out visitors see it when it is on, and I always keep full access to the site and dashboard. Enabling it purges the Cloudflare cache so it takes effect immediately when the Cloudflare token is set, and degrades gracefully without it
+- Selective export: I can export specific sections (e.g. just Applications) from Settings instead of the whole database. Since import only restores the sections present in a file, this doubles as selective import
+- Two more Strava charts (cumulative distance and time of day) so the fitness page covers more
+
+### Changed
+
+- Reordered the fitness analytics charts (distance and distance by sport, then heart rate and pace, then training by day and sport split) and recoloured the pace trend orange so the sport-split pie is the only multi-colour chart
+
+### Fixed
+
+- Removed "Year 2" from the University overview subtitle (it now reads "Academic hub")
+
+---
+
 ## [v2.35.0] - 2026-06-23
 
 ### Added
