@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Trash2, Upload, FileText, ExternalLink } from "lucide-react"
+import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod, StatCard } from "@/components/analytics"
 
 type Module = { id: string; code: string; name: string; color: string }
 type Deadline = { id: string; title: string; module_id: string | null }
@@ -17,12 +18,14 @@ type Submission = {
   uni_modules: { code: string; color: string } | null
 }
 
-export default function SubmissionsClient({ submissions, modules, deadlines }: {
+function SubmissionsClientInner({ submissions, modules, deadlines }: {
   submissions: Submission[]; modules: Module[]; deadlines: Deadline[]
 }) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [form, setForm] = useState({ module_id: "", deadline_id: "", title: "", file_name: "", notes: "" })
+  const { period } = useAnalyticsPeriod()
+  const periodSubs = filterByPeriod(submissions, period, (s) => s.submitted_at)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -96,15 +99,24 @@ export default function SubmissionsClient({ submissions, modules, deadlines }: {
         </Dialog>
       </div>
 
-      <div className="text-sm text-muted-foreground">{submissions.length} submission{submissions.length !== 1 ? "s" : ""} logged</div>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Submitted in</p>
+        <PeriodSelector />
+      </div>
 
-      {submissions.length === 0 ? (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <StatCard label="In period" value={periodSubs.length} />
+        <StatCard label="Total logged" value={submissions.length} />
+        <StatCard label="Modules" value={new Set(submissions.map((s) => s.uni_modules?.code).filter(Boolean)).size} />
+      </div>
+
+      {periodSubs.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border/60 p-8 text-center text-muted-foreground text-sm">
-          No submissions logged yet.
+          No submissions in this period.
         </div>
       ) : (
         <div className="space-y-2">
-          {submissions.map((s) => (
+          {periodSubs.map((s) => (
             <div key={s.id} className="flex items-start gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 group hover:border-primary/30 transition-colors">
               <Upload className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
@@ -139,5 +151,13 @@ export default function SubmissionsClient({ submissions, modules, deadlines }: {
         </div>
       )}
     </div>
+  )
+}
+
+export default function SubmissionsClient(props: { submissions: Submission[]; modules: Module[]; deadlines: Deadline[] }) {
+  return (
+    <AnalyticsPeriodProvider defaultPeriod="30d">
+      <SubmissionsClientInner {...props} />
+    </AnalyticsPeriodProvider>
   )
 }
