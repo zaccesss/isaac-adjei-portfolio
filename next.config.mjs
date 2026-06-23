@@ -1,3 +1,5 @@
+import { withSentryConfig } from "@sentry/nextjs"
+
 const isDev = process.env.NODE_ENV === "development"
 
 const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com", "https://www.googletagmanager.com"]
@@ -90,7 +92,16 @@ const nextConfig = {
   },
 }
 
-export default nextConfig
+// I wrap the config with Sentry's official build integration (this is the piece a hand-rolled
+// instrumentation-only setup was missing, which broke the Vercel build). Server-only: there is no client
+// config file, so no browser SDK is injected. Source-map upload is disabled (no SENTRY_AUTH_TOKEN), which
+// keeps the build lean and tokenless - errors just keep minified stack traces.
+export default withSentryConfig(nextConfig, {
+  org: "isaacadjei-dashboard",
+  project: "javascript-nextjs",
+  silent: true,
+  sourcemaps: { disable: true },
+})
 
 // I only init OpenNext Cloudflare in local dev - it breaks Vercel builds if run unconditionally
 if (isDev) {
