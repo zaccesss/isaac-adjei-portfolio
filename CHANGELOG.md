@@ -5,6 +5,55 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.39.0] - 2026-06-24
+
+### Added
+
+- Server-side error monitoring with Sentry: my route, server-action and cron exceptions are captured and, through the Sentry to Linear integration, open Linear issues so failures become trackable work. It is Node only - no client SDK, no session replay, no PII - so the public bundle is untouched and nothing about visitors is collected
+
+### Fixed
+
+- Sentry is wired Node only on purpose. The Sentry edge SDK bloats the edge middleware past Vercel's edge-function size limit and fails the deploy, and that only surfaces at Vercel's deploy step, not in a local or CI build (which is why two earlier attempts passed everything yet never deployed). instrumentation.ts now loads and imports Sentry only on the Node runtime, with a dynamic import in onRequestError, and there is no edge config and no withSentryConfig
+
+### Changed
+
+- Temporarily unpublished the Sky Black Heritage celebration-day post (published: false) to rewrite after the celebration. The post file, content and cover image are kept
+
+---
+
+## [v2.38.0] - 2026-06-24
+
+### Added
+
+- Comprehensive AI-written digests. Both the weekly email and the daily Discord digest now cover everything I track in the period (applications, coding, study, fitness, weight, goals, streaks, habits, faith, diary, content reads, open source) plus a forward block (calendar events and deadlines coming up, contacts to follow up, anything expiring soon). An AI intro phrases the figures, trying the best free models in turn (Groq, Gemini, OpenRouter, GitHub Models) with a plain-template fallback. The weekly summary is exhaustive, the daily one stays tight, and the model only ever receives counts and typed alerts - never vault names or values, contact names or company names
+- A weight-loss tracker under Health: a card on the overview opens a sub-page with a weight goal (progress, weekly rate and a projected finish date), daily or weekly weight, food (calories and protein) and manual workout logging alongside synced Strava activities, and today's calorie balance. The digest reads the goal and coaches it
+- A weight-loss analytics page on the shared analytics framework (period selector, stat cards, and weight-trend, calories-per-day, workouts-by-type and average-macros charts)
+
+### Security
+
+- Locked the new weight-tracker tables (nutrition_logs, workout_logs) to the service-role server only. They were briefly created with a public "allow all" anon policy, now dropped, matching every other table here
+
+---
+
+## [v2.37.0] - 2026-06-23
+
+### Added
+
+- A Strava row and a "Sync activities" action in Settings under Integrations, alongside Spotify, WakaTime and Linear
+
+### Changed
+
+- The maintenance page keeps a single dark/light toggle but otherwise renders bare (no site header or footer), and follows the visitor's device theme by default
+- The maintenance gate now redirects logged-out visitors to /maintenance instead of rewriting, so the page renders without the site chrome, and the command menu is hidden there
+
+### Fixed
+
+- The maintenance middleware no longer runs NextAuth auth() on every public page (it uses a session-cookie presence check), removing the MissingSecret noise and the per-request overhead; the dashboard stays protected by its own server-side auth
+- /maintenance is gated in production (non-owners are sent home when maintenance is off) so the public cannot stumble onto it, while I can still preview it locally
+- Gave the maintenance GIF its real 320x180 dimensions to stop the Next aspect-ratio warning
+
+---
+
 ## [v2.36.0] - 2026-06-23
 
 ### Added
