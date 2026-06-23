@@ -2,12 +2,17 @@
 
 import { useMemo, useState } from "react"
 import { BookOpen } from "lucide-react"
-import type { BlogReadFunnelRow, PostsHeatmapCell } from "@/app/dashboard/actions"
+import type { BlogReadFunnelRow, BlogReadEvent } from "@/app/dashboard/actions"
 import {
   StatCard,
   DEFAULT_CHART_COLOURS,
   BarChart,
+  LineChart,
   PieChart,
+  AnalyticsPeriodProvider,
+  PeriodSelector,
+  useAnalyticsPeriod,
+  filterByPeriod,
 } from "@/components/analytics"
 
 type SortKey = keyof BlogReadFunnelRow
@@ -15,6 +20,7 @@ type SortDir = "asc" | "desc"
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const HOURS = Array.from({ length: 24 }, (_, i) => `${i}`)
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 const FUNNEL_COLOURS = [
   DEFAULT_CHART_COLOURS[1],
@@ -52,47 +58,92 @@ function fmt(n: number) {
   return `${m}m`
 }
 
-export default function BlogAnalyticsClient({
-  rows,
-  heatmap,
-}: {
-  rows: BlogReadFunnelRow[]
-  heatmap: PostsHeatmapCell[]
-}) {
+function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
+  const { period } = useAnalyticsPeriod()
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState<"all" | "blog" | "til">("all")
   const [sortKey, setSortKey] = useState<SortKey>("reached_25")
   const [sortDir, setSortDir] = useState<SortDir>("desc")
   const [hoveredCell, setHoveredCell] = useState<{ day: number; hour: number } | null>(null)
 
+  const periodEvents = useMemo(() => filterByPeriod(events, period, (e) => e.created_at), [events, period])
+
+  // Per-post scroll-depth funnel rows, recomputed from the period's events so every chart below follows
+  // the selector. The downstream charts and table all read from `rows`, so they need no other changes.
+  const rows: BlogReadFunnelRow[] = useMemo(() => {
+    const byPost = new Map<string, { slug: string; post_type: string; r25: number; r50: number; r75: number; r100: number }>()
+    for (const e of periodEvents) {
+      const key = `${e.post_type}:${e.slug}`
+      let p = byPost.get(key)
+      if (!p) {
+        p = { slug: e.slug, post_type: e.post_type, r25: 0, r50: 0, r75: 0, r100: 0 }
+        byPost.set(key, p)
+      }
+      if (e.depth === 25) p.r25++
+      else if (e.depth === 50) p.r50++
+      else if (e.depth === 75) p.r75++
+      else if (e.depth === 100) p.r100++
+    }
+    return [...byPost.values()].map((p) => ({
+      slug: p.slug,
+      post_type: p.post_type,
+      reached_25: p.r25,
+      reached_50: p.r50,
+      reached_75: p.r75,
+      reached_100: p.r100,
+      completion_rate: p.r25 === 0 ? null : p.r100 / p.r25,
+    }))
+  }, [periodEvents])
+
   const totalPosts = rows.length
   const totalReads = rows.reduce((acc, r) => acc + r.reached_25, 0)
   const avgCompletion =
     rows.length === 0
       ? null
-      : Math.round(
-          (rows.reduce((acc, r) => acc + (r.completion_rate ?? 0), 0) / rows.length) * 100,
-        )
+      : Math.round((rows.reduce((acc, r) => acc + (r.completion_rate ?? 0), 0) / rows.length) * 100)
   const blogCount = rows.filter((r) => r.post_type === "blog").length
   const tilCount = rows.filter((r) => r.post_type === "til").length
 
-  // 7 (Mon-Sun) × 24 (hours) matrix of read event counts
+  // 7 (Mon-Sun) × 24 (hours) heatmap, recomputed from the period's events.
   const weekdayHourMatrix = useMemo(() => {
     const matrix: number[][] = Array.from({ length: 7 }, () => new Array(24).fill(0))
-    for (const cell of heatmap) {
-      // PostgreSQL DOW: 0=Sun,1=Mon..6=Sat → convert to Mon-first index
-      const idx = cell.dow === 0 ? 6 : cell.dow - 1
-      matrix[idx][cell.hour] += cell.count
+    for (const e of periodEvents) {
+      const d = new Date(e.created_at)
+      matrix[(d.getDay() + 6) % 7][d.getHours()]++
     }
     return matrix
-  }, [heatmap])
+  }, [periodEvents])
 
-  const weekdayHourMax = useMemo(
-    () => Math.max(0, ...weekdayHourMatrix.flat()),
-    [weekdayHourMatrix],
-  )
-
+  const weekdayHourMax = useMemo(() => Math.max(0, ...weekdayHourMatrix.flat()), [weekdayHourMatrix])
   const hasHeatmapData = weekdayHourMax > 0
+
+  // Opens (25% depth) over time, bucketed to follow the period.
+  const readsOverTime = useMemo(() => {
+    const gran = period === "90d" ? "week" : period === "1y" || period === "all" ? "month" : "day"
+    const totals = new Map<string, number>()
+    const labels = new Map<string, string>()
+    for (const e of periodEvents) {
+      if (e.depth !== 25) continue
+      const d = new Date(e.created_at)
+      let key: string
+      let label: string
+      if (gran === "day") {
+        key = e.created_at.slice(0, 10)
+        label = `${d.getDate()}/${d.getMonth() + 1}`
+      } else if (gran === "week") {
+        const m = new Date(d)
+        m.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+        key = m.toISOString().slice(0, 10)
+        label = `${m.getDate()}/${m.getMonth() + 1}`
+      } else {
+        key = e.created_at.slice(0, 7)
+        label = `${MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`
+      }
+      totals.set(key, (totals.get(key) ?? 0) + 1)
+      labels.set(key, label)
+    }
+    return [...totals.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => ({ name: labels.get(k) as string, reads: v }))
+  }, [periodEvents, period])
 
   const funnelChartData = useMemo(() => {
     const visible = typeFilter === "all" ? rows : rows.filter((r) => r.post_type === typeFilter)
@@ -153,14 +204,17 @@ export default function BlogAnalyticsClient({
   return (
     <div className="flex flex-col gap-6">
 
-      <div className="flex items-center gap-3">
-        <BookOpen className="h-6 w-6 text-muted-foreground" />
-        <div>
-          <h1 className="text-xl font-semibold leading-tight">Posts Analytics</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Scroll-depth funnel across all published posts (blog + TIL). Each visitor is counted once per depth threshold per post.
-          </p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <BookOpen className="h-6 w-6 text-muted-foreground" />
+          <div>
+            <h1 className="text-xl font-semibold leading-tight">Posts Analytics</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Scroll-depth funnel across all published posts (blog + TIL). Each visitor is counted once per depth threshold per post.
+            </p>
+          </div>
         </div>
+        <PeriodSelector />
       </div>
 
       {/* Stat cards */}
@@ -169,6 +223,16 @@ export default function BlogAnalyticsClient({
         <StatCard label="Total opens (25%+)" value={totalReads} />
         <StatCard label="Avg completion" value={avgCompletion !== null ? `${avgCompletion}%` : "-"} />
         <StatCard label="Blog / TIL" value={`${blogCount} / ${tilCount}`} />
+      </div>
+
+      {/* Opens over time */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <p className="text-xs font-medium text-muted-foreground mb-3">Opens over time</p>
+        {readsOverTime.length > 1 ? (
+          <LineChart data={readsOverTime} dataKey="reads" xKey="name" height={160} colour={DEFAULT_CHART_COLOURS[0]} valueFormatter={(v) => `${v} opens`} />
+        ) : (
+          <p className="text-xs text-muted-foreground py-10 text-center">Not enough data in this period.</p>
+        )}
       </div>
 
       {/* Charts row */}
@@ -388,5 +452,13 @@ export default function BlogAnalyticsClient({
         </table>
       </div>
     </div>
+  )
+}
+
+export default function BlogAnalyticsClient(props: { events: BlogReadEvent[] }) {
+  return (
+    <AnalyticsPeriodProvider defaultPeriod="1y">
+      <BlogAnalyticsClientInner {...props} />
+    </AnalyticsPeriodProvider>
   )
 }

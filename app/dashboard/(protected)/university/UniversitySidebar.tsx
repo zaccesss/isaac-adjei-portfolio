@@ -1,10 +1,11 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, CalendarDays, ClipboardList, Upload,
-  FileText, Link2, Library, BookOpen, GraduationCap,
+  FileText, Link2, Library, BookOpen, GraduationCap, PanelLeftClose, PanelLeft,
 } from "lucide-react"
 
 type Module = { id: string; code: string; name: string; color: string; active: boolean; semester: number; year: number }
@@ -21,20 +22,47 @@ const NAV = [
 
 export default function UniversitySidebar({ modules, urgentCount }: { modules: Module[]; urgentCount: number }) {
   const pathname = usePathname()
+  // Collapsible so the selected page can use the full width; the choice persists across reloads.
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false
+    return localStorage.getItem("uni_sidebar_collapsed") === "true"
+  })
+
+  function toggle() {
+    setCollapsed((c) => {
+      const next = !c
+      try { localStorage.setItem("uni_sidebar_collapsed", String(next)) } catch {}
+      return next
+    })
+  }
 
   function isActive(href: string, exact?: boolean) {
     return exact ? pathname === href : pathname === href || pathname.startsWith(href + "/")
+  }
+
+  if (collapsed) {
+    return (
+      <aside className="hidden md:flex flex-col w-10 shrink-0 border-r border-border bg-muted/20 sticky top-0 h-screen items-center pt-5">
+        <button type="button" onClick={toggle} title="Show university menu" className="text-muted-foreground hover:text-foreground transition-colors">
+          <PanelLeft className="h-4 w-4" />
+        </button>
+      </aside>
+    )
   }
 
   return (
     <aside className="hidden md:flex flex-col w-56 shrink-0 border-r border-border bg-muted/20 sticky top-0 h-screen overflow-y-auto">
       {/* Header */}
       <div className="px-4 pt-5 pb-3 border-b border-border/60">
-        <div className="flex items-center gap-2">
-          <GraduationCap className="h-4 w-4 text-primary shrink-0" />
-          <span className="text-sm font-semibold">University</span>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <GraduationCap className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-sm font-semibold">University</span>
+          </div>
+          <button type="button" onClick={toggle} title="Collapse menu" className="text-muted-foreground hover:text-foreground transition-colors">
+            <PanelLeftClose className="h-4 w-4" />
+          </button>
         </div>
-        <p className="text-[10px] text-muted-foreground mt-0.5">Year 2</p>
       </div>
 
       {/* Main nav */}

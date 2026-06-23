@@ -826,7 +826,14 @@ export default function CalendarClient({
   const [cursor, setCursor] = useState(() => new Date())
   const [showFeeds, setShowFeeds] = useState(false)
   const [gridKey, setGridKey] = useState(0)
-  const [hiddenFeeds, setHiddenFeeds] = useState<Set<string>>(new Set())
+  const [hiddenFeeds, setHiddenFeeds] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set()
+    try {
+      return new Set<string>(JSON.parse(localStorage.getItem("calendar_hidden_feeds") ?? "[]"))
+    } catch {
+      return new Set()
+    }
+  })
   const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [createInitial, setCreateInitial] = useState<{ date?: string; startTime?: string; endTime?: string } | undefined>()
@@ -853,6 +860,8 @@ export default function CalendarClient({
       const next = new Set(prev)
       if (next.has(name)) next.delete(name)
       else next.add(name)
+      // Persist so an unticked feed stays hidden across reloads until I re-tick it.
+      try { localStorage.setItem("calendar_hidden_feeds", JSON.stringify([...next])) } catch {}
       return next
     })
   }

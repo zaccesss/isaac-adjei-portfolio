@@ -1543,6 +1543,32 @@ export async function getPostsReadHeatmap(): Promise<PostsHeatmapCell[]> {
   return data as PostsHeatmapCell[]
 }
 
+export type BlogReadEvent = {
+  slug: string
+  depth: number
+  post_type: string
+  created_at: string
+}
+
+// Raw scroll-depth events, so the analytics page can recompute the funnel, heatmap and reads-over-time for
+// any selected period rather than only the all-time aggregate the RPCs return. Paged because PostgREST
+// caps a single response at 1000 rows.
+export async function getBlogReadEvents(): Promise<BlogReadEvent[]> {
+  await requireAuth()
+  const all: BlogReadEvent[] = []
+  for (let from = 0; ; from += 1000) {
+    const { data } = await supabase
+      .from("blog_read_events")
+      .select("slug, depth, post_type, created_at")
+      .order("created_at", { ascending: false })
+      .range(from, from + 999)
+    if (!data || data.length === 0) break
+    all.push(...(data as BlogReadEvent[]))
+    if (data.length < 1000) break
+  }
+  return all
+}
+
 // ─── WakaTime Heatmap ────────────────────────────────────────────────────────
 
 // I describe one row from wakatime_daily so the dashboard is fully typed.

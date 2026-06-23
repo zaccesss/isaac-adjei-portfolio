@@ -1,10 +1,11 @@
-import { getBlogReadFunnel, getPostsReadHeatmap } from "@/app/dashboard/actions"
+import { getBlogReadEvents } from "@/app/dashboard/actions"
 import BlogAnalyticsClient from "./BlogAnalyticsClient"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Posts Analytics", robots: "noindex, nofollow" }
 
 export default async function BlogAnalyticsPage() {
-  const [rows, heatmap] = await Promise.all([getBlogReadFunnel(), getPostsReadHeatmap()])
-  return <BlogAnalyticsClient rows={rows} heatmap={heatmap} />
+  // Raw dated read events so the client can recompute every chart for the selected period.
+  const events = await getBlogReadEvents()
+  return <BlogAnalyticsClient events={events} />
 }
