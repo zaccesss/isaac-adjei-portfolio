@@ -121,4 +121,10 @@ All bot messages: UK English, no em dashes or en dashes (hyphens only), no Oxfor
 
 ---
 
+## Free site-down alert to Linear (GitHub Action fallback)
+
+Better Stack's outgoing incident webhook (site down -> /api/incident -> Linear) turned out to be a paid feature, and a status page on a custom domain may be too. I am not paying for that. If I ever want site-down incidents mirrored into Linear without upgrading, I can add a free scheduled GitHub Action that curls https://isaacadjei.me/api/health every few minutes and, when it returns a non-200, POSTs to /api/incident?secret=... to open the Linear issue itself. Scheduled GitHub Actions are free, so this is the same outcome at zero cost. Better Stack's free email alert already covers telling me it is down, so this is a nice-to-have, not urgent. It would fit naturally in the automations repo once that exists.
+
+---
+
 _Last updated: June 2026_

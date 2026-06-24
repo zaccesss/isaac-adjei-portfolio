@@ -13,6 +13,7 @@ import { SITE_URL } from "@/lib/constants"
 import { Analytics } from "@vercel/analytics/next"
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
+const CF_BEACON_TOKEN = process.env.NEXT_PUBLIC_CF_BEACON_TOKEN
 
 // ─── Schema.org structured data ─────────────────────────────────────────────
 // Injected as a JSON-LD script tag in the <body>.
@@ -123,6 +124,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               `}
             </Script>
           </>
+        )}
+        {/* Cloudflare Web Analytics - privacy-friendly, cookieless. Loads only when the token is set. */}
+        {CF_BEACON_TOKEN && (
+          <Script
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            strategy="afterInteractive"
+            data-cf-beacon={`{"token": "${CF_BEACON_TOKEN}"}`}
+          />
         )}
       </head>
       <body

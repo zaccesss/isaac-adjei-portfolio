@@ -3,6 +3,7 @@
 // deletes whatever the DB says is expired. Authenticated by CRON_SECRET only.
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
+import { pingHealthcheck } from "@/lib/healthcheck-ping"
 export async function GET(req: Request) {
   // I reject when CRON_SECRET is unset so a request with "Bearer undefined" can never match.
   const cronSecret = process.env.CRON_SECRET
@@ -21,8 +22,10 @@ export async function GET(req: Request) {
 
   if (error) {
     console.error("[trash-cleanup]", error.message)
+    await pingHealthcheck("trash-cleanup", "fail")
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  await pingHealthcheck("trash-cleanup")
   return NextResponse.json({ deleted: count ?? 0 })
 }

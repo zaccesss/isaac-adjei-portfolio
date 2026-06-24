@@ -3,6 +3,7 @@
 // Authenticated by CRON_SECRET so it cannot be triggered by arbitrary HTTP requests.
 import { NextRequest, NextResponse } from "next/server"
 import { checkVaultExpiry } from "@/lib/vault-expiry-check"
+import { pingHealthcheck } from "@/lib/healthcheck-ping"
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization")
@@ -23,6 +24,7 @@ export async function GET(req: NextRequest) {
   }
 
   const result = await checkVaultExpiry()
+  await pingHealthcheck("vault-expiry", result.ok ? "success" : "fail")
   return NextResponse.json(result, {
     status: result.ok ? 200 : 500,
     headers: { "Cache-Control": "no-store" },

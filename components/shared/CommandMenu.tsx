@@ -19,7 +19,7 @@ import {
 import {
   Home, User, Briefcase, Code, Mail, Cpu, BookOpen, Link2, NotebookPen,
   FlaskConical, Clock, Wrench, Info, ScrollText, Trophy, LayoutList, Shield, Rss,
-  GraduationCap, Lightbulb, Tag, SearchIcon,
+  GraduationCap, Lightbulb, Tag, SearchIcon, Activity,
 } from "lucide-react"
 import { DialogTitle } from "@/components/ui/dialog"
 import { useModKey } from "@/hooks/useModKey"
@@ -45,6 +45,13 @@ export default function CommandMenu() {
       // Shift-only shortcuts for the More group - only fire when search is empty
       if (e.shiftKey && !e.metaKey && !e.ctrlKey) {
         if (!(document.activeElement as HTMLInputElement)?.value) {
+          // Status lives on an external subdomain, so its hotkey opens a new tab rather than routing.
+          if (e.key.toLowerCase() === "m") {
+            e.preventDefault()
+            setOpen(false)
+            window.open("https://status.isaacadjei.me", "_blank", "noopener,noreferrer")
+            return
+          }
           const shiftShortcuts: Record<string, string> = {
             w: "/now",
             u: "/uses",
@@ -99,6 +106,12 @@ export default function CommandMenu() {
   const go = (path: string) => {
     setOpen(false)
     router.push(path)
+  }
+
+  // Status lives on an external subdomain (Better Stack), so it opens in a new tab rather than routing.
+  const goExternal = (url: string) => {
+    setOpen(false)
+    window.open(url, "_blank", "noopener,noreferrer")
   }
 
   // Never render the command menu on the bare maintenance page (it would be another way off it).
@@ -238,6 +251,11 @@ export default function CommandMenu() {
             <Shield className="mr-2 h-4 w-4" />
             Security Policy
             <CommandShortcut>{shiftShortcut("X")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="status uptime monitoring health system incidents" onSelect={() => goExternal("https://status.isaacadjei.me")}>
+            <Activity className="mr-2 h-4 w-4" />
+            Status
+            <CommandShortcut>{shiftShortcut("M")}</CommandShortcut>
           </CommandItem>
         </CommandGroup>
       </CommandList>

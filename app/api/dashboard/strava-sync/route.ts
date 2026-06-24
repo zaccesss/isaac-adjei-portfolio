@@ -3,6 +3,7 @@
 // it guards on the Strava keys so a missing key returns a clean "not configured" state instead of failing.
 import { NextRequest, NextResponse } from "next/server"
 import { syncStravaActivities, stravaConfigured } from "@/lib/strava"
+import { pingHealthcheck } from "@/lib/healthcheck-ping"
 
 export const dynamic = "force-dynamic"
 
@@ -15,5 +16,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "strava_not_configured" }, { headers: { "Cache-Control": "no-store" } })
   }
   const synced = await syncStravaActivities()
+  await pingHealthcheck("strava-sync", synced >= 0 ? "success" : "fail")
   return NextResponse.json({ ok: synced >= 0, synced }, { headers: { "Cache-Control": "no-store" } })
 }
