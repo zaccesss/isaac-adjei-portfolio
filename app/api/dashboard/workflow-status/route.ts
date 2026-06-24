@@ -14,13 +14,15 @@ type GitHubRunsResponse = {
   workflow_runs: GitHubRun[]
 }
 
-const ALLOWED_WORKFLOWS = new Set([
-  "wakatime-sync.yml",
-  "cv-pdf.yml",
-  "generate-cvs.yml",
-  "job-scraper.yml",
-  "vault-expiry-check.yml",
-])
+// Each allow-listed workflow maps to the repo that now runs it: the scheduled data jobs moved to
+// the automations repo, while the CV workflows still live in this one.
+const WORKFLOW_REPOS: Record<string, string> = {
+  "wakatime-sync.yml": "isaac-adjei-automations",
+  "job-scraper.yml": "isaac-adjei-automations",
+  "vault-expiry-check.yml": "isaac-adjei-automations",
+  "cv-pdf.yml": "isaac-adjei-portfolio",
+  "generate-cvs.yml": "isaac-adjei-portfolio",
+}
 
 export async function GET(request: Request) {
   const session = await auth()
@@ -31,7 +33,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const workflow = searchParams.get("workflow")
 
-  if (!workflow || !ALLOWED_WORKFLOWS.has(workflow)) {
+  if (!workflow || !WORKFLOW_REPOS[workflow]) {
     return NextResponse.json({ error: "Invalid workflow" }, { status: 400 })
   }
 
@@ -45,7 +47,7 @@ export async function GET(request: Request) {
 
   try {
     const res = await fetch(
-      `https://api.github.com/repos/zaccesss/isaac-adjei-portfolio/actions/workflows/${workflow}/runs?per_page=1`,
+      `https://api.github.com/repos/zaccesss/${WORKFLOW_REPOS[workflow]}/actions/workflows/${workflow}/runs?per_page=1`,
       { headers, next: { revalidate: 0 } }
     )
 

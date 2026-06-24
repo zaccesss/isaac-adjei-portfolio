@@ -20,7 +20,7 @@ export async function POST() {
 
   try {
     const res = await fetch(
-      "https://api.github.com/repos/zaccesss/isaac-adjei-portfolio/actions/workflows/wakatime-sync.yml/dispatches",
+      "https://api.github.com/repos/zaccesss/isaac-adjei-automations/actions/workflows/wakatime-sync.yml/dispatches",
       {
         method: "POST",
         headers: {
