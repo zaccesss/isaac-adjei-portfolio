@@ -42,6 +42,15 @@ export default function Footer() {
             <Link href="/security-policy" className="hover:text-foreground transition-colors">
               Security Policy
             </Link>
+            <span aria-hidden="true">·</span>
+            <a
+              href="https://status.isaacadjei.me"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              Status
+            </a>
           </div>
           <span className="text-xs text-muted-foreground">&copy; {year} Isaac Adjei</span>
         </div>

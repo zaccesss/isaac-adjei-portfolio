@@ -50,6 +50,7 @@ const PAGE_GROUPS = [
       { href: "/hall-of-fame",     label: "Hall of Fame",           description: "Acknowledgements and security researchers" },
       { href: "/privacy",          label: "Privacy Policy",         description: "How I handle your data" },
       { href: "/security-policy",  label: "Security Policy",        description: "Vulnerability disclosure and responsible reporting" },
+      { href: "https://status.isaacadjei.me", label: "Status",      description: "Live uptime and incident history" },
     ],
   },
 ]
@@ -84,8 +85,8 @@ export default function AllPagesPage() {
                     className="group flex items-center justify-between rounded-md px-3 py-2.5 transition-colors hover:bg-muted/50"
                   >
                     <div className="flex items-center gap-4">
-                      <span className="w-28 shrink-0 font-mono text-xs text-muted-foreground">
-                        {href}
+                      <span className="w-28 shrink-0 truncate font-mono text-xs text-muted-foreground">
+                        {href.replace(/^https:\/\//, "")}
                       </span>
                       <div>
                         <p className="text-sm font-medium group-hover:text-primary transition-colors">

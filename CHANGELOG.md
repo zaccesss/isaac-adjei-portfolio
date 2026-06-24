@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.40.0] - 2026-06-24
+
+### Added
+
+- Cron monitoring with Healthchecks.io: each scheduled job (the weekly email digest, the daily Discord digest, the Strava sync, the vault-expiry check and the trash cleanup) pings a named check when it runs, so a silently-dead cron raises an alert instead of failing unnoticed. It is guarded on a ping key, so without one the crons run exactly as before
+- A public /api/health endpoint that returns 200 when the app can reach the database and 503 when it cannot, so an external uptime monitor (Better Stack) can poll it and drive a status page
+- An /api/incident webhook that opens an urgent Linear issue when a monitor reports a problem (a dead cron from Healthchecks, or the site down from Better Stack). It is guarded by a shared secret so only my monitors can reach it, and it reuses the existing Linear integration, filing into my existing Linear team (LINEAR_UNI_TEAM_ID)
+- Cloudflare Web Analytics: a privacy-friendly, cookieless visitor beacon that loads only when its token is set
+- A Status link to the public status page (status.isaacadjei.me) in the footer, the all-pages directory and the Cmd+I command menu (Shift+M hotkey), plus a Cloudflare Web Analytics note in the privacy policy
+
+---
+
 ## [v2.39.0] - 2026-06-24
 
 ### Added

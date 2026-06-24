@@ -4,6 +4,7 @@
 // also be triggered manually from the dashboard without going through HTTP.
 import { NextRequest, NextResponse } from "next/server"
 import { sendDiscordDigest } from "@/lib/send-discord-digest"
+import { pingHealthcheck } from "@/lib/healthcheck-ping"
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization")
@@ -24,6 +25,7 @@ export async function GET(req: NextRequest) {
   }
 
   const result = await sendDiscordDigest()
+  await pingHealthcheck("discord-digest", result.ok ? "success" : "fail")
   return NextResponse.json(result, {
     status: result.ok ? 200 : 500,
     headers: { "Cache-Control": "no-store" },

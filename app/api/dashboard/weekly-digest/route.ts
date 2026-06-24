@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { sendWeeklyDigest } from "@/lib/send-weekly-digest"
+import { pingHealthcheck } from "@/lib/healthcheck-ping"
 
 // I verify the Vercel cron secret so this route cannot be triggered by arbitrary HTTP requests.
 // The actual digest logic lives in lib/send-weekly-digest.ts so it can also be called directly
@@ -23,6 +24,7 @@ export async function GET(req: NextRequest) {
   }
 
   const result = await sendWeeklyDigest()
+  await pingHealthcheck("weekly-digest", result.ok ? "success" : "fail")
   return NextResponse.json(result, {
     status: result.ok ? 200 : 500,
     headers: { "Cache-Control": "no-store" },

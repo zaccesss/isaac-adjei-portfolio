@@ -72,6 +72,28 @@ export default function PrivacyPage() {
             the content accordingly.
           </p>
           <p className="mt-3">
+            Visitor analytics are provided in part by{" "}
+            <a
+              href="https://www.cloudflare.com/web-analytics/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+            >
+              Cloudflare Web Analytics
+            </a>
+            , which is privacy-first by design: it sets no cookies, stores no client-side state and
+            does not fingerprint visitors or track them across other sites. It is governed by{" "}
+            <a
+              href="https://www.cloudflare.com/privacypolicy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+            >
+              Cloudflare&apos;s Privacy Policy
+            </a>
+            .
+          </p>
+          <p className="mt-3">
             Blog posts also record anonymous scroll-depth events at the 25%, 50%, 75% and 100%
             read marks. These are stored alongside a one-way hashed representation of the visitor
             IP address so that duplicate events from the same session are not counted. No raw IP
