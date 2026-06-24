@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.41.0] - 2026-06-24
+
+### Added
+
+- A Discord bot for the personal OS, built as a stateless Vercel endpoint (/api/discord-interaction) rather than a hosted process. It verifies Discord's Ed25519 signature, answers slash commands only from my own Discord user id, and defers the heavier ones so it always replies within Discord's three-second window. First commands: /ping, /today and /week (the last two reuse the shared digest gatherer). Three Node scripts go with it - scripts/register-discord-commands.mjs registers the commands, scripts/setup-discord-server.mjs builds the whole private server in one run (categories, channels with topics and a webhook per channel for the automated sends) and scripts/export-discord-server.mjs reads an existing server's structure as a reference
+
+---
+
 ## [v2.40.0] - 2026-06-24
 
 ### Added
