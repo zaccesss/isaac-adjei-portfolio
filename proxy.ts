@@ -1,5 +1,6 @@
 // I guard /dashboard at the edge (a quick redirect to login when there is no session cookie) and gate the
 // public site behind a maintenance page when I flip the toggle in Settings. I (logged in) bypass it.
+// Next 16 renamed middleware to proxy: this is the former middleware.ts, same logic, new filename + export.
 //
 // I deliberately do NOT wrap this in NextAuth's auth(), so it never needs AUTH_SECRET on public pages and
 // never runs the session machinery for every public request. That is safe because the protected dashboard
@@ -36,7 +37,7 @@ function hasSession(req: NextRequest): boolean {
   return req.cookies.has("authjs.session-token") || req.cookies.has("__Secure-authjs.session-token")
 }
 
-export default async function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   if (pathname.startsWith("/api/auth")) return NextResponse.next()
