@@ -1,6 +1,10 @@
 # private - never commit
 docs/session-logs/
 
+# discord - local server export + webhook URLs (never commit)
+discord-export.json
+discord-webhooks.json
+
 # dependencies
 /node_modules
 /.pnp
