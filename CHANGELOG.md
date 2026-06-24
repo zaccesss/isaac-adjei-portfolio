@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.43.0] - 2026-06-24
+
+### Added
+
+- Medication reminders: a new /dashboard/health/medication-reminder page to manage scheduled medication and health reminders for me or family, each firing at one or more local times within an optional date range, to Discord, email or SMS. An analytics view charts reminders sent per day and by medication with an adherence figure, backed by a doses log that records every send. The reminders are delivered by a job in my automations repo reading the same tables, firing at the right local hour through BST and GMT. Migration 040 adds the medication_reminders and medication_doses tables
+
+---
+
 ## [v2.42.0] - 2026-06-24
 
 ### Added
