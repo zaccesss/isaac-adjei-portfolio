@@ -2,11 +2,8 @@
 
 [![CI](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/ci.yml)
 [![CV PDF](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/cv-pdf.yml/badge.svg)](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/cv-pdf.yml)
-[![Job Scraper](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/job-scraper.yml/badge.svg)](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/job-scraper.yml)
-[![WakaTime Sync](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/wakatime-sync.yml/badge.svg)](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/wakatime-sync.yml)
-[![Vault Expiry](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/vault-expiry-check.yml/badge.svg)](https://github.com/zaccesss/isaac-adjei-portfolio/actions/workflows/vault-expiry-check.yml)
 [![Live](https://img.shields.io/badge/live-isaacadjei.me-000000?style=flat&logo=googlechrome&logoColor=white)](https://isaacadjei.me)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License: PolyForm NC](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue.svg)](LICENSE)
 
 Personal portfolio at [isaacadjei.me](https://isaacadjei.me). Built with Next.js 16 App Router, TypeScript and Tailwind CSS. Server-rendered where possible, client components only where interactivity requires it. Includes a private dashboard with 20+ live integrations, a job scraper pipeline, blog analytics, WakaTime heatmap, and a full CV system with automated PDF/DOCX generation. Deployed on Vercel with Cloudflare DNS.
 
@@ -47,6 +44,7 @@ Personal portfolio at [isaacadjei.me](https://isaacadjei.me). Built with Next.js
 | `/links` | All social and professional links |
 | `/respub` | Academic profile, research interests and publications |
 | `/til` | Today I Learned: short-form knowledge entries by category |
+| `/hall-of-fame` | People and work that inspire me |
 | `/search` | Full-text search across all content types |
 | `/tags` | Tag cloud across blog, TIL, projects and consumed |
 | `/changelog` | Public version history |
@@ -76,7 +74,7 @@ The homepage, `/now` and `/lab` show a live status grid. `/notes` shows a slim t
 
 Private dashboard at `/dashboard` (GitHub OAuth via NextAuth). Backed by Supabase PostgreSQL.
 
-Key sections: applications tracker, job board (scraped daily), vault, diary, notes, goals, habits, activity log, open source contributions, blog analytics, WakaTime coding heatmap, and the Me page.
+Key sections: applications tracker, job board (scraped daily), health, study, faith, university, calendar, contacts, vault, diary, notes, goals, habits, streaks, activity log, open source contributions, blog analytics, the WakaTime coding heatmap and the Me page. There is also a read-only AI assistant and a per-area analytics view.
 
 See [docs/DASHBOARD.md](docs/DASHBOARD.md) for the full route list and Supabase schema overview.
 
@@ -93,61 +91,76 @@ SQL for the Supabase database lives in `sql/schema.sql` (fresh install) and `sql
 ## Repository structure
 
 ```text
+.                                     Repo root (Next.js 16 App Router)
+├── auth.ts                           NextAuth v5 config (GitHub OAuth, login/logout activity)
+├── proxy.ts                          Middleware: maintenance gate and auth cookie check
+├── instrumentation.ts                Sentry server/edge init hook
+├── sentry.server.config.ts           Sentry setup (Node only - kept off the edge runtime)
+├── open-next.config.ts               OpenNext build config
+├── wrangler.jsonc                    Cloudflare Worker config
+└── next.config.mjs, tailwind.config.ts, tsconfig.json, vercel.json, ...
+
 .github/
 ├── WORKFLOWS.md                      Workflow index and conventions
-├── workflows/
-│   ├── ci.yml                        Lint, build and image-size check on every PR
-│   ├── cv-pdf.yml                    Regenerate CV PDF/DOCX on cv.html push
-│   ├── deploy-ps5-presence.yml       Deploy the PS5 worker on changes to workers/ps5-presence/**
-│   ├── job-scraper.yml               Job scraper - every 3 days at midnight UTC
-│   ├── wakatime-sync.yml             Daily WakaTime coding activity sync (23:30 UTC)
-│   ├── vault-expiry-check.yml        Daily vault item expiry check and Discord alert
-│   ├── generate-cvs.yml              Manual CV regeneration trigger
-│   ├── gitleaks-scan.yml             Secret scanning on every push
-│   ├── update-pr-branches.yml        Delete merged branches every 2 hours ("Repo maintenance")
-│   └── automerge-dependabot.yml      Auto-merge Dependabot PRs after CI
+└── workflows/
+    ├── ci.yml                        Lint, build and image-size check on every PR
+    ├── cv-pdf.yml                    Regenerate CV PDF/DOCX on cv.html push
+    ├── deploy-ps5-presence.yml       Deploy the PS5 worker on changes to workers/ps5-presence/**
+    ├── generate-cvs.yml              Manual CV regeneration trigger
+    ├── gitleaks-scan.yml             Secret scanning on every push
+    ├── update-pr-branches.yml        Delete merged branches every 2 hours ("Repo maintenance")
+    └── automerge-dependabot.yml      Auto-merge Dependabot PRs after CI
 
 app/                                  Next.js App Router
-├── about/, all-pages/, blog/         Public-facing pages
-├── changelog/, colophon/, consumed/
-├── contact/, cv/, experience/
-├── hall-of-fame/, lab/, links/
-├── newsletter/, notes/, now/
-├── privacy/, projects/, respub/
-├── search/, security-policy/, share/
-├── skills/, tags/, til/, uses/
+├── (public pages)                    about, all-pages, blog, changelog, colophon, consumed,
+│                                     contact, cv, experience, hall-of-fame, lab, links,
+│                                     newsletter, notes, now, privacy, projects, respub,
+│                                     search, security-policy, share, skills, tags, til, uses
+├── maintenance/                      Standalone maintenance-mode page (theme toggle, prod gate)
+├── feed.xml/, feed.xsl/              RSS feed and stylesheet
 ├── page.tsx                          Homepage
+├── layout.tsx, error.tsx, not-found.tsx, globals.css
+├── sitemap.ts, robots.ts, manifest.ts, opengraph-image.tsx, twitter-image.tsx
 ├── api/                              API routes
 │   ├── auth/                         NextAuth GitHub OAuth handler
-│   ├── blog/                         Blog reactions and scroll-depth events
-│   ├── contact/                      Sendgrid contact form handler
-│   ├── cover-letter/[role]/[format]/ Role-specific cover letter stream
-│   ├── cv-*/                         CV PDF and DOCX generation (role-specific)
-│   ├── dashboard/                    GitHub stats and activity
-│   ├── dashboard-manifest/           Private dashboard PWA manifest
-│   ├── github-*/                     GitHub presence integrations
+│   ├── live-status/stream/           Edge SSE: all 7 live sources merged
 │   ├── gpc/, lenovo/, macbook/       Device daemon endpoints (Redis writes)
-│   ├── live-status/stream/           Edge SSE: all 7 live sources merged, every 10s
-│   ├── newsletter*/                  Beehiiv newsletter endpoints
-│   ├── og/                           Open Graph image generation
-│   ├── ps5/, spotify/                Live presence integrations
-│   └── quote/                        Bible verse of the day
+│   ├── ps5/, spotify/, spotify-top/  PS5, Spotify now-playing and top tracks
+│   ├── github-activity/, github-stats/   GitHub presence and stats
+│   ├── blog/, blog-reactions/        Blog reactions and scroll-depth events
+│   ├── contact/                      Resend contact form handler
+│   ├── cover-letter/[role]/[format]/ Role-specific cover letter stream
+│   ├── cv-*/                         CV PDF and DOCX generation (per role)
+│   ├── newsletter/, newsletter-issues/   Beehiiv newsletter endpoints
+│   ├── bible-verse/, quote/          Daily Bible verse
+│   ├── routine-ical/                 Routine calendar (iCal) feed
+│   ├── strava/                       Strava OAuth and activity webhook
+│   ├── health/, incident/            Uptime health check and incident -> Linear webhook
+│   ├── og/, top-content/, wakatime-stats/   OG images, popular content, coding stats
+│   ├── discord-interaction/          Discord bot slash-command endpoint (Ed25519 verified)
+│   ├── export/, files/               Data export and file storage endpoints
+│   ├── dashboard-manifest/           Private dashboard PWA manifest
+│   └── dashboard/                    ~22 dashboard routes (digests, triggers, Strava sync,
+│                                     PIN lock, Linear, scraper and workflow status, ...)
 └── dashboard/
-    ├── (protected)/                  Auth-required dashboard pages
-    │   ├── activity/, applications/, blog-analytics/, coding/
-    │   ├── course/, diary/, goals/, gym/, habits/, health/
-    │   ├── internships/, inventory/, me/, modules/, notes/
-    │   ├── opensource/, settings/, streaks/, tech/, us/, vault/, wishlist/
-    │   └── page.tsx                  Dashboard home
+    ├── (protected)/                  Auth-required dashboard pages:
+    │                                 activity, analytics, applications, assistant, blog-analytics,
+    │                                 calendar, coding, contacts, course, diary, faith, files,
+    │                                 goals, gym, habits, health, internships, inventory, me,
+    │                                 modules, notes, opensource, settings, streaks, study, tech,
+    │                                 trash, university, us, vault, wishlist
     ├── actions.ts                    Supabase server actions
     └── components/                   Dashboard-specific components (sidebar, header)
 
 components/
+├── analytics/                        Shared chart framework (period selector, line/bar/pie, stat cards)
 ├── blog/                             Blog post components (ScrollDepthTracker, TOC)
 ├── consumed/                         Consumed item cards (BookCard, VideoCard, PodcastsContent)
 ├── cv/                               CV viewer component
 ├── dashboard/                        Dashboard widgets and cards
+├── editor/                           TipTap rich-text editor (notes and diary)
 ├── forms/                            Contact and newsletter forms
+├── lab/                              Interactive /lab terminal components
 ├── layout/                           Header, footer, nav
 ├── projects/                         Project cards and detail components
 ├── providers/                        Context providers (theme, session)
@@ -159,42 +172,26 @@ components/
 └── ui/                               shadcn/ui primitives
 
 data/
-├── blog/
-│   ├── index.ts                      Blog helpers and type exports
-│   └── posts/                        One .ts file per blog post (~38 files)
-├── consumed/
-│   ├── index.ts                      Re-exports from all category files
-│   ├── types.ts                      Shared consumed types
-│   ├── articles.ts, books.ts, music.ts, others.ts, podcasts.ts, resources.ts, videos.ts
-├── projects/
-│   ├── index.ts                      Project helpers and type exports
-│   └── items/                        One .ts file per project (11 files)
-├── respub/
-│   ├── index.ts                      Publications array and type exports
-│   └── items/                        One .ts file per publication
-├── til/
-│   ├── index.ts                      TIL helpers: getPublishedTILEntries(), getTILBySlug()
-│   └── entries/                      One .ts file per TIL entry (~63 files)
+├── blog/posts/                       One .ts file per blog post
+├── consumed/                         Category files (articles, books, music, podcasts, videos, ...)
+├── projects/items/                   One .ts file per project
+├── respub/items/                     One .ts file per publication
+├── til/entries/                      One .ts file per TIL entry
 ├── cv.yml                            Structured CV data (parsed by generate-role-cvs.js)
-├── education.ts                      Education and awards
-├── experience.ts                     Work experience and internships
-├── links.ts                          Social and professional links
-├── skills.ts                         Tech stack grouped by category
-├── social.ts                         Social profiles
-└── societies.ts                      University societies and committees
+└── education.ts, experience.ts, links.ts, skills.ts, social.ts, societies.ts
 
 docs/
 ├── DASHBOARD.md                      Dashboard route list and Supabase schema overview
 ├── DOCUMENTATION.md                  Full technical reference
-├── LOG.md                            Private session and feature history (all changes)
-├── PROJECT.md                        Legacy session log (pre-June 2026)
 ├── RULES.md                          Code conventions for this repo
-├── SUGGESTIONS.md                    Deferred feature ideas
-├── TROUBLESHOOTING.md                Known issues and fixes
 ├── WORKFLOW.md                       Branching, PR and deployment workflow
+├── TROUBLESHOOTING.md                Known issues and fixes
+├── PROJECT.md, LOG.md                Legacy and session history
+├── thoughts.md                       Planning and design notes
 └── verification.md                   Manual verification checklist
 
 hooks/
+├── useBulkSelect.ts                  Multi-row select state for dashboard tables
 ├── useCommandMenu.ts                 CommandMenu open/close state
 ├── useDashboardShortcuts.ts          Dashboard keyboard shortcuts
 ├── useMediaQuery.ts                  Responsive breakpoint hook
@@ -204,68 +201,63 @@ hooks/
 
 lib/
 ├── animations.ts                     Framer Motion animation variants
+├── application-status.ts             Applications status labels and helpers
+├── cdn-cache.ts                      Cloudflare cache purge helper
 ├── constants.ts                      Shared constants (site URL, nav items)
+├── digest-ai-summary.ts              AI intro generation for the digests (Groq/Gemini/...)
+├── digest-facts.ts                   Shared fact-gathering for the email and Discord digests
+├── goal-progress.ts                  Goal progress calculations
+├── healthcheck-ping.ts               Healthchecks.io cron pings
+├── ical.ts, routine-ical.ts          Calendar feed generation
+├── incident.ts                       Incident -> urgent Linear issue webhook
+├── lastfm.ts                         Last.fm scrobble helper
 ├── linear-sync.ts                    Linear issue sync helpers
-├── newsletter.ts                     Shared fetchNewsletterIssues() (used by API + RSS feed)
+├── live-status.ts                    Live-status source aggregation
+├── maintenance.ts                    Maintenance-mode flag (config + Upstash)
+├── newsletter.ts                     Shared fetchNewsletterIssues() (API + RSS feed)
 ├── pin.ts                            Dashboard PIN lock
+├── ratelimit.ts                      Upstash rate limiting
+├── redis.ts                          Upstash Redis client
 ├── search.ts                         fieldScore() and relevanceScore() for /search
 ├── send-discord-digest.ts            Discord webhook digest helper
 ├── send-weekly-digest.ts             Weekly email digest helper
+├── strava.ts                         Strava token refresh and activity sync
+├── streaks.ts                        Streak calculation helpers
 ├── supabase.ts                       Supabase client (safe placeholder fallbacks)
 ├── tags.ts                           normTag() and consumedSlug() for /tags routes
 ├── utils.ts                          cn() and other utilities
-└── vault-expiry-check.ts             Vault item expiry logic
+└── vault-expiry-check.ts             Vault item expiry logic (dashboard and digest)
 
 public/
 ├── images/                           Project screenshots and favicons
-└── resume/
-    ├── cv.html                       Master CV source (never edit manually for role CVs)
-    ├── cv-*.html                     Role-specific CVs (auto-generated)
-    ├── cover-letter-*.html           Cover letters (software, embedded, devops, data, quant, security)
-    ├── Isaac_Adjei_CV.pdf            Main CV PDF (auto-regenerated by cv-pdf.yml)
-    ├── Isaac_Adjei_CV.docx           Main CV DOCX (auto-regenerated by cv-pdf.yml)
-    └── cv-*.pdf / cv-*.docx          Role CV artefacts (auto-generated)
+└── resume/                           Master cv.html, role CVs, cover letters, generated PDF/DOCX
 
 scripts/
-├── generate-role-cvs.js             Assembles role-specific CV HTML from cv.html sections
-├── generate-cvs.js                  Unified CV generation entry point
-├── generate-pdfs.js                 Puppeteer: renders all HTML CVs to PDF
-├── generate-docx.js                 html-to-docx: converts CVs to DOCX
-├── watch-cvs.js                     File-watcher: re-runs role CV generation on cv.html change
-├── job-scraper.py                   Multi-source job scraper (Playwright + REST APIs)
-├── wakatime-sync.py                 Syncs WakaTime daily stats to Supabase
-├── gpc-daemon.py                    Windows daemon: GPU/CPU usage + IGDB game art → Redis
-├── mac-daemon.py                    macOS daemon: battery state → Redis
-├── lenovo-daemon.py                 Windows daemon: Lenovo battery state → Redis
-├── ps5-daemon.py                    Legacy PS5 polling script (superseded by Cloudflare Worker)
-├── daily-coding-summary.ts          Nightly Discord summary of coding activity (GitHub Actions)
-├── spotify-auth.ts                  One-time Spotify OAuth helper to obtain refresh token
-├── split-data.ts                    One-time data migration: split blog.ts / projects.ts into per-entry files
-└── vault-expiry-check.js            Node.js vault expiry checker (calls Supabase directly)
+├── generate-role-cvs.js              Assembles role-specific CV HTML from cv.html sections
+├── generate-cvs.js                   Unified CV generation entry point
+├── generate-pdfs.js                  Puppeteer: renders all HTML CVs to PDF
+├── generate-docx.js                  html-to-docx: converts CVs to DOCX
+├── watch-cvs.js                      File-watcher: re-runs role CV generation on cv.html change
+├── check-image-sizes.ts              Enforces the OG and image size budget in CI
+├── setup-discord-server.mjs          Builds the private Discord server from the dashboard layout
+├── export-discord-server.mjs         Exports an existing Discord server to JSON
+├── register-discord-commands.mjs     Registers the dashboard's Discord slash commands
+├── linear-setup.ts                   One-time Linear project and team setup
+├── spotify-auth.ts                   One-time Spotify OAuth helper to obtain a refresh token
+├── split-data.ts                     One-time data migration: split blog/projects into per-entry files
+├── gpc-daemon.py, mac-daemon.py, lenovo-daemon.py   Device daemons (battery/CPU/GPU -> Redis)
+└── ps5-daemon.py                     Legacy PS5 polling script (superseded by Cloudflare Worker)
 
 sql/
-├── schema.sql                       Full DROP+CREATE schema for fresh Supabase installs
-└── migrations/
-    ├── 001_add_jobs_table.sql        Applications tracker columns
-    ├── 002_add_vault_table.sql       Vault/diary/notes hidden+locked columns
-    ├── 003_add_blog_reactions.sql    Activity log, habits, habit_logs, goals updated_at
-    ├── 004_add_opensource_contributions.sql  Open source contributions table
-    ├── 005_add_blog_read_events.sql  Blog scroll-depth events table + unique index
-    ├── 006_add_wakatime_daily.sql    WakaTime daily coding activity table
-    ├── 007_add_blog_read_funnel_function.sql blog_read_funnel() RPC function
-    ├── 008_add_inventory_url.sql     inventory_items.url column
-    ├── 008_add_wakatime_os.sql       WakaTime OS breakdown columns
-    ├── 009_ensure_activity_log.sql   Activity log table and indexes
-    ├── 010_add_trash_table.sql       Trash/recycle bin table
-    ├── 011_add_contacts_table.sql    Contacts tracker table
-    ├── 012_add_detail_to_activity_log.sql  Detail column on activity log
-    ├── 013_add_contacts_phone_github.sql   Phone and github_url on contacts
-    ├── 014_add_linear_issue_id.sql   linear_issue_id on jobs table
-    └── 015_add_markdown_column_comments.sql  Markdown column for comments
+├── schema.sql                        Full DROP+CREATE schema for fresh Supabase installs
+└── migrations/                       Incremental migrations 001 onward (40+) - see sql/README.md
 
-types/                                TypeScript type definitions
+styles/
+└── animations.css                    Shared keyframe animations
+
+types/                                Shared TypeScript types (experience, projects, index)
 workers/
-└── ps5-presence/                    Cloudflare Worker: PSN polling → Upstash Redis (every 2 min)
+└── ps5-presence/                     Cloudflare Worker: PSN polling -> Upstash Redis (every 2 min)
 ```
 
 ---
@@ -338,12 +330,11 @@ Most pages work without environment variables. The live status cards (Spotify, M
 | --- | --- | --- |
 | `ci.yml` | Every PR and push | Lint + Next.js build check |
 | `cv-pdf.yml` | Push to `public/resume/cv.html` | Regenerate all CV PDFs and DOCX, create auto-merge PR |
-| `job-scraper.yml` | Every 3 days at midnight UTC + manual | Scrape jobs from 20+ sources (Playwright + REST APIs) and upsert to Supabase |
-| `wakatime-sync.yml` | Daily 01:00 UTC + manual | Sync WakaTime coding stats to `wakatime_daily` in Supabase |
-| `vault-expiry-check.yml` | Daily 09:00 UTC + manual | Check vault item expiry, send Discord alert if any are near or past |
 | `generate-cvs.yml` | Manual | Regenerate role CVs without changing cv.html |
 | `gitleaks-scan.yml` | Every push | Secret scanning |
 | `automerge-dependabot.yml` | Dependabot PRs | Auto-merge after CI passes |
+
+> Scheduled data jobs - the job scraper, WakaTime sync, vault expiry check, daily coding summary and streak reminder - now run from the separate [isaac-adjei-automations](https://github.com/zaccesss/isaac-adjei-automations) repo so they use its free Actions minutes. The Settings page still triggers the scraper and WakaTime sync on demand.
 
 ---
 
