@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.42.0] - 2026-06-24
+
+### Added
+
+- A full Discord command set for the personal OS bot, so I can drive the whole dashboard from Discord. Read commands: /today, /week, /goals, /applications, /deadlines, /calendar, /contacts, /vault, /coding, /fitness, /weight, plus /habit list and /streak status. Write commands: /habit done and /streak log, and a /log group for quick weight, study-session and diary captures - all owner-gated and writing the same Supabase tables the dashboard uses (so a Discord check-in shows up on the dashboard). A /help command lists every command with its usage. Everything that touches the database defers and edits its reply, so it always answers inside Discord's three-second window
+
+---
+
 ## [v2.41.0] - 2026-06-24
 
 ### Added
