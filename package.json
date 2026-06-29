@@ -24,7 +24,7 @@
     "@ai-sdk/groq": "^3.0.42",
     "@ai-sdk/openai": "^3.0.74",
     "@ai-sdk/openai-compatible": "^2.0.51",
-    "@ai-sdk/react": "^3.0.210",
+    "@ai-sdk/react": "^3.0.216",
     "@giscus/react": "^3.1.0",
     "@marsidev/react-turnstile": "^1.5.2",
     "@opennextjs/cloudflare": "^1.19.11",
