@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- Links page: corrected the GitHub, GitLab, Codeberg, Stack Overflow and Hackster usernames so my profile links resolve to the right accounts, and aligned the X (Twitter) link so both places use the same handle
+
+---
+
 ## [v2.43.0] - 2026-06-24
 
 ### Added

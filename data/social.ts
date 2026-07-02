@@ -29,9 +29,9 @@ export const socialLinks: SocialLink[] = [
   },
   {
     name: "GitHub",
-    url: "https://github.com/zaccessss",
+    url: "https://github.com/zaccesss",
     icon: "github",
-    username: "@zaccessss",
+    username: "@zaccesss",
   },
   {
     name: "ORCID",
