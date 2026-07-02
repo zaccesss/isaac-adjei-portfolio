@@ -52,6 +52,16 @@ function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
 }
 
+// The pie legend shares its column with the donut and reserves width for its
+// labels, so a long repo name like isaac-adjei-portfolio pushes the donut left
+// and out of line with the other charts. I give every donut legend the same
+// fixed width (PIE_LEGEND_WIDTH) and cap the label to fit, so the donuts all
+// land in the same spot. The full names still show in the progress-bar list.
+const PIE_LEGEND_WIDTH = 108
+function truncLabel(value: string, max = 13): string {
+  return value.length > max ? `${value.slice(0, max - 1)}…` : value
+}
+
 const TOOLTIP_STYLE = {
   fontSize: 12,
   borderRadius: 8,
@@ -437,10 +447,11 @@ export default function WakatimeStats() {
                     <Legend
                       iconType="circle"
                       iconSize={7}
-                      wrapperStyle={{ fontSize: 10, paddingLeft: 12 }}
+                      wrapperStyle={{ fontSize: 10, paddingLeft: 12, width: PIE_LEGEND_WIDTH }}
                       layout="vertical"
                       align="right"
                       verticalAlign="middle"
+                      formatter={(value) => truncLabel(String(value))}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -472,10 +483,11 @@ export default function WakatimeStats() {
                     <Legend
                       iconType="circle"
                       iconSize={7}
-                      wrapperStyle={{ fontSize: 10, paddingLeft: 12 }}
+                      wrapperStyle={{ fontSize: 10, paddingLeft: 12, width: PIE_LEGEND_WIDTH }}
                       layout="vertical"
                       align="right"
                       verticalAlign="middle"
+                      formatter={(value) => truncLabel(String(value))}
                     />
                   </PieChart>
                 </ResponsiveContainer>
