@@ -199,7 +199,7 @@ export default function LinksPage() {
             { Icon: FaLinkedin,      href: "https://www.linkedin.com/in/isaacadjei" },
             { Icon: SiOrcid,         href: "https://orcid.org/0009-0001-8298-5098" },
             { Icon: FaGithub,        href: "https://www.github.com/zaccesss" },
-            { Icon: SiStackoverflow, href: "https://stackoverflow.com/users/32850859/zaccessss" },
+            { Icon: SiStackoverflow, href: "https://stackoverflow.com/users/32850859/zaccesss" },
             { Icon: SiSubstack,      href: "https://substack.com/@zaccess" },
             { Icon: FaXTwitter,      href: "https://x.com/zaccessss" },
           ] as const).map(({ Icon, href }) => (
