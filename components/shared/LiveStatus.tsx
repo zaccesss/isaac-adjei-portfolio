@@ -90,8 +90,10 @@ export default function LiveStatus({ variant = "card" }: LiveStatusProps) {
       if (stopped || spotifyTimer || snapshotTimer) return
       pollSpotify()
       pollSnapshot()
-      spotifyTimer = setInterval(pollSpotify, 5000)
-      snapshotTimer = setInterval(pollSnapshot, 20000)
+      // 15s/45s cadence sits above each route's edge-cache TTL, so most polls are shared cache
+      // hits instead of origin invocations (the old 5s poll vs 4s TTL made every poll a miss).
+      spotifyTimer = setInterval(pollSpotify, 15000)
+      snapshotTimer = setInterval(pollSnapshot, 45000)
     }
     const stop = () => {
       if (spotifyTimer) { clearInterval(spotifyTimer); spotifyTimer = undefined }

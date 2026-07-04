@@ -11,5 +11,7 @@ export async function GET(req: Request) {
   if (!(await checkRateLimit(publicApiLimiter, getIp(req)))) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 })
   }
-  return NextResponse.json(await getPs5(), { headers: cdnCache(15) })
+  // 45s edge cache against the gaming panel's 30s poll (TTL above the poll interval so polls
+  // share the edge copy); the PSN worker only writes every 2min, so this loses no freshness.
+  return NextResponse.json(await getPs5(), { headers: cdnCache(45) })
 }

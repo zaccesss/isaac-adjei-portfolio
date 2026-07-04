@@ -6,5 +6,7 @@ import { getGpc } from "@/lib/live-status"
 import { cdnCache } from "@/lib/cdn-cache"
 
 export async function GET() {
-  return NextResponse.json(await getGpc(), { headers: cdnCache(15) })
+  // 45s edge cache against the gaming panel's 30s poll (TTL above the poll interval so polls
+  // share the edge copy); the gpc daemon only writes every 60s, so this loses no freshness.
+  return NextResponse.json(await getGpc(), { headers: cdnCache(45) })
 }

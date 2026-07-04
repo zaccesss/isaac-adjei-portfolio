@@ -6,7 +6,9 @@ import { getSpotify } from "@/lib/live-status"
 import { cdnCache } from "@/lib/cdn-cache"
 
 export async function GET() {
-  // 4s edge cache = near-realtime track changes while collapsing however many viewers poll into
-  // roughly one Spotify call every 4s per region. This CDN cache replaces the old Redis now cache.
-  return NextResponse.json(await getSpotify(), { headers: cdnCache(4) })
+  // 20s edge cache against the clients' 15s poll: the TTL sits ABOVE the poll interval, so even a
+  // lone viewer's polls mostly hit the shared edge copy (~1 origin call per ~30s per region). The
+  // old 4s TTL under a 5s poll meant every single poll was a cache miss that invoked the function
+  // and hit Spotify - that alone was most of our Vercel Fluid CPU usage.
+  return NextResponse.json(await getSpotify(), { headers: cdnCache(20) })
 }

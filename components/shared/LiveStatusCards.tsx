@@ -423,9 +423,11 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
       if (stopped || spotifyTimer || snapshotTimer) return
       pollSpotify()
       pollSnapshot()
-      // Spotify polls every 5s (4s edge cache) for near-realtime skips; the rest every 20s
-      spotifyTimer = setInterval(pollSpotify, 5000)
-      snapshotTimer = setInterval(pollSnapshot, 20000)
+      // Spotify polls every 15s (20s edge cache) so track changes stay near-live while most polls
+      // hit the shared edge copy; the snapshot every 45s (60s cache - the daemons only write every
+      // ~2min, so polling faster than this was refreshing identical data).
+      spotifyTimer = setInterval(pollSpotify, 15000)
+      snapshotTimer = setInterval(pollSnapshot, 45000)
     }
     const stop = () => {
       if (spotifyTimer) { clearInterval(spotifyTimer); spotifyTimer = undefined }

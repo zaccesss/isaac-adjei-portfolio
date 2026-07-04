@@ -9,7 +9,8 @@ import { cdnCache } from "@/lib/cdn-cache"
 
 export async function GET() {
   const snapshot = await getLiveSnapshot()
-  // Edge-cache 15s (device presence changes on the order of a minute); the browser always
-  // revalidates to the shared edge copy, so origin + Redis load stays flat against viewer count.
-  return NextResponse.json(snapshot, { headers: cdnCache(15) })
+  // Edge-cache 60s against the clients' 45s poll: TTL above the poll interval means polls land on
+  // the shared edge copy instead of invoking the function (the old 15s TTL under a 20s poll made
+  // every poll a miss). The daemons only write presence every ~2min, so 60s loses no freshness.
+  return NextResponse.json(snapshot, { headers: cdnCache(60) })
 }

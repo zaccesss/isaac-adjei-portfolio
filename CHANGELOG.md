@@ -7,10 +7,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Live status (homepage, /now, /lab): retuned the polling so the edge cache actually does its job. Spotify now polls every 15s against a 20s edge cache (was 5s against a 4s cache), the device/GitHub/Discord snapshot every 45s against a 60s cache (was 20s against 15s), and the lab gaming panel's PS5/gaming-PC routes now cache for 45s against their 30s poll (was 15s). The old cache lifetimes were shorter than the poll intervals, so every single poll was a cache miss that invoked a Vercel function - that alone was most of my Fluid CPU usage and pushed the free tier to 100%. With the lifetimes above the poll intervals, open tabs genuinely share one cached response; track changes still appear within ~15-30s, and the device daemons only write every 1-2 minutes anyway so nothing loses real freshness
+
 ### Fixed
 
 - Links page: corrected the GitHub, GitLab, Codeberg, Stack Overflow and Hackster usernames so my profile links resolve to the right accounts, and aligned the X (Twitter) link so both places use the same handle
 - Lab page: the projects donut now lines up with the languages donut. A long repo name in the legend was reserving extra width and pushing the projects pie out of line, so I gave every donut legend the same fixed width and capped the label to fit, with the full names still shown in the progress-bar list beside each chart
+- Sitemap: removed /privacy for real this time - the page is noindex, and listing it in the sitemap kept sending Google conflicting signals (the Search Console "excluded by noindex" validation kept failing). A v2.x entry claimed this was done already, but the URL was still in app/sitemap.ts
 
 ### Security
 
