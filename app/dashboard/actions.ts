@@ -120,7 +120,11 @@ export async function createGoal(data: {
     !optStr(data.target_date) ||
     !validNum(data.progress, 0, 100)
   ) return INVALID
-  await supabase.from("goals").insert(data)
+  // target_date is a date column and the form submits "" when its picker is empty (the common
+  // case - a goal with no deadline); Postgres rejects ""::date, so coerce to null and check the
+  // error rather than silently logging a create that never landed. Same pattern as createVaultEntry.
+  const { error } = await supabase.from("goals").insert({ ...data, target_date: data.target_date || null })
+  if (error) return { error: error.message }
   void logActivity("goal.create", data.title)
   revalidatePath("/dashboard/goals")
 }
@@ -144,7 +148,11 @@ export async function updateGoal(id: string, data: Partial<{
     !optStr(data.target_date) ||
     !optNum(data.progress, 0, 100)
   ) return INVALID
-  await supabase.from("goals").update(data).eq("id", id)
+  // An edit resubmits the whole form, so an empty target_date arrives as "" and Postgres rejects
+  // it - coerce to null and surface the error so a failed update no longer looks saved.
+  if (data.target_date === "") data.target_date = null as unknown as string
+  const { error } = await supabase.from("goals").update(data).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("goal.update", data.title)
   revalidatePath("/dashboard/goals")
 }
@@ -153,7 +161,8 @@ export async function deleteGoal(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("goals", id)
-  await supabase.from("goals").delete().eq("id", id)
+  const { error } = await supabase.from("goals").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("goal.delete", id)
   revalidatePath("/dashboard/goals")
 }
@@ -183,7 +192,8 @@ export async function createModule(data: {
   ) return INVALID
   // I .select().single() here because the client needs the auto-generated id to add to local state
   // without it I would have to refetch the full modules list just to get the new row's id
-  const { data: inserted } = await supabase.from("modules").insert(data).select().single()
+  const { data: inserted, error } = await supabase.from("modules").insert(data).select().single()
+  if (error) return null
   void logActivity("module.create", data.name)
   revalidatePath("/dashboard/modules")
   return inserted
@@ -211,7 +221,8 @@ export async function updateModule(id: string, data: Partial<{
     !optStr(data.summary, MAX_LONG_TEXT) ||
     !optStr(data.rules, MAX_LONG_TEXT)
   ) return INVALID
-  await supabase.from("modules").update(data).eq("id", id)
+  const { error } = await supabase.from("modules").update(data).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("module.update", data.name ?? id)
   revalidatePath("/dashboard/modules")
 }
@@ -220,7 +231,8 @@ export async function deleteModule(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("modules", id)
-  await supabase.from("modules").delete().eq("id", id)
+  const { error } = await supabase.from("modules").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("module.delete", id)
   revalidatePath("/dashboard/modules")
 }
@@ -230,7 +242,8 @@ export async function updateModuleStatus(id: string, status: string) {
   // I split status into its own action because it fires on every Select change
   // and I do not want the caller to build a full update payload just to flip one field
   if (!validId(id) || !validStr(status)) return INVALID
-  await supabase.from("modules").update({ status }).eq("id", id)
+  const { error } = await supabase.from("modules").update({ status }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("module.update", `status → ${status}`)
   revalidatePath("/dashboard/modules")
 }
@@ -265,7 +278,8 @@ export async function createAssessment(data: {
   ) return INVALID
   // I return the inserted row so the client can append it to local state
   // without needing to know the DB-generated id ahead of time
-  const { data: inserted } = await supabase.from("assessments").insert(data).select().single()
+  const { data: inserted, error } = await supabase.from("assessments").insert(data).select().single()
+  if (error) return null
   void logActivity("grade.create", data.name)
   revalidatePath("/dashboard/modules")
   return inserted
@@ -277,7 +291,8 @@ export async function updateAssessmentMark(id: string, mark: number | null) {
   // in the modules view - students click a row, type a number and hit Enter
   if (!validId(id)) return INVALID
   if (mark !== null && !validNum(mark, 0, 200)) return INVALID
-  await supabase.from("assessments").update({ mark_achieved: mark }).eq("id", id)
+  const { error } = await supabase.from("assessments").update({ mark_achieved: mark }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("grade.update", mark !== null ? `${mark}` : "cleared")
   revalidatePath("/dashboard/modules")
 }
@@ -305,7 +320,8 @@ export async function updateAssessment(id: string, data: Partial<{
     !optStr(data.week) ||
     !optStr(data.my_notes, MAX_LONG_TEXT)
   ) return INVALID
-  await supabase.from("assessments").update(data).eq("id", id)
+  const { error } = await supabase.from("assessments").update(data).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("grade.update", data.name ?? id)
   revalidatePath("/dashboard/modules")
 }
@@ -314,7 +330,8 @@ export async function deleteAssessment(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("assessments", id)
-  await supabase.from("assessments").delete().eq("id", id)
+  const { error } = await supabase.from("assessments").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("grade.delete", id)
   revalidatePath("/dashboard/modules")
 }
@@ -372,8 +389,19 @@ export async function createApplication(data: {
     !optStr(data.sponsors_visa) ||
     !optStr(data.category)
   ) return INVALID
-  // I return the inserted row so the client can optimistically show the new card without a refetch
-  const { data: inserted } = await supabase.from("applications").insert(data).select().single()
+  // I return the inserted row so the client can optimistically show the new card without a refetch.
+  // applied_date/deadline/opening_date/last_year_opening are date columns and the form submits ""
+  // when a picker is empty (an application not yet applied to has no applied date - the common
+  // case); Postgres rejects ""::date, so coerce empties to null and check the error rather than
+  // logging a phantom create. Same pattern as createVaultEntry.
+  const { data: inserted, error } = await supabase.from("applications").insert({
+    ...data,
+    applied_date: data.applied_date || null,
+    deadline: data.deadline || null,
+    opening_date: data.opening_date || null,
+    last_year_opening: data.last_year_opening || null,
+  }).select().single()
+  if (error) return null
   void logActivity("application.create", `${data.company} - ${data.role}`)
   if (inserted) {
     void syncApplicationToLinear({ ...inserted, linear_issue_id: null }).then(async (issueId) => {
@@ -409,7 +437,12 @@ export async function updateApplication(id: string, data: Partial<{
 }>) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("applications").update(data).eq("id", id)
+  // An edit resubmits the whole form, so empty date pickers arrive as "" - coerce to null so
+  // Postgres accepts the update, and surface the error so the client's revert path can fire.
+  for (const k of ["applied_date", "deadline", "opening_date", "last_year_opening"] as const)
+    if (data[k] === "") (data as Record<string, unknown>)[k] = null
+  const { error } = await supabase.from("applications").update(data).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("application.update", data.status ? `status → ${data.status}` : (data.company ?? id))
   if (data.status) {
     const { data: row } = await supabase.from("applications").select("id,company,role,type,url,linear_issue_id").eq("id", id).single()
@@ -424,7 +457,8 @@ export async function deleteApplication(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("applications", id)
-  await supabase.from("applications").delete().eq("id", id)
+  const { error } = await supabase.from("applications").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("application.delete", id)
   revalidatePath("/dashboard/applications")
 }
@@ -439,7 +473,8 @@ export async function bulkDeleteApplications(ids: string[]) {
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Trash backup failed" }
   }
-  await supabase.from("applications").delete().in("id", ids)
+  const { error } = await supabase.from("applications").delete().in("id", ids)
+  if (error) return { error: error.message }
   void logActivity("application.bulk_delete", `${ids.length} applications`)
   revalidatePath("/dashboard/applications")
 }
@@ -447,7 +482,8 @@ export async function bulkDeleteApplications(ids: string[]) {
 export async function archiveApplication(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("applications").update({ archived: true }).eq("id", id)
+  const { error } = await supabase.from("applications").update({ archived: true }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("application.archive", id)
   revalidatePath("/dashboard/applications")
 }
@@ -455,7 +491,8 @@ export async function archiveApplication(id: string) {
 export async function reopenApplication(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("applications").update({ archived: false }).eq("id", id)
+  const { error } = await supabase.from("applications").update({ archived: false }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("application.reopen", id)
   revalidatePath("/dashboard/applications")
 }
@@ -466,7 +503,8 @@ export async function updateInterviewPrep(
 ) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("applications").update({ interview_prep: prep }).eq("id", id)
+  const { error } = await supabase.from("applications").update({ interview_prep: prep }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("application.interview_prep.save", id)
   revalidatePath("/dashboard/applications")
 }
@@ -515,8 +553,17 @@ export async function createVaultEntry(data: {
     !optStr(data.notes, MAX_LONG_TEXT)
   ) return INVALID
   // I return the full inserted row so the client can splice it into the local entries list
-  // in sorted order without waiting for a page refetch
-  const { data: inserted } = await supabase.from("vault").insert(data).select().single()
+  // in sorted order without waiting for a page refetch.
+  // key_expiry is the vault table's only date column and the form submits "" when its picker is
+  // empty (always, for types like secure_note that never render it) - Postgres rejects ""::date,
+  // so I coerce it to null. I also check the insert error now: ignoring it meant a failed insert
+  // returned null (which the dialog treats as a cancel) while still logging phantom activity.
+  const { data: inserted, error } = await supabase
+    .from("vault")
+    .insert({ ...data, key_expiry: data.key_expiry || null })
+    .select()
+    .single()
+  if (error) return null
   void logActivity("vault.create", data.name)
   revalidatePath("/dashboard/vault")
   return inserted
@@ -544,7 +591,12 @@ export async function updateVaultEntry(id: string, data: Partial<{
 }>) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("vault").update(data).eq("id", id)
+  // Same ""::date coercion as createVaultEntry - edits resubmit the whole form, so an empty
+  // key-expiry picker sends "" and Postgres would reject the update.
+  if (data.key_expiry === "") data.key_expiry = null
+  const { error } = await supabase.from("vault").update(data).eq("id", id)
+  // I surface the error so the client's revert path (throw -> restore previous list) fires
+  if (error) return { error: error.message }
   void logActivity("vault.update", id)
   revalidatePath("/dashboard/vault")
 }
@@ -553,7 +605,8 @@ export async function deleteVaultEntry(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("vault", id)
-  await supabase.from("vault").delete().eq("id", id)
+  const { error } = await supabase.from("vault").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("vault.delete", id)
   revalidatePath("/dashboard/vault")
 }
@@ -573,7 +626,8 @@ export async function createDiaryEntry(data: {
   ) return INVALID
   // I return the inserted row so the DiaryClient can prepend it to the top of the list immediately
   // the created_at timestamp comes back from Supabase so the order is correct without client-side guessing
-  const { data: inserted } = await supabase.from("diary").insert(data).select().single()
+  const { data: inserted, error } = await supabase.from("diary").insert(data).select().single()
+  if (error) return null
   void logActivity("diary.create", data.title)
   revalidatePath("/dashboard/diary")
   return inserted
@@ -594,7 +648,8 @@ export async function updateDiaryEntry(id: string, data: Partial<{
   ) return INVALID
   // I always stamp updated_at server-side so the value is the true server time
   // not whatever the client clock happens to say
-  await supabase.from("diary").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  const { error } = await supabase.from("diary").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("diary.update", data.title ?? id)
   revalidatePath("/dashboard/diary")
 }
@@ -603,7 +658,8 @@ export async function deleteDiaryEntry(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("diary", id)
-  await supabase.from("diary").delete().eq("id", id)
+  const { error } = await supabase.from("diary").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("diary.delete", id)
   revalidatePath("/dashboard/diary")
 }
@@ -629,7 +685,8 @@ export async function createNote(data: {
     typeof data.locked !== "boolean" ||
     !optStr(data.color)
   ) return INVALID
-  const { data: inserted } = await supabase.from("notes").insert(data).select().single()
+  const { data: inserted, error } = await supabase.from("notes").insert(data).select().single()
+  if (error) return null
   void logActivity("note.create", data.title)
   revalidatePath("/dashboard/notes")
   return inserted
@@ -649,7 +706,8 @@ export async function updateNote(id: string, data: Partial<{
   if (!validId(id)) return INVALID
   // I spread updated_at on the server side for the same reason as updateDiaryEntry
   // - the client's clock drifts and I do not want stale sort orders
-  await supabase.from("notes").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  const { error } = await supabase.from("notes").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("note.update", data.title ?? id)
   revalidatePath("/dashboard/notes")
 }
@@ -658,7 +716,8 @@ export async function deleteNote(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("notes", id)
-  await supabase.from("notes").delete().eq("id", id)
+  const { error } = await supabase.from("notes").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("note.delete", id)
   revalidatePath("/dashboard/notes")
 }
@@ -680,7 +739,8 @@ export async function createStreak(data: {
     !validStr(data.color) ||
     !validNum(data.order_index, 0, 9999)
   ) return INVALID
-  const { data: inserted } = await supabase.from("streaks").insert(data).select().single()
+  const { data: inserted, error } = await supabase.from("streaks").insert(data).select().single()
+  if (error) return null
   void logActivity("streak.create", data.name)
   revalidatePath("/dashboard/streaks")
   return inserted
@@ -696,7 +756,8 @@ export async function updateStreak(id: string, data: Partial<{
 }>) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("streaks").update(data).eq("id", id)
+  const { error } = await supabase.from("streaks").update(data).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("streak.update", data.name ?? id)
   revalidatePath("/dashboard/streaks")
 }
@@ -705,7 +766,8 @@ export async function deleteStreak(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("streaks", id)
-  await supabase.from("streaks").delete().eq("id", id)
+  const { error } = await supabase.from("streaks").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("streak.delete", id)
   revalidatePath("/dashboard/streaks")
 }
@@ -725,7 +787,8 @@ export async function checkInStreak(streakId: string, date: string) {
   // I upsert on the composite key (streak_id, date) so re-checking the same day is idempotent
   // - double-clicking the button or a race condition will not create duplicate rows
   if (!validId(streakId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
-  await supabase.from("streak_logs").upsert({ streak_id: streakId, date, completed: true }, { onConflict: "streak_id,date" })
+  const { error } = await supabase.from("streak_logs").upsert({ streak_id: streakId, date, completed: true }, { onConflict: "streak_id,date" })
+  if (error) return { error: error.message }
   void logActivity("streak.checkin", date)
   revalidatePath("/dashboard/streaks")
 }
@@ -735,7 +798,8 @@ export async function undoStreakCheckIn(streakId: string, date: string) {
   // I delete rather than setting completed: false so there is no ambiguity
   // between "never checked in" and "checked in then undone" - both look the same in the streak calc
   if (!validId(streakId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
-  await supabase.from("streak_logs").delete().eq("streak_id", streakId).eq("date", date)
+  const { error } = await supabase.from("streak_logs").delete().eq("streak_id", streakId).eq("date", date)
+  if (error) return { error: error.message }
   void logActivity("streak.undo_checkin", date)
   revalidatePath("/dashboard/streaks")
 }
@@ -745,13 +809,14 @@ export async function undoStreakCheckIn(streakId: string, date: string) {
 export async function createHabit(data: { name: string; color?: string; description?: string }) {
   await requireAuth()
   if (!validStr(data.name)) return INVALID
-  const { data: inserted } = await supabase.from("habits").insert({
+  const { data: inserted, error } = await supabase.from("habits").insert({
     name: data.name.trim(),
     color: data.color ?? "#3b82f6",
     description: data.description ?? null,
     frequency: "daily",
     active: true,
   }).select().single()
+  if (error) return null
   void logActivity("habit.create", data.name)
   revalidatePath("/dashboard/habits")
   return inserted
@@ -764,7 +829,8 @@ export async function updateHabit(id: string, data: { name?: string; color?: str
   if (data.name !== undefined) { if (!validStr(data.name)) return INVALID; patch.name = data.name.trim() }
   if (data.color !== undefined) patch.color = data.color
   if (data.description !== undefined) patch.description = data.description?.trim() || null
-  await supabase.from("habits").update(patch).eq("id", id)
+  const { error } = await supabase.from("habits").update(patch).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("habit.update", id)
   revalidatePath("/dashboard/habits")
 }
@@ -773,8 +839,12 @@ export async function deleteHabit(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("habits", id)
-  await supabase.from("habit_logs").delete().eq("habit_id", id)
-  await supabase.from("habits").delete().eq("id", id)
+  // I delete the logs first, then the habit itself; check both writes so a failure of either is
+  // surfaced rather than silently leaving orphaned logs or a phantom delete.
+  const { error: logsErr } = await supabase.from("habit_logs").delete().eq("habit_id", id)
+  if (logsErr) return { error: logsErr.message }
+  const { error } = await supabase.from("habits").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("habit.delete", id)
   revalidatePath("/dashboard/habits")
 }
@@ -782,7 +852,8 @@ export async function deleteHabit(id: string) {
 export async function checkInHabit(habitId: string, date: string) {
   await requireAuth()
   if (!validId(habitId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
-  await supabase.from("habit_logs").upsert({ habit_id: habitId, date, completed: true }, { onConflict: "habit_id,date" })
+  const { error } = await supabase.from("habit_logs").upsert({ habit_id: habitId, date, completed: true }, { onConflict: "habit_id,date" })
+  if (error) return { error: error.message }
   void logActivity("habit.checkin", date)
   revalidatePath("/dashboard/habits")
 }
@@ -790,7 +861,8 @@ export async function checkInHabit(habitId: string, date: string) {
 export async function undoHabitCheckIn(habitId: string, date: string) {
   await requireAuth()
   if (!validId(habitId) || !validStr(date) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return INVALID
-  await supabase.from("habit_logs").delete().eq("habit_id", habitId).eq("date", date)
+  const { error } = await supabase.from("habit_logs").delete().eq("habit_id", habitId).eq("date", date)
+  if (error) return { error: error.message }
   void logActivity("habit.undo_checkin", date)
   revalidatePath("/dashboard/habits")
 }
@@ -814,7 +886,8 @@ export async function createHealthSection(data: {
     !validNum(data.order_index, 0, 9999) ||
     !optStr(data.subtype)
   ) return INVALID
-  const { data: inserted } = await supabase.from("health_sections").insert(data).select().single()
+  const { data: inserted, error } = await supabase.from("health_sections").insert(data).select().single()
+  if (error) return null
   void logActivity("health.create", data.name)
   revalidatePath("/dashboard/health")
   return inserted
@@ -831,7 +904,8 @@ export async function updateHealthSection(id: string, data: Partial<{
 }>) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("health_sections").update(data).eq("id", id)
+  const { error } = await supabase.from("health_sections").update(data).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("health.update", id)
   revalidatePath("/dashboard/health")
 }
@@ -840,7 +914,8 @@ export async function deleteHealthSection(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("health_sections", id)
-  await supabase.from("health_sections").delete().eq("id", id)
+  const { error } = await supabase.from("health_sections").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("health.section.delete", id)
   revalidatePath("/dashboard/health")
 }
@@ -860,7 +935,8 @@ export async function createHealthWorkout(data: {
     !optStr(data.notes, MAX_LONG_TEXT) ||
     !validNum(data.order_index, 0, 9999)
   ) return INVALID
-  const { data: inserted } = await supabase.from("health_workouts").insert(data).select().single()
+  const { data: inserted, error } = await supabase.from("health_workouts").insert(data).select().single()
+  if (error) return null
   void logActivity("health.create", data.day_label)
   revalidatePath("/dashboard/health")
   return inserted
@@ -875,7 +951,8 @@ export async function updateHealthWorkout(id: string, data: Partial<{
   await requireAuth()
   if (!validId(id)) return INVALID
   // I always refresh updated_at server-side so I know the true last-modified time
-  await supabase.from("health_workouts").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  const { error } = await supabase.from("health_workouts").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("health.update", data.day_label ?? id)
   revalidatePath("/dashboard/health")
 }
@@ -884,7 +961,8 @@ export async function deleteHealthWorkout(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("health_workouts", id)
-  await supabase.from("health_workouts").delete().eq("id", id)
+  const { error } = await supabase.from("health_workouts").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("health.workout.delete", id)
   revalidatePath("/dashboard/health")
 }
@@ -903,7 +981,8 @@ export async function updateHealthNutrition(id: string, data: Partial<{
     (data.rules !== undefined && !Array.isArray(data.rules)) ||
     !optNum(data.order_index, 0, 9999)
   ) return INVALID
-  await supabase.from("health_nutrition").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  const { error } = await supabase.from("health_nutrition").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("health.update", data.category ?? id)
   revalidatePath("/dashboard/health")
 }
@@ -921,7 +1000,8 @@ export async function createHealthNutrition(data: {
     !Array.isArray(data.rules) ||
     !validNum(data.order_index, 0, 9999)
   ) return INVALID
-  const { data: inserted } = await supabase.from("health_nutrition").insert(data).select().single()
+  const { data: inserted, error } = await supabase.from("health_nutrition").insert(data).select().single()
+  if (error) return { error: error.message }
   void logActivity("health.create", data.category)
   revalidatePath("/dashboard/health")
   return inserted
@@ -931,7 +1011,8 @@ export async function deleteHealthNutrition(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("health_nutrition", id)
-  await supabase.from("health_nutrition").delete().eq("id", id)
+  const { error } = await supabase.from("health_nutrition").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("health.nutrition.delete", id)
   revalidatePath("/dashboard/health")
 }
@@ -961,7 +1042,8 @@ export async function setConfig(key: string, value: unknown) {
   if (!validStr(key)) return INVALID
   // I upsert on the key column so the first write creates the row and subsequent ones update it
   // - no separate "does this key exist?" check needed, which would waste a round trip
-  await supabase.from("config").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" })
+  const { error } = await supabase.from("config").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" })
+  if (error) return { error: error.message }
   // I expire the theme cache immediately (expire: 0) rather than via the "default" cache-life profile.
   // The default profile bounds invalidation by its own stale/expire window, so a theme change could
   // lag a navigation or two - { expire: 0 } makes the next read pick up the new value straight away.
@@ -1003,10 +1085,11 @@ export async function updateNowStatus(data: {
     !optStr(data.focused_on) ||
     !optStr(data.listening_to)
   ) return INVALID
-  await supabase.from("config").upsert(
+  const { error } = await supabase.from("config").upsert(
     { key: "now_status", value: data, updated_at: new Date().toISOString() },
     { onConflict: "key" }
   )
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/notes")
 }
 
@@ -1037,7 +1120,8 @@ export async function createCourseModule(data: {
     !optStr(data.prerequisites) ||
     !validNum(data.order_index, 0, 9999)
   ) return INVALID
-  const { data: inserted } = await supabase.from("course_modules").insert(data).select().single()
+  const { data: inserted, error } = await supabase.from("course_modules").insert(data).select().single()
+  if (error) return null
   revalidatePath("/dashboard/course")
   return inserted
 }
@@ -1056,7 +1140,8 @@ export async function updateCourseModule(id: string, data: Partial<{
 }>) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("course_modules").update(data).eq("id", id)
+  const { error } = await supabase.from("course_modules").update(data).eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/course")
 }
 
@@ -1064,7 +1149,8 @@ export async function deleteCourseModule(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("course_modules", id)
-  await supabase.from("course_modules").delete().eq("id", id)
+  const { error } = await supabase.from("course_modules").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("course_module.delete", id)
   revalidatePath("/dashboard/course")
 }
@@ -1086,7 +1172,8 @@ export async function createWishlistItem(data: {
     !validStr(data.priority) ||
     !optStr(data.notes, MAX_LONG_TEXT)
   ) return INVALID
-  const { data: inserted } = await supabase.from("wishlist").insert(data).select().single()
+  const { data: inserted, error } = await supabase.from("wishlist").insert(data).select().single()
+  if (error) return null
   void logActivity("wishlist.create", data.name)
   revalidatePath("/dashboard/wishlist")
   return inserted
@@ -1101,7 +1188,8 @@ export async function updateWishlistItem(id: string, data: Partial<{
 }>) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("wishlist").update(data).eq("id", id)
+  const { error } = await supabase.from("wishlist").update(data).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("wishlist.update", data.name ?? id)
   revalidatePath("/dashboard/wishlist")
 }
@@ -1110,7 +1198,8 @@ export async function deleteWishlistItem(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("wishlist", id)
-  await supabase.from("wishlist").delete().eq("id", id)
+  const { error } = await supabase.from("wishlist").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("wishlist.delete", id)
   revalidatePath("/dashboard/wishlist")
 }
@@ -1142,7 +1231,8 @@ export async function createInventoryItem(data: {
     !optStr(data.warranty_expiry) ||
     !optStr(data.url)
   ) return INVALID
-  const { data: inserted } = await supabase.from("inventory_items").insert(data).select().single()
+  const { data: inserted, error } = await supabase.from("inventory_items").insert(data).select().single()
+  if (error) return null
   void logActivity("inventory.create", data.name)
   revalidatePath("/dashboard/inventory")
   return inserted
@@ -1162,7 +1252,12 @@ export async function updateInventoryItem(id: string, data: Partial<{
 }>) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("inventory_items").update(data).eq("id", id)
+  // purchase_date and warranty_expiry are date columns; an edit resubmits the whole form, so an
+  // empty picker arrives as "" which Postgres rejects - coerce to null and check the error.
+  if (data.purchase_date === "") data.purchase_date = null
+  if (data.warranty_expiry === "") data.warranty_expiry = null
+  const { error } = await supabase.from("inventory_items").update(data).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("inventory.update", data.name ?? id)
   revalidatePath("/dashboard/inventory")
 }
@@ -1171,7 +1266,8 @@ export async function deleteInventoryItem(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("inventory_items", id)
-  await supabase.from("inventory_items").delete().eq("id", id)
+  const { error } = await supabase.from("inventory_items").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("inventory.delete", id)
   revalidatePath("/dashboard/inventory")
 }
@@ -1327,7 +1423,8 @@ export async function getActivityLog(limit = 50) {
 export async function toggleDiaryHidden(id: string, hidden: boolean) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("diary").update({ hidden }).eq("id", id)
+  const { error } = await supabase.from("diary").update({ hidden }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("diary.update", hidden ? "hidden" : "visible")
   revalidatePath("/dashboard/diary")
 }
@@ -1335,7 +1432,8 @@ export async function toggleDiaryHidden(id: string, hidden: boolean) {
 export async function toggleDiaryPinned(id: string, pinned: boolean) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("diary").update({ pinned }).eq("id", id)
+  const { error } = await supabase.from("diary").update({ pinned }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("diary.update", pinned ? "pinned" : "unpinned")
   revalidatePath("/dashboard/diary")
 }
@@ -1343,7 +1441,8 @@ export async function toggleDiaryPinned(id: string, pinned: boolean) {
 export async function toggleDiaryLocked(id: string, locked: boolean) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("diary").update({ locked }).eq("id", id)
+  const { error } = await supabase.from("diary").update({ locked }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("diary.update", locked ? "locked" : "unlocked")
   revalidatePath("/dashboard/diary")
 }
@@ -1354,7 +1453,8 @@ export async function toggleDiaryLocked(id: string, locked: boolean) {
 export async function toggleNoteHidden(id: string, hidden: boolean) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("notes").update({ hidden }).eq("id", id)
+  const { error } = await supabase.from("notes").update({ hidden }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("note.update", hidden ? "hidden" : "visible")
   revalidatePath("/dashboard/notes")
 }
@@ -1362,7 +1462,8 @@ export async function toggleNoteHidden(id: string, hidden: boolean) {
 export async function toggleNotePinned(id: string, pinned: boolean) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("notes").update({ pinned }).eq("id", id)
+  const { error } = await supabase.from("notes").update({ pinned }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("note.update", pinned ? "pinned" : "unpinned")
   revalidatePath("/dashboard/notes")
 }
@@ -1370,7 +1471,8 @@ export async function toggleNotePinned(id: string, pinned: boolean) {
 export async function toggleNoteLocked(id: string, locked: boolean) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("notes").update({ locked }).eq("id", id)
+  const { error } = await supabase.from("notes").update({ locked }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("note.update", locked ? "locked" : "unlocked")
   revalidatePath("/dashboard/notes")
 }
@@ -1382,7 +1484,8 @@ export async function toggleNoteLocked(id: string, locked: boolean) {
 export async function toggleVaultHidden(id: string, hidden: boolean) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("vault").update({ hidden }).eq("id", id)
+  const { error } = await supabase.from("vault").update({ hidden }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("vault.update", hidden ? "hidden" : "visible")
   revalidatePath("/dashboard/vault")
 }
@@ -1390,7 +1493,8 @@ export async function toggleVaultHidden(id: string, hidden: boolean) {
 export async function toggleVaultLocked(id: string, locked: boolean) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("vault").update({ locked }).eq("id", id)
+  const { error } = await supabase.from("vault").update({ locked }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("vault.update", locked ? "locked" : "unlocked")
   revalidatePath("/dashboard/vault")
 }
@@ -1442,11 +1546,12 @@ export async function addOpenSourceContribution(input: {
     !optStr(input.notes, MAX_LONG_TEXT) ||
     !validStr(input.submitted_at)
   ) return INVALID
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("opensource_contributions")
     .insert(input)
     .select()
     .single()
+  if (error) return { error: error.message }
   void logActivity("opensource.create", input.pr_title)
   revalidatePath("/dashboard/opensource")
   return data as OpenSourceContribution
@@ -1476,10 +1581,11 @@ export async function updateOpenSourceContribution(
   if (patch.language !== undefined && !optStr(patch.language)) return INVALID
   if (patch.notes !== undefined && !optStr(patch.notes, MAX_LONG_TEXT)) return INVALID
   if (patch.submitted_at !== undefined && !validStr(patch.submitted_at)) return INVALID
-  await supabase
+  const { error } = await supabase
     .from("opensource_contributions")
     .update({ ...patch, updated_at: new Date().toISOString() })
     .eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("opensource.update", id)
   revalidatePath("/dashboard/opensource")
 }
@@ -1488,7 +1594,8 @@ export async function deleteOpenSourceContribution(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("opensource_contributions", id)
-  await supabase.from("opensource_contributions").delete().eq("id", id)
+  const { error } = await supabase.from("opensource_contributions").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("opensource.delete", id)
   revalidatePath("/dashboard/opensource")
 }
@@ -1504,7 +1611,8 @@ export async function bulkDeleteOpenSourceContributions(ids: string[]) {
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Trash backup failed" }
   }
-  await supabase.from("opensource_contributions").delete().in("id", ids)
+  const { error } = await supabase.from("opensource_contributions").delete().in("id", ids)
+  if (error) return { error: error.message }
   void logActivity("opensource.bulk_delete", `${ids.length} rows`)
   revalidatePath("/dashboard/opensource")
 }
@@ -1706,7 +1814,8 @@ export async function clearAllApplications() {
     // nothing recoverable.
     if (insErr) return { error: insErr.message }
   }
-  await supabase.from("applications").delete().neq("status", "scraped")
+  const { error: delErr } = await supabase.from("applications").delete().neq("status", "scraped")
+  if (delErr) return { error: delErr.message }
   void logActivity("application.cleared", `${data?.length ?? 0} applications moved to trash`)
   revalidatePath("/dashboard/applications")
 }
@@ -1754,11 +1863,12 @@ export async function createContact(data: {
 }) {
   await requireAuth()
   if (!validStr(data.name)) return INVALID
-  const { data: inserted } = await supabase
+  const { data: inserted, error } = await supabase
     .from("contacts")
     .insert({ ...data, follow_up: data.follow_up ?? false })
     .select()
     .single()
+  if (error) return null
   void logActivity("contact.create", data.name)
   revalidatePath("/dashboard/contacts")
   return inserted
@@ -1779,10 +1889,11 @@ export async function updateContact(id: string, data: Partial<{
 }>) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase
+  const { error } = await supabase
     .from("contacts")
     .update({ ...data, updated_at: new Date().toISOString() })
     .eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("contact.update", data.name ?? id)
   revalidatePath("/dashboard/contacts")
 }
@@ -1791,7 +1902,8 @@ export async function deleteContact(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("contacts", id)
-  await supabase.from("contacts").delete().eq("id", id)
+  const { error } = await supabase.from("contacts").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("contact.delete", id)
   revalidatePath("/dashboard/contacts")
 }
@@ -1806,7 +1918,8 @@ export async function bulkDeleteContacts(ids: string[]) {
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Trash backup failed" }
   }
-  await supabase.from("contacts").delete().in("id", ids)
+  const { error } = await supabase.from("contacts").delete().in("id", ids)
+  if (error) return { error: error.message }
   void logActivity("contact.bulk_delete", `${ids.length} contacts`)
   revalidatePath("/dashboard/contacts")
 }
@@ -1862,7 +1975,10 @@ export async function permanentlyDelete(trashId: string) {
   if (item && SOFT_DELETE_TABLES.has(item.table_name)) {
     // The underlying row is only soft-deleted, so a permanent delete must hard-delete it too,
     // otherwise it lingers hidden forever. For files, also remove the actual blob from Storage.
-    await supabase.from(item.table_name).delete().eq("id", item.original_id)
+    // I check this hard-delete: the trash entry is the only handle to original_id, so if I dropped
+    // it below while this failed the hidden row would become a permanent orphan.
+    const { error: rowErr } = await supabase.from(item.table_name).delete().eq("id", item.original_id)
+    if (rowErr) return { error: rowErr.message }
     if (item.table_name === "user_files") {
       const path = (item.data as Record<string, unknown>)?.storage_path
       if (typeof path === "string" && path) {
@@ -1870,7 +1986,8 @@ export async function permanentlyDelete(trashId: string) {
       }
     }
   }
-  await supabase.from("trash").delete().eq("id", trashId)
+  const { error: trashErr } = await supabase.from("trash").delete().eq("id", trashId)
+  if (trashErr) return { error: trashErr.message }
   void logActivity("trash.permanent_delete", trashId)
   revalidatePath("/dashboard/trash")
 }
@@ -1882,7 +1999,8 @@ export async function emptyTrash() {
   const { data: items } = await supabase.from("trash").select("table_name, original_id, data")
   for (const it of items ?? []) {
     if (!SOFT_DELETE_TABLES.has(it.table_name)) continue
-    await supabase.from(it.table_name).delete().eq("id", it.original_id)
+    const { error: rowErr } = await supabase.from(it.table_name).delete().eq("id", it.original_id)
+    if (rowErr) return { error: rowErr.message }
     if (it.table_name === "user_files") {
       const path = (it.data as Record<string, unknown>)?.storage_path
       if (typeof path === "string" && path) {
@@ -1890,7 +2008,8 @@ export async function emptyTrash() {
       }
     }
   }
-  await supabase.from("trash").delete().neq("id", "00000000-0000-0000-0000-000000000000")
+  const { error } = await supabase.from("trash").delete().neq("id", "00000000-0000-0000-0000-000000000000")
+  if (error) return { error: error.message }
   void logActivity("trash.empty")
   revalidatePath("/dashboard/trash")
 }
@@ -1935,7 +2054,8 @@ export async function updateBodyMetric(id: string, data: {
   if (data.value !== undefined) { if (!validNum(data.value, 0, 9999)) return INVALID; patch.value = data.value }
   if (data.unit !== undefined) { if (!validStr(data.unit)) return INVALID; patch.unit = data.unit }
   if (data.notes !== undefined) patch.notes = data.notes?.trim() || null
-  await supabase.from("body_metrics").update(patch).eq("id", id)
+  const { error } = await supabase.from("body_metrics").update(patch).eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/health")
   void logActivity("body_metric.update", id)
 }
@@ -1944,7 +2064,8 @@ export async function deleteBodyMetric(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("body_metrics", id)
-  await supabase.from("body_metrics").delete().eq("id", id)
+  const { error } = await supabase.from("body_metrics").delete().eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/health")
   void logActivity("body_metric.delete", id)
 }
@@ -2007,7 +2128,8 @@ export async function createNutritionLog(data: {
 export async function deleteNutritionLog(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("nutrition_logs").delete().eq("id", id)
+  const { error } = await supabase.from("nutrition_logs").delete().eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/health/weight-loss")
   void logActivity("nutrition.delete", id)
 }
@@ -2033,7 +2155,8 @@ export async function createWorkoutLog(data: { date: string; type: string; durat
 export async function deleteWorkoutLog(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("workout_logs").delete().eq("id", id)
+  const { error } = await supabase.from("workout_logs").delete().eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/health/weight-loss")
   void logActivity("workout.delete", id)
 }
@@ -2062,7 +2185,8 @@ export async function deleteUniModule(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_modules", id)
-  await supabase.from("uni_modules").delete().eq("id", id)
+  const { error } = await supabase.from("uni_modules").delete().eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/university")
   void logActivity("uni.module.delete", id)
 }
@@ -2135,7 +2259,8 @@ export async function bulkSyncApplicationsToLinear(): Promise<{ synced: number; 
     try {
       const issueId = await syncApplicationToLinear(a)
       if (issueId) {
-        await supabase.from("applications").update({ linear_issue_id: issueId }).eq("id", a.id)
+        const { error } = await supabase.from("applications").update({ linear_issue_id: issueId }).eq("id", a.id)
+        if (error) { failed++; continue }
         synced++
       }
     } catch {
@@ -2160,7 +2285,8 @@ export async function bulkSyncDeadlinesToLinear(): Promise<{ synced: number; ski
     try {
       const issueId = await syncDeadlineToLinear(d)
       if (issueId) {
-        await supabase.from("uni_deadlines").update({ linear_issue_id: issueId }).eq("id", d.id)
+        const { error } = await supabase.from("uni_deadlines").update({ linear_issue_id: issueId }).eq("id", d.id)
+        if (error) { failed++; continue }
         synced++
       }
     } catch {
@@ -2174,7 +2300,8 @@ export async function deleteUniDeadline(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_deadlines", id)
-  await supabase.from("uni_deadlines").delete().eq("id", id)
+  const { error } = await supabase.from("uni_deadlines").delete().eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/university")
   void logActivity("uni.deadline.delete", id)
 }
@@ -2201,7 +2328,8 @@ export async function deleteUniSubmission(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_submissions", id)
-  await supabase.from("uni_submissions").delete().eq("id", id)
+  const { error } = await supabase.from("uni_submissions").delete().eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/university")
   void logActivity("uni.submission.delete", id)
 }
@@ -2237,7 +2365,8 @@ export async function deleteUniNote(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_notes", id)
-  await supabase.from("uni_notes").delete().eq("id", id)
+  const { error } = await supabase.from("uni_notes").delete().eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/university")
   void logActivity("uni.note.delete", id)
 }
@@ -2262,7 +2391,8 @@ export async function deleteUniResource(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_resources", id)
-  await supabase.from("uni_resources").delete().eq("id", id)
+  const { error } = await supabase.from("uni_resources").delete().eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/university")
   void logActivity("uni.resource.delete", id)
 }
@@ -2288,7 +2418,8 @@ export async function createLibraryBook(data: {
 export async function returnLibraryBook(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("uni_library_books").update({ returned_at: new Date().toISOString().split("T")[0] }).eq("id", id)
+  const { error } = await supabase.from("uni_library_books").update({ returned_at: new Date().toISOString().split("T")[0] }).eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/university")
   void logActivity("uni.library.return", id)
 }
@@ -2297,7 +2428,8 @@ export async function deleteLibraryBook(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("uni_library_books", id)
-  await supabase.from("uni_library_books").delete().eq("id", id)
+  const { error } = await supabase.from("uni_library_books").delete().eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/university")
   void logActivity("uni.library.delete", id)
 }
@@ -2333,7 +2465,8 @@ export async function deleteFaithEntry(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("faith_entries", id)
-  await supabase.from("faith_entries").delete().eq("id", id)
+  const { error } = await supabase.from("faith_entries").delete().eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/faith")
   void logActivity("faith.delete", id)
 }
@@ -2390,7 +2523,8 @@ export async function deleteStudySession(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("study_sessions", id)
-  await supabase.from("study_sessions").delete().eq("id", id)
+  const { error } = await supabase.from("study_sessions").delete().eq("id", id)
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/study")
   void logActivity("study.delete", id)
 }
@@ -2463,7 +2597,7 @@ export async function createCalendarEvent(data: {
     typeof data.all_day !== "boolean" ||
     !validStr(data.event_type)
   ) return INVALID
-  const { data: inserted } = await supabase.from("calendar_events").insert({
+  const { data: inserted, error } = await supabase.from("calendar_events").insert({
     title: data.title.trim(),
     start_at: data.start_at,
     end_at: data.end_at,
@@ -2474,6 +2608,7 @@ export async function createCalendarEvent(data: {
     event_type: data.event_type,
     is_deleted: false,
   }).select().single()
+  if (error) return null
   void logActivity("calendar.create", data.title)
   revalidatePath("/dashboard/calendar")
   revalidatePath("/dashboard/university/timetable")
@@ -2500,7 +2635,8 @@ export async function updateCalendarEvent(id: string, data: Partial<{
     !optStr(data.description, MAX_LONG_TEXT) ||
     !optStr(data.colour)
   ) return INVALID
-  await supabase.from("calendar_events").update(data).eq("id", id)
+  const { error } = await supabase.from("calendar_events").update(data).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("calendar.update", data.title ?? id)
   revalidatePath("/dashboard/calendar")
   revalidatePath("/dashboard/university/timetable")
@@ -2510,7 +2646,8 @@ export async function deleteCalendarEvent(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("calendar_events", id)
-  await supabase.from("calendar_events").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", id)
+  const { error } = await supabase.from("calendar_events").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("calendar.delete", id)
   revalidatePath("/dashboard/calendar")
   revalidatePath("/dashboard/university/timetable")
@@ -2556,7 +2693,7 @@ export async function uploadFile(data: {
     !validStr(data.storage_path) ||
     typeof data.size_bytes !== "number"
   ) return INVALID
-  const { data: inserted } = await supabase.from("user_files").insert({
+  const { data: inserted, error } = await supabase.from("user_files").insert({
     name: data.name.trim(),
     original_name: data.original_name.trim(),
     folder: data.folder.trim(),
@@ -2565,6 +2702,7 @@ export async function uploadFile(data: {
     storage_path: data.storage_path.trim(),
     is_deleted: false,
   }).select().single()
+  if (error) return null
   void logActivity("file.upload", data.name)
   revalidatePath("/dashboard/files")
   return inserted
@@ -2574,7 +2712,8 @@ export async function deleteFile(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   await moveToTrash("user_files", id)
-  await supabase.from("user_files").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", id)
+  const { error } = await supabase.from("user_files").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("file.delete", id)
   revalidatePath("/dashboard/files")
 }
@@ -2582,7 +2721,8 @@ export async function deleteFile(id: string) {
 export async function renameFile(id: string, name: string) {
   await requireAuth()
   if (!validId(id) || !validStr(name)) return INVALID
-  await supabase.from("user_files").update({ name: name.trim() }).eq("id", id)
+  const { error } = await supabase.from("user_files").update({ name: name.trim() }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("file.rename", name)
   revalidatePath("/dashboard/files")
 }
@@ -2590,7 +2730,8 @@ export async function renameFile(id: string, name: string) {
 export async function moveFile(id: string, folder: string) {
   await requireAuth()
   if (!validId(id) || !validStr(folder)) return INVALID
-  await supabase.from("user_files").update({ folder: folder.trim() }).eq("id", id)
+  const { error } = await supabase.from("user_files").update({ folder: folder.trim() }).eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("file.move", folder)
   revalidatePath("/dashboard/files")
 }
@@ -2618,7 +2759,8 @@ export async function createDownloadSignedUrl(path: string) {
 export async function saveAiChat(title: string, messages: unknown) {
   await requireAuth()
   if (!validStr(title)) return INVALID
-  const { data } = await supabase.from("ai_chats").insert({ title: title.slice(0, 120), messages }).select("id,title,created_at").single()
+  const { data, error } = await supabase.from("ai_chats").insert({ title: title.slice(0, 120), messages }).select("id,title,created_at").single()
+  if (error) return { error: error.message }
   void logActivity("assistant.save_chat", title)
   return data
 }
@@ -2639,6 +2781,7 @@ export async function getAiChat(id: string) {
 export async function deleteAiChat(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await supabase.from("ai_chats").delete().eq("id", id)
+  const { error } = await supabase.from("ai_chats").delete().eq("id", id)
+  if (error) return { error: error.message }
   void logActivity("assistant.delete_chat", id)
 }
