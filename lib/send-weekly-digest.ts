@@ -79,7 +79,7 @@ function buildEmailHtml(
 
   const content = section(
     "Content",
-    row("Post reads", facts.reads) +
+    row("Visitor reads (public site)", facts.reads) +
       (facts.published > 0 ? row("Published", `${facts.published} posts / TILs`) : "") +
       (facts.openSource > 0 ? row("Open-source contributions", facts.openSource) : ""),
   )

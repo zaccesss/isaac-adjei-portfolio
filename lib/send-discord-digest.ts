@@ -67,7 +67,7 @@ function buildEmbeds(data: DigestData, summary: string | null, label: string) {
   fields.push({
     name: "Content",
     value: [
-      `Reads: **${facts.reads}**`,
+      `Visitor reads: **${facts.reads}**`,
       facts.published > 0 ? `Published: **${facts.published}**` : "",
       facts.openSource > 0 ? `Open-source: **${facts.openSource}**` : "",
     ]

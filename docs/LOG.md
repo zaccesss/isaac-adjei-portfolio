@@ -4,6 +4,31 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-07-02 (PR #644) - Reminders page, digest comparison and readership relabel
+
+### Reminders (/dashboard/reminders)
+
+- One combined page for one-off reminders - each entry typed appointment, meeting or other - rather than separate pages per kind, so any future reminder type is just a new kind value
+- `reminders` table (migration 042, to apply): title, location, notes, `event_at` timestamptz, `lead_minutes` integer[] (one or more lead times, default `{1440}` = a day before), `sent_leads` integer[] (which have fired), `channels` text[] (discord, email and/or sms), `email`, `phone`, `reminded_at` stamp, `active`; RLS on, service-role only; partial index for the send job's pending scan
+- Page clones the medication reminder pattern: co-located `actions.ts` (auth-gated CRUD), `RemindersClient.tsx` dialog form, list sorted soonest first with paused/past/reminded and "N of M sent" progress
+- Multiple lead times per event via checkboxes (1h, 2h, 3h, 1 day, 2 days, 1 week before), each firing its own reminder; per-reminder channel choice (Discord, email, SMS) with a per-reminder email address and phone number; datetime-local input converts local to UTC, list and delivery both display Europe/London
+- Full edit and delete; editing (including moving the date) resets `sent_leads` and `reminded_at` so the reminders re-arm cleanly for the new schedule; pausing keeps its state (updateReminder never writes `active`)
+- Sidebar: Reminders added to the Daily group (CalendarClock icon)
+- Delivery lives in the automations repo: `scripts/reminders.mjs` + `.github/workflows/reminders.yml`, every 30 minutes like medication reminders; for each reminder it fires the most imminent due-and-unfired lead to the chosen channels, adds it to `sent_leads`, and stamps `reminded_at` once all leads have fired or the event has passed; larger leads that come due at the same time (late add or downtime) are marked without sending to avoid a burst; the message says the real time until the event (`humanUntil`), not the configured lead; `workflow_dispatch` with `test_email` or `test_to` sends one test message
+- SMS reuses the medication feature's Twilio path; needs TWILIO_ACCOUNT_SID/AUTH_TOKEN/FROM_NUMBER in the automations repo; Discord/email reuse the existing DISCORD_WEBHOOK_REMINDERS, RESEND_API_KEY, REMINDER_FROM_EMAIL, SUPABASE_URL/SERVICE_ROLE_KEY (no new secrets for those)
+
+### Digest summary improvements
+
+- `blog_read_events` counts visitors reading my published posts, but the digest labelled it "Post reads" and the AI narrated it as posts I had read; the figure line now reads "Blog audience: visitors read Isaac's published posts N times" and the system prompt pins the meaning so it is always phrased as readership
+- Weekly email template label: "Post reads" -> "Visitor reads (public site)"; Discord embed: "Reads" -> "Visitor reads"
+- `gatherDigestData` now also gathers the previous window's headline figures (applications, coding hours, study hours, workouts and km, visitor reads, habit and streak check-ins) as `facts.prev` - seven cheap count/sum queries over the window before this one
+- `digestAiSummary` passes the previous period as comparison-only context and instructs the model to open with the most notable change (not a stock greeting), say what is up or down and by roughly how much, and vary structure between digests; temperature 0.5 -> 0.85
+
+### Small fixes
+
+- `scripts/lenovo-daemon.py` header comment said 30 seconds; the actual write interval is 120 seconds
+- `docs/thoughts.md`: added the reminders design (now largely shipped) and the pending `/reminder` Discord command for the Phase 5 bot
+
 ## 2026-06-20 (PR #482) - Phase 4 polish: Spotify fixes, calendar, file manager, analytics, search (#461 #466 #468 #469 #475)
 
 ### Spotify song-change lag fix

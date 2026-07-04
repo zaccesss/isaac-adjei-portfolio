@@ -62,6 +62,18 @@ A Chrome/Firefox extension that adds a "Save to dashboard" button on job posting
 
 ---
 
+## Reminders (/dashboard/reminders) - shipped July 2026, Discord command still to come
+
+Built as one combined page rather than separate appointment and meeting pages, so any one-off reminder fits: each entry is typed appointment, meeting or other, and the type is just a field, so new kinds cost nothing. The medication reminder feature supplied the whole delivery spine (Discord webhook, Resend email, Twilio SMS, the 30-minute automations job pattern); this reuses it with a one-off event_at timestamp and one or more lead times per event (any of 1 hour up to 1 week before, ticked as a set) instead of recurring daily times. Each reminder can go to any of Discord, email and SMS, with its own email address and phone number. A sent_leads array plus a reminded_at stamp mean each lead fires exactly once, and editing a reminder (including moving the date) resets both so the new schedule is honoured. The reminders table is migration 042; the page clones the medication CRUD (co-located actions.ts, same form and list, soonest first) and delivery is scripts/reminders.mjs plus reminders.yml in the automations repo, running every 30 minutes.
+
+Still to do when the Phase 5 central bot lands - a #reminders-upcoming (or reuse #reminders) channel and a slash command group:
+
+- `/reminder add [type] [title] [when] [where]` - add an appointment or meeting with natural date parsing
+- `/reminder list` - show what is coming up
+- `/reminder cancel [id]` - cancel one
+
+The lead-time reminder posts to Discord and emails me, matching what the dashboard sends. SMS could be added later by lifting sendSms from medication-reminders.mjs unchanged.
+
 ---
 
 ## Discord central bot (Phase 5)
@@ -127,4 +139,4 @@ Better Stack's outgoing incident webhook (site down -> /api/incident -> Linear) 
 
 ---
 
-_Last updated: June 2026_
+_Last updated: July 2026_
