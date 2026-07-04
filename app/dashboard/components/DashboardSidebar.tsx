@@ -8,7 +8,7 @@ import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
   Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users,
-  Brain, Church, School, CheckSquare, CalendarDays, ChevronDown, FolderOpen, Sparkles
+  Brain, Church, School, CheckSquare, CalendarDays, ChevronDown, FolderOpen, Sparkles, CalendarClock
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -37,6 +37,7 @@ const nav: (NavItem | NavGroup)[] = [
       { href: "/dashboard/study", label: "Study", icon: Brain },
       { href: "/dashboard/faith", label: "Faith", icon: Church },
       { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays },
+      { href: "/dashboard/reminders", label: "Reminders", icon: CalendarClock },
     ],
   },
   {

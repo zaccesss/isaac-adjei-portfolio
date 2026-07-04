@@ -44,6 +44,11 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
   const since = new Date(now.getTime() - hoursBack * 3_600_000)
   const sinceIso = since.toISOString()
   const sinceDate = sinceIso.slice(0, 10)
+  // The window before this one (the previous day or week), so the summary can compare periods. Timestamp
+  // columns use this directly (symmetric with the current window's .gte(sinceIso)); date columns need a
+  // matched-length window computed below, because the current date queries are inclusive up through today.
+  const prevSince = new Date(now.getTime() - 2 * hoursBack * 3_600_000)
+  const prevSinceIso = prevSince.toISOString()
   const today = now.toISOString().slice(0, 10)
   const horizon = new Date(now.getTime() + 14 * 86_400_000).toISOString().slice(0, 10)
   const in7 = new Date(now.getTime() + 7 * 86_400_000).toISOString()
@@ -109,6 +114,30 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
     supabase.from("body_metrics").select("value,date").eq("metric", "weight_kg").order("date", { ascending: false }).limit(90),
     supabase.from("config").select("value").eq("key", "weight_goal").maybeSingle(),
     getExpiringItems(),
+  ])
+
+  // The current date-column queries are .gte(sinceDate) with no upper bound, so they span sinceDate..today
+  // inclusive. I match the previous date window to that same number of calendar dates ending the day before
+  // sinceDate, so the comparison is like for like (a naive prevSinceDate would be one day short and make a
+  // flat week look like a jump). Timestamp columns stay symmetric on prevSinceIso.
+  const windowDates = Math.round((new Date(today).getTime() - new Date(sinceDate).getTime()) / 86_400_000) + 1
+  const prevDateStart = new Date(new Date(sinceDate).getTime() - windowDates * 86_400_000).toISOString().slice(0, 10)
+
+  // The same headline figures for the window before this one, kept to cheap counts and sums, so the
+  // summary can say "up from yesterday" or "quieter than last week" instead of reciting bare numbers.
+  const [prevAppsR, prevCodingR, prevStudyR, prevFitnessR, prevReadsR, prevHabitLogsR, prevStreaksR] = await Promise.all([
+    supabase
+      .from("applications")
+      .select("id", { count: "exact", head: true })
+      .not("status", "in", '("Not Applied","Not Interested","scraped")')
+      .gte("applied_date", prevDateStart)
+      .lt("applied_date", sinceDate),
+    supabase.from("wakatime_daily").select("total_seconds").gte("date", prevDateStart).lt("date", sinceDate),
+    supabase.from("study_sessions").select("duration_m").gte("date", prevDateStart).lt("date", sinceDate),
+    supabase.from("strava_activities").select("distance_m").gte("start_date", prevSinceIso).lt("start_date", sinceIso),
+    supabase.from("blog_read_events").select("id", { count: "exact", head: true }).gte("created_at", prevSinceIso).lt("created_at", sinceIso),
+    supabase.from("habit_logs").select("id", { count: "exact", head: true }).gte("date", prevDateStart).lt("date", sinceDate),
+    supabase.from("streak_logs").select("id", { count: "exact", head: true }).gte("date", prevDateStart).lt("date", sinceDate),
   ])
 
   const goals = goalsR.data ?? []
@@ -228,6 +257,16 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
     currentWeight,
     weightChange,
     weightGoal,
+    prev: {
+      applied: prevAppsR.count ?? 0,
+      codingHours: round1((prevCodingR.data ?? []).reduce((a, r) => a + (r.total_seconds ?? 0), 0) / 3600),
+      studyHours: round1((prevStudyR.data ?? []).reduce((a, r) => a + (r.duration_m ?? 0), 0) / 60),
+      workouts: (prevFitnessR.data ?? []).length,
+      workoutDistanceKm: round1((prevFitnessR.data ?? []).reduce((a, r) => a + (r.distance_m ?? 0), 0) / 1000),
+      reads: prevReadsR.count ?? 0,
+      habitCheckIns: prevHabitLogsR.count ?? 0,
+      streakCheckIns: prevStreaksR.count ?? 0,
+    },
   }
 
   const appliedList = apps

@@ -57,6 +57,17 @@ export type DigestFacts = {
   currentWeight: number | null
   weightChange: number | null
   weightGoal: string | null
+  // the same headline figures for the window before this one, so the summary can compare periods
+  prev?: {
+    applied: number
+    codingHours: number
+    studyHours: number
+    workouts: number
+    workoutDistanceKm: number
+    reads: number
+    habitCheckIns: number
+    streakCheckIns: number
+  } | null
 }
 
 // The best free models, in order of preference. Each is included only if its key is set, so the chain is
@@ -104,7 +115,7 @@ export async function digestAiSummary(facts: DigestFacts, detailed = false): Pro
     facts.upcomingEvents > 0
       ? `Calendar: ${facts.upcomingEvents} events coming up${facts.nextEvent ? `, next ${facts.nextEvent}` : ""}`
       : null,
-    `Content: ${facts.reads} post reads${facts.published > 0 ? `, ${facts.published} new posts or TILs published` : ""}`,
+    `Blog audience: visitors read Isaac's published posts ${facts.reads} times on the public site${facts.published > 0 ? `; Isaac published ${facts.published} new posts or TILs` : ""}`,
     facts.openSource > 0 ? `Open-source contributions: ${facts.openSource}` : null,
     facts.currentWeight != null
       ? `Weight: ${facts.currentWeight}kg${facts.weightChange != null && facts.weightChange !== 0 ? ` (${facts.weightChange > 0 ? "up" : "down"} ${Math.abs(facts.weightChange)}kg this period)` : ""}`
@@ -117,6 +128,19 @@ export async function digestAiSummary(facts: DigestFacts, detailed = false): Pro
     .filter(Boolean)
     .join("\n")
 
+  // The same headline figures for the period before, so the model can compare rather than recite.
+  const prevFigures = facts.prev
+    ? [
+        `Job applications: ${facts.prev.applied}`,
+        `Coding: ${facts.prev.codingHours}h`,
+        `Study: ${facts.prev.studyHours}h`,
+        `Fitness: ${facts.prev.workouts} workouts, ${facts.prev.workoutDistanceKm}km`,
+        `Habit check-ins: ${facts.prev.habitCheckIns}`,
+        `Streak check-ins: ${facts.prev.streakCheckIns}`,
+        `Blog audience: ${facts.prev.reads} visitor reads`,
+      ].join("\n")
+    : null
+
   const system = [
     "You write a warm, personal summary for Isaac's dashboard digest, covering his whole week or day.",
     detailed
@@ -125,6 +149,13 @@ export async function digestAiSummary(facts: DigestFacts, detailed = false): Pro
     "Address Isaac as 'you', be encouraging and specific, and cover the areas that actually have activity",
     "(applications, coding, study, fitness, weight, faith, goals, streaks, habits, content, diary).",
     "Use ONLY the figures given. Never invent numbers, companies, names or events.",
+    "The blog audience figure is other people reading Isaac's published posts on his public site. It is",
+    "never posts Isaac read himself, so phrase it as readership (for example 'your posts were read 12",
+    "times'), never as 'you read'.",
+    "When previous-period figures are given, weave in the comparison where the difference is meaningful:",
+    "say what is up, what is down and by roughly how much, in plain words. Open with the single most",
+    "notable change or achievement of the period rather than a stock greeting, and vary your sentence",
+    "structure and word choice from digest to digest so consecutive summaries never read the same.",
     "If a figure is 0, leave it out rather than padding, but do gently note a quiet patch if most are 0.",
     "If a weight is given, comment on the trend; if a weight-loss goal projection is given, lead with it",
     "(say whether you are on track or behind and the estimated date) and give a gentle sense of pace. If",
@@ -136,11 +167,13 @@ export async function digestAiSummary(facts: DigestFacts, detailed = false): Pro
     "Return only the summary text: no preamble, no markdown, no heading, no sign-off.",
   ].join(" ")
 
-  const prompt = `Here are this period's figures:\n${figures}\n\nWrite the summary.`
+  const prompt = `Here are this period's figures:\n${figures}${
+    prevFigures ? `\n\nAnd the previous period's, for comparison only (do not list them as this period's):\n${prevFigures}` : ""
+  }\n\nWrite the summary.`
 
   for (const model of models) {
     try {
-      const { text } = await generateText({ model, system, prompt, temperature: 0.5 })
+      const { text } = await generateText({ model, system, prompt, temperature: 0.85 })
       const out = text.trim()
       if (out.length > 0) return out
     } catch (err) {
