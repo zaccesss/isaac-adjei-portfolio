@@ -12,6 +12,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Links page: corrected the GitHub, GitLab, Codeberg, Stack Overflow and Hackster usernames so my profile links resolve to the right accounts, and aligned the X (Twitter) link so both places use the same handle
 - Lab page: the projects donut now lines up with the languages donut. A long repo name in the legend was reserving extra width and pushing the projects pie out of line, so I gave every donut legend the same fixed width and capped the label to fit, with the full names still shown in the progress-bar list beside each chart
 
+### Security
+
+- Me page: removed my personal email, date of birth and student number from the DEFAULT_PROFILE fallback in the page source. The dashboard reads those values from the me_profile config row in Supabase as before - the fallback only ever rendered when the database was unreachable, and this repo is public, so private identifiers no longer belong in the source
+
 ---
 
 ## [v2.43.0] - 2026-06-24
