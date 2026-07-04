@@ -65,6 +65,7 @@ const CATEGORIES = [
   "AI and Machine Learning",
   "DevOps and Infrastructure",
   "Embedded",
+  "Hardware",
   "Quant Developer",
   "Tech Consulting",
   "Cyber Security",
@@ -911,6 +912,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         "Security":      "security",
         "Finance/Quant": "finance",
         "Embedded":      "embedded",
+        "Hardware":      "hardware",
         "Consulting":    "consulting",
       }
       const needle = kwMap[filterKeyword]
@@ -1407,6 +1409,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
             <SelectItem value="Security">Security</SelectItem>
             <SelectItem value="Finance/Quant">Finance / Quant</SelectItem>
             <SelectItem value="Embedded">Embedded</SelectItem>
+            <SelectItem value="Hardware">Hardware</SelectItem>
             <SelectItem value="Consulting">Consulting</SelectItem>
           </SelectContent>
         </Select>
