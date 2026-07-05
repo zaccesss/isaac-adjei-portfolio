@@ -1,28 +1,16 @@
 {
   "crons": [
-    {
-      "path": "/api/dashboard/weekly-digest",
-      "schedule": "0 18 * * 0"
-    },
-    {
-      "path": "/api/dashboard/ps5-npsso-check",
-      "schedule": "0 9 * * 1"
-    },
-    {
-      "path": "/api/dashboard/discord-digest",
-      "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/dashboard/vault-expiry-check",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/dashboard/trash-cleanup",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/dashboard/strava-sync",
-      "schedule": "0 4 * * *"
-    }
+    { "path": "/api/dashboard/weekly-digest?dst=bst", "schedule": "30 23 * * 0" },
+    { "path": "/api/dashboard/weekly-digest?dst=gmt", "schedule": "30 0 * * 1" },
+    { "path": "/api/dashboard/discord-digest?dst=bst", "schedule": "30 23 * * *" },
+    { "path": "/api/dashboard/discord-digest?dst=gmt", "schedule": "30 0 * * *" },
+    { "path": "/api/dashboard/ps5-npsso-check?dst=bst", "schedule": "0 8 * * 1" },
+    { "path": "/api/dashboard/ps5-npsso-check?dst=gmt", "schedule": "0 9 * * 1" },
+    { "path": "/api/dashboard/vault-expiry-check?dst=bst", "schedule": "0 8 * * *" },
+    { "path": "/api/dashboard/vault-expiry-check?dst=gmt", "schedule": "0 9 * * *" },
+    { "path": "/api/dashboard/trash-cleanup?dst=bst", "schedule": "0 2 * * *" },
+    { "path": "/api/dashboard/trash-cleanup?dst=gmt", "schedule": "0 3 * * *" },
+    { "path": "/api/dashboard/strava-sync?dst=bst", "schedule": "0 3 * * *" },
+    { "path": "/api/dashboard/strava-sync?dst=gmt", "schedule": "0 4 * * *" }
   ]
 }

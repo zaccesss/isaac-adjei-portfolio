@@ -42,6 +42,7 @@ type StravaApiActivity = {
   average_heartrate?: number
   max_heartrate?: number
   start_date?: string
+  start_date_local?: string // activity start in my local (UK) time; used to tick the Fitness habit on the right day
 }
 
 async function readTokens(): Promise<StravaTokens | null> {
@@ -166,7 +167,13 @@ export async function syncStravaActivities(pages = 3): Promise<number> {
       max_heartrate: a.max_heartrate ?? null,
       start_date: a.start_date ?? null,
     }))
-    for (const a of activities) if (a.start_date) activityDates.add(a.start_date.slice(0, 10))
+    // Tick the Fitness habit on the activity's LOCAL (UK) day, not its UTC day: a late-evening BST
+    // workout is the same calendar date as start_date_local but a day later in UTC start_date. The
+    // stored strava_activities row keeps UTC start_date (unchanged) so the analytics charts are unaffected.
+    for (const a of activities) {
+      const localDate = a.start_date_local ?? a.start_date
+      if (localDate) activityDates.add(localDate.slice(0, 10))
+    }
     await supabase.from("strava_activities").upsert(rows, { onConflict: "strava_id" })
     synced += rows.length
     if (activities.length < 100) break

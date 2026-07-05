@@ -171,10 +171,13 @@ function buildEmailHtml(
 }
 
 export async function sendWeeklyDigest(): Promise<DigestResult> {
+  // Scheduled for 00:30 UK on Monday, so the covered week is the Mon-Sun that just ended. Label the
+  // range Monday..Sunday (end = the day that just ended) rather than showing today's Monday date.
   const now = new Date()
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const periodEnd = new Date(now.getTime() - 24 * 60 * 60 * 1000)
   const startDate = formatDate(weekAgo.toISOString())
-  const endDate = formatDate(now.toISOString())
+  const endDate = formatDate(periodEnd.toISOString())
 
   const { facts, expiring } = await gatherDigestData(7 * 24, "the past week")
   const summary = await digestAiSummary(facts, true)

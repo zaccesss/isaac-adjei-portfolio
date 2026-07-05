@@ -4,6 +4,7 @@
 // Cloudflare Worker stops being able to read PSN presence.
 import { NextRequest, NextResponse } from "next/server"
 import { redis } from "@/lib/redis"
+import { isLondonTime, claimCronRun } from "@/lib/london-time"
 
 // I warn at 50 days so there is a 10-day window to renew before the 60-day expiry
 const WARN_AFTER_DAYS = 50
@@ -24,6 +25,15 @@ export async function GET(req: NextRequest) {
       { error: "Unauthorised" },
       { status: 401, headers: { "Cache-Control": "no-store" } }
     )
+  }
+
+  // Two crons (a GMT and a BST branch) hit this route; act only at 09:00 UK on Monday, and only once,
+  // so a delayed run can never send the renewal email twice.
+  if (!isLondonTime(9, "Mon")) {
+    return NextResponse.json({ skipped: "not 09:00 UK Monday" }, { headers: { "Cache-Control": "no-store" } })
+  }
+  if (!(await claimCronRun("ps5-npsso"))) {
+    return NextResponse.json({ skipped: "already ran today" }, { headers: { "Cache-Control": "no-store" } })
   }
 
   if (!redis) {
