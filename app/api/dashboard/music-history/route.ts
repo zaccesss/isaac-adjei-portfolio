@@ -16,23 +16,18 @@ type Row = {
   duration_ms: number | null
 }
 
-const PERIOD_DAYS: Record<string, number> = { "24h": 1, "7d": 7, "30d": 30, "90d": 90, "1y": 365 }
-
-export async function GET(req: Request) {
+export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
 
-  const days = PERIOD_DAYS[new URL(req.url).searchParams.get("period") ?? "all"]
-  const cutoff = days ? new Date(Date.now() - days * 86400000).toISOString() : null
-
-  // Page through the plays in the window (PostgREST caps a select at 1000 rows).
+  // Page through every play (PostgREST caps a select at 1000 rows).
   const rows: Row[] = []
   for (let from = 0; ; from += 1000) {
-    let query = supabase
+    const { data } = await supabase
       .from("listening_history")
       .select("played_at,track_name,artist_name,album_art,url,duration_ms")
-    if (cutoff) query = query.gte("played_at", cutoff)
-    const { data } = await query.order("played_at", { ascending: false }).range(from, from + 999)
+      .order("played_at", { ascending: false })
+      .range(from, from + 999)
     if (!data || data.length === 0) break
     rows.push(...(data as Row[]))
     if (data.length < 1000) break
