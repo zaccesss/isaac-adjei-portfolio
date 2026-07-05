@@ -14,7 +14,7 @@ SQL files for the Supabase PostgreSQL database backing the portfolio dashboard.
 | File | Description |
 |---|---|
 | `schema.sql` | Full DROP + CREATE schema for a fresh install. Includes all tables, indexes, RLS policies, seed data and the `blog_read_funnel()` RPC function. |
-| `migrations/` | Incremental migration files numbered 001-015. Safe to run on a live database. |
+| `migrations/` | Incremental migration files numbered 001-043. Safe to run on a live database. |
 
 ## Fresh-install guide
 

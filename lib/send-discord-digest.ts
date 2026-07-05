@@ -128,7 +128,7 @@ function buildEmbeds(data: DigestData, summary: string | null, label: string) {
     {
       title: `Daily digest - ${label}`,
       url: "https://isaacadjei.me/dashboard",
-      description: summary ?? (quiet ? "Nothing recorded today. Quiet one." : null),
+      description: summary ?? (quiet ? "Nothing recorded. A quiet day." : null),
       color: 0x5865f2,
       fields,
       footer: { text: "isaacadjei.me/dashboard" },
@@ -141,10 +141,17 @@ export async function sendDiscordDigest(): Promise<DiscordDigestResult> {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL
   if (!webhookUrl) return { ok: true, skipped: true }
 
-  const now = new Date()
-  const label = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
+  // The digest covers the last 24 hours. It is scheduled for 00:30 UK, so the window is the day that
+  // just ended - label it that day (not "now", which would stamp it with the new day's date).
+  const covered = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  const label = covered.toLocaleDateString("en-GB", {
+    timeZone: "Europe/London",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  })
 
-  const data = await gatherDigestData(24, "today")
+  const data = await gatherDigestData(24, "the past day")
   const summary = await digestAiSummary(data.facts)
   const embeds = buildEmbeds(data, summary, label)
 

@@ -4,6 +4,57 @@ All session logs - newest first. Public-facing changes also in CHANGELOG.md.
 
 ---
 
+## 2026-07-05 - Pin every scheduled cron to true UK time (DST-proof), across both repos
+
+Spans the portfolio repo (Vercel Cron) and the automations repo (GitHub Actions). Full write-up in
+`docs/session-logs/2026-07-05-uk-time-cron-pinning.md`. Implemented in both working trees; migration
+043 already applied live via psql this session.
+
+### The core problem
+
+- Neither Vercel Cron nor GitHub Actions observes British Summer Time (both are UTC only), so a job on a fixed UTC cron drifts an hour in local terms between GMT and BST
+- Fix pattern (already used by `scripts/routine.mjs`): fire from two crons, a GMT branch and a BST branch one hour apart, and act only when it is genuinely the target hour in `Europe/London`, exiting quietly otherwise
+- User's decision: pin every time-of-day job (including drift-tolerant background syncs) for consistency, leave the every-30-min and 2-hourly interval jobs alone, and leave the job scraper on its single UTC midnight cron (its every-2-days parity cannot be cleanly bracketed and a scraper's start hour is immaterial)
+
+### Two reusable mechanisms
+
+- GATE (exact UK hour): new `lib/london-time.ts` with `london()` and `isLondonTime(hour, weekday?)` for the Vercel routes; new `scripts/lib/uk-cron.mjs` with `londonHour()`/`londonDate()` for the automations scripts, plus a `TZ=Europe/London date +%H` gate step in each workflow that gates later steps via its output. Manual `workflow_dispatch` always passes the gate
+- IDEMPOTENCY (`cron_runs` ledger, migration 043): only jobs that send a user-facing message claim `(job, run_date)` before sending, so a run that GitHub delayed into its target hour cannot double-post. `claimCronRun()` (TS, `upsert` with `ignoreDuplicates`) and `alreadyRanToday()` (JS, PostgREST `resolution=ignore-duplicates`). `FORCE=1` bypasses it; a DB error skips (at-most-once, caught by the healthcheck / missing message)
+
+### Migration 043 (`sql/migrations/043_add_cron_runs.sql`)
+
+- `cron_runs (job text, run_date date, ran_at timestamptz default now(), primary key (job, run_date))`; the composite PK is both the idempotency key and the only index needed
+- RLS enabled with no policy (service-role bypasses, anon default-deny), matching `036_lock_down_rls.sql`
+- Numbered 043 (latest was 042; my first attempt used 037, which already existed). Applied live via `psql "$(cat /tmp/supabase_db_url.txt)"` and verified: table exists, `relrowsecurity=true`, PK `(job, run_date)`. `sql/README.md` range note bumped to 001-043
+
+### Schedule changes (portfolio, `vercel.json`)
+
+- Each of the 6 jobs is now a paired GMT/BST cron with a gate in the route. Vercel rejects two cron entries with the same path, so the pairs use distinct `?dst=bst` / `?dst=gmt` query strings (the route ignores the param; the gate does the work). 12 entries, fine on Pro
+- weekly-digest -> Mon 00:30 (`30 23 * * 0` + `30 0 * * 1`, gate Mon h=0, idempotent); discord-digest -> 00:30 (`30 23 * * *` + `30 0 * * *`, gate h=0, idempotent); ps5-npsso-check -> Mon 09:00 (gate Mon h=9, idempotent); vault-expiry-check -> 09:00 (gate h=9, idempotent); trash-cleanup -> 03:00 (gate h=3, no idempotency, plus it now prunes `cron_runs` older than 90 days); strava-sync -> 04:00 (gate h=4, no idempotency)
+
+### Schedule changes (automations, `.github/workflows/`)
+
+- Coding recap merged into one workflow at 00:30 UK: gate -> WakaTime sync step (runs post-midnight so the previous day is complete) -> summary step, removing the old cross-job race between the separate 23:00 sync and 23:30 summary. `scripts/daily-coding-summary.mjs` now reports the just-ended London day (`londonDate(now - 24h)`) instead of the UTC "today" (which at 00:30 is the empty new day), plus a `coding-summary` idempotency claim
+- `wakatime-sync.yml` repurposed to the new 12:30 UK midday sync so the coding dashboard shows the morning's hours during the day; its upsert is `on_conflict=date`, so twice-daily is safe
+- streak-reminder -> 08:00 (`10 7` + `10 8`, gate h=8, idempotent); vault-expiry-check -> 08:00 (`12 7` + `12 8`, gate h=8, idempotent); recategorise -> 06:00 (`0 5` + `0 6`, gate h=6, no idempotency). The `:10`/`:12` minutes leave headroom so GitHub's delay still lands inside the target hour
+
+### Two correctness fixes the audit found
+
+- Strava Fitness-habit day (`lib/strava.ts`): the tick used the activity's UTC `start_date`, so a late-BST-evening workout ticked the next day. Now uses `start_date_local ?? start_date` (added to the `StravaApiActivity` type, read from the API only, no stored column, no schema change). Stored rows and the analytics charts still read UTC `start_date`, so nothing visual moved; only the `habit_logs` day changed, and the never-overwrite safety is intact
+- Digest labels (`lib/send-discord-digest.ts`, `lib/send-weekly-digest.ts`): moved to just after midnight, the digests were headed with the new day's date. The daily digest now labels the day that just ended (period string "the past day"), and the weekly's `endDate` is the day that just ended so the range reads Monday to Sunday. Guard logic is in the cron routes, so the manual "Trigger now" buttons (which call the libs directly) are unaffected
+
+### Verification (all green)
+
+- BST/GMT gate simulation: all 11 pinned jobs, fed a July and a January firing instant per cron, fire exactly once per season at the intended London hour (weekly/ps5 also assert Monday)
+- Idempotency against the live DB: first claim inserts, second is a no-op, exactly one row, cleaned up
+- Portfolio `tsc --noEmit` clean; `node --check` clean on all edited scripts + the helper; every workflow YAML parses and its crons match the plan
+
+### Loose ends
+
+- Commit + PR both repos per WORKFLOW.md (migration already live, then portfolio, then automations)
+- Healthchecks.io monitors: the digest ping times shifted; auto-created checks are period-based so steady state is fine, a one-time flap on changeover self-heals
+- Did NOT touch the public changelog page (`app/changelog/page.tsx`) - it already lags CHANGELOG.md and only carries public-facing releases
+
 ## 2026-07-02 (PR #644) - Reminders page, digest comparison and readership relabel
 
 ### Reminders (/dashboard/reminders)
