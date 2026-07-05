@@ -28,19 +28,23 @@ type Application = {
   category: string | null
 }
 
+// Fallback for the rare row with no stored category. Returns the same full names the scraper and the
+// re-categorise backfill use, so the breakdown never fragments into short synonyms.
 function detectCat(company: string, role: string): string {
   const r = role.toLowerCase(), c = company.toLowerCase()
   const faang = ["google","meta","amazon","apple","microsoft","netflix","deepmind","openai","anthropic"]
   const quant = ["citadel","optiver","jane street","imc","jump","two sigma","susquehanna","virtu","drw","sig ","flow traders","akuna","hudson river","de shaw"]
   if (faang.some((f) => c.includes(f))) return "FAANG+"
-  if (quant.some((q) => c.includes(q)) || r.includes("quant") || r.includes("trading")) return "Quant"
-  if (/\bai\b/i.test(r) || r.includes("machine learning") || r.includes("llm")) return "AI / ML"
-  if (r.includes("data science") || r.includes("data analyst")) return "Data"
-  if (r.includes("embedded") || r.includes("firmware") || r.includes("fpga")) return "Embedded"
-  if (r.includes("devops") || r.includes("cloud engineer") || r.includes("sre")) return "DevOps"
-  if (r.includes("security") || r.includes("cyber")) return "Security"
-  if (r.includes("consult")) return "Consulting"
-  return "Software"
+  if (quant.some((q) => c.includes(q)) || r.includes("quant") || r.includes("trading")) return "Quant Developer"
+  if (/\bai\b/i.test(r) || r.includes("machine learning") || r.includes("llm")) return "AI and Machine Learning"
+  if (r.includes("data science") || r.includes("data analyst") || r.includes("data engineer")) return "Data Science"
+  if (r.includes("hardware") || r.includes("electronics") || r.includes("circuit") || r.includes("pcb") || r.includes("chip")) return "Hardware"
+  if (r.includes("embedded") || r.includes("firmware") || r.includes("fpga") || r.includes("rtos")) return "Embedded"
+  if (r.includes("devops") || r.includes("cloud engineer") || r.includes("sre") || r.includes("platform engineer")) return "DevOps and Infrastructure"
+  if (r.includes("security") || r.includes("cyber")) return "Cyber Security"
+  if (r.includes("consult")) return "Tech Consulting"
+  if (r.includes("it support") || r.includes("service desk") || r.includes("helpdesk")) return "IT"
+  return "Software Engineering"
 }
 
 // Tooltip matching the shared analytics token set
@@ -80,7 +84,7 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
   // Category breakdown
   const catCounts: Record<string, number> = {}
   for (const a of filtered) {
-    const cat = (a.category && a.category !== "Software Engineering" ? a.category : null) ?? detectCat(a.company, a.role)
+    const cat = a.category || detectCat(a.company, a.role)
     catCounts[cat] = (catCounts[cat] ?? 0) + 1
   }
   const catBar = Object.entries(catCounts).sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value }))
