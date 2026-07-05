@@ -22,16 +22,20 @@ async function getAccessToken(): Promise<string | null> {
 
 export const revalidate = 0
 
-export async function GET() {
+const RANGES = ["short_term", "medium_term", "long_term"]
+
+export async function GET(req: Request) {
   try {
+    const rangeParam = new URL(req.url).searchParams.get("range") ?? "short_term"
+    const range = RANGES.includes(rangeParam) ? rangeParam : "short_term"
     const token = await getAccessToken()
     if (!token) return NextResponse.json({ tracks: [], artists: [], shows: [], genres: [], eras: [] })
 
     const headers = { Authorization: `Bearer ${token}` }
 
     const [tracksRes, artistsRes, showsRes, eraRes] = await Promise.all([
-      fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=20", { headers }),
-      fetch("https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=20", { headers }),
+      fetch(`https://api.spotify.com/v1/me/top/tracks?time_range=${range}&limit=20`, { headers }),
+      fetch(`https://api.spotify.com/v1/me/top/artists?time_range=${range}&limit=20`, { headers }),
       fetch("https://api.spotify.com/v1/me/shows?limit=50", { headers }),
       // All-time top tracks purely for the era chart, so the decade spread is real rather
       // than just whatever I have been playing this month
