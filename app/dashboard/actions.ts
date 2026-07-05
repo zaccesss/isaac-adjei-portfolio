@@ -1415,6 +1415,19 @@ export async function getActivityLog(limit = 50) {
   return data ?? []
 }
 
+// Server-side paginated activity so I can page through the whole history (not just the last N) while only
+// one page ever crosses the wire. Returns the requested page of rows plus the exact total for the pager.
+export async function getActivityLogPage(page = 1, pageSize = 50) {
+  await requireAuth()
+  const from = (Math.max(1, page) - 1) * pageSize
+  const { data, count } = await supabase
+    .from("activity_log")
+    .select("id, action, detail, created_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, from + pageSize - 1)
+  return { rows: data ?? [], total: count ?? 0 }
+}
+
 // ─── Diary toggles ────────────────────────────────────────────────────────────
 // Requires: ALTER TABLE diary ADD COLUMN IF NOT EXISTS hidden boolean DEFAULT false;
 //           ALTER TABLE diary ADD COLUMN IF NOT EXISTS pinned boolean DEFAULT false;

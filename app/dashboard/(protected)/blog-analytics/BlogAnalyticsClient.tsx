@@ -14,6 +14,9 @@ import {
   useAnalyticsPeriod,
   filterByPeriod,
 } from "@/components/analytics"
+import { Pagination } from "@/components/shared/Pagination"
+
+const TABLE_PAGE_SIZE = 25
 
 type SortKey = keyof BlogReadFunnelRow
 type SortDir = "asc" | "desc"
@@ -174,6 +177,30 @@ function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
     [blogCount, tilCount],
   )
 
+  // Opens (25% depth) split by weekday and by hour of day, so I can see which days and times posts get read.
+  const readsByWeekday = useMemo(() => {
+    const counts = new Array(7).fill(0)
+    for (const e of periodEvents) if (e.depth === 25) counts[(new Date(e.created_at).getDay() + 6) % 7]++
+    return DAYS.map((name, i) => ({ name, reads: counts[i] }))
+  }, [periodEvents])
+
+  const readsByHour = useMemo(() => {
+    const counts = new Array(24).fill(0)
+    for (const e of periodEvents) if (e.depth === 25) counts[new Date(e.created_at).getHours()]++
+    return HOURS.map((h, i) => ({ name: `${h}h`, reads: counts[i] }))
+  }, [periodEvents])
+
+  // Depth retention: of everyone who opened a post (25%), what share made it to each deeper threshold.
+  const retentionData = useMemo(() => {
+    const base = funnelChartData[0]?.readers ?? 0
+    return funnelChartData.map((d) => ({ name: d.name, retention: base === 0 ? 0 : Math.round((d.readers / base) * 100) }))
+  }, [funnelChartData])
+
+  const peakDay = useMemo(() => readsByWeekday.reduce((a, b) => (b.reads > a.reads ? b : a), readsByWeekday[0]), [readsByWeekday])
+  const peakHour = useMemo(() => readsByHour.reduce((a, b) => (b.reads > a.reads ? b : a), readsByHour[0]), [readsByHour])
+
+  const [tablePage, setTablePage] = useState(1)
+
   const filtered = rows
     .filter((r) => typeFilter === "all" || r.post_type === typeFilter)
     .filter((r) => !search || r.slug.toLowerCase().includes(search.toLowerCase()))
@@ -186,6 +213,20 @@ function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
           : (va as number) - (vb as number)
       return sortDir === "asc" ? cmp : -cmp
     })
+
+  // Back to the first page whenever the filter, search, sort or period changes so I never land on an empty
+  // page. I adjust during render (React's supported pattern) rather than in an effect, to avoid a cascade.
+  const tableResetKey = `${search}|${typeFilter}|${sortKey}|${sortDir}|${period}`
+  const [prevTableResetKey, setPrevTableResetKey] = useState(tableResetKey)
+  if (tableResetKey !== prevTableResetKey) {
+    setPrevTableResetKey(tableResetKey)
+    setTablePage(1)
+  }
+
+  // The per-post table grows one row per post, so I page it. The charts above still read the full `rows`.
+  const tableTotalPages = Math.max(1, Math.ceil(filtered.length / TABLE_PAGE_SIZE))
+  const safeTablePage = Math.min(tablePage, tableTotalPages)
+  const pageRows = filtered.slice((safeTablePage - 1) * TABLE_PAGE_SIZE, safeTablePage * TABLE_PAGE_SIZE)
 
   function handleSort(key: SortKey) {
     if (sortKey === key) {
@@ -280,6 +321,40 @@ function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
           />
         </div>
       )}
+
+      {/* Depth retention + reads by weekday */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <p className="text-xs font-medium text-muted-foreground mb-3">Depth retention (share of openers reaching each depth)</p>
+          {totalReads > 0 ? (
+            <BarChart data={retentionData} dataKey="retention" xKey="name" height={160} colour={DEFAULT_CHART_COLOURS[2]} valueFormatter={(v) => `${v}%`} />
+          ) : (
+            <p className="text-xs text-muted-foreground pt-6 text-center">No read events recorded yet.</p>
+          )}
+        </div>
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <p className="text-xs font-medium text-muted-foreground mb-3">
+            Opens by weekday{peakDay && peakDay.reads > 0 ? ` · busiest ${peakDay.name}` : ""}
+          </p>
+          {totalReads > 0 ? (
+            <BarChart data={readsByWeekday} dataKey="reads" xKey="name" height={160} colour={DEFAULT_CHART_COLOURS[4]} valueFormatter={(v) => `${v} opens`} />
+          ) : (
+            <p className="text-xs text-muted-foreground pt-6 text-center">No read events recorded yet.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Reads by hour of day */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <p className="text-xs font-medium text-muted-foreground mb-3">
+          Opens by hour of day{peakHour && peakHour.reads > 0 ? ` · peak around ${peakHour.name}` : ""}
+        </p>
+        {totalReads > 0 ? (
+          <BarChart data={readsByHour} dataKey="reads" xKey="name" height={160} colour={DEFAULT_CHART_COLOURS[0]} valueFormatter={(v) => `${v} opens`} />
+        ) : (
+          <p className="text-xs text-muted-foreground pt-6 text-center">No read events recorded yet.</p>
+        )}
+      </div>
 
       {/* When posts are read — hour × day heatmap */}
       <div className="border border-border rounded-lg p-4 bg-card">
@@ -399,7 +474,7 @@ function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
                 </td>
               </tr>
             ) : (
-              filtered.map((row) => (
+              pageRows.map((row) => (
                 <tr
                   key={`${row.post_type}/${row.slug}`}
                   className="border-b border-border even:bg-muted/20 hover:bg-muted/40 transition-colors"
@@ -451,6 +526,15 @@ function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        page={safeTablePage}
+        totalPages={tableTotalPages}
+        onChange={setTablePage}
+        totalItems={filtered.length}
+        pageSize={TABLE_PAGE_SIZE}
+        itemLabel="posts"
+      />
     </div>
   )
 }
