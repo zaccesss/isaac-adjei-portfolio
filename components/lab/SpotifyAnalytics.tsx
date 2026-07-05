@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { SiSpotify } from "react-icons/si"
+import { BarChart, PieChart } from "@/components/analytics"
 
 type Track = {
   rank: number; id: string; name: string; artist: string
@@ -34,42 +35,8 @@ function abbrevFollowers(n: number): string {
   return n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${Math.round(n / 1000)}K` : `${n}`
 }
 
-// Genre donut - rank-weighted genre shares as arc segments. The card-coloured stroke between
-// slices and the foreground-coloured centre label keep it legible in light and dark mode.
-function GenreDonut({ data }: { data: GenreDatum[] }) {
-  const top = data.slice(0, 8)
-  const total = top.reduce((s, d) => s + d.value, 0) || 1
-  const R = 68, r = 40, cx = 80, cy = 80
-  const pt = (rad: number, a: number) => `${(cx + rad * Math.cos(a)).toFixed(2)} ${(cy + rad * Math.sin(a)).toFixed(2)}`
-  const arcs = top.map((d, i) => {
-    const startFrac = top.slice(0, i).reduce((s, x) => s + x.value, 0) / total
-    const frac = d.value / total
-    const a0 = -Math.PI / 2 + startFrac * Math.PI * 2
-    const a1 = a0 + frac * Math.PI * 2
-    const large = frac > 0.5 ? 1 : 0
-    return {
-      path: `M ${pt(R, a0)} A ${R} ${R} 0 ${large} 1 ${pt(R, a1)} L ${pt(r, a1)} A ${r} ${r} 0 ${large} 0 ${pt(r, a0)} Z`,
-      colour: BAR_COLOURS[i % BAR_COLOURS.length],
-      genre: d.genre,
-      pct: Math.round(frac * 100),
-    }
-  })
-  return (
-    <svg width={160} height={160} className="shrink-0">
-      {arcs.map((a, i) => (
-        <path key={i} d={a.path} fill={a.colour} opacity={0.92} stroke="hsl(var(--card))" strokeWidth={1.5}>
-          <title>{`${a.genre} · ${a.pct}%`}</title>
-        </path>
-      ))}
-      <text x={cx} y={cy - 1} textAnchor="middle" fontSize={11} fontFamily="monospace" fontWeight={600} fill="hsl(var(--foreground))">
-        {top[0]?.genre.slice(0, 11) ?? ""}
-      </text>
-      <text x={cx} y={cy + 12} textAnchor="middle" fontSize={9} fontFamily="monospace" fill="hsl(var(--muted-foreground))">
-        {arcs[0]?.pct ?? 0}%
-      </text>
-    </svg>
-  )
-}
+// My genre split and listening era now render with the shared recharts PieChart / BarChart, so they
+// match the rest of my analytics and give proper hover detail.
 
 export default function SpotifyAnalytics() {
   const [tracks, setTracks] = useState<Track[]>([])
@@ -94,7 +61,6 @@ export default function SpotifyAnalytics() {
 
   const maxDuration = Math.max(1, ...tracks.map((t) => t.duration_ms))
   const top10Tracks = tracks.slice(0, 10)
-  const maxEra = Math.max(1, ...eras.map((e) => e.count))
 
   // Genre breakdown - prefer the API's rank-weighted aggregate, fall back to a per-artist count
   const genres: [string, number][] = genreData.length
@@ -175,15 +141,7 @@ export default function SpotifyAnalytics() {
           {eras.length > 1 && (
             <div className="space-y-1 pt-1 border-t border-border/40">
               <p className="text-[9px] font-mono text-muted-foreground/60 uppercase tracking-widest">my listening era · all-time tracks by decade</p>
-              <div className="flex items-end gap-1.5 h-16 pt-1">
-                {eras.map((e, i) => (
-                  <div key={e.decade} className="flex-1 flex flex-col items-center gap-1 justify-end">
-                    <span className="text-[8px] font-mono text-muted-foreground/50">{e.count}</span>
-                    <div className="w-full rounded-t transition-all" style={{ height: `${(e.count / maxEra) * 100}%`, backgroundColor: BAR_COLOURS[i % BAR_COLOURS.length], minHeight: 3 }} title={`${e.decade}: ${e.count} tracks`} />
-                    <span className="text-[8px] font-mono text-muted-foreground/60">{e.decade}</span>
-                  </div>
-                ))}
-              </div>
+              <BarChart data={eras.map((e) => ({ name: e.decade, value: e.count }))} dataKey="value" xKey="name" height={110} colour={BAR_COLOURS[0]} valueFormatter={(v) => `${v} tracks`} />
             </div>
           )}
         </div>
@@ -257,7 +215,7 @@ export default function SpotifyAnalytics() {
           ) : (
             <>
               <div className="flex gap-4 items-center flex-wrap justify-center sm:justify-start">
-                <GenreDonut data={genres.map(([genre, value]) => ({ genre, value }))} />
+                <div className="w-[170px] shrink-0"><PieChart data={genres.slice(0, 8).map(([genre, value], i) => ({ name: genre, value, colour: BAR_COLOURS[i % BAR_COLOURS.length] }))} height={170} valueFormatter={(v) => `${Math.round(v)}`} /></div>
                 <div className="flex-1 min-w-[180px] space-y-1.5">
                   {genres.slice(0, 8).map(([genre, value], i) => (
                     <div key={genre} className="flex items-center gap-2">
