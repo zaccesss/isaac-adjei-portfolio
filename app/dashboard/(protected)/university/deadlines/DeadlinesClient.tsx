@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Check, AlertTriangle } from "lucide-react"
 import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, StatCard } from "@/components/analytics"
+import { Pagination } from "@/components/shared/Pagination"
 
 type Module = { id: string; code: string; name: string; color: string }
 type Deadline = {
@@ -18,6 +19,8 @@ type Deadline = {
   submitted_at: string | null; grade_received: string | null; notes: string | null
   uni_modules: { id: string; code: string; name: string; color: string } | null
 }
+
+const DEADLINES_PAGE_SIZE = 24
 
 const TYPES = ["assignment", "coursework", "exam", "presentation", "quiz", "other"]
 const STATUSES = ["not_started", "in_progress", "submitted", "graded"]
@@ -45,6 +48,7 @@ function daysUntil(d: string) {
 function DeadlinesClientInner({ deadlines, modules }: { deadlines: Deadline[]; modules: Module[] }) {
   const [open, setOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState("active")
+  const [page, setPage] = useState(1)
   const [isPending, startTransition] = useTransition()
   const today = new Date().toISOString().split("T")[0]
   const { period } = useAnalyticsPeriod()
@@ -96,6 +100,14 @@ function DeadlinesClientInner({ deadlines, modules }: { deadlines: Deadline[]; m
     if (statusFilter === "graded") return d.status === "graded"
     return true
   })
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / DEADLINES_PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageItems = filtered.slice((safePage - 1) * DEADLINES_PAGE_SIZE, safePage * DEADLINES_PAGE_SIZE)
+
+  const resetKey = `${statusFilter}|${period}`
+  const [prevResetKey, setPrevResetKey] = useState(resetKey)
+  if (resetKey !== prevResetKey) { setPrevResetKey(resetKey); setPage(1) }
 
   const overdue = filtered.filter((d) => daysUntil(d.due_date) < 0 && d.status !== "submitted" && d.status !== "graded")
 
@@ -197,7 +209,7 @@ function DeadlinesClientInner({ deadlines, modules }: { deadlines: Deadline[]; m
         </div>
       ) : (
         <div className="space-y-2">
-          {filtered.map((d) => {
+          {pageItems.map((d) => {
             const days = daysUntil(d.due_date)
             const isOverdue = days < 0 && d.status !== "submitted" && d.status !== "graded"
             return (
@@ -242,6 +254,7 @@ function DeadlinesClientInner({ deadlines, modules }: { deadlines: Deadline[]; m
               </div>
             )
           })}
+          <Pagination page={safePage} totalPages={totalPages} onChange={setPage} totalItems={filtered.length} pageSize={DEADLINES_PAGE_SIZE} itemLabel="deadlines" className="pt-4" />
         </div>
       )}
     </div>

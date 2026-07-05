@@ -16,6 +16,10 @@ import {
 import { Github, ExternalLink, Plus, Trash2, Download, Pencil } from "lucide-react"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod } from "@/components/analytics"
+import { Pagination } from "@/components/shared/Pagination"
+
+// I page the table so long contribution histories stay fast to render.
+const OSS_PAGE_SIZE = 50
 
 // I define the valid status values and their badge colours in one place
 // so the table cells and the add-row select are always in sync.
@@ -79,6 +83,9 @@ function OpenSourceClientInner({
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState<Status | "all">("all")
 
+  // I track which page of the table the user is viewing.
+  const [page, setPage] = useState(1)
+
   // I show the add-row form when the user clicks "+ Add contribution".
   const [adding, setAdding] = useState(false)
   const [newRow, setNewRow] = useState<NewRow>(EMPTY_NEW_ROW)
@@ -114,6 +121,17 @@ function OpenSourceClientInner({
       const cmp = String(va).localeCompare(String(vb))
       return sortDir === "asc" ? cmp : -cmp
     })
+
+  // I slice the filtered rows into pages for rendering, while all counts,
+  // stats, selection and export keep running over the full filtered array.
+  const totalPages = Math.max(1, Math.ceil(filtered.length / OSS_PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageItems = filtered.slice((safePage - 1) * OSS_PAGE_SIZE, safePage * OSS_PAGE_SIZE)
+
+  // I reset to the first page whenever a search, filter or sort narrows the list.
+  const resetKey = `${search}|${filterStatus}|${sortKey ?? ""}|${sortDir ?? ""}`
+  const [prevResetKey, setPrevResetKey] = useState(resetKey)
+  if (resetKey !== prevResetKey) { setPrevResetKey(resetKey); setPage(1) }
 
   const { selected, toggle: toggleSelect, toggleAll: toggleSelectAll, remove: removeFromSelected, allSelected, someSelected } = useBulkSelect(filtered)
 
@@ -453,7 +471,7 @@ function OpenSourceClientInner({
                 </td>
               </tr>
             ) : (
-              filtered.map((row) => (
+              pageItems.map((row) => (
                 <tr
                   key={row.id}
                   className="group border-b border-border even:bg-muted/20 hover:bg-muted/40 transition-colors"
@@ -616,6 +634,7 @@ function OpenSourceClientInner({
           </tbody>
         </table>
       </div>
+      <Pagination page={safePage} totalPages={totalPages} onChange={setPage} totalItems={filtered.length} pageSize={OSS_PAGE_SIZE} itemLabel="contributions" className="pt-4" />
       {confirmDialogNode}
     </div>
   )

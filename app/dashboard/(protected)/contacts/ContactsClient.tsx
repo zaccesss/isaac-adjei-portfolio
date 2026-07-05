@@ -13,6 +13,9 @@ import MarkdownContent from "@/components/shared/MarkdownContent"
 import MarkdownEditor from "@/components/shared/MarkdownEditor"
 import PhoneField from "@/components/shared/PhoneField"
 import { StatCard, BarChart } from "@/components/analytics"
+import { Pagination } from "@/components/shared/Pagination"
+
+const CONTACTS_PAGE_SIZE = 24
 
 const HOW_MET_OPTIONS = [
   "Career fair", "LinkedIn", "Coffee chat", "Referral",
@@ -159,6 +162,7 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [filter, setFilter] = useState<"all" | "follow-up">("all")
+  const [page, setPage] = useState(1)
   const [, startTransition] = useTransition()
   const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
@@ -241,6 +245,14 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
 
   const followUpQueue = contacts.filter((c) => c.follow_up || needsFollowUp(c))
   const displayed = filter === "follow-up" ? followUpQueue : contacts
+
+  const totalPages = Math.max(1, Math.ceil(displayed.length / CONTACTS_PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageItems = displayed.slice((safePage - 1) * CONTACTS_PAGE_SIZE, safePage * CONTACTS_PAGE_SIZE)
+
+  const resetKey = `${filter}`
+  const [prevResetKey, setPrevResetKey] = useState(resetKey)
+  if (resetKey !== prevResetKey) { setPrevResetKey(resetKey); setPage(1) }
 
   // I compute the headline stats and a "how we met" breakdown once over the contacts I already hold.
   // "Contacted this month" counts anyone whose last_contact falls in the current calendar month.
@@ -365,7 +377,7 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
         </div>
       ) : (
         <div className="space-y-2">
-          {displayed.map((contact) => (
+          {pageItems.map((contact) => (
             <div key={contact.id}>
               {editingId === contact.id ? (
                 <ContactForm
@@ -506,6 +518,7 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
               )}
             </div>
           ))}
+          <Pagination page={safePage} totalPages={totalPages} onChange={setPage} totalItems={displayed.length} pageSize={CONTACTS_PAGE_SIZE} itemLabel="contacts" className="pt-4" />
         </div>
       )}
       {confirmDialogNode}
