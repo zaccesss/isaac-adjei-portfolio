@@ -8,6 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Trash2, Check, BookOpen } from "lucide-react"
 import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, StatCard } from "@/components/analytics"
+import { Pagination } from "@/components/shared/Pagination"
+
+const LIBRARY_PAGE_SIZE = 24
 
 type Module = { id: string; code: string; name: string }
 type Book = {
@@ -23,6 +26,7 @@ function daysUntil(d: string) {
 function LibraryClientInner({ books, modules }: { books: Book[]; modules: Module[] }) {
   const [open, setOpen] = useState(false)
   const [showReturned, setShowReturned] = useState(false)
+  const [page, setPage] = useState(1)
   const [isPending, startTransition] = useTransition()
   const today = new Date().toISOString().split("T")[0]
   const [form, setForm] = useState({ title: "", author: "", isbn: "", module_id: "", borrowed_at: today, due_date: "", notes: "" })
@@ -39,6 +43,14 @@ function LibraryClientInner({ books, modules }: { books: Book[]; modules: Module
   const active = books.filter((b) => !b.returned_at)
   const returned = books.filter((b) => b.returned_at)
   const display = showReturned ? returned : active
+
+  const totalPages = Math.max(1, Math.ceil(display.length / LIBRARY_PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageItems = display.slice((safePage - 1) * LIBRARY_PAGE_SIZE, safePage * LIBRARY_PAGE_SIZE)
+
+  const resetKey = `${showReturned}`
+  const [prevResetKey, setPrevResetKey] = useState(resetKey)
+  if (resetKey !== prevResetKey) { setPrevResetKey(resetKey); setPage(1) }
 
   const { period } = useAnalyticsPeriod()
   // Loans are forward-looking, so the selector means "due within the next N days" (All = no limit).
@@ -129,7 +141,7 @@ function LibraryClientInner({ books, modules }: { books: Book[]; modules: Module
         </div>
       ) : (
         <div className="space-y-2">
-          {display.map((b) => {
+          {pageItems.map((b) => {
             const days = daysUntil(b.due_date)
             const isOverdue = days < 0 && !b.returned_at
             return (
@@ -160,6 +172,7 @@ function LibraryClientInner({ books, modules }: { books: Book[]; modules: Module
           })}
         </div>
       )}
+      <Pagination page={safePage} totalPages={totalPages} onChange={setPage} totalItems={display.length} pageSize={LIBRARY_PAGE_SIZE} itemLabel="books" className="pt-4" />
     </div>
   )
 }

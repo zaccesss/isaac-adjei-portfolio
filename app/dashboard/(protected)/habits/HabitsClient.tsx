@@ -17,9 +17,11 @@ import {
 } from "@/app/dashboard/actions"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { StatCard, BarChart, AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod } from "@/components/analytics"
+import { Pagination } from "@/components/shared/Pagination"
 
 const SUPPLEMENT_PRESETS = ["Creatine", "Whey", "Vitamin D", "Omega-3", "Magnesium"]
 const HABIT_COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899", "#14b8a6", "#ef4444", "#8b5cf6", "#f97316"]
+const HABITS_PAGE_SIZE = 24
 
 type Habit = {
   id: string
@@ -53,6 +55,7 @@ function HabitsClientInner({
   const [editHabit, setEditHabit] = useState<Habit | null>(null)
   const [editForm, setEditForm] = useState({ name: "", description: "", color: HABIT_COLORS[0] })
   const [, startTransition] = useTransition()
+  const [page, setPage] = useState(1)
   const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
   const { period } = useAnalyticsPeriod()
   const numDays = period === "24h" || period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365
@@ -177,6 +180,16 @@ function HabitsClientInner({
     setEditHabit(null)
   }
 
+  const totalPages = Math.max(1, Math.ceil(habits.length / HABITS_PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageItems = habits.slice((safePage - 1) * HABITS_PAGE_SIZE, safePage * HABITS_PAGE_SIZE)
+
+  // No search/filter/sort/tab narrows this list, so the reset key tracks only the list length; if the
+  // final page empties out after deletions the guard snaps the view back to page 1.
+  const resetKey = `${habits.length}`
+  const [prevResetKey, setPrevResetKey] = useState(resetKey)
+  if (resetKey !== prevResetKey) { setPrevResetKey(resetKey); setPage(1) }
+
   return (
     <motion.div
       variants={dashboardPage}
@@ -253,7 +266,7 @@ function HabitsClientInner({
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {habits.map((habit) => {
+          {pageItems.map((habit) => {
             const isCheckedIn = todayLogs.has(habit.id)
             const streak = getStreak(habit.id)
 
@@ -328,6 +341,16 @@ function HabitsClientInner({
           })}
         </div>
       )}
+
+      <Pagination
+        page={safePage}
+        totalPages={totalPages}
+        onChange={setPage}
+        totalItems={habits.length}
+        pageSize={HABITS_PAGE_SIZE}
+        itemLabel="habits"
+        className="pt-4"
+      />
 
       <div className="border border-border rounded-xl p-4 bg-card">
         <div className="flex items-center gap-2 mb-3">

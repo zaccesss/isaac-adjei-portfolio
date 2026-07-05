@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Clock, BookOpen, Pencil } from "lucide-react"
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, YAxis } from "recharts"
 import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod } from "@/components/analytics"
+import { Pagination } from "@/components/shared/Pagination"
 
 type Session = {
   id: string
@@ -23,6 +24,8 @@ type Session = {
   productive: boolean
   created_at: string
 }
+
+const STUDY_PAGE_SIZE = 24
 
 const TECHNIQUES = [
   "Pomodoro",
@@ -47,6 +50,7 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
   const [editSession, setEditSession] = useState<Session | null>(null)
   const [isPending, startTransition] = useTransition()
   const [subjectFilter, setSubjectFilter] = useState<string>("all")
+  const [page, setPage] = useState(1)
 
   const [form, setForm] = useState({
     date: today,
@@ -105,6 +109,13 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
   const { period } = useAnalyticsPeriod()
   const subjects = [...new Set(sessions.map((s) => s.subject))].sort()
   const filtered = subjectFilter === "all" ? sessions : sessions.filter((s) => s.subject === subjectFilter)
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / STUDY_PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageItems = filtered.slice((safePage - 1) * STUDY_PAGE_SIZE, safePage * STUDY_PAGE_SIZE)
+  const resetKey = `${subjectFilter}`
+  const [prevResetKey, setPrevResetKey] = useState(resetKey)
+  if (resetKey !== prevResetKey) { setPrevResetKey(resetKey); setPage(1) }
 
   // Stats and charts follow the period selector; the session list below stays complete.
   const periodSessions = filterByPeriod(sessions, period, (s) => s.date)
@@ -329,7 +340,7 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
           </div>
         ) : (
           <div className="space-y-2">
-            {filtered.slice(0, 50).map((s, i) => (
+            {pageItems.map((s, i) => (
               <div
                 key={s.id}
                 className="flex items-start gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 hover:border-primary/30 transition-colors group"
@@ -369,6 +380,7 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
             ))}
           </div>
         )}
+        <Pagination page={safePage} totalPages={totalPages} onChange={setPage} totalItems={filtered.length} pageSize={STUDY_PAGE_SIZE} itemLabel="sessions" className="pt-4" />
       </div>
     </div>
   )

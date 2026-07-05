@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Trash2, Flame, Trophy, Check, Activity, Pencil, RotateCcw } from "lucide-react"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import { ColourPickerDialog } from "@/components/shared/ColourPickerDialog"
+import { Pagination } from "@/components/shared/Pagination"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, Legend, PieChart, Pie } from "recharts"
 import {
@@ -464,6 +465,8 @@ function StreakCard({ streak, logs, today, onDelete, onReset, onEdit, onCheckIn 
 
 const emptyForm = { name: "", icon: "🔥", description: "", color: "#6366f1" }
 
+const STREAKS_PAGE_SIZE = 24
+
 function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
   streaks: Streak[]
   logs: Log[]
@@ -476,11 +479,16 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
   const [editStreak, setEditStreak] = useState<Streak | null>(null)
   const [editForm, setEditForm] = useState(emptyForm)
   const [, startTransition] = useTransition()
+  const [page, setPage] = useState(1)
   const { confirm, dialog: confirmDialog } = useConfirmDialog()
 
   const checkedInCount = streaks.filter((s) =>
     logs.some((l) => l.streak_id === s.id && l.date === today && l.completed)
   ).length
+
+  const totalPages = Math.max(1, Math.ceil(streaks.length / STREAKS_PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageItems = streaks.slice((safePage - 1) * STREAKS_PAGE_SIZE, safePage * STREAKS_PAGE_SIZE)
 
   function handleAdd() {
     if (!form.name.trim()) return
@@ -611,7 +619,7 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {streaks.map((s) => (
+            {pageItems.map((s) => (
               <StreakCard
                 key={s.id}
                 streak={s}
@@ -624,6 +632,15 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
               />
             ))}
           </div>
+          <Pagination
+            page={safePage}
+            totalPages={totalPages}
+            onChange={setPage}
+            totalItems={streaks.length}
+            pageSize={STREAKS_PAGE_SIZE}
+            itemLabel="streaks"
+            className="pt-4"
+          />
           <StreakActivityChart streaks={streaks} logs={logs} today={today} />
         </>
       )}
