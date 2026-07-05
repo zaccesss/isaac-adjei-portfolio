@@ -5,7 +5,7 @@
 
 // SQL already applied - all new columns are in the applications table.
 
-import { useState, useTransition, useEffect, useRef } from "react"
+import { useState, useTransition, useRef } from "react"
 import Link from "next/link"
 import { createApplication, updateApplication, deleteApplication, archiveApplication, reopenApplication, bulkDeleteApplications } from "../../actions"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
@@ -23,6 +23,7 @@ import SalaryComparisonView from "./SalaryComparisonView"
 import ApplicationsAnalytics from "./ApplicationsAnalytics"
 import InterviewPrepDialog, { type InterviewPrep } from "./InterviewPrepDialog"
 import MarkdownContent from "@/components/shared/MarkdownContent"
+import { Pagination } from "@/components/shared/Pagination"
 import { APPLICATION_STATUSES, normaliseStatus, statusTextClass, computeFunnelCounts, isInPipeline, classifyFunnelStage } from "@/lib/application-status"
 import { ProgressBar } from "@/components/analytics"
 
@@ -153,11 +154,10 @@ function detectCategory(company: string, role: string): Category {
 const TAB_TYPES = ["Internships", "Industrial Placements", "Graduate Schemes", "Spring Weeks", "Events", "Jobs"] as const
 type Tab = (typeof TAB_TYPES)[number]
 
-// The table can hold tens of thousands of scraped roles, so I never mount a whole tab at once. I render an
-// initial window and grow it as the sentinel scrolls into view (infinite scroll). All counts, filters and
-// bulk actions still run over the full set - only the number of mounted rows is windowed.
-const INITIAL_ROWS = 200
-const ROW_PAGE = 400
+// The table can hold tens of thousands of scraped roles, so I paginate rather than mount a whole tab at
+// once. One page of rows is mounted at a time (page controls below the table); all counts, filters, stats
+// and bulk actions still run over the full set - only the mounted page of rows is limited.
+const PAGE_SIZE = 1000
 
 // I map the raw type field to a tab rather than relying on exact string equality because the
 // job scraper writes inconsistent casing and the legacy "scraped" type predates the current taxonomy
@@ -844,9 +844,8 @@ function ApplicationsFunnel({ apps }: { apps: Application[] }) {
 export default function ApplicationsClient({ applications: initial }: { applications: Application[] }) {
   const [apps, setApps] = useState<Application[]>(initial)
   const [activeTab, setActiveTab] = useState<Tab>("Internships")
-  const [visibleCount, setVisibleCount] = useState(INITIAL_ROWS)
+  const [page, setPage] = useState(1)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const sentinelRef = useRef<HTMLDivElement>(null)
   const [search, setSearch] = useState("")
   const [filterOpenStatus, setFilterOpenStatus] = useState("All")
   const [filterCoverLetter, setFilterCoverLetter] = useState("All")
@@ -951,34 +950,35 @@ export default function ApplicationsClient({ applications: initial }: { applicat
     grouped[cat].sort((a, b) => locPriority(a.location) - locPriority(b.location))
   }
 
-  // Windowed rendering - walk the groups in display order and only mount up to `visibleCount` rows in
-  // total, so a tab with thousands of scraped roles never freezes. Everything below this still works over
-  // the full `filtered`/`grouped` set (counts, stats, bulk select); only the mounted rows are limited.
-  let rowBudget = visibleCount
+  // Reset to the first page whenever the tab, view or any filter changes so I never sit on an empty page.
+  // I adjust during render (React's supported pattern) rather than in an effect, to avoid a cascading render.
+  const resetKey = `${activeTab}|${view}|${search}|${filterMyStatus}|${filterOpenStatus}|${filterCoverLetter}|${filterLocation}|${filterKeyword}|${showArchived}`
+  const [prevResetKey, setPrevResetKey] = useState(resetKey)
+  if (resetKey !== prevResetKey) {
+    setPrevResetKey(resetKey)
+    setPage(1)
+  }
+
+  // Paginate the category-ordered rows at PAGE_SIZE. I flatten the groups in display order, take the
+  // current page, then re-split it back into its categories so the grouping stays consistent across pages.
+  // The table never mounts more than one page of rows however many thousand scraped roles pile up, while
+  // counts, stats and bulk-select still run over the full `filtered` set. (grouped covers every filtered
+  // row, so orderedApps.length === filtered.length.)
+  const orderedApps: Application[] = []
+  for (const cat of CATEGORIES) orderedApps.push(...grouped[cat])
+  const totalPages = Math.max(1, Math.ceil(orderedApps.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const pageStart = (safePage - 1) * PAGE_SIZE
+  const pageIds = new Set(orderedApps.slice(pageStart, pageStart + PAGE_SIZE).map((a) => a.id))
   const visibleGroups: { cat: string; apps: Application[] }[] = []
   for (const cat of CATEGORIES) {
-    const catApps = grouped[cat]
-    if (!catApps || catApps.length === 0) continue
-    if (rowBudget <= 0) break
-    visibleGroups.push({ cat, apps: catApps.slice(0, rowBudget) })
-    rowBudget -= Math.min(catApps.length, rowBudget)
+    const catApps = grouped[cat].filter((a) => pageIds.has(a.id))
+    if (catApps.length) visibleGroups.push({ cat, apps: catApps })
   }
-  const renderedCount = visibleGroups.reduce((n, g) => n + g.apps.length, 0)
-  const hasMore = renderedCount < filtered.length
-
-  // Grow the window when the sentinel scrolls near the bottom of the table viewport (infinite scroll).
-  useEffect(() => {
-    const sentinel = sentinelRef.current
-    if (!sentinel) return
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) setVisibleCount((v) => v + ROW_PAGE)
-      },
-      { root: scrollRef.current, rootMargin: "600px" },
-    )
-    io.observe(sentinel)
-    return () => io.disconnect()
-  }, [activeTab, view, filtered.length, hasMore])
+  function goToPage(p: number) {
+    setPage(p)
+    scrollRef.current?.scrollTo({ top: 0 })
+  }
 
   // ─── Handlers ───────────────────────────────────────────────
 
@@ -1301,7 +1301,6 @@ export default function ApplicationsClient({ applications: initial }: { applicat
               type="button"
               onClick={() => {
                 setActiveTab(tab)
-                setVisibleCount(INITIAL_ROWS)
                 scrollRef.current?.scrollTo({ top: 0 })
               }}
               className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
@@ -1534,19 +1533,15 @@ export default function ApplicationsClient({ applications: initial }: { applicat
                 ))}
               </tbody>
             </table>
-            {hasMore && (
-              <div className="flex flex-col items-center gap-2 py-4 text-xs text-muted-foreground">
-                <span>Showing {renderedCount.toLocaleString()} of {filtered.length.toLocaleString()}</span>
-                <button
-                  type="button"
-                  onClick={() => setVisibleCount((v) => v + ROW_PAGE)}
-                  className="rounded-md border border-border px-3 py-1.5 font-medium text-foreground hover:bg-muted transition-colors"
-                >
-                  Show more
-                </button>
-                <div ref={sentinelRef} className="h-px w-full" aria-hidden />
-              </div>
-            )}
+            <Pagination
+              page={safePage}
+              totalPages={totalPages}
+              onChange={goToPage}
+              totalItems={orderedApps.length}
+              pageSize={PAGE_SIZE}
+              itemLabel="applications"
+              className="py-4"
+            />
           </div>
         )}
       </div>}
