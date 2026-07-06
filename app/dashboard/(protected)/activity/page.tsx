@@ -162,7 +162,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           <Pagination
             page={page}
             totalPages={totalPages}
-            hrefFor={(p) => `/dashboard/activity?page=${p}`}
+            baseHref="/dashboard/activity"
             totalItems={total}
             pageSize={PAGE_SIZE}
             itemLabel="actions"
