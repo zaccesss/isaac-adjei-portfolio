@@ -126,6 +126,13 @@ export const profileLinks: LinkItem[] = [
     category: "code",
   },
   {
+    title: "Gitea",
+    description: "Mirror repositories on Gitea",
+    url: "https://gitea.com/zaccesss",
+    icon: "gitea",
+    category: "code",
+  },
+  {
     title: "Codeberg",
     description: "Open source forks and contributions",
     url: "https://codeberg.org/zaccesss",
