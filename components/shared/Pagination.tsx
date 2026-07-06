@@ -1,8 +1,9 @@
 "use client"
 // A reusable page-number pager: first / prev / a small window of numbers / next / last, with an optional
 // "Showing X-Y of Z" line. It works two ways so every list can share it - pass `onChange` for in-memory
-// client lists (applications, blog analytics), or `hrefFor` to render links for server-paginated pages
-// (the activity log). Same visual language as the public blog pager.
+// client lists (applications, blog analytics), or `baseHref` to render `?page=` links for server-paginated
+// pages (the activity log). `baseHref` is a plain string, NOT a function, so it is safe to pass from a
+// Server Component to this Client Component. Same visual language as the public blog pager.
 import Link from "next/link"
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 
@@ -10,7 +11,7 @@ type PaginationProps = {
   page: number
   totalPages: number
   onChange?: (page: number) => void
-  hrefFor?: (page: number) => string
+  baseHref?: string
   totalItems?: number
   pageSize?: number
   itemLabel?: string
@@ -19,11 +20,12 @@ type PaginationProps = {
 
 const CTRL = "p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
 
-export function Pagination({ page, totalPages, onChange, hrefFor, totalItems, pageSize, itemLabel = "items", className }: PaginationProps) {
+export function Pagination({ page, totalPages, onChange, baseHref, totalItems, pageSize, itemLabel = "items", className }: PaginationProps) {
   if (totalPages <= 1) return null
   const clamp = (p: number) => Math.min(totalPages, Math.max(1, p))
   const nums: number[] = []
   for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++) nums.push(p)
+  const hrefFor = baseHref ? (p: number) => `${baseHref}${baseHref.includes("?") ? "&" : "?"}page=${p}` : null
 
   // Plain element factories (not nested components) so I can share button/link rendering without tripping
   // the "no components during render" rule.
