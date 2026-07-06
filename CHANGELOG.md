@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Made Dependabot auto-merge ecosystem-aware: patch and minor bumps and major GitHub Actions bumps auto-merge once the `Lint and Build` check passes, but major `npm` bumps are now held for manual review instead of auto-merging, since a breaking runtime bump could pass lint and build and still deploy. The `automerge` label path (used by `cv-pdf.yml`) is unchanged
+
 ### Added
 
 - Cron idempotency ledger (`cron_runs` table, migration 043): a `(job, run_date)` primary key that each message-sending job claims before it sends, so a scheduled run that the platform delayed into its target hour can never double-post the same digest, reminder or alert. Written by both the Next.js server and the automations scripts via the service-role key; RLS enabled with no policy to match migration 036. The daily trash-cleanup cron prunes rows older than 90 days so it never grows unbounded

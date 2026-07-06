@@ -1,12 +1,12 @@
-# I enable auto-merge (squash) on any PR that is either opened by Dependabot or carries
-# the "automerge" label. Draft PRs are skipped. This keeps dependency updates flowing
-# without manual intervention while still requiring CI to pass before the merge lands.
+# Enables auto-merge (squash) on Dependabot PRs and any PR labelled "automerge".
+# Draft PRs are skipped. Small updates (patch and minor) auto-merge on any
+# ecosystem. Major updates only auto-merge for GitHub Actions, where CI runs the
+# action itself so a breaking bump goes red; major application-dependency bumps
+# (npm, pip and the like) are held for manual review, because CI can pass while
+# runtime behaviour breaks. CI must still pass before any merge lands.
 #
-# Branch deletion and keeping other automerge PRs up to date with main are handled by
-# the scheduled "Repo maintenance" workflow instead of an event trigger here - GitHub
-# does not fire other workflows' `push`/`pull_request` events for actions performed
-# with this workflow's own GITHUB_TOKEN, so a `pull_request: closed` trigger on this
-# merge would never actually run. See update-pr-branches.yml for details.
+# Branch deletion for merges the token could not clean up is handled by the
+# scheduled Repo maintenance workflow. See update-pr-branches.yml for the detail.
 
 name: Auto-merge Dependabot
 
@@ -20,9 +20,17 @@ permissions:
 
 jobs:
   enable-automerge:
+    name: Auto-merge safe Dependabot PRs
     runs-on: ubuntu-latest
 
     steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Enable auto-merge for eligible PRs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -30,6 +38,8 @@ jobs:
           PR_IS_DRAFT: ${{ github.event.pull_request.draft }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          UPDATE_TYPE: ${{ steps.meta.outputs.update-type }}
+          ECOSYSTEM: ${{ steps.meta.outputs.package-ecosystem }}
         run: |
           # Never auto-merge drafts - they are explicitly not ready
           if [ "$PR_IS_DRAFT" = "true" ]; then
@@ -37,9 +47,26 @@ jobs:
             exit 0
           fi
 
-          # Enable for Dependabot PRs or any PR labelled "automerge"
-          if [ "$PR_AUTHOR" = "dependabot[bot]" ] || echo "$PR_LABELS" | grep -Eq '(^|,)automerge(,|$)'; then
-            gh pr merge --auto --squash --delete-branch "$PR_URL"
-          else
-            echo "Auto-merge not enabled - add the automerge label for non-Dependabot PRs"
+          # Non-Dependabot PRs opt in with the automerge label
+          if [ "$PR_AUTHOR" != "dependabot[bot]" ]; then
+            if echo "$PR_LABELS" | grep -Eq '(^|,)automerge(,|$)'; then
+              gh pr merge --auto --squash --delete-branch "$PR_URL"
+            else
+              echo "Auto-merge not enabled - add the automerge label for non-Dependabot PRs"
+            fi
+            exit 0
           fi
+
+          # Dependabot: hold major bumps for application dependencies (anything
+          # that is not GitHub Actions), auto-merge everything else.
+          if [ "$UPDATE_TYPE" = "version-update:semver-major" ]; then
+            case "$ECOSYSTEM" in
+              github_actions|github-actions)
+                echo "Major GitHub Actions bump - CI runs the action, enabling auto-merge" ;;
+              *)
+                echo "Holding major $ECOSYSTEM bump for manual review"
+                exit 0 ;;
+            esac
+          fi
+
+          gh pr merge --auto --squash --delete-branch "$PR_URL"

@@ -7,7 +7,7 @@ GitHub Actions workflows. All run on `ubuntu-latest` with least-privilege `permi
 | File | Trigger | Description |
 | --- | --- | --- |
 | `ci.yml` | push to main, PR to main | Lint, build, and `check-image-sizes` (fails if any image in `public/images` exceeds 50 megapixels - added 2026-06-18 after a 140-megapixel image crashed mobile browsers) |
-| `automerge-dependabot.yml` | PR opened/reopened/synchronize/labeled | Enables GitHub's native auto-merge (squash) on Dependabot PRs or any PR labelled `automerge` |
+| `automerge-dependabot.yml` | PR opened/reopened/synchronize/labeled | Enables GitHub's native auto-merge (squash) on Dependabot PRs (patch and minor on any ecosystem, plus major GitHub Actions bumps; major `npm` bumps are held for manual review) or any PR labelled `automerge` |
 | `update-pr-branches.yml` ("Repo maintenance") | schedule (every 2 hours), push to main, manual | Deletes head branches of already-merged PRs that gh's `--delete-branch` flag didn't catch (timing-dependent - see docs/TROUBLESHOOTING.md). No longer pushes branch-update commits to open PRs - that caused a bot-authored-push approval gate, fixed 2026-06-18 by removing the branch ruleset's `strict_required_status_checks_policy` requirement instead |
 | `deploy-ps5-presence.yml` | push touching `workers/ps5-presence/**`, manual | Deploys the PS5 presence Cloudflare Worker. Added 2026-06-18 after a fix to this worker sat undeployed for 3 weeks because deployment was a manual, easily-forgotten `wrangler deploy` step |
 | `gitleaks-scan.yml` | push, PR | Scans for credential leaks |
