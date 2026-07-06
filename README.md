@@ -332,7 +332,7 @@ Most pages work without environment variables. The live status cards (Spotify, M
 | `cv-pdf.yml` | Push to `public/resume/cv.html` | Regenerate all CV PDFs and DOCX, create auto-merge PR |
 | `generate-cvs.yml` | Manual | Regenerate role CVs without changing cv.html |
 | `gitleaks-scan.yml` | Every push | Secret scanning |
-| `automerge-dependabot.yml` | Dependabot PRs | Auto-merge after CI passes |
+| `automerge-dependabot.yml` | Dependabot PRs | Auto-merge after CI passes (major `npm` bumps held for review) |
 
 > Scheduled data jobs - the job scraper, WakaTime sync, vault expiry check, daily coding summary and streak reminder - now run from the separate [isaac-adjei-automations](https://github.com/zaccesss/isaac-adjei-automations) repo so they use its free Actions minutes. The Settings page still triggers the scraper and WakaTime sync on demand.
 
