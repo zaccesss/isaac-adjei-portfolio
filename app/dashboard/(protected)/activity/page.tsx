@@ -50,6 +50,15 @@ function formatAction(action: string): string {
     "streak.create": "Created streak",
     "streak.update": "Updated streak",
     "streak.delete": "Deleted streak",
+    // Habits
+    "habit.checkin": "Habit check-in",
+    "habit.undo_checkin": "Undone habit check-in",
+    "habit.create": "Created habit",
+    "habit.update": "Updated habit",
+    "habit.delete": "Deleted habit",
+    // Study
+    "study.create": "Logged study session",
+    "study.delete": "Deleted study session",
     // Open source
     "opensource.create": "Added open source contribution",
     "opensource.update": "Updated contribution",

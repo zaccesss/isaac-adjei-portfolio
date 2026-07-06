@@ -43,6 +43,46 @@ async function followup(token: string, content: string) {
 // Today's date in my timezone, so a late-night check-in still lands on the right day.
 const localToday = (): string => new Date().toLocaleDateString("en-CA", { timeZone: "Europe/London" })
 
+// Mirror every bot write into the dashboard activity log, so /dashboard/activity shows what I did from
+// Discord too. Best-effort: a logging failure must never break the command that triggered it.
+async function logBotActivity(action: string, detail?: string): Promise<void> {
+  try {
+    await supabase.from("activity_log").insert({ action, detail: detail ? `${detail} (via Discord)` : "via Discord" })
+  } catch {
+    // best-effort only
+  }
+}
+
+// Current and longest run of consecutive completed days from a set of YYYY-MM-DD log dates. Dates are
+// stored as local day strings, so I compare them as plain UTC-midnight days (no timezone maths needed).
+function streakLengths(dates: Iterable<string>, today: string): { current: number; longest: number } {
+  const days = new Set(dates)
+  const oneDay = 86_400_000
+  const toMs = (d: string) => new Date(`${d}T00:00:00Z`).getTime()
+  const toDay = (ms: number) => new Date(ms).toISOString().slice(0, 10)
+
+  // Current run counts back from today, or from yesterday if today is not done yet (streak still alive).
+  let current = 0
+  let cursor = toMs(today)
+  if (!days.has(today)) cursor -= oneDay
+  while (days.has(toDay(cursor))) {
+    current++
+    cursor -= oneDay
+  }
+
+  // Longest run anywhere in the history.
+  let longest = 0
+  let run = 0
+  let prev: number | null = null
+  for (const d of [...days].sort()) {
+    const t = toMs(d)
+    run = prev !== null && t - prev === oneDay ? run + 1 : 1
+    if (run > longest) longest = run
+    prev = t
+  }
+  return { current, longest }
+}
+
 const HELP = [
   "**Personal OS - commands**",
   "",
@@ -59,11 +99,13 @@ const HELP = [
   "`/weight` - current weight + goal",
   "",
   "**Habits & streaks**",
-  "`/habit list` · `/habit done name:Gym`",
-  "`/streak status` · `/streak log name:Gym`",
+  "`/streak status` · `/streak all` · `/streak log name:Gym`",
+  "`/streak undo name:Gym` · `/streak clear` · `/streak stats`",
+  "`/habit list` · `/habit all` · `/habit done name:Gym`",
+  "`/habit undo name:Gym` · `/habit stats`",
   "",
   "**Quick log**",
-  "`/log weight kg:75.5`",
+  "`/weight log kg:75.5` · `/weight undo` · `/weight stats`",
   "`/log study minutes:60 subject:Maths`",
   "`/log diary text:… mood:…`",
   "",
@@ -210,14 +252,39 @@ async function fitnessCommand(): Promise<string> {
   return `**Recent workouts**\n${lines.join("\n")}`
 }
 
-async function weightCommand(): Promise<string> {
+async function weightCommand(sub: CommandOption | undefined): Promise<string> {
+  const today = localToday()
+
+  if (sub?.name === "log") {
+    const kg = Number(sub.options?.find((o) => o.name === "kg")?.value)
+    if (!Number.isFinite(kg) || kg <= 0 || kg > 999) return "Give a weight in kg: `/weight log kg:75.5`"
+    await supabase.from("body_metrics").insert({ date: today, metric: "weight_kg", value: kg, unit: "kg" })
+    await logBotActivity("health.create", `Weight ${kg}kg`)
+    return `✅ Logged **${kg}kg** for today.`
+  }
+
+  if (sub?.name === "undo") {
+    const { data: rows } = await supabase
+      .from("body_metrics")
+      .select("id")
+      .eq("metric", "weight_kg")
+      .eq("date", today)
+      .order("id", { ascending: false })
+      .limit(1)
+    if (!rows?.length) return "No weight logged today to undo."
+    await supabase.from("body_metrics").delete().eq("id", rows[0].id)
+    await logBotActivity("health.delete", "Weight (undo)")
+    return "↩️ Removed today's weight entry."
+  }
+
+  // stats (the default when no subcommand, so a bare intent still shows the current figure)
   const { data: logs } = await supabase
     .from("body_metrics")
     .select("value,date")
     .eq("metric", "weight_kg")
     .order("date", { ascending: false })
     .limit(2)
-  if (!logs?.length) return "**Weight** - nothing logged yet. Try `/log weight kg:75`."
+  if (!logs?.length) return "**Weight** - nothing logged yet. Try `/weight log kg:75`."
   const current = logs[0].value as number
   const { data: goalRow } = await supabase.from("config").select("value").eq("key", "weight_goal").maybeSingle()
   const goal = goalRow?.value as { targetWeight: number } | undefined
@@ -234,63 +301,132 @@ async function weightCommand(): Promise<string> {
 
 async function habitCommand(sub: CommandOption | undefined): Promise<string> {
   const today = localToday()
-  if (sub?.name === "list") {
-    const { data: habits } = await supabase.from("habits").select("id,name").eq("active", true).order("name")
-    if (!habits?.length) return "No active habits."
+  const { data: habits } = await supabase.from("habits").select("id,name").eq("active", true).order("name")
+  const active = habits ?? []
+
+  if (!sub || sub.name === "list") {
+    if (!active.length) return "No active habits."
     const { data: logs } = await supabase.from("habit_logs").select("habit_id").eq("date", today)
     const done = new Set((logs ?? []).map((l) => l.habit_id))
-    const lines = habits.map((h) => `${done.has(h.id) ? "✅" : "⬜"} ${h.name}`)
-    return `**Habits today (${habits.filter((h) => done.has(h.id)).length}/${habits.length})**\n${lines.join("\n")}`
+    const lines = active.map((h) => `${done.has(h.id) ? "✅" : "⬜"} ${h.name}`)
+    return `**Habits today (${active.filter((h) => done.has(h.id)).length}/${active.length})**\n${lines.join("\n")}`
   }
-  if (sub?.name === "done") {
+
+  if (sub.name === "all") {
+    if (!active.length) return "No active habits to mark."
+    const rows = active.map((h) => ({ habit_id: h.id, date: today, completed: true }))
+    await supabase.from("habit_logs").upsert(rows, { onConflict: "habit_id,date" })
+    await logBotActivity("habit.checkin", `Marked all ${active.length} habits done`)
+    return `✅ Marked **all ${active.length}** habits done for today.`
+  }
+
+  if (sub.name === "stats") {
+    if (!active.length) return "No active habits."
+    const since = new Date(Date.now() - 7 * 86_400_000).toLocaleDateString("en-CA", { timeZone: "Europe/London" })
+    const { data: logs } = await supabase.from("habit_logs").select("habit_id").gte("date", since)
+    const counts = new Map<string, number>()
+    for (const l of logs ?? []) counts.set(l.habit_id, (counts.get(l.habit_id) ?? 0) + 1)
+    const total = [...counts.values()].reduce((a, b) => a + b, 0)
+    const lines = active.map((h) => `• ${h.name} - **${counts.get(h.id) ?? 0}**/7`)
+    return `**Habits - last 7 days (${total} check-ins)**\n${lines.join("\n")}`
+  }
+
+  if (sub.name === "done" || sub.name === "undo") {
     const q = String(sub.options?.[0]?.value ?? "").trim()
-    if (!q) return "Give me a name: `/habit done name:Gym`"
-    const { data: matches } = await supabase.from("habits").select("id,name").eq("active", true).ilike("name", `%${q}%`).limit(5)
-    if (!matches?.length) return `No active habit matching "${q}".`
+    if (!q) return `Give me a name: \`/habit ${sub.name} name:Gym\``
+    const matches = active.filter((h) => h.name.toLowerCase().includes(q.toLowerCase()))
+    if (!matches.length) return `No active habit matching "${q}".`
     if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => m.name).join(", ")}. Be more specific.`
-    await supabase.from("habit_logs").upsert({ habit_id: matches[0].id, date: today, completed: true }, { onConflict: "habit_id,date" })
-    return `✅ Marked **${matches[0].name}** done for today.`
+    const h = matches[0]
+    if (sub.name === "done") {
+      await supabase.from("habit_logs").upsert({ habit_id: h.id, date: today, completed: true }, { onConflict: "habit_id,date" })
+      await logBotActivity("habit.checkin", h.name)
+      return `✅ Marked **${h.name}** done for today.`
+    }
+    await supabase.from("habit_logs").delete().eq("habit_id", h.id).eq("date", today)
+    await logBotActivity("habit.undo_checkin", h.name)
+    return `↩️ Unmarked **${h.name}** for today.`
   }
-  return "Use `/habit list` or `/habit done name:…`."
+
+  return "Use `/habit list`, `done name:…`, `all`, `undo name:…` or `stats`."
 }
 
 async function streakCommand(sub: CommandOption | undefined): Promise<string> {
   const today = localToday()
-  if (sub?.name === "status") {
-    const { data: streaks } = await supabase.from("streaks").select("id,name").eq("active", true).order("order_index")
-    if (!streaks?.length) return "No active streaks."
+  const { data: streaks } = await supabase.from("streaks").select("id,name").eq("active", true).order("order_index")
+  const active = streaks ?? []
+
+  if (!sub || sub.name === "status") {
+    if (!active.length) return "No active streaks."
     const { data: logs } = await supabase.from("streak_logs").select("streak_id").eq("date", today)
     const done = new Set((logs ?? []).map((l) => l.streak_id))
-    const lines = streaks.map((s) => `${done.has(s.id) ? "✅" : "⬜"} ${s.name}`)
-    return `**Streaks today (${streaks.filter((s) => done.has(s.id)).length}/${streaks.length})**\n${lines.join("\n")}`
+    const lines = active.map((s) => `${done.has(s.id) ? "✅" : "⬜"} ${s.name}`)
+    return `**Streaks today (${active.filter((s) => done.has(s.id)).length}/${active.length})**\n${lines.join("\n")}`
   }
-  if (sub?.name === "log") {
+
+  if (sub.name === "all") {
+    if (!active.length) return "No active streaks to log."
+    const rows = active.map((s) => ({ streak_id: s.id, date: today, completed: true }))
+    await supabase.from("streak_logs").upsert(rows, { onConflict: "streak_id,date" })
+    await logBotActivity("streak.checkin", `Logged all ${active.length} streaks`)
+    return `✅ Logged **all ${active.length}** streaks for today.`
+  }
+
+  if (sub.name === "clear") {
+    const { data: logs } = await supabase.from("streak_logs").select("streak_id").eq("date", today)
+    const n = (logs ?? []).length
+    if (!n) return "No streak check-ins to clear for today."
+    await supabase.from("streak_logs").delete().eq("date", today)
+    await logBotActivity("streak.undo_checkin", `Cleared all ${n} streak check-ins`)
+    return `↩️ Cleared **all ${n}** streak check-ins for today.`
+  }
+
+  if (sub.name === "stats") {
+    if (!active.length) return "No active streaks."
+    const { data: logs } = await supabase.from("streak_logs").select("streak_id,date").eq("completed", true)
+    const byStreak = new Map<string, string[]>()
+    for (const l of logs ?? []) {
+      const arr = byStreak.get(l.streak_id) ?? []
+      arr.push(l.date as string)
+      byStreak.set(l.streak_id, arr)
+    }
+    const lines = active.map((s) => {
+      const { current, longest } = streakLengths(byStreak.get(s.id) ?? [], today)
+      return `• ${s.name} - **${current}**d now, ${longest}d best`
+    })
+    return `**Streak stats**\n${lines.join("\n")}`
+  }
+
+  if (sub.name === "log" || sub.name === "undo") {
     const q = String(sub.options?.[0]?.value ?? "").trim()
-    if (!q) return "Give me a name: `/streak log name:Gym`"
-    const { data: matches } = await supabase.from("streaks").select("id,name").eq("active", true).ilike("name", `%${q}%`).limit(5)
-    if (!matches?.length) return `No active streak matching "${q}".`
+    if (!q) return `Give me a name: \`/streak ${sub.name} name:Gym\``
+    const matches = active.filter((s) => s.name.toLowerCase().includes(q.toLowerCase()))
+    if (!matches.length) return `No active streak matching "${q}".`
     if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => m.name).join(", ")}. Be more specific.`
-    await supabase.from("streak_logs").upsert({ streak_id: matches[0].id, date: today, completed: true }, { onConflict: "streak_id,date" })
-    return `✅ Logged **${matches[0].name}** for today.`
+    const s = matches[0]
+    if (sub.name === "log") {
+      await supabase.from("streak_logs").upsert({ streak_id: s.id, date: today, completed: true }, { onConflict: "streak_id,date" })
+      await logBotActivity("streak.checkin", s.name)
+      return `✅ Logged **${s.name}** for today.`
+    }
+    await supabase.from("streak_logs").delete().eq("streak_id", s.id).eq("date", today)
+    await logBotActivity("streak.undo_checkin", s.name)
+    return `↩️ Removed today's check-in for **${s.name}**.`
   }
-  return "Use `/streak status` or `/streak log name:…`."
+
+  return "Use `/streak status`, `log name:…`, `all`, `undo name:…`, `clear` or `stats`."
 }
 
 async function logCommand(sub: CommandOption | undefined): Promise<string> {
   const today = localToday()
   const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
-  if (sub?.name === "weight") {
-    const kg = Number(opt("kg"))
-    if (!Number.isFinite(kg) || kg <= 0 || kg > 999) return "Give a weight in kg: `/log weight kg:75.5`"
-    await supabase.from("body_metrics").insert({ date: today, metric: "weight_kg", value: kg, unit: "kg" })
-    return `✅ Logged **${kg}kg** for today.`
-  }
   if (sub?.name === "study") {
     const minutes = Math.round(Number(opt("minutes")))
     const subject = String(opt("subject") ?? "").trim()
     if (!Number.isFinite(minutes) || minutes <= 0) return "Give minutes: `/log study minutes:60 subject:Maths`"
     if (!subject) return "Give a subject: `/log study minutes:60 subject:Maths`"
     await supabase.from("study_sessions").insert({ date: today, subject, duration_m: minutes, productive: true })
+    await logBotActivity("study.create", `${minutes}m of ${subject}`)
     return `✅ Logged **${minutes}m** of ${subject}.`
   }
   if (sub?.name === "diary") {
@@ -299,9 +435,10 @@ async function logCommand(sub: CommandOption | undefined): Promise<string> {
     const mood = String(opt("mood") ?? "neutral").trim() || "neutral"
     const title = text.length > 50 ? `${text.slice(0, 50)}…` : text
     await supabase.from("diary").insert({ title, content: text, mood })
+    await logBotActivity("diary.create", title)
     return "✅ Diary entry saved."
   }
-  return "Use `/log weight`, `/log study` or `/log diary`."
+  return "Use `/log study` or `/log diary`. Weight moved to `/weight log`."
 }
 
 const DEFERRED = new Set([
@@ -406,7 +543,7 @@ export async function POST(req: Request) {
               content = await fitnessCommand()
               break
             case "weight":
-              content = await weightCommand()
+              content = await weightCommand(sub)
               break
             case "habit":
               content = await habitCommand(sub)
