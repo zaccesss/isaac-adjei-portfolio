@@ -117,8 +117,8 @@ function Inner({ weights, nutrition, workouts, strava }: { weights: Weight[]; nu
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ChartCard title="Weight trend">
-          {weightSeries.length > 1 ? (
-            <LineChart data={weightSeries} dataKey="value" colour="#10b981" valueFormatter={(v) => `${v} kg`} />
+          {weightSeries.length > 0 ? (
+            <LineChart data={weightSeries} dataKey="value" colour="#10b981" valueFormatter={(v) => `${v} kg`} dots />
           ) : (
             <Empty />
           )}

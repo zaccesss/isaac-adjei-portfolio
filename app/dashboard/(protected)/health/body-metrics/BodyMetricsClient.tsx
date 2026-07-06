@@ -108,8 +108,9 @@ function BodyMetricsClientInner({ metrics }: { metrics: Metric[] }) {
     .reverse()
     .map((m) => ({ date: m.date.slice(5), value: m.value }))
 
-  const latest = metrics.filter((m) => m.metric === displayMetric)[0]
-  const prev = metrics.filter((m) => m.metric === displayMetric)[1]
+  // Trend follows the selected period so it matches the period-scoped chart above.
+  const latest = periodMetrics.filter((m) => m.metric === displayMetric)[0]
+  const prev = periodMetrics.filter((m) => m.metric === displayMetric)[1]
   const trend = latest && prev ? latest.value - prev.value : null
 
   return (

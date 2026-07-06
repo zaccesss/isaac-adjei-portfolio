@@ -116,9 +116,9 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
     weeklyBar.push({ name: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), value: count })
   }
 
-  // Monthly trend (all time, last 12 months)
+  // Monthly trend, following the selected period (capped to the last 12 months on wider spans)
   const monthlyCounts: Record<string, number> = {}
-  for (const a of apps) {
+  for (const a of filtered) {
     const month = appDate(a).slice(0, 7)
     monthlyCounts[month] = (monthlyCounts[month] ?? 0) + 1
   }

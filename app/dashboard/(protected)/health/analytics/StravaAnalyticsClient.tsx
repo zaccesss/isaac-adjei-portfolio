@@ -446,7 +446,7 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
                 <span className="text-xs text-muted-foreground">avg bpm per activity</span>
               </div>
               {hrSeries.length > 1 ? (
-                <LineChart data={hrSeries} dataKey="hr" colour="#ef4444" valueFormatter={(v) => `${v} bpm`} />
+                <LineChart data={hrSeries} dataKey="hr" colour="#ef4444" valueFormatter={(v) => `${v} bpm`} dots />
               ) : (
                 <p className="text-xs text-muted-foreground py-12 text-center">No heart-rate data in this period.</p>
               )}
@@ -459,7 +459,7 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
                 <span className="text-xs text-muted-foreground">runs, min/km (lower is faster)</span>
               </div>
               {paceSeries.length > 1 ? (
-                <LineChart data={paceSeries} dataKey="pace" colour="#FC4C02" valueFormatter={fmtPaceSec} />
+                <LineChart data={paceSeries} dataKey="pace" colour="#FC4C02" valueFormatter={fmtPaceSec} dots />
               ) : (
                 <p className="text-xs text-muted-foreground py-12 text-center">Not enough runs in this period.</p>
               )}
@@ -500,7 +500,7 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
                 <span className="text-xs text-muted-foreground">running total this period</span>
               </div>
               {cumulativeDistance.length > 1 ? (
-                <LineChart data={cumulativeDistance} dataKey="total" colour="#FC4C02" valueFormatter={(v) => `${v} km`} />
+                <LineChart data={cumulativeDistance} dataKey="total" colour="#FC4C02" valueFormatter={(v) => `${v} km`} dots />
               ) : (
                 <p className="text-xs text-muted-foreground py-12 text-center">No activities in this period.</p>
               )}
