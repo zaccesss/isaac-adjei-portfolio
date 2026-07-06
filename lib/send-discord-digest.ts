@@ -5,6 +5,7 @@
 // a key is set. The same function is called by both the daily cron and the manual dashboard trigger.
 import { gatherDigestData, type DigestData } from "@/lib/digest-facts"
 import { digestAiSummary } from "@/lib/digest-ai-summary"
+import { postDiscordWebhook } from "@/lib/discord-webhook"
 
 export type DiscordDigestResult = {
   ok: boolean
@@ -138,7 +139,8 @@ function buildEmbeds(data: DigestData, summary: string | null, label: string) {
 }
 
 export async function sendDiscordDigest(): Promise<DiscordDigestResult> {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL
+  // Prefer a dedicated per-channel webhook, falling back to the shared one so existing setups keep working.
+  const webhookUrl = process.env.DISCORD_WEBHOOK_DIGEST ?? process.env.DISCORD_WEBHOOK_URL
   if (!webhookUrl) return { ok: true, skipped: true }
 
   // The digest covers the last 24 hours. It is scheduled for 00:30 UK, so the window is the day that
@@ -155,22 +157,7 @@ export async function sendDiscordDigest(): Promise<DiscordDigestResult> {
   const summary = await digestAiSummary(data.facts)
   const embeds = buildEmbeds(data, summary, label)
 
-  try {
-    const res = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ embeds }),
-    })
-
-    if (!res.ok) {
-      const errText = await res.text()
-      console.error("Discord digest error:", res.status, errText)
-      return { ok: false, error: "Failed to send Discord digest" }
-    }
-
-    return { ok: true }
-  } catch (err) {
-    console.error("Discord digest error:", err)
-    return { ok: false, error: "Something went wrong" }
-  }
+  // Loud on failure: a dead webhook logs the full Discord error and opens an incident, never a silent skip.
+  const result = await postDiscordWebhook(webhookUrl, { embeds }, "discord-digest")
+  return { ok: result.ok, error: result.error }
 }
