@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import { Code2 } from "lucide-react"
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
@@ -8,6 +8,7 @@ import {
 } from "recharts"
 import {
   StatCard,
+  BarChart,
   DEFAULT_CHART_COLOURS,
   AnalyticsPeriodProvider,
   PeriodSelector,
@@ -173,41 +174,72 @@ function monthLabel(week: GridCell[]): string | null {
   return null
 }
 
-function DonutPanel({ title, data, total }: { title: string; data: { name: string; value: number }[]; total: number }) {
+// A single breakdown section (Languages, Editors, Operating systems, Projects). Presents the
+// same period-filtered data as two complementary charts side by side: the donut with its labelled
+// legend (share of time, hours and percentage) plus a bar chart of the top entries. Optional
+// children render above the charts (used to keep the Languages progress-bar list). Everything is
+// driven by the `data`/`total` passed in, which the caller derives from the period-filtered maps.
+function BreakdownSection({
+  title,
+  data,
+  total,
+  emptyMessage = "No data yet.",
+  children,
+}: {
+  title: string
+  data: { name: string; value: number }[]
+  total: number
+  emptyMessage?: string
+  children?: ReactNode
+}) {
   if (data.length === 0) {
     return (
       <div className="border border-border rounded-lg p-4 bg-card">
         <h2 className="text-sm font-semibold mb-2">{title}</h2>
-        <p className="text-xs text-muted-foreground">No data yet.</p>
+        <p className="text-xs text-muted-foreground">{emptyMessage}</p>
       </div>
     )
   }
+  // The shared bar chart names its series after the data key, so use a readable key
+  const barData = data.map((d) => ({ name: d.name, time: d.value }))
   return (
     <div className="border border-border rounded-lg p-4 bg-card">
-      <h2 className="text-sm font-semibold mb-2">{title}</h2>
-      <ResponsiveContainer width="100%" height={150}>
-        <PieChart>
-          <Pie data={data} cx="50%" cy="50%" innerRadius={40} outerRadius={60} dataKey="value" paddingAngle={2}>
-            {data.map((_, i) => (
-              <Cell key={i} fill={DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length]} />
+      <h2 className="text-sm font-semibold mb-3">{title}</h2>
+      {children}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Donut with a labelled legend (share of time) */}
+        <div>
+          <p className="text-xs text-muted-foreground mb-2">Share of time</p>
+          <ResponsiveContainer width="100%" height={150}>
+            <PieChart>
+              <Pie data={data} cx="50%" cy="50%" innerRadius={40} outerRadius={60} dataKey="value" nameKey="name" paddingAngle={2}>
+                {data.map((_, i) => (
+                  <Cell key={i} fill={DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(v) => [typeof v === "number" ? formatHours(v) : v, ""]} contentStyle={{ fontSize: "11px" }} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="flex flex-col gap-1 mt-1">
+            {data.map((item, i) => (
+              <div key={item.name} className="flex items-center justify-between text-xs gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="h-2 w-2 rounded-full shrink-0" style={{ background: DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length] }} />
+                  <span className="text-muted-foreground truncate">{item.name}</span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0 tabular-nums">
+                  <span>{formatHours(item.value)}</span>
+                  <span className="text-muted-foreground">{total > 0 ? `${Math.round((item.value / total) * 100)}%` : ""}</span>
+                </div>
+              </div>
             ))}
-          </Pie>
-          <Tooltip formatter={(v) => [typeof v === "number" ? formatHours(v) : v, ""]} contentStyle={{ fontSize: "11px" }} />
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="flex flex-col gap-1 mt-1">
-        {data.map((item, i) => (
-          <div key={item.name} className="flex items-center justify-between text-xs gap-2">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="h-2 w-2 rounded-full shrink-0" style={{ background: DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length] }} />
-              <span className="text-muted-foreground truncate">{item.name}</span>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0 tabular-nums">
-              <span>{formatHours(item.value)}</span>
-              <span className="text-muted-foreground">{total > 0 ? `${Math.round((item.value / total) * 100)}%` : ""}</span>
-            </div>
           </div>
-        ))}
+        </div>
+        {/* Bar chart of the top entries */}
+        <div>
+          <p className="text-xs text-muted-foreground mb-2">Top {data.length} by time</p>
+          <BarChart data={barData} dataKey="time" xKey="name" height={200} valueFormatter={formatHours} />
+        </div>
       </div>
     </div>
   )
@@ -685,48 +717,40 @@ function CodingInner({
         </div>
       )}
 
-      {/* Languages: horizontal progress bars */}
-      <div className="border border-border rounded-lg p-4 bg-card">
-        <h2 className="text-sm font-semibold mb-3">Languages</h2>
-        {topLangs.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No data yet.</p>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {topLangs.map(([name, secs], i) => (
-              <div key={name} className="flex items-center gap-2">
-                <span className="text-xs w-24 truncate text-muted-foreground">{name}</span>
-                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${Math.round((secs / (totalLangSeconds || 1)) * 100)}%`,
-                      background: DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length],
-                    }}
-                  />
-                </div>
-                <span className="text-xs tabular-nums text-muted-foreground w-14 text-right">{formatHours(secs)}</span>
+      {/* Languages breakdown: progress-bar list, donut and bar chart */}
+      <BreakdownSection title="Languages" data={langPieData} total={totalLangSeconds}>
+        <div className="flex flex-col gap-2 mb-4">
+          {topLangs.map(([name, secs], i) => (
+            <div key={name} className="flex items-center gap-2">
+              <span className="text-xs w-24 truncate text-muted-foreground">{name}</span>
+              <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${Math.round((secs / (totalLangSeconds || 1)) * 100)}%`,
+                    background: DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length],
+                  }}
+                />
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <span className="text-xs tabular-nums text-muted-foreground w-14 text-right">{formatHours(secs)}</span>
+            </div>
+          ))}
+        </div>
+      </BreakdownSection>
 
-      {/* Donut charts row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <DonutPanel title="Languages"  data={langPieData} total={totalLangSeconds} />
-        <DonutPanel title="Editors"    data={editPieData} total={totalEditSeconds} />
-        {osPieData.length > 0 ? (
-          <DonutPanel title="Operating Systems" data={osPieData} total={totalOsSeconds} />
-        ) : (
-          <div className="border border-border rounded-lg p-4 bg-card">
-            <h2 className="text-sm font-semibold mb-2">Operating Systems</h2>
-            <p className="text-xs text-muted-foreground">Data will appear after the next WakaTime sync.</p>
-          </div>
-        )}
-      </div>
+      {/* Editors breakdown: donut and bar chart */}
+      <BreakdownSection title="Editors" data={editPieData} total={totalEditSeconds} />
 
-      {/* Projects donut */}
-      <DonutPanel title="Projects" data={projPieData} total={totalProjSeconds} />
+      {/* Operating systems breakdown: donut and bar chart */}
+      <BreakdownSection
+        title="Operating Systems"
+        data={osPieData}
+        total={totalOsSeconds}
+        emptyMessage="Data will appear after the next WakaTime sync."
+      />
+
+      {/* Projects breakdown: donut and bar chart */}
+      <BreakdownSection title="Projects" data={projPieData} total={totalProjSeconds} />
 
       {/* Weekdays: bar chart + weekday vs weekend pie */}
       <div className="border border-border rounded-lg p-4 bg-card">

@@ -13,6 +13,7 @@ import {
   PeriodSelector,
   useAnalyticsPeriod,
   filterByPeriod,
+  periodStartDate,
 } from "@/components/analytics"
 import { Pagination } from "@/components/shared/Pagination"
 
@@ -24,6 +25,29 @@ type SortDir = "asc" | "desc"
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const HOURS = Array.from({ length: 24 }, (_, i) => `${i}`)
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+// Bucketing helpers for the opens-over-time series, so I can walk a continuous axis across the whole
+// selected period (a marker at every day/week/month) instead of only the buckets that happened to have
+// opens. Month labels use an apostrophe (Jul '26) so they never read like a day of the month.
+type Gran = "day" | "week" | "month"
+function bucketStartOf(date: Date, gran: Gran): Date {
+  const x = new Date(date)
+  x.setHours(0, 0, 0, 0)
+  if (gran === "week") x.setDate(x.getDate() - ((x.getDay() + 6) % 7))
+  else if (gran === "month") x.setDate(1)
+  return x
+}
+function advanceBucket(date: Date, gran: Gran): void {
+  if (gran === "day") date.setDate(date.getDate() + 1)
+  else if (gran === "week") date.setDate(date.getDate() + 7)
+  else date.setMonth(date.getMonth() + 1)
+}
+function bucketKeyOf(date: Date, gran: Gran): string {
+  return bucketStartOf(date, gran).toISOString().slice(0, 10)
+}
+function bucketLabelOf(date: Date, gran: Gran): string {
+  return gran === "month" ? `${MONTHS[date.getMonth()]} '${String(date.getFullYear()).slice(2)}` : `${date.getDate()}/${date.getMonth() + 1}`
+}
 
 const FUNNEL_COLOURS = [
   DEFAULT_CHART_COLOURS[1],
@@ -122,30 +146,27 @@ function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
 
   // Opens (25% depth) over time, bucketed to follow the period.
   const readsOverTime = useMemo(() => {
-    const gran = period === "90d" ? "week" : period === "1y" || period === "all" ? "month" : "day"
-    const totals = new Map<string, number>()
-    const labels = new Map<string, string>()
+    const gran: Gran = period === "90d" ? "week" : period === "1y" || period === "all" ? "month" : "day"
+    // Tally opens (25% depth) per bucket, tracking the earliest so "all" starts at my first ever read.
+    const counts = new Map<string, number>()
+    let earliest: Date | null = null
     for (const e of periodEvents) {
       if (e.depth !== 25) continue
       const d = new Date(e.created_at)
-      let key: string
-      let label: string
-      if (gran === "day") {
-        key = e.created_at.slice(0, 10)
-        label = `${d.getDate()}/${d.getMonth() + 1}`
-      } else if (gran === "week") {
-        const m = new Date(d)
-        m.setDate(d.getDate() - ((d.getDay() + 6) % 7))
-        key = m.toISOString().slice(0, 10)
-        label = `${m.getDate()}/${m.getMonth() + 1}`
-      } else {
-        key = e.created_at.slice(0, 7)
-        label = `${MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`
-      }
-      totals.set(key, (totals.get(key) ?? 0) + 1)
-      labels.set(key, label)
+      if (!earliest || d < earliest) earliest = d
+      const key = bucketKeyOf(d, gran)
+      counts.set(key, (counts.get(key) ?? 0) + 1)
     }
-    return [...totals.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => ({ name: labels.get(k) as string, reads: v }))
+    // Walk from the period start (or the first read for "all") to today, emitting a point for EVERY bucket
+    // so the line spans the whole selected period with a dot at each one, even the buckets with no opens.
+    const cursor = bucketStartOf(periodStartDate(period) ?? earliest ?? new Date(), gran)
+    const end = new Date()
+    const points: { name: string; reads: number }[] = []
+    for (let guard = 0; cursor <= end && guard < 400; guard++) {
+      points.push({ name: bucketLabelOf(cursor, gran), reads: counts.get(bucketKeyOf(cursor, gran)) ?? 0 })
+      advanceBucket(cursor, gran)
+    }
+    return points
   }, [periodEvents, period])
 
   const funnelChartData = useMemo(() => {
@@ -269,10 +290,10 @@ function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
       {/* Opens over time */}
       <div className="border border-border rounded-lg p-4 bg-card">
         <p className="text-xs font-medium text-muted-foreground mb-3">Opens over time</p>
-        {readsOverTime.length > 1 ? (
-          <LineChart data={readsOverTime} dataKey="reads" xKey="name" height={160} colour={DEFAULT_CHART_COLOURS[0]} valueFormatter={(v) => `${v} opens`} />
+        {totalReads > 0 && readsOverTime.length > 1 ? (
+          <LineChart data={readsOverTime} dataKey="reads" xKey="name" height={160} colour={DEFAULT_CHART_COLOURS[0]} valueFormatter={(v) => `${v} opens`} dots />
         ) : (
-          <p className="text-xs text-muted-foreground py-10 text-center">Not enough data in this period.</p>
+          <p className="text-xs text-muted-foreground py-10 text-center">No opens recorded in this period yet.</p>
         )}
       </div>
 

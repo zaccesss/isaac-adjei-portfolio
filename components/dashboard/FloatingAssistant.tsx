@@ -24,7 +24,7 @@ export const ZACCESS_PAGES = [
   "/dashboard/faith",
   "/dashboard/study",
   "/dashboard/opensource",
-  "/dashboard/blog-analytics",
+  "/dashboard/post-analytics",
   "/dashboard/university",
   "/dashboard/course",
   "/dashboard/modules",

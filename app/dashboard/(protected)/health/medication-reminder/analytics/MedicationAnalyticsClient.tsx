@@ -6,6 +6,7 @@ import {
   PeriodSelector,
   useAnalyticsPeriod,
   filterByPeriod,
+  periodStartDate,
   StatCard,
   LineChart,
   BarChart,
@@ -44,15 +45,28 @@ function Inner({ reminders, doses }: { reminders: ReminderLite[]; doses: Dose[] 
   const adherence = sent > 0 ? Math.round((taken / sent) * 100) : 0
   const activeCount = reminders.filter((r) => r.active).length
 
-  // Reminders sent per day, oldest to newest.
+  // Reminders sent per day, oldest to newest. Zero-fill every day from the period start (or the
+  // first dose when the period is "all") through to today so the line spans the whole selected
+  // period and days with no doses show as a 0 point rather than being dropped.
   const byDay = new Map<string, number>()
   for (const d of inPeriod) {
     const day = d.sent_at.slice(0, 10)
     byDay.set(day, (byDay.get(day) ?? 0) + 1)
   }
-  const perDay = [...byDay.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([day, count]) => ({ name: new Date(day).toLocaleDateString("en-GB", { day: "numeric", month: "short" }), count }))
+  const firstDay = [...byDay.keys()].sort()[0]
+  const startDay = periodStartDate(period) ?? (firstDay ? new Date(firstDay) : null)
+  const perDay: { name: string; count: number }[] = []
+  if (startDay) {
+    // Walk one UTC day at a time so the day keys line up with the UTC dates built above.
+    const cursor = new Date(Date.UTC(startDay.getUTCFullYear(), startDay.getUTCMonth(), startDay.getUTCDate()))
+    const todayKey = new Date().toISOString().slice(0, 10)
+    for (let i = 0; i < 400; i++) {
+      const key = cursor.toISOString().slice(0, 10)
+      perDay.push({ name: `${cursor.getUTCDate()}/${cursor.getUTCMonth() + 1}`, count: byDay.get(key) ?? 0 })
+      if (key >= todayKey) break
+      cursor.setUTCDate(cursor.getUTCDate() + 1)
+    }
+  }
 
   // Sent count per medication, busiest first.
   const byMed = new Map<string, number>()
@@ -85,7 +99,7 @@ function Inner({ reminders, doses }: { reminders: ReminderLite[]; doses: Dose[] 
       <div className="border border-border rounded-lg p-4 bg-card">
         <p className="text-sm font-medium mb-3">Reminders sent per day</p>
         {perDay.length > 0 ? (
-          <LineChart data={perDay} dataKey="count" />
+          <LineChart data={perDay} dataKey="count" dots />
         ) : (
           <p className="text-sm text-muted-foreground py-8 text-center">No reminders sent in this period yet.</p>
         )}

@@ -18,6 +18,7 @@ import {
   periodStartDate,
   StatCard,
   DEFAULT_CHART_COLOURS,
+  type AnalyticsPeriod,
 } from "@/components/analytics"
 
 type Streak = {
@@ -34,6 +35,12 @@ type Log = {
   streak_id: string
   date: string
   completed: boolean
+}
+
+// Maps the selected analytics period to the trailing day window every activity chart draws over,
+// so the heatmap and the analytics charts share one definition of "the period".
+function periodDays(period: AnalyticsPeriod): number {
+  return period === "24h" ? 1 : period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365
 }
 
 function calcCurrentStreak(logs: Log[], streakId: string, today: string): number {
@@ -73,10 +80,10 @@ function calcLongestStreak(logs: Log[], streakId: string): number {
   return longest
 }
 
-function HeatmapGrid({ logs, streakId, today }: { logs: Log[]; streakId: string; today: string }) {
+function HeatmapGrid({ logs, streakId, today, numDays }: { logs: Log[]; streakId: string; today: string; numDays: number }) {
   const done = new Set(logs.filter((l) => l.streak_id === streakId && l.completed).map((l) => l.date))
   const days: string[] = []
-  for (let i = 89; i >= 0; i--) {
+  for (let i = numDays - 1; i >= 0; i--) {
     const d = new Date(today)
     d.setDate(d.getDate() - i)
     days.push(d.toISOString().split("T")[0])
@@ -99,7 +106,7 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
   const cutoff = periodStartDate(period)
 
   // numDays drives all chart windows
-  const numDays = period === "24h" ? 1 : period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365
+  const numDays = periodDays(period)
   const numWeeks = Math.max(1, Math.min(52, Math.ceil(numDays / 7)))
 
   // Build day array for the period
@@ -365,7 +372,7 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
                   key={s.id}
                   dataKey={s.id}
                   stroke={STREAK_COLOURS[i % STREAK_COLOURS.length]}
-                  dot={false}
+                  dot={{ r: 3, fill: STREAK_COLOURS[i % STREAK_COLOURS.length], strokeWidth: 0 }}
                   strokeWidth={2}
                 />
               ))}
@@ -377,10 +384,11 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
   )
 }
 
-function StreakCard({ streak, logs, today, onDelete, onReset, onEdit, onCheckIn }: {
+function StreakCard({ streak, logs, today, numDays, onDelete, onReset, onEdit, onCheckIn }: {
   streak: Streak
   logs: Log[]
   today: string
+  numDays: number
   onDelete: (id: string) => void
   onReset: (id: string) => void
   onEdit: (streak: Streak) => void
@@ -448,7 +456,7 @@ function StreakCard({ streak, logs, today, onDelete, onReset, onEdit, onCheckIn 
         </div>
       </div>
 
-      <HeatmapGrid logs={logs} streakId={streak.id} today={today} />
+      <HeatmapGrid logs={logs} streakId={streak.id} today={today} numDays={numDays} />
 
       <Button
         size="sm"
@@ -481,6 +489,10 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
   const [, startTransition] = useTransition()
   const [page, setPage] = useState(1)
   const { confirm, dialog: confirmDialog } = useConfirmDialog()
+  const { period } = useAnalyticsPeriod()
+
+  // Per-card heatmaps share the analytics window so they redraw with the period selector.
+  const numDays = periodDays(period)
 
   const checkedInCount = streaks.filter((s) =>
     logs.some((l) => l.streak_id === s.id && l.date === today && l.completed)
@@ -625,6 +637,7 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
                 streak={s}
                 logs={logs}
                 today={today}
+                numDays={numDays}
                 onDelete={handleDelete}
                 onReset={handleReset}
                 onEdit={openEdit}

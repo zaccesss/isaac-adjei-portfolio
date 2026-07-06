@@ -32,6 +32,12 @@ const nextConfig = {
     // server-action body cap a little. Images are shrunk client-side first, so this stays modest.
     serverActions: { bodySizeLimit: "4mb" },
   },
+  async redirects() {
+    return [
+      // I renamed the posts analytics route from blog-analytics to post-analytics; keep old links working.
+      { source: "/dashboard/blog-analytics", destination: "/dashboard/post-analytics", permanent: true },
+    ]
+  },
   async headers() {
     return [
       // I noindex OG and Twitter image generation routes - they are internal

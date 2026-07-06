@@ -123,6 +123,7 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
   const todayMinutes = sessions.filter((s) => s.date === today).reduce((a, s) => a + s.duration_m, 0)
   const uniqueDays = new Set(periodSessions.map((s) => s.date)).size
   const avgPerDay = uniqueDays > 0 ? Math.round(totalMinutes / uniqueDays) : 0
+  const periodSubjectCount = new Set(periodSessions.map((s) => s.subject)).size
 
   // Subject breakdown (within the period)
   const bySubject = subjects.map((subj) => ({
@@ -252,7 +253,7 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
           { label: "Total", value: fmtMinutes(totalMinutes), icon: "📚" },
           { label: "Today", value: fmtMinutes(todayMinutes), icon: "⏱" },
           { label: "Avg per study day", value: fmtMinutes(avgPerDay), icon: "📊" },
-          { label: "Subjects", value: subjects.length, icon: "🗂" },
+          { label: "Subjects", value: periodSubjectCount, icon: "🗂" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-border/60 bg-card p-4 space-y-1">
             <p className="text-xs text-muted-foreground">{s.label}</p>
@@ -278,7 +279,7 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
                 dataKey="minutes"
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
-                dot={false}
+                dot={{ r: 3, fill: "hsl(var(--primary))", strokeWidth: 0 }}
               />
             </LineChart>
           </ResponsiveContainer>
