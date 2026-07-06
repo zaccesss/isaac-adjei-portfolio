@@ -2,6 +2,7 @@
 // email alert when anything is within its type-specific warning window. I keep this
 // logic in a lib file so the cron route and any future callers share one implementation.
 import { supabase } from "@/lib/supabase"
+import { postDiscordWebhook } from "@/lib/discord-webhook"
 
 // I use per-type thresholds so time-sensitive documents (passports) alert
 // earlier than short-lived secrets (API keys).
@@ -99,7 +100,8 @@ export async function getExpiringItems(): Promise<ExpiringItem[]> {
 }
 
 export async function checkVaultExpiry(): Promise<{ ok: boolean; sent: boolean; count: number }> {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL
+  // Prefer a dedicated per-channel webhook, falling back to the shared one so existing setups keep working.
+  const webhookUrl = process.env.DISCORD_WEBHOOK_VAULT ?? process.env.DISCORD_WEBHOOK_URL
   if (!webhookUrl) return { ok: true, sent: false, count: 0 }
 
   const expiring = await getExpiringItems()
@@ -129,11 +131,7 @@ export async function checkVaultExpiry(): Promise<{ ok: boolean; sent: boolean; 
     ],
   }
 
-  const res = await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
-
-  return { ok: res.ok, sent: true, count: expiring.length }
+  // Loud on failure: a dead webhook logs the full Discord error and opens an incident, never a silent skip.
+  const result = await postDiscordWebhook(webhookUrl, body, "vault-expiry")
+  return { ok: result.ok, sent: true, count: expiring.length }
 }
