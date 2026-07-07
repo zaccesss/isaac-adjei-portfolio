@@ -267,11 +267,59 @@ export const COMMANDS = [
     ],
   },
   {
-    name: "log",
-    description: "Quick-log a diary entry",
-    detail: "Fast diary log. Study moved to /study log, weight to /weight log.",
+    name: "wishlist",
+    description: "Wishlist - add, remove, list",
+    detail: "Things you want. `add` adds an item, `remove` deletes one, `list` (default) shows the wishlist.",
     options: [
-      { type: SUB, name: "diary", description: "Save a quick diary entry", usage: "/log diary text:… mood:…",
+      { type: SUB, name: "list", description: "Show the wishlist", usage: "/wishlist list" },
+      { type: SUB, name: "add", description: "Add a wishlist item", usage: "/wishlist add item:Mechanical keyboard category:Tech",
+        options: [
+          { type: STR, name: "item", description: "Item name", required: true },
+          { type: STR, name: "category", description: "Category (optional)", required: false },
+        ] },
+      { type: SUB, name: "remove", description: "Remove a wishlist item", usage: "/wishlist remove name:keyboard",
+        options: [{ type: STR, name: "name", description: "Item name (partial match)", required: true }] },
+    ],
+  },
+  {
+    name: "inventory",
+    description: "Inventory - add, remove, find, counts",
+    detail: "Stuff you own. `add` adds an item, `remove` deletes one, `find` searches, `list` (default) shows counts by category.",
+    options: [
+      { type: SUB, name: "list", description: "Item counts by category", usage: "/inventory list" },
+      { type: SUB, name: "add", description: "Add an inventory item", usage: "/inventory add item:Raspberry Pi 5 category:Tech",
+        options: [
+          { type: STR, name: "item", description: "Item name", required: true },
+          { type: STR, name: "category", description: "Category (optional)", required: false },
+        ] },
+      { type: SUB, name: "find", description: "Search inventory", usage: "/inventory find name:cable",
+        options: [{ type: STR, name: "name", description: "Item name (partial match)", required: true }] },
+      { type: SUB, name: "remove", description: "Remove an inventory item", usage: "/inventory remove name:Pi",
+        options: [{ type: STR, name: "name", description: "Item name (partial match)", required: true }] },
+    ],
+  },
+  {
+    name: "note",
+    description: "Notes - add, delete, recent",
+    detail: "Quick notes. `add` captures a note (optionally in a folder), `delete` removes one, `recent` (default) lists the latest.",
+    options: [
+      { type: SUB, name: "recent", description: "Most recent notes", usage: "/note recent" },
+      { type: SUB, name: "add", description: "Capture a note", usage: "/note add text:Remember to… folder:Ideas",
+        options: [
+          { type: STR, name: "text", description: "Note text", required: true },
+          { type: STR, name: "folder", description: "Folder (optional, defaults to General)", required: false },
+        ] },
+      { type: SUB, name: "delete", description: "Delete a note", usage: "/note delete name:groceries",
+        options: [{ type: STR, name: "name", description: "Note title (partial match)", required: true }] },
+    ],
+  },
+  {
+    name: "diary",
+    description: "Diary - add an entry, count",
+    detail: "Private diary. `add` saves an entry with an optional mood, `count` (default) shows how many entries you have.",
+    options: [
+      { type: SUB, name: "count", description: "How many diary entries", usage: "/diary count" },
+      { type: SUB, name: "add", description: "Save a diary entry", usage: "/diary add text:Today I… mood:happy",
         options: [
           { type: STR, name: "text", description: "What's on your mind", required: true },
           { type: STR, name: "mood", description: "Mood (optional)", required: false },

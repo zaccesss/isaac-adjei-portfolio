@@ -109,7 +109,11 @@ const HELP = [
   "`/weight log kg:75.5` · `/weight undo` · `/weight stats`",
   "`/study log minutes:60 subject:Maths` · `/study stats`",
   "`/faith log type:bible` · `/faith stats`",
-  "`/log diary text:… mood:…`",
+  "`/diary add text:… mood:…` · `/note add text:…`",
+  "",
+  "**Belongings**",
+  "`/wishlist list` · `/wishlist add item:…`",
+  "`/inventory list` · `/inventory find name:…`",
   "",
   "`/ping` · `/help`",
 ].join("\n")
@@ -701,18 +705,110 @@ async function streakCommand(sub: CommandOption | undefined): Promise<string> {
   return "Use `/streak status`, `log name:…`, `all`, `undo name:…`, `clear` or `stats`."
 }
 
-async function logCommand(sub: CommandOption | undefined): Promise<string> {
+async function diaryCommand(sub: CommandOption | undefined): Promise<string> {
   const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
-  if (sub?.name === "diary") {
+  if (sub?.name === "add") {
     const text = String(opt("text") ?? "").trim()
-    if (!text) return "Give some text: `/log diary text:Today I…`"
+    if (!text) return "Give some text: `/diary add text:Today I…`"
     const mood = String(opt("mood") ?? "neutral").trim() || "neutral"
     const title = text.length > 50 ? `${text.slice(0, 50)}…` : text
     await supabase.from("diary").insert({ title, content: text, mood })
     await logBotActivity("diary.create", title)
     return "✅ Diary entry saved."
   }
-  return "Use `/log diary`. Study moved to `/study log`, weight to `/weight log`."
+  // count (default)
+  const { count } = await supabase.from("diary").select("id", { count: "exact", head: true })
+  return `**Diary** - ${count ?? 0} entries.`
+}
+
+async function noteCommand(sub: CommandOption | undefined): Promise<string> {
+  const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
+  if (sub?.name === "add") {
+    const text = String(opt("text") ?? "").trim()
+    if (!text) return "Give some text: `/note add text:Remember to…`"
+    const folder = String(opt("folder") ?? "General").trim() || "General"
+    const title = text.length > 60 ? `${text.slice(0, 60)}…` : text
+    await supabase.from("notes").insert({ title, content: text, folder })
+    await logBotActivity("note.create", title)
+    return `✅ Note saved to **${folder}**.`
+  }
+  if (sub?.name === "delete") {
+    const q = String(opt("name") ?? "").trim()
+    if (!q) return "Give a name: `/note delete name:groceries`"
+    const { data: matches } = await supabase.from("notes").select("id,title").ilike("title", `%${q}%`).limit(5)
+    if (!matches?.length) return `No note matching "${q}".`
+    if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
+    await supabase.from("notes").delete().eq("id", matches[0].id)
+    await logBotActivity("note.delete", matches[0].title)
+    return `🗑️ Deleted note **${matches[0].title}**.`
+  }
+  // recent (default)
+  const { data } = await supabase.from("notes").select("title,folder").order("updated_at", { ascending: false }).limit(10)
+  if (!data?.length) return "No notes yet."
+  return `**Recent notes**\n${data.map((n) => `• ${n.title} _(${n.folder})_`).join("\n")}`
+}
+
+async function wishlistCommand(sub: CommandOption | undefined): Promise<string> {
+  const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
+  if (sub?.name === "add") {
+    const name = String(opt("item") ?? "").trim()
+    if (!name) return "Give an item: `/wishlist add item:Mechanical keyboard`"
+    const category = String(opt("category") ?? "General").trim() || "General"
+    await supabase.from("wishlist").insert({ name, category, status: "wanted" })
+    await logBotActivity("wishlist.create", name)
+    return `✅ Added **${name}** to the wishlist.`
+  }
+  if (sub?.name === "remove") {
+    const q = String(opt("name") ?? "").trim()
+    if (!q) return "Give a name: `/wishlist remove name:keyboard`"
+    const { data: matches } = await supabase.from("wishlist").select("id,name").ilike("name", `%${q}%`).limit(5)
+    if (!matches?.length) return `No wishlist item matching "${q}".`
+    if (matches.length > 1) return `More than one: ${matches.map((m) => m.name).join(", ")}. Be more specific.`
+    await supabase.from("wishlist").delete().eq("id", matches[0].id)
+    await logBotActivity("wishlist.delete", matches[0].name)
+    return `🗑️ Removed **${matches[0].name}** from the wishlist.`
+  }
+  // list (default)
+  const { data } = await supabase.from("wishlist").select("name,category").order("created_at", { ascending: false }).limit(15)
+  if (!data?.length) return "Wishlist is empty."
+  return `**Wishlist**\n${data.map((w) => `• ${w.name} _(${w.category})_`).join("\n")}`
+}
+
+async function inventoryCommand(sub: CommandOption | undefined): Promise<string> {
+  const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
+  if (sub?.name === "add") {
+    const name = String(opt("item") ?? "").trim()
+    if (!name) return "Give an item: `/inventory add item:Raspberry Pi 5`"
+    const category = String(opt("category") ?? "Tech and Devices").trim() || "Tech and Devices"
+    await supabase.from("inventory_items").insert({ name, category })
+    await logBotActivity("inventory.create", name)
+    return `✅ Added **${name}** to inventory.`
+  }
+  if (sub?.name === "remove") {
+    const q = String(opt("name") ?? "").trim()
+    if (!q) return "Give a name: `/inventory remove name:Pi`"
+    const { data: matches } = await supabase.from("inventory_items").select("id,name").ilike("name", `%${q}%`).limit(5)
+    if (!matches?.length) return `No inventory item matching "${q}".`
+    if (matches.length > 1) return `More than one: ${matches.map((m) => m.name).join(", ")}. Be more specific.`
+    await supabase.from("inventory_items").delete().eq("id", matches[0].id)
+    await logBotActivity("inventory.delete", matches[0].name)
+    return `🗑️ Removed **${matches[0].name}** from inventory.`
+  }
+  if (sub?.name === "find") {
+    const q = String(opt("name") ?? "").trim()
+    if (!q) return "Give a name: `/inventory find name:cable`"
+    const { data } = await supabase.from("inventory_items").select("name,category,quantity").ilike("name", `%${q}%`).limit(10)
+    if (!data?.length) return `No inventory item matching "${q}".`
+    return data.map((i) => `• ${i.name} _(${i.category}${i.quantity && i.quantity > 1 ? `, x${i.quantity}` : ""})_`).join("\n")
+  }
+  // list (default) - counts by category
+  const { data } = await supabase.from("inventory_items").select("category")
+  const rows = data ?? []
+  if (!rows.length) return "Inventory is empty."
+  const by = new Map<string, number>()
+  for (const r of rows) by.set(r.category, (by.get(r.category) ?? 0) + 1)
+  const parts = [...by.entries()].sort((a, b) => b[1] - a[1]).map(([c, n]) => `${c}: ${n}`)
+  return `**Inventory - ${rows.length} items**\n${parts.join(" · ")}`
 }
 
 async function studyCommand(sub: CommandOption | undefined): Promise<string> {
@@ -857,7 +953,10 @@ const DEFERRED = new Set([
   "weight",
   "habit",
   "streak",
-  "log",
+  "wishlist",
+  "inventory",
+  "note",
+  "diary",
 ])
 
 export async function POST(req: Request) {
@@ -965,8 +1064,17 @@ export async function POST(req: Request) {
             case "streak":
               content = await streakCommand(sub)
               break
-            case "log":
-              content = await logCommand(sub)
+            case "wishlist":
+              content = await wishlistCommand(sub)
+              break
+            case "inventory":
+              content = await inventoryCommand(sub)
+              break
+            case "note":
+              content = await noteCommand(sub)
+              break
+            case "diary":
+              content = await diaryCommand(sub)
               break
           }
         } catch {
