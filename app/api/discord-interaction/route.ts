@@ -88,8 +88,9 @@ const HELP = [
   "",
   "**Status**",
   "`/today` · `/week` - full summary",
-  "`/goals` - active goals",
-  "`/applications` - pipeline + recent",
+  "`/goal list` · `/goal add` · `/goal done` - goals",
+  "`/app stats` · `/app add` · `/app status` - applications",
+  "`/oss stats` · `/oss add` - open source",
   "`/deadlines` - coursework due (3 weeks)",
   "`/calendar` - events (next 7 days)",
   "`/contacts` - follow-ups due",
@@ -141,27 +142,131 @@ const INTERVIEW_STATUSES = new Set([
 
 // ─── Read commands ───────────────────────────────────────────
 
-async function goalsCommand(): Promise<string> {
+// PostgREST .or() filters are comma-separated, so strip characters that would break the filter string when
+// I interpolate the owner's search term. It is my own input, so this is about robustness not security.
+const safe = (s: string): string => s.replace(/[,()]/g, " ").trim()
+
+async function goalCommand(sub: CommandOption | undefined): Promise<string> {
+  const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
+  if (sub?.name === "add") {
+    const title = String(opt("title") ?? "").trim()
+    if (!title) return "Give a title: `/goal add title:Learn Rust`"
+    const category = String(opt("category") ?? "Personal").trim() || "Personal"
+    await supabase.from("goals").insert({ title, category, status: "not_started", progress: 0 })
+    await logBotActivity("goal.create", title)
+    return `✅ Added goal **${title}** _(${category})_.`
+  }
+  if (sub?.name === "done" || sub?.name === "delete" || sub?.name === "progress") {
+    const q = String(opt("name") ?? "").trim()
+    if (!q) return `Give me a name: \`/goal ${sub.name} name:…\``
+    const { data: matches } = await supabase.from("goals").select("id,title").ilike("title", `%${q}%`).limit(5)
+    if (!matches?.length) return `No goal matching "${q}".`
+    if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => m.title).join(", ")}. Be more specific.`
+    const g = matches[0]
+    if (sub.name === "done") {
+      await supabase.from("goals").update({ status: "done", progress: 100 }).eq("id", g.id)
+      await logBotActivity("goal.update", `${g.title} done`)
+      return `✅ Marked goal **${g.title}** done.`
+    }
+    if (sub.name === "delete") {
+      await supabase.from("goals").delete().eq("id", g.id)
+      await logBotActivity("goal.delete", g.title)
+      return `🗑️ Deleted goal **${g.title}**.`
+    }
+    const pct = Math.round(Number(opt("pct")))
+    if (!Number.isFinite(pct)) return "Give a percentage: `/goal progress name:… pct:50`"
+    const clamped = Math.max(0, Math.min(100, pct))
+    const status = clamped >= 100 ? "done" : clamped > 0 ? "in_progress" : "not_started"
+    await supabase.from("goals").update({ progress: clamped, status }).eq("id", g.id)
+    await logBotActivity("goal.update", `${g.title} ${clamped}%`)
+    return `📈 **${g.title}** now at **${clamped}%**.`
+  }
+  // list (default)
   const { data } = await supabase.from("goals").select("title,status,category").order("updated_at", { ascending: false })
-  if (!data?.length) return "No goals yet."
+  if (!data?.length) return "No goals yet. Add one with `/goal add title:…`"
   const done = data.filter((g) => g.status === "done").length
-  const active = data.filter((g) => g.status !== "done")
-  const lines = active.slice(0, 15).map((g) => `• ${g.title}${g.category ? ` _(${g.category})_` : ""}`)
-  return `**Goals - ${active.length} active, ${done} done**\n${lines.join("\n") || "All done. 🎉"}`
+  const activeGoals = data.filter((g) => g.status !== "done")
+  const lines = activeGoals.slice(0, 15).map((g) => `• ${g.title}${g.category ? ` _(${g.category})_` : ""}`)
+  return `**Goals - ${activeGoals.length} active, ${done} done**\n${lines.join("\n") || "All done. 🎉"}`
 }
 
-async function applicationsCommand(): Promise<string> {
-  const { data } = await supabase
-    .from("applications")
-    .select("company,role,status,applied_date")
-    .not("status", "in", '("Not Applied","Not Interested","scraped")')
-    .order("applied_date", { ascending: false, nullsFirst: false })
-    .limit(100)
+async function appCommand(sub: CommandOption | undefined): Promise<string> {
+  const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
+  if (sub?.name === "add") {
+    const company = String(opt("company") ?? "").trim()
+    const role = String(opt("role") ?? "").trim()
+    if (!company || !role) return "Give company + role: `/app add company:Google role:SWE Intern`"
+    const status = String(opt("status") ?? "Applied").trim() || "Applied"
+    await supabase.from("applications").insert({ company, role, type: "Internship", status, applied_date: localToday() })
+    await logBotActivity("application.create", `${company} - ${role}`)
+    return `✅ Added **${company}** - ${role} _(${status})_.`
+  }
+  if (sub?.name === "status" || sub?.name === "delete") {
+    const q = safe(String(opt("name") ?? ""))
+    if (!q) return `Give a name: \`/app ${sub.name} name:Google\``
+    const { data: matches } = await supabase.from("applications").select("id,company,role").or(`company.ilike.%${q}%,role.ilike.%${q}%`).limit(5)
+    if (!matches?.length) return `No application matching "${q}".`
+    if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => `${m.company} (${m.role})`).join(", ")}. Be more specific.`
+    const a = matches[0]
+    if (sub.name === "delete") {
+      await supabase.from("applications").delete().eq("id", a.id)
+      await logBotActivity("application.delete", `${a.company} - ${a.role}`)
+      return `🗑️ Deleted **${a.company}** - ${a.role}.`
+    }
+    const to = String(opt("to") ?? "").trim()
+    if (!to) return "Usage: `/app status name:Google to:Interview`"
+    await supabase.from("applications").update({ status: to }).eq("id", a.id)
+    await logBotActivity("application.update", `${a.company} -> ${to}`)
+    return `✅ **${a.company}** - ${a.role} is now _${to}_.`
+  }
+  if (sub?.name === "list") {
+    const { data } = await supabase.from("applications").select("company,role,status").not("status", "in", '("Not Applied","Not Interested","scraped")').order("applied_date", { ascending: false, nullsFirst: false }).limit(10)
+    if (!data?.length) return "No live applications."
+    return `**Recent applications**\n${data.map((a) => `• **${a.company}** - ${a.role} _(${a.status})_`).join("\n")}`
+  }
+  // stats (default)
+  const { data } = await supabase.from("applications").select("company,role,status").not("status", "in", '("Not Applied","Not Interested","scraped")').order("applied_date", { ascending: false, nullsFirst: false }).limit(1000)
   if (!data?.length) return "No live applications."
   const interviews = data.filter((a) => INTERVIEW_STATUSES.has(a.status as string)).length
   const offers = data.filter((a) => a.status === "Offer Received").length
   const recent = data.slice(0, 6).map((a) => `• **${a.company}** - ${a.role} _(${a.status})_`)
   return `**Applications - ${data.length} live · ${interviews} interviewing · ${offers} offers**\n${recent.join("\n")}`
+}
+
+async function ossCommand(sub: CommandOption | undefined): Promise<string> {
+  const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
+  if (sub?.name === "add") {
+    const repo = String(opt("repo") ?? "").trim()
+    if (!repo) return "Give a repo: `/oss add repo:vercel/next.js title:Fix typo url:…`"
+    const pr_title = String(opt("title") ?? "Contribution").trim() || "Contribution"
+    const pr_url = String(opt("url") ?? "").trim() || null
+    await supabase.from("opensource_contributions").insert({ repo, pr_title, pr_url, status: "open" })
+    await logBotActivity("opensource.create", `${repo} - ${pr_title}`)
+    return `✅ Logged contribution to **${repo}**: ${pr_title}.`
+  }
+  if (sub?.name === "delete") {
+    const q = safe(String(opt("name") ?? ""))
+    if (!q) return "Give a name: `/oss delete name:next.js`"
+    const { data: matches } = await supabase.from("opensource_contributions").select("id,repo,pr_title").or(`repo.ilike.%${q}%,pr_title.ilike.%${q}%`).limit(5)
+    if (!matches?.length) return `No contribution matching "${q}".`
+    if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => `${m.repo} (${m.pr_title})`).join(", ")}. Be more specific.`
+    await supabase.from("opensource_contributions").delete().eq("id", matches[0].id)
+    await logBotActivity("opensource.delete", `${matches[0].repo} - ${matches[0].pr_title}`)
+    return `🗑️ Deleted contribution to **${matches[0].repo}**.`
+  }
+  if (sub?.name === "list") {
+    const { data } = await supabase.from("opensource_contributions").select("repo,pr_title,status").order("submitted_at", { ascending: false }).limit(10)
+    if (!data?.length) return "No contributions logged."
+    return `**Recent contributions**\n${data.map((c) => `• **${c.repo}** - ${c.pr_title} _(${c.status})_`).join("\n")}`
+  }
+  // stats (default)
+  const { data } = await supabase.from("opensource_contributions").select("status")
+  const rows = data ?? []
+  if (!rows.length) return "No contributions logged. Add one with `/oss add repo:…`"
+  const by = new Map<string, number>()
+  for (const r of rows) by.set(r.status, (by.get(r.status) ?? 0) + 1)
+  const parts = [...by.entries()].map(([s, n]) => `${s}: **${n}**`)
+  return `**Open source - ${rows.length} total**\n${parts.join(" · ")}`
 }
 
 async function deadlinesCommand(): Promise<string> {
@@ -444,8 +549,9 @@ async function logCommand(sub: CommandOption | undefined): Promise<string> {
 const DEFERRED = new Set([
   "today",
   "week",
-  "goals",
-  "applications",
+  "goal",
+  "app",
+  "oss",
   "deadlines",
   "calendar",
   "contacts",
@@ -518,11 +624,14 @@ export async function POST(req: Request) {
               content = summaryLine(await gatherDigestData(hours, period), label)
               break
             }
-            case "goals":
-              content = await goalsCommand()
+            case "goal":
+              content = await goalCommand(sub)
               break
-            case "applications":
-              content = await applicationsCommand()
+            case "app":
+              content = await appCommand(sub)
+              break
+            case "oss":
+              content = await ossCommand(sub)
               break
             case "deadlines":
               content = await deadlinesCommand()
