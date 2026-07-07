@@ -4,7 +4,7 @@
 // app/api/discord-interaction/route.ts - a command here with no handler will error when used.
 
 // Discord option types: 1 = subcommand, 2 = subcommand group, 3 = string, 4 = integer, 10 = number.
-const SUB = 1, STR = 3, INT = 4, NUM = 10
+const SUB = 1, GRP = 2, STR = 3, INT = 4, NUM = 10
 
 export const COMMANDS = [
   { name: "ping", description: "Check the bot is alive", usage: "/ping", detail: "Replies instantly to confirm the bot is up." },
@@ -72,7 +72,69 @@ export const COMMANDS = [
         options: [{ type: STR, name: "name", description: "Repo or title (partial match)", required: true }] },
     ],
   },
-  { name: "deadlines", description: "Upcoming university deadlines", usage: "/deadlines", detail: "Coursework and exams due in the next three weeks." },
+  {
+    name: "uni",
+    description: "University - deadlines, library books and submissions",
+    detail: "University admin. `deadline` lists/adds/completes coursework deadlines, `book` tracks library loans and returns, `submission` logs what you handed in.",
+    options: [
+      { type: GRP, name: "deadline", description: "Coursework deadlines",
+        options: [
+          { type: SUB, name: "list", description: "Deadlines due in the next three weeks", usage: "/uni deadline list" },
+          { type: SUB, name: "add", description: "Add a deadline", usage: "/uni deadline add title:Essay due:2026-05-01",
+            options: [
+              { type: STR, name: "title", description: "Deadline title", required: true },
+              { type: STR, name: "due", description: "Due date YYYY-MM-DD", required: true },
+            ] },
+          { type: SUB, name: "done", description: "Mark a deadline submitted", usage: "/uni deadline done name:Essay",
+            options: [{ type: STR, name: "name", description: "Deadline name (partial match)", required: true }] },
+        ] },
+      { type: GRP, name: "book", description: "Library books",
+        options: [
+          { type: SUB, name: "due", description: "Books on loan and their due dates", usage: "/uni book due" },
+          { type: SUB, name: "add", description: "Log a borrowed book", usage: "/uni book add title:Clean Code due:2026-05-01",
+            options: [
+              { type: STR, name: "title", description: "Book title", required: true },
+              { type: STR, name: "due", description: "Due date YYYY-MM-DD", required: true },
+            ] },
+          { type: SUB, name: "return", description: "Mark a book returned", usage: "/uni book return name:Clean Code",
+            options: [{ type: STR, name: "name", description: "Book title (partial match)", required: true }] },
+        ] },
+      { type: GRP, name: "submission", description: "Things submitted",
+        options: [
+          { type: SUB, name: "list", description: "Recent submissions", usage: "/uni submission list" },
+          { type: SUB, name: "add", description: "Log a submission", usage: "/uni submission add title:Lab report",
+            options: [{ type: STR, name: "title", description: "Submission title", required: true }] },
+        ] },
+    ],
+  },
+  {
+    name: "study",
+    description: "Study sessions - log, undo and stats",
+    detail: "Track study. `log` records a session, `undo` removes today's last, `stats` (default) shows the last 7 days by subject.",
+    options: [
+      { type: SUB, name: "stats", description: "Last 7 days total and per subject", usage: "/study stats" },
+      { type: SUB, name: "log", description: "Log a study session", usage: "/study log minutes:60 subject:Maths",
+        options: [
+          { type: INT, name: "minutes", description: "Duration in minutes", required: true },
+          { type: STR, name: "subject", description: "Subject studied", required: true },
+        ] },
+      { type: SUB, name: "undo", description: "Remove today's last study session", usage: "/study undo" },
+    ],
+  },
+  {
+    name: "faith",
+    description: "Faith entries - log, undo and streak",
+    detail: "Track faith entries (bible, prayer, church). `log` records one for today, `undo` removes today's last, `stats` (default) shows the entry streak.",
+    options: [
+      { type: SUB, name: "stats", description: "Current and longest entry streak", usage: "/faith stats" },
+      { type: SUB, name: "log", description: "Log a faith entry", usage: "/faith log type:bible title:Psalm 23",
+        options: [
+          { type: STR, name: "type", description: "Type (bible, prayer, church...) - defaults to bible", required: false },
+          { type: STR, name: "title", description: "Title or reference (optional)", required: false },
+        ] },
+      { type: SUB, name: "undo", description: "Remove today's last faith entry", usage: "/faith undo" },
+    ],
+  },
   { name: "calendar", description: "Events in the next 7 days", usage: "/calendar", detail: "Upcoming calendar events for the week ahead." },
   { name: "contacts", description: "Who is due a follow-up", usage: "/contacts", detail: "Contacts flagged for follow-up or not contacted in 30 days." },
   { name: "vault", description: "Keys, cards and documents expiring soon", usage: "/vault", detail: "Vault and inventory items inside their expiry warning window." },
@@ -120,14 +182,9 @@ export const COMMANDS = [
   },
   {
     name: "log",
-    description: "Quick-log a study session or diary entry",
-    detail: "Fast log for study and diary. Weight moved to /weight log.",
+    description: "Quick-log a diary entry",
+    detail: "Fast diary log. Study moved to /study log, weight to /weight log.",
     options: [
-      { type: SUB, name: "study", description: "Log a study session", usage: "/log study minutes:60 subject:Maths",
-        options: [
-          { type: INT, name: "minutes", description: "Duration in minutes", required: true },
-          { type: STR, name: "subject", description: "Subject studied", required: true },
-        ] },
       { type: SUB, name: "diary", description: "Save a quick diary entry", usage: "/log diary text:… mood:…",
         options: [
           { type: STR, name: "text", description: "What's on your mind", required: true },

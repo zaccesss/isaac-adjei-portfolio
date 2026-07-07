@@ -59,6 +59,15 @@ function formatAction(action: string): string {
     // Study
     "study.create": "Logged study session",
     "study.delete": "Deleted study session",
+    // Faith
+    "faith.create": "Logged faith entry",
+    "faith.delete": "Deleted faith entry",
+    // University
+    "deadline.create": "Added deadline",
+    "deadline.update": "Updated deadline",
+    "book.create": "Borrowed library book",
+    "book.update": "Returned library book",
+    "submission.create": "Logged submission",
     // Open source
     "opensource.create": "Added open source contribution",
     "opensource.update": "Updated contribution",
