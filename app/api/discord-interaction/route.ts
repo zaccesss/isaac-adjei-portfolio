@@ -91,13 +91,12 @@ const HELP = [
   "`/goal list` · `/goal add` · `/goal done` - goals",
   "`/app stats` · `/app add` · `/app status` - applications",
   "`/oss stats` · `/oss add` - open source",
-  "`/deadlines` - coursework due (3 weeks)",
+  "`/uni deadline list` · `/uni book due` · `/uni submission list`",
   "`/calendar` - events (next 7 days)",
   "`/contacts` - follow-ups due",
   "`/vault` - keys/cards/docs expiring",
   "`/coding` - hours today + this week",
   "`/fitness` - recent workouts",
-  "`/weight` - current weight + goal",
   "",
   "**Habits & streaks**",
   "`/streak status` · `/streak all` · `/streak log name:Gym`",
@@ -107,7 +106,8 @@ const HELP = [
   "",
   "**Quick log**",
   "`/weight log kg:75.5` · `/weight undo` · `/weight stats`",
-  "`/log study minutes:60 subject:Maths`",
+  "`/study log minutes:60 subject:Maths` · `/study stats`",
+  "`/faith log type:bible` · `/faith stats`",
   "`/log diary text:… mood:…`",
   "",
   "`/ping` · `/help`",
@@ -523,17 +523,7 @@ async function streakCommand(sub: CommandOption | undefined): Promise<string> {
 }
 
 async function logCommand(sub: CommandOption | undefined): Promise<string> {
-  const today = localToday()
   const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
-  if (sub?.name === "study") {
-    const minutes = Math.round(Number(opt("minutes")))
-    const subject = String(opt("subject") ?? "").trim()
-    if (!Number.isFinite(minutes) || minutes <= 0) return "Give minutes: `/log study minutes:60 subject:Maths`"
-    if (!subject) return "Give a subject: `/log study minutes:60 subject:Maths`"
-    await supabase.from("study_sessions").insert({ date: today, subject, duration_m: minutes, productive: true })
-    await logBotActivity("study.create", `${minutes}m of ${subject}`)
-    return `✅ Logged **${minutes}m** of ${subject}.`
-  }
   if (sub?.name === "diary") {
     const text = String(opt("text") ?? "").trim()
     if (!text) return "Give some text: `/log diary text:Today I…`"
@@ -543,7 +533,131 @@ async function logCommand(sub: CommandOption | undefined): Promise<string> {
     await logBotActivity("diary.create", title)
     return "✅ Diary entry saved."
   }
-  return "Use `/log study` or `/log diary`. Weight moved to `/weight log`."
+  return "Use `/log diary`. Study moved to `/study log`, weight to `/weight log`."
+}
+
+async function studyCommand(sub: CommandOption | undefined): Promise<string> {
+  const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
+  const today = localToday()
+  if (sub?.name === "log") {
+    const minutes = Math.round(Number(opt("minutes")))
+    const subject = String(opt("subject") ?? "").trim()
+    if (!Number.isFinite(minutes) || minutes <= 0) return "Give minutes: `/study log minutes:60 subject:Maths`"
+    if (!subject) return "Give a subject: `/study log minutes:60 subject:Maths`"
+    await supabase.from("study_sessions").insert({ date: today, subject, duration_m: minutes, productive: true })
+    await logBotActivity("study.create", `${minutes}m of ${subject}`)
+    return `✅ Logged **${minutes}m** of ${subject}.`
+  }
+  if (sub?.name === "undo") {
+    const { data: rows } = await supabase.from("study_sessions").select("id,subject").eq("date", today).order("id", { ascending: false }).limit(1)
+    if (!rows?.length) return "No study session logged today to undo."
+    await supabase.from("study_sessions").delete().eq("id", rows[0].id)
+    await logBotActivity("study.delete", String(rows[0].subject))
+    return `↩️ Removed today's last study session (${rows[0].subject}).`
+  }
+  // stats (default) - last 7 days total and per subject
+  const from = new Date(Date.now() - 7 * 86_400_000).toLocaleDateString("en-CA", { timeZone: "Europe/London" })
+  const { data } = await supabase.from("study_sessions").select("subject,duration_m").gte("date", from)
+  const rows = data ?? []
+  const total = rows.reduce((a, r) => a + (r.duration_m ?? 0), 0)
+  const bySub = new Map<string, number>()
+  for (const r of rows) bySub.set(r.subject, (bySub.get(r.subject) ?? 0) + (r.duration_m ?? 0))
+  const lines = [...bySub.entries()].sort((a, b) => b[1] - a[1]).map(([s, m]) => `• ${s} - ${(m / 60).toFixed(1)}h`)
+  return `**Study - last 7 days (${(total / 60).toFixed(1)}h)**\n${lines.join("\n") || "nothing logged"}`
+}
+
+async function faithCommand(sub: CommandOption | undefined): Promise<string> {
+  const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
+  const today = localToday()
+  if (sub?.name === "log") {
+    const type = String(opt("type") ?? "bible").trim() || "bible"
+    const title = String(opt("title") ?? "").trim() || null
+    await supabase.from("faith_entries").insert({ date: today, type, title, completed: true })
+    await logBotActivity("faith.create", type)
+    return `✅ Logged a **${type}** entry for today.`
+  }
+  if (sub?.name === "undo") {
+    const { data: rows } = await supabase.from("faith_entries").select("id,type").eq("date", today).order("id", { ascending: false }).limit(1)
+    if (!rows?.length) return "No faith entry logged today to undo."
+    await supabase.from("faith_entries").delete().eq("id", rows[0].id)
+    await logBotActivity("faith.delete", String(rows[0].type))
+    return "↩️ Removed today's last faith entry."
+  }
+  // stats (default) - entry streak
+  const { data } = await supabase.from("faith_entries").select("date").eq("completed", true)
+  const dates = (data ?? []).map((r) => r.date as string)
+  const { current, longest } = streakLengths(dates, today)
+  return `**Faith** - **${current}**d current streak, ${longest}d best. ${dates.length} entries total.`
+}
+
+// /uni is a two-level command: sub is the group (deadline / book / submission) and sub.options[0] is the
+// actual subcommand, whose options hold the parameters.
+async function uniCommand(sub: CommandOption | undefined): Promise<string> {
+  const group = sub?.name
+  const cmd = sub?.options?.[0]
+  const opt = (n: string) => cmd?.options?.find((o) => o.name === n)?.value
+  const today = localToday()
+
+  if (group === "deadline") {
+    if (cmd?.name === "add") {
+      const title = String(opt("title") ?? "").trim()
+      const due = String(opt("due") ?? "").trim()
+      if (!title || !due) return "Usage: `/uni deadline add title:Essay due:2026-05-01`"
+      await supabase.from("uni_deadlines").insert({ title, due_date: due, status: "not_started" })
+      await logBotActivity("deadline.create", title)
+      return `✅ Added deadline **${title}** due ${due}.`
+    }
+    if (cmd?.name === "done") {
+      const q = String(opt("name") ?? "").trim()
+      if (!q) return "Give a name: `/uni deadline done name:Essay`"
+      const { data: matches } = await supabase.from("uni_deadlines").select("id,title").ilike("title", `%${q}%`).neq("status", "graded").limit(5)
+      if (!matches?.length) return `No deadline matching "${q}".`
+      if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
+      await supabase.from("uni_deadlines").update({ status: "submitted", submitted_at: new Date().toISOString() }).eq("id", matches[0].id)
+      await logBotActivity("deadline.update", `${matches[0].title} submitted`)
+      return `✅ Marked **${matches[0].title}** submitted.`
+    }
+    return deadlinesCommand()
+  }
+
+  if (group === "book") {
+    if (cmd?.name === "add") {
+      const title = String(opt("title") ?? "").trim()
+      const due = String(opt("due") ?? "").trim()
+      if (!title || !due) return "Usage: `/uni book add title:Clean Code due:2026-05-01`"
+      await supabase.from("uni_library_books").insert({ title, due_date: due, borrowed_at: today })
+      await logBotActivity("book.create", title)
+      return `✅ Borrowed **${title}**, due ${due}.`
+    }
+    if (cmd?.name === "return") {
+      const q = String(opt("name") ?? "").trim()
+      if (!q) return "Give a name: `/uni book return name:Clean Code`"
+      const { data: matches } = await supabase.from("uni_library_books").select("id,title").is("returned_at", null).ilike("title", `%${q}%`).limit(5)
+      if (!matches?.length) return `No book on loan matching "${q}".`
+      if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
+      await supabase.from("uni_library_books").update({ returned_at: today }).eq("id", matches[0].id)
+      await logBotActivity("book.update", `${matches[0].title} returned`)
+      return `✅ Returned **${matches[0].title}**.`
+    }
+    const { data } = await supabase.from("uni_library_books").select("title,due_date").is("returned_at", null).order("due_date")
+    if (!data?.length) return "**Library** - no books on loan. 📚"
+    return `**On loan**\n${data.map((b) => `• ${b.title} - due ${b.due_date}`).join("\n")}`
+  }
+
+  if (group === "submission") {
+    if (cmd?.name === "add") {
+      const title = String(opt("title") ?? "").trim()
+      if (!title) return "Give a title: `/uni submission add title:Lab report`"
+      await supabase.from("uni_submissions").insert({ title })
+      await logBotActivity("submission.create", title)
+      return `✅ Logged submission **${title}**.`
+    }
+    const { data } = await supabase.from("uni_submissions").select("title,submitted_at").order("submitted_at", { ascending: false }).limit(10)
+    if (!data?.length) return "No submissions logged."
+    return `**Recent submissions**\n${data.map((s) => `• ${s.title} _(${String(s.submitted_at).slice(0, 10)})_`).join("\n")}`
+  }
+
+  return "Use `/uni deadline`, `/uni book` or `/uni submission`."
 }
 
 const DEFERRED = new Set([
@@ -552,7 +666,9 @@ const DEFERRED = new Set([
   "goal",
   "app",
   "oss",
-  "deadlines",
+  "uni",
+  "study",
+  "faith",
   "calendar",
   "contacts",
   "vault",
@@ -633,8 +749,14 @@ export async function POST(req: Request) {
             case "oss":
               content = await ossCommand(sub)
               break
-            case "deadlines":
-              content = await deadlinesCommand()
+            case "uni":
+              content = await uniCommand(sub)
+              break
+            case "study":
+              content = await studyCommand(sub)
+              break
+            case "faith":
+              content = await faithCommand(sub)
               break
             case "calendar":
               content = await calendarCommand()
