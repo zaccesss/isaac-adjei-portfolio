@@ -88,6 +88,13 @@ function formatAction(action: string): string {
     "contact.create": "Added contact",
     "contact.update": "Updated contact",
     "contact.delete": "Removed contact",
+    // Calendar
+    "calendar.create": "Added calendar event",
+    "calendar.delete": "Removed calendar event",
+    // Reminders
+    "reminder.create": "Set a reminder",
+    "reminder.update": "Completed a reminder",
+    "reminder.delete": "Deleted a reminder",
     // Trash
     "trash.empty": "Emptied trash",
     "trash.permanent_delete": "Permanently deleted item",
