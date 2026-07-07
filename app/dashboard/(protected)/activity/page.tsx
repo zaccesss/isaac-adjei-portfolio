@@ -84,6 +84,12 @@ function formatAction(action: string): string {
     "health.create": "Logged health entry",
     "health.update": "Updated health entry",
     "health.delete": "Deleted health entry",
+    "nutrition.create": "Logged a meal",
+    "nutrition.delete": "Deleted a meal",
+    "workout.create": "Logged a workout",
+    "workout.delete": "Deleted a workout",
+    "medication.taken": "Marked medication taken",
+    "medication.undo": "Unmarked medication",
     // Contacts
     "contact.create": "Added contact",
     "contact.update": "Updated contact",
