@@ -92,8 +92,9 @@ const HELP = [
   "`/app stats` · `/app add` · `/app status` - applications",
   "`/oss stats` · `/oss add` - open source",
   "`/uni deadline list` · `/uni book due` · `/uni submission list`",
-  "`/calendar` - events (next 7 days)",
-  "`/contacts` - follow-ups due",
+  "`/calendar agenda` · `/calendar add title:… when:…`",
+  "`/contact list` · `/contact add` · `/contact logged name:…`",
+  "`/reminder list` · `/reminder add title:… when:…`",
   "`/vault` - keys/cards/docs expiring",
   "`/coding` - hours today + this week",
   "`/fitness` - recent workouts",
@@ -288,17 +289,46 @@ async function deadlinesCommand(): Promise<string> {
   return `**Upcoming deadlines**\n${lines.join("\n")}`
 }
 
-async function calendarCommand(): Promise<string> {
+// Parse "YYYY-MM-DD HH:MM" as London wall-clock time into a UTC ISO string, so an event or reminder I type
+// in Discord fires at the time I meant even though the server runs on UTC.
+function londonOffsetMinutes(d: Date): number {
+  const utc = new Date(d.toLocaleString("en-US", { timeZone: "UTC" }))
+  const lon = new Date(d.toLocaleString("en-US", { timeZone: "Europe/London" }))
+  return Math.round((lon.getTime() - utc.getTime()) / 60000)
+}
+function parseWhenToUtc(s: string): string | null {
+  const m = s.trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})$/)
+  if (!m) return null
+  const guess = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5])
+  if (Number.isNaN(guess)) return null
+  return new Date(guess - londonOffsetMinutes(new Date(guess)) * 60_000).toISOString()
+}
+
+async function calendarCommand(sub: CommandOption | undefined): Promise<string> {
+  const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
+  if (sub?.name === "add") {
+    const title = String(opt("title") ?? "").trim()
+    const when = parseWhenToUtc(String(opt("when") ?? ""))
+    if (!title || !when) return "Usage: `/calendar add title:Dentist when:2026-07-20 14:00`"
+    const end = new Date(new Date(when).getTime() + 60 * 60_000).toISOString()
+    await supabase.from("calendar_events").insert({ title, start_at: when, end_at: end })
+    await logBotActivity("calendar.create", title)
+    return `✅ Added **${title}** to the calendar.`
+  }
+  if (sub?.name === "delete") {
+    const q = String(opt("name") ?? "").trim()
+    if (!q) return "Give a name: `/calendar delete name:Dentist`"
+    const { data: matches } = await supabase.from("calendar_events").select("id,title").eq("is_deleted", false).ilike("title", `%${q}%`).limit(5)
+    if (!matches?.length) return `No event matching "${q}".`
+    if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
+    await supabase.from("calendar_events").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", matches[0].id)
+    await logBotActivity("calendar.delete", matches[0].title)
+    return `🗑️ Removed **${matches[0].title}** from the calendar.`
+  }
+  // agenda (default) - next 7 days
   const now = new Date()
   const in7 = new Date(now.getTime() + 7 * 86_400_000).toISOString()
-  const { data } = await supabase
-    .from("calendar_events")
-    .select("title,start_at")
-    .eq("is_deleted", false)
-    .gte("start_at", now.toISOString())
-    .lte("start_at", in7)
-    .order("start_at", { ascending: true })
-    .limit(10)
+  const { data } = await supabase.from("calendar_events").select("title,start_at").eq("is_deleted", false).gte("start_at", now.toISOString()).lte("start_at", in7).order("start_at", { ascending: true }).limit(10)
   if (!data?.length) return "**Calendar** - nothing in the next 7 days."
   const lines = data.map((e) => {
     const d = new Date(e.start_at as string)
@@ -309,17 +339,78 @@ async function calendarCommand(): Promise<string> {
   return `**Next 7 days**\n${lines.join("\n")}`
 }
 
-async function contactsCommand(): Promise<string> {
+async function contactCommand(sub: CommandOption | undefined): Promise<string> {
+  const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
+  const today = localToday()
+  if (sub?.name === "add") {
+    const name = String(opt("name") ?? "").trim()
+    if (!name) return "Give a name: `/contact add name:Jane Doe company:Google`"
+    const company = String(opt("company") ?? "").trim() || null
+    await supabase.from("contacts").insert({ name, company })
+    await logBotActivity("contact.create", name)
+    return `✅ Added contact **${name}**${company ? ` _(${company})_` : ""}.`
+  }
+  if (sub?.name === "logged" || sub?.name === "delete" || sub?.name === "find") {
+    const q = String(opt("name") ?? "").trim()
+    if (!q) return `Give a name: \`/contact ${sub.name} name:Jane\``
+    const { data: matches } = await supabase.from("contacts").select("id,name,company,role,last_contact").ilike("name", `%${q}%`).limit(5)
+    if (!matches?.length) return `No contact matching "${q}".`
+    if (sub.name === "find") {
+      return matches.map((m) => `**${m.name}**${m.company ? ` - ${m.company}` : ""}${m.role ? ` (${m.role})` : ""}${m.last_contact ? ` _(last ${m.last_contact})_` : ""}`).join("\n")
+    }
+    if (matches.length > 1) return `More than one: ${matches.map((m) => m.name).join(", ")}. Be more specific.`
+    const c = matches[0]
+    if (sub.name === "logged") {
+      await supabase.from("contacts").update({ last_contact: today, follow_up: false }).eq("id", c.id)
+      await logBotActivity("contact.update", `${c.name} contacted`)
+      return `✅ Logged contact with **${c.name}** today.`
+    }
+    await supabase.from("contacts").delete().eq("id", c.id)
+    await logBotActivity("contact.delete", c.name)
+    return `🗑️ Deleted contact **${c.name}**.`
+  }
+  // list (default) - follow-ups due
   const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10)
-  const { data } = await supabase
-    .from("contacts")
-    .select("name,last_contact,follow_up")
-    .or(`follow_up.eq.true,last_contact.lt.${thirtyDaysAgo}`)
-    .order("last_contact", { ascending: true, nullsFirst: true })
-    .limit(10)
+  const { data } = await supabase.from("contacts").select("name,last_contact,follow_up").or(`follow_up.eq.true,last_contact.lt.${thirtyDaysAgo}`).order("last_contact", { ascending: true, nullsFirst: true }).limit(10)
   if (!data?.length) return "**Contacts** - nobody is due a follow-up. 👍"
   const lines = data.map((c) => `• ${c.name}${c.last_contact ? ` _(last ${c.last_contact})_` : " _(no contact logged)_"}`)
   return `**Follow-ups due**\n${lines.join("\n")}`
+}
+
+async function reminderCommand(sub: CommandOption | undefined): Promise<string> {
+  const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
+  if (sub?.name === "add") {
+    const title = String(opt("title") ?? "").trim()
+    const when = parseWhenToUtc(String(opt("when") ?? ""))
+    if (!title || !when) return "Usage: `/reminder add title:Call the bank when:2026-07-20 14:00`"
+    await supabase.from("reminders").insert({ kind: "appointment", title, event_at: when, lead_minutes: [1440], channels: ["discord"] })
+    await logBotActivity("reminder.create", title)
+    return `✅ Reminder set for **${title}**.`
+  }
+  if (sub?.name === "done" || sub?.name === "delete") {
+    const q = String(opt("name") ?? "").trim()
+    if (!q) return `Give a name: \`/reminder ${sub.name} name:bank\``
+    const { data: matches } = await supabase.from("reminders").select("id,title").ilike("title", `%${q}%`).limit(5)
+    if (!matches?.length) return `No reminder matching "${q}".`
+    if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
+    if (sub.name === "delete") {
+      await supabase.from("reminders").delete().eq("id", matches[0].id)
+      await logBotActivity("reminder.delete", matches[0].title)
+      return `🗑️ Deleted reminder **${matches[0].title}**.`
+    }
+    await supabase.from("reminders").update({ active: false }).eq("id", matches[0].id)
+    await logBotActivity("reminder.update", `${matches[0].title} done`)
+    return `✅ Marked reminder **${matches[0].title}** done.`
+  }
+  // list (default) - upcoming active reminders
+  const { data } = await supabase.from("reminders").select("title,event_at").eq("active", true).gte("event_at", new Date().toISOString()).order("event_at", { ascending: true }).limit(10)
+  if (!data?.length) return "**Reminders** - nothing upcoming."
+  const lines = data.map((r) => {
+    const d = new Date(r.event_at as string)
+    const when = d.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" })
+    return `• **${r.title}** - ${when}`
+  })
+  return `**Upcoming reminders**\n${lines.join("\n")}`
 }
 
 async function vaultCommand(): Promise<string> {
@@ -670,7 +761,8 @@ const DEFERRED = new Set([
   "study",
   "faith",
   "calendar",
-  "contacts",
+  "contact",
+  "reminder",
   "vault",
   "coding",
   "fitness",
@@ -759,10 +851,13 @@ export async function POST(req: Request) {
               content = await faithCommand(sub)
               break
             case "calendar":
-              content = await calendarCommand()
+              content = await calendarCommand(sub)
               break
-            case "contacts":
-              content = await contactsCommand()
+            case "contact":
+              content = await contactCommand(sub)
+              break
+            case "reminder":
+              content = await reminderCommand(sub)
               break
             case "vault":
               content = await vaultCommand()
