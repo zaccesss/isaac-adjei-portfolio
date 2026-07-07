@@ -97,7 +97,7 @@ const HELP = [
   "`/reminder list` · `/reminder add title:… when:…`",
   "`/vault` - keys/cards/docs expiring",
   "`/coding` - hours today + this week",
-  "`/fitness` - recent workouts",
+  "`/health meal log` · `/health med taken` · `/health fitness stats`",
   "",
   "**Habits & streaks**",
   "`/streak status` · `/streak all` · `/streak log name:Gym`",
@@ -448,6 +448,94 @@ async function fitnessCommand(): Promise<string> {
   return `**Recent workouts**\n${lines.join("\n")}`
 }
 
+// /health is a two-level command: sub is the group (meal / med / workout / fitness) and sub.options[0] is
+// the actual subcommand, whose options hold the parameters.
+async function healthCommand(sub: CommandOption | undefined): Promise<string> {
+  const group = sub?.name
+  const cmd = sub?.options?.[0]
+  const opt = (n: string) => cmd?.options?.find((o) => o.name === n)?.value
+  const today = localToday()
+
+  if (group === "meal") {
+    if (cmd?.name === "log") {
+      const calories = Math.round(Number(opt("calories")))
+      if (!Number.isFinite(calories) || calories <= 0) return "Usage: `/health meal log calories:600 name:Chicken rice protein:40`"
+      const protein = Number(opt("protein"))
+      const name = String(opt("name") ?? "").trim() || "meal"
+      const meal = String(opt("meal") ?? "snack").trim() || "snack"
+      await supabase.from("nutrition_logs").insert({ date: today, meal, name, calories, protein_g: Number.isFinite(protein) ? protein : null })
+      await logBotActivity("nutrition.create", `${name} ${calories}kcal`)
+      return `✅ Logged **${name}** - ${calories} kcal${Number.isFinite(protein) ? `, ${protein}g protein` : ""}.`
+    }
+    if (cmd?.name === "undo") {
+      const { data: rows } = await supabase.from("nutrition_logs").select("id,name").eq("date", today).order("created_at", { ascending: false }).limit(1)
+      if (!rows?.length) return "No meal logged today to undo."
+      await supabase.from("nutrition_logs").delete().eq("id", rows[0].id)
+      await logBotActivity("nutrition.delete", String(rows[0].name))
+      return `↩️ Removed today's last meal (${rows[0].name}).`
+    }
+  }
+
+  if (group === "workout") {
+    if (cmd?.name === "log") {
+      const type = String(opt("type") ?? "").trim()
+      const minutes = Math.round(Number(opt("minutes")))
+      if (!type || !Number.isFinite(minutes) || minutes <= 0) return "Usage: `/health workout log type:Run minutes:40`"
+      await supabase.from("workout_logs").insert({ date: today, type, duration_min: minutes })
+      await logBotActivity("workout.create", `${type} ${minutes}m`)
+      return `✅ Logged **${type}** for ${minutes}m.`
+    }
+    if (cmd?.name === "undo") {
+      const { data: rows } = await supabase.from("workout_logs").select("id,type").eq("date", today).order("created_at", { ascending: false }).limit(1)
+      if (!rows?.length) return "No workout logged today to undo."
+      await supabase.from("workout_logs").delete().eq("id", rows[0].id)
+      await logBotActivity("workout.delete", String(rows[0].type))
+      return `↩️ Removed today's last workout (${rows[0].type}).`
+    }
+  }
+
+  if (group === "med") {
+    const dayStart = `${today}T00:00:00`
+    if (cmd?.name === "taken") {
+      const q = String(opt("name") ?? "").trim()
+      let query = supabase.from("medication_doses").select("id,name").eq("status", "sent").gte("sent_at", dayStart)
+      if (q) query = query.ilike("name", `%${q}%`)
+      const { data: rows } = await query.order("sent_at", { ascending: false }).limit(1)
+      if (!rows?.length) return q ? `No pending dose today matching "${q}".` : "No pending doses today. 💊"
+      await supabase.from("medication_doses").update({ status: "taken", taken_at: new Date().toISOString() }).eq("id", rows[0].id)
+      await logBotActivity("medication.taken", String(rows[0].name))
+      return `✅ Marked **${rows[0].name}** as taken.`
+    }
+    if (cmd?.name === "undo") {
+      const { data: rows } = await supabase.from("medication_doses").select("id,name").eq("status", "taken").order("taken_at", { ascending: false }).limit(1)
+      if (!rows?.length) return "No dose marked taken to undo."
+      await supabase.from("medication_doses").update({ status: "sent", taken_at: null }).eq("id", rows[0].id)
+      await logBotActivity("medication.undo", String(rows[0].name))
+      return `↩️ Unmarked **${rows[0].name}**.`
+    }
+    const { data } = await supabase.from("medication_doses").select("name,scheduled_time,status").gte("sent_at", dayStart).order("scheduled_time")
+    if (!data?.length) return "**Medication** - nothing scheduled today. 💊"
+    return `**Doses today**\n${data.map((d) => `${d.status === "taken" ? "✅" : "⬜"} ${d.name}${d.scheduled_time ? ` - ${d.scheduled_time}` : ""}`).join("\n")}`
+  }
+
+  if (group === "fitness") {
+    if (cmd?.name === "stats") {
+      const { data } = await supabase.from("strava_activities").select("distance_m,moving_time_s,sport_type")
+      const rows = data ?? []
+      if (!rows.length) return "**Fitness** - no Strava activities yet."
+      const km = (rows.reduce((a, r) => a + ((r.distance_m as number) ?? 0), 0) / 1000).toFixed(0)
+      const hours = (rows.reduce((a, r) => a + ((r.moving_time_s as number) ?? 0), 0) / 3600).toFixed(0)
+      const bySport = new Map<string, number>()
+      for (const r of rows) bySport.set(r.sport_type as string, (bySport.get(r.sport_type as string) ?? 0) + 1)
+      const sports = [...bySport.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([s, n]) => `${s}: ${n}`).join(", ")
+      return `**Fitness (all time)**\n${rows.length} activities · ${km}km · ${hours}h moving\n${sports}`
+    }
+    return fitnessCommand()
+  }
+
+  return "Use `/health meal`, `/health med`, `/health workout` or `/health fitness`."
+}
+
 async function weightCommand(sub: CommandOption | undefined): Promise<string> {
   const today = localToday()
 
@@ -765,7 +853,7 @@ const DEFERRED = new Set([
   "reminder",
   "vault",
   "coding",
-  "fitness",
+  "health",
   "weight",
   "habit",
   "streak",
@@ -865,8 +953,8 @@ export async function POST(req: Request) {
             case "coding":
               content = await codingCommand()
               break
-            case "fitness":
-              content = await fitnessCommand()
+            case "health":
+              content = await healthCommand(sub)
               break
             case "weight":
               content = await weightCommand(sub)

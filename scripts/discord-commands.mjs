@@ -188,7 +188,44 @@ export const COMMANDS = [
   },
   { name: "vault", description: "Keys, cards and documents expiring soon", usage: "/vault", detail: "Vault and inventory items inside their expiry warning window." },
   { name: "coding", description: "Coding hours today and this week", usage: "/coding", detail: "WakaTime hours for today and the last 7 days." },
-  { name: "fitness", description: "Recent workouts", usage: "/fitness", detail: "Strava activities from the last two weeks." },
+  {
+    name: "health",
+    description: "Health - meals, medication, workouts and fitness",
+    detail: "Everything health. `meal` logs nutrition, `med` marks doses taken, `workout` logs a session, `fitness` shows Strava recent and all-time stats.",
+    options: [
+      { type: GRP, name: "meal", description: "Nutrition",
+        options: [
+          { type: SUB, name: "log", description: "Log a meal", usage: "/health meal log calories:600 name:Chicken rice protein:40",
+            options: [
+              { type: INT, name: "calories", description: "Calories", required: true },
+              { type: STR, name: "name", description: "What you ate", required: false },
+              { type: INT, name: "protein", description: "Protein in grams (optional)", required: false },
+            ] },
+          { type: SUB, name: "undo", description: "Remove today's last meal", usage: "/health meal undo" },
+        ] },
+      { type: GRP, name: "med", description: "Medication doses",
+        options: [
+          { type: SUB, name: "due", description: "Today's doses and what's taken", usage: "/health med due" },
+          { type: SUB, name: "taken", description: "Mark a dose taken", usage: "/health med taken name:Eye drops",
+            options: [{ type: STR, name: "name", description: "Medication name (optional, else the latest pending)", required: false }] },
+          { type: SUB, name: "undo", description: "Unmark the last dose taken", usage: "/health med undo" },
+        ] },
+      { type: GRP, name: "workout", description: "Workouts",
+        options: [
+          { type: SUB, name: "log", description: "Log a workout", usage: "/health workout log type:Run minutes:40",
+            options: [
+              { type: STR, name: "type", description: "Workout type", required: true },
+              { type: INT, name: "minutes", description: "Duration in minutes", required: true },
+            ] },
+          { type: SUB, name: "undo", description: "Remove today's last workout", usage: "/health workout undo" },
+        ] },
+      { type: GRP, name: "fitness", description: "Strava fitness",
+        options: [
+          { type: SUB, name: "recent", description: "Recent workouts (last two weeks)", usage: "/health fitness recent" },
+          { type: SUB, name: "stats", description: "All-time distance, hours and sports", usage: "/health fitness stats" },
+        ] },
+    ],
+  },
   {
     name: "streak",
     description: "Track streaks - log, undo and stats",
