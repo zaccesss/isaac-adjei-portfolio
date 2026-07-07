@@ -1,4 +1,4 @@
-import { streamText, convertToModelMessages, tool, stepCountIs, type UIMessage } from "ai"
+import { streamText, generateText, convertToModelMessages, tool, stepCountIs, type UIMessage } from "ai"
 import { z } from "zod"
 import { createGroq } from "@ai-sdk/groq"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
@@ -189,6 +189,28 @@ function pickModel(choice: string | undefined, multimodal: boolean) {
   return null
 }
 
+type Candidate = { model: NonNullable<ReturnType<typeof pickModel>>; label: string }
+
+// The chosen model first, then free fallbacks (Gemini, Groq, OpenRouter). ANY model can hit a quota, rate
+// limit or budget wall - GitHub Models and the free OpenRouter tiers especially - so rather than erroring I
+// fall through to the next free model that actually responds. I skip a fallback that duplicates the choice.
+function pickModelChain(choice: string | undefined, multimodal: boolean): Candidate[] {
+  const chain: Candidate[] = []
+  const push = (label: string, model: ReturnType<typeof pickModel>) => {
+    if (model) chain.push({ model, label })
+  }
+  push(choice || "default", pickModel(choice, multimodal))
+  const c = choice ?? ""
+  const googleKey = process.env.GOOGLE_AI_API_KEY
+  const groqKey = process.env.GROQ_API_KEY
+  const orKey = process.env.OPENROUTER_API_KEY
+  // Gemini is the only free multimodal fallback, so the text-only fallbacks are skipped when files attach.
+  if (googleKey && c !== "gemini" && !c.startsWith("google:")) push("gemini (fallback)", createGoogleGenerativeAI({ apiKey: googleKey })("gemini-2.5-flash"))
+  if (!multimodal && groqKey && c !== "groq" && !c.startsWith("groq:")) push("groq (fallback)", createGroq({ apiKey: groqKey })("llama-3.3-70b-versatile"))
+  if (!multimodal && orKey && !c.startsWith("openrouter:")) push("openrouter (fallback)", createOpenRouter({ apiKey: orKey })("meta-llama/llama-3.3-70b-instruct:free"))
+  return chain
+}
+
 export async function POST(req: Request) {
   const session = await auth()
   if (!session) return new Response("Unauthorised", { status: 401, headers: { "Cache-Control": "no-store" } })
@@ -198,8 +220,8 @@ export async function POST(req: Request) {
 
   const { messages, model }: { messages: UIMessage[]; model?: string } = await req.json()
   const multimodal = hasFiles(messages)
-  const chosen = pickModel(model, multimodal)
-  if (!chosen) {
+  const chain = pickModelChain(model, multimodal)
+  if (chain.length === 0) {
     return new Response(
       multimodal
         ? "Image and file analysis needs the Gemini key (GOOGLE_AI_API_KEY) in Vercel."
@@ -246,8 +268,32 @@ export async function POST(req: Request) {
     "repeating recent reading.",
   ].join("\n")
 
+  // Probe each candidate with a tiny call so a quota, budget, rate-limit or auth failure is caught up front,
+  // then stream with the first that answers. This is what makes the fallback work for every provider: the
+  // failure modes (403 budget, 429 rate limit, 401 bad key) all surface here as a thrown error I can skip.
+  const failures: string[] = []
+  let working: Candidate | null = null
+  for (const cand of chain) {
+    try {
+      await generateText({ model: cand.model, prompt: "ok", maxOutputTokens: 1 })
+      working = cand
+      break
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err)
+      console.error(`[assistant] ${cand.label} unavailable: ${detail}`)
+      failures.push(`${cand.label}: ${detail}`)
+    }
+  }
+  if (!working) {
+    // Every model failed - surface the full detail so I can see exactly why (quota, key, model access).
+    return new Response(`Every model is unavailable right now.\n\n${failures.join("\n")}`, {
+      status: 503,
+      headers: { "Cache-Control": "no-store" },
+    })
+  }
+
   const result = streamText({
-    model: chosen,
+    model: working.model,
     system,
     messages: await convertToModelMessages(messages),
     tools: {
