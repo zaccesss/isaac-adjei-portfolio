@@ -13,6 +13,7 @@
 
 interface Env {
   PSN_NPSSO: string
+  PSN_ACCOUNT_ID: string // my PSN account id, a wrangler var (not a secret)
   UPSTASH_REDIS_REST_URL: string
   UPSTASH_REDIS_REST_TOKEN: string
   PS5_KV: KVNamespace
@@ -24,7 +25,6 @@ interface Env {
 const PSN_CLIENT_ID = "09515159-7237-4370-9b40-3806e67c0891" // gitleaks:allow
 const PSN_CLIENT_SECRET = "ucPjka5tntB2KqsP" // gitleaks:allow
 const PSN_REDIRECT_URI = "com.scee.psxandroid.scecompcall://redirect"
-const PSN_ACCOUNT_ID = "322685844450023200"
 const REFRESH_TOKEN_KEY = "psn:refresh_token"
 
 async function upstash(env: Env, command: unknown[]): Promise<void> {
@@ -226,7 +226,7 @@ async function fetchPresence(accessToken: string, env: Env): Promise<{
     withOwnGameTitleInfo: "true",
   })
   const res = await fetch(
-    `https://m.np.playstation.com/api/userProfile/v2/internal/users/${PSN_ACCOUNT_ID}/basicPresences?${params}`,
+    `https://m.np.playstation.com/api/userProfile/v2/internal/users/${env.PSN_ACCOUNT_ID}/basicPresences?${params}`,
     { headers: { Authorization: `Bearer ${accessToken}` } }
   )
 

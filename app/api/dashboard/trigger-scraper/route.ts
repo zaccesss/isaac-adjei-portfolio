@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { logActivity } from "@/app/dashboard/actions"
+import { GH_OWNER, AUTOMATIONS_REPO } from "@/lib/site-config"
 
 export async function POST() {
   const session = await auth()
@@ -20,7 +21,7 @@ export async function POST() {
 
   try {
     const res = await fetch(
-      "https://api.github.com/repos/zaccesss/isaac-adjei-automations/actions/workflows/job-scraper.yml/dispatches",
+      `https://api.github.com/repos/${GH_OWNER}/${AUTOMATIONS_REPO}/actions/workflows/job-scraper.yml/dispatches`,
       {
         method: "POST",
         headers: {

@@ -14,6 +14,7 @@
 //     card. The device getters legitimately return their offline fallback when Redis is down,
 //     because Redis is their only source.
 import { redis } from "@/lib/redis"
+import { DISCORD_USER_ID } from "@/lib/site-config"
 
 // ---------------------------------------------------------------------------
 // Spotify
@@ -452,7 +453,6 @@ export async function getGithubActivity(): Promise<GithubActivity> {
 // Discord presence via Lanyard (external service, already realtime - no caching needed)
 // ---------------------------------------------------------------------------
 
-const DISCORD_USER_ID = "1087417301583790212"
 
 // Only the fields the Discord card actually renders. Lanyard's raw payload also carries the full
 // Discord user object, KV store, platform flags and Spotify track IDs - none of which the client

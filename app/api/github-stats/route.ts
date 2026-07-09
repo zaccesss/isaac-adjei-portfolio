@@ -5,8 +5,9 @@
 import { NextResponse } from "next/server"
 import { redis } from "@/lib/redis"
 import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
+import { GH_OWNER } from "@/lib/site-config"
 
-const GITHUB_USER = "zaccesss"
+const GITHUB_USER = GH_OWNER
 const CACHE_KEY = "github:stats:v4"
 const CACHE_TTL = 600
 

@@ -3,6 +3,7 @@
 // client can conditionally render the "Run now" button without a separate request.
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { GH_OWNER, AUTOMATIONS_REPO } from "@/lib/site-config"
 
 type GitHubRun = {
   id: number
@@ -33,7 +34,7 @@ export async function GET() {
 
   try {
     const res = await fetch(
-      "https://api.github.com/repos/zaccesss/isaac-adjei-automations/actions/workflows/job-scraper.yml/runs?per_page=1",
+      `https://api.github.com/repos/${GH_OWNER}/${AUTOMATIONS_REPO}/actions/workflows/job-scraper.yml/runs?per_page=1`,
       { headers, next: { revalidate: 0 } }
     )
 

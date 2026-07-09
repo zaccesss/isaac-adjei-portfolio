@@ -9,6 +9,7 @@ import { Laptop, Zap, Wifi, WifiOff, GitBranch, Monitor, Github, ExternalLink } 
 import SpotifyBars from "@/components/shared/SpotifyBars"
 import { SiPlaystation, SiDiscord, SiSpotify } from "react-icons/si"
 import { cn } from "@/lib/utils"
+import { DISCORD_USER_ID } from "@/lib/site-config"
 
 interface LastPlayed {
   track: string
@@ -98,7 +99,6 @@ interface LanyardData {
   active_on_discord_desktop: boolean
 }
 
-const DISCORD_USER_ID = "1087417301583790212"
 
 // How many CPU/GPU samples the Gaming PC sparklines keep. One point is appended per genuinely new
 // daemon write (deduped by timestamp), so at the daemon's 60s cadence this is roughly the last
@@ -925,7 +925,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
               <div className={cn("h-2 w-2 rounded-full shrink-0 ml-0.5", offline ? "bg-muted-foreground/40" : STATUS_COLOR[lanyard!.discord_status])} />
               <span className="text-xs text-muted-foreground capitalize">{statusLabel}</span>
               <a
-                href="https://discord.com/users/1087417301583790212"
+                href={`https://discord.com/users/${DISCORD_USER_ID}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Discord profile"

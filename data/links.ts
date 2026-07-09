@@ -1,5 +1,7 @@
 // I list all my public profiles grouped by category for the /links page.
 
+import { DISCORD_USER_ID } from "@/lib/site-config"
+
 export interface LinkItem {
   title: string
   description: string
@@ -267,7 +269,7 @@ export const profileLinks: LinkItem[] = [
   {
     title: "Discord",
     description: "Add me and send a message",
-    url: "https://discord.com/users/1087417301583790212",
+    url: `https://discord.com/users/${DISCORD_USER_ID}`,
     icon: "discord",
     category: "social",
   },
