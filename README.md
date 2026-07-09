@@ -107,9 +107,7 @@ SQL for the Supabase database lives in `sql/schema.sql` (fresh install) and `sql
     ├── cv-pdf.yml                    Regenerate CV PDF/DOCX on cv.html push
     ├── deploy-ps5-presence.yml       Deploy the PS5 worker on changes to workers/ps5-presence/**
     ├── generate-cvs.yml              Manual CV regeneration trigger
-    ├── gitleaks-scan.yml             Secret scanning on every push
-    ├── update-pr-branches.yml        Delete merged branches every 2 hours ("Repo maintenance")
-    └── automerge-dependabot.yml      Auto-merge Dependabot PRs after CI
+    └── gitleaks-scan.yml             Secret scanning on every push
 
 app/                                  Next.js App Router
 ├── (public pages)                    about, all-pages, blog, changelog, colophon, consumed,
@@ -332,7 +330,6 @@ Most pages work without environment variables. The live status cards (Spotify, M
 | `cv-pdf.yml` | Push to `public/resume/cv.html` | Regenerate all CV PDFs and DOCX, create auto-merge PR |
 | `generate-cvs.yml` | Manual | Regenerate role CVs without changing cv.html |
 | `gitleaks-scan.yml` | Every push | Secret scanning |
-| `automerge-dependabot.yml` | Dependabot PRs | Auto-merge after CI passes (major `npm` bumps held for review) |
 
 > Scheduled data jobs - the job scraper, WakaTime sync, vault expiry check, daily coding summary and streak reminder - now run from the separate [isaac-adjei-automations](https://github.com/zaccesss/isaac-adjei-automations) repo so they use its free Actions minutes. The Settings page still triggers the scraper and WakaTime sync on demand.
 
