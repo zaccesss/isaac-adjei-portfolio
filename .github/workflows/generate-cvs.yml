@@ -53,7 +53,7 @@ jobs:
     - name: Commit and push updated CVs
       if: steps.check-changes.outputs.changed == 'true'
       run: |
-        git config --local user.email "190771985+zaccesss@users.noreply.github.com"
+        git config --local user.email "code@isaacadjei.me"
         git config --local user.name "Isaac Adjei"
         git add public/resume/cv.html public/resume/cv-*.html public/resume/cv-*.pdf public/resume/cv-*.docx
         git add public/resume/cover-letter-*.html public/resume/cover-letter-*.pdf public/resume/cover-letter-*.docx
