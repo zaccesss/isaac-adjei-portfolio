@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { logActivity } from "@/app/dashboard/actions"
+import { GH_OWNER, PORTFOLIO_REPO } from "@/lib/site-config"
 
 export async function POST() {
   const session = await auth()
@@ -21,7 +22,7 @@ export async function POST() {
 
   try {
     const res = await fetch(
-      "https://api.github.com/repos/zaccesss/isaac-adjei-portfolio/actions/workflows/cv-pdf.yml/dispatches",
+      `https://api.github.com/repos/${GH_OWNER}/${PORTFOLIO_REPO}/actions/workflows/cv-pdf.yml/dispatches`,
       {
         method: "POST",
         headers: {

@@ -4,6 +4,7 @@
 // a probe for arbitrary repo workflows.
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { GH_OWNER, AUTOMATIONS_REPO, PORTFOLIO_REPO } from "@/lib/site-config"
 
 type GitHubRun = {
   conclusion: string | null
@@ -17,11 +18,11 @@ type GitHubRunsResponse = {
 // Each allow-listed workflow maps to the repo that now runs it: the scheduled data jobs moved to
 // the automations repo, while the CV workflows still live in this one.
 const WORKFLOW_REPOS: Record<string, string> = {
-  "wakatime-sync.yml": "isaac-adjei-automations",
-  "job-scraper.yml": "isaac-adjei-automations",
-  "vault-expiry-check.yml": "isaac-adjei-automations",
-  "cv-pdf.yml": "isaac-adjei-portfolio",
-  "generate-cvs.yml": "isaac-adjei-portfolio",
+  "wakatime-sync.yml": AUTOMATIONS_REPO,
+  "job-scraper.yml": AUTOMATIONS_REPO,
+  "vault-expiry-check.yml": AUTOMATIONS_REPO,
+  "cv-pdf.yml": PORTFOLIO_REPO,
+  "generate-cvs.yml": PORTFOLIO_REPO,
 }
 
 export async function GET(request: Request) {
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
 
   try {
     const res = await fetch(
-      `https://api.github.com/repos/zaccesss/${WORKFLOW_REPOS[workflow]}/actions/workflows/${workflow}/runs?per_page=1`,
+      `https://api.github.com/repos/${GH_OWNER}/${WORKFLOW_REPOS[workflow]}/actions/workflows/${workflow}/runs?per_page=1`,
       { headers, next: { revalidate: 0 } }
     )
 

@@ -8,6 +8,7 @@ import { auth } from "@/auth"
 import { supabase } from "@/lib/supabase"
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
 import { syncApplicationToLinear, syncDeadlineToLinear } from "@/lib/linear-sync"
+import { GH_OWNER } from "@/lib/site-config"
 
 // I require a valid dashboard session for EVERY server action below. Next.js server actions
 // are publicly callable POST endpoints, so without an explicit check inside each one an
@@ -1746,7 +1747,7 @@ export async function getGitHubContributions(): Promise<GitHubStats> {
       },
       body: JSON.stringify({
         query: `{
-          user(login: "zaccesss") {
+          user(login: "${GH_OWNER}") {
             contributionsCollection {
               totalCommitContributions
               totalPullRequestContributions
