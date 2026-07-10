@@ -50,6 +50,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // /privacy is deliberately absent: the page is noindex, and listing it here sent Google
     // conflicting signals (GSC "excluded by noindex" validation failures).
     { url: `${SITE_URL}/security-policy`,               lastModified: new Date("2026-04-01"), changeFrequency: "yearly",  priority: 0.3  },
+    { url: `${SITE_URL}/contribute`,                    lastModified: new Date("2026-07-11"), changeFrequency: "yearly",  priority: 0.4  },
+    { url: `${SITE_URL}/code-of-conduct`,               lastModified: new Date("2026-07-11"), changeFrequency: "yearly",  priority: 0.3  },
+    { url: `${SITE_URL}/support`,                       lastModified: new Date("2026-07-11"), changeFrequency: "yearly",  priority: 0.4  },
     { url: `${SITE_URL}/hall-of-fame`,                  lastModified: new Date("2026-04-01"), changeFrequency: "yearly",  priority: 0.3  },
     { url: `${SITE_URL}/respub`,           lastModified: new Date("2026-06-16"), changeFrequency: "monthly", priority: 0.7  },
     { url: `${SITE_URL}/til`,             lastModified: new Date("2026-06-16"), changeFrequency: "weekly",  priority: 0.6  },

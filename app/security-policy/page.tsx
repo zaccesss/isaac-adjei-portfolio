@@ -3,7 +3,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
-import { ShieldCheck, Mail, Clock, Eye, XCircle } from "lucide-react"
+import { ShieldCheck, Mail, Clock, Eye, XCircle, Github } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Security Policy",
@@ -27,6 +27,28 @@ export default function SecurityPolicyPage() {
         <p className="text-lg text-muted-foreground leading-relaxed">
           I take the security of this site seriously. If you have discovered a vulnerability, I
           appreciate you letting me know responsibly.
+        </p>
+        <p className="text-muted-foreground leading-relaxed">
+          This page covers this website. For my software and hardware{" "}
+          <Link
+            href="/projects"
+            className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+          >
+            projects
+          </Link>
+          , each repository&apos;s own security policy applies where it has one, and the shared
+          general policy lives alongside this page in the repository below.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          <a
+            href="https://github.com/zaccesss/security-policy"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
+          >
+            <Github className="h-4 w-4" />
+            Also on GitHub: zaccesss/security-policy
+          </a>
         </p>
       </section>
 
