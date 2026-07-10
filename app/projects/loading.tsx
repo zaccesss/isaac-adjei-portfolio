@@ -1,10 +1,12 @@
 // Skeleton shown while the projects listing page loads.
 
+import IAMark from "@/components/shared/marks/IAMark"
+
 export default function ProjectsLoading() {
   return (
     <div className="container py-24 space-y-10">
       <div className="space-y-3">
-        <div className="h-10 w-36 bg-muted rounded animate-pulse" />
+        <IAMark size={40} className="text-muted-foreground/50 animate-pulse" />
         <div className="h-5 w-72 bg-muted rounded animate-pulse" />
       </div>
       <div className="flex gap-2">

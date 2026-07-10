@@ -1,9 +1,11 @@
 // Skeleton shown while the consumed overview page loads.
+import IAMark from "@/components/shared/marks/IAMark"
+
 export default function ConsumedLoading() {
   return (
     <div className="container max-w-5xl py-24 space-y-8">
       <div className="space-y-3">
-        <div className="h-10 w-48 bg-muted rounded animate-pulse" />
+        <IAMark size={40} className="text-muted-foreground/50 animate-pulse" />
         <div className="h-3 w-72 bg-muted rounded animate-pulse" />
       </div>
       <div className="flex gap-2">

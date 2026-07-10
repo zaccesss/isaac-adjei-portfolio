@@ -10,6 +10,7 @@ import GitHubStats from "@/components/shared/GitHubStats"
 import WakatimeStats from "@/components/lab/WakatimeStats"
 import SpotifyAnalytics from "@/components/lab/SpotifyAnalytics"
 import GamingPanel from "@/components/lab/GamingPanel"
+import BrailleDivider from "@/components/shared/marks/BrailleDivider"
 import dynamic from "next/dynamic"
 
 const PCBViewer = dynamic(() => import("@/components/lab/PCBViewer"), { ssr: false })
@@ -1376,6 +1377,8 @@ export default function LabPage() {
       {!isMaximized && <PCBViewer />}
       {!isMaximized && <GamingPanel />}
       {!isMaximized && <SpotifyAnalytics />}
+
+      {!isMaximized && <BrailleDivider className="max-w-md mx-auto pt-2" />}
 
       {!isMaximized && (
         <p className="text-center text-xs text-muted-foreground font-mono">

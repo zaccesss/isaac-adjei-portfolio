@@ -9,6 +9,7 @@ import {
   Gift, Lock, StickyNote, ArrowRight, Brain, Church, School
 } from "lucide-react"
 import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
+import SegmentClock from "@/components/shared/marks/SegmentClock"
 
 type Summary = {
   goals: { total: number; done: number; inProgress: number }
@@ -184,9 +185,12 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
     >
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight">
-            {greeting}, Zac
-          </h1>
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-2xl font-bold tracking-tight">
+              {greeting}, Zac
+            </h1>
+            <SegmentClock size={30} className="text-muted-foreground shrink-0" />
+          </div>
           <p className="text-muted-foreground">Here is your week at a glance.</p>
         </div>
         {/* I show a CTA so there is a clear path into the dashboard after login */}

@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import ConstellationMark from "@/components/shared/marks/ConstellationMark"
 
 const BOOT_LINES = [
   { text: "isaacadjei-lab v2.0.0", delay: 0 },
@@ -145,6 +146,9 @@ export default function NotFound() {
 
   return (
     <div className="container max-w-2xl py-32">
+      <div className="flex justify-center mb-8">
+        <ConstellationMark size={64} className="text-zinc-300" />
+      </div>
       <div
         className="rounded-lg border border-border/60 bg-zinc-950 dark:bg-zinc-950 overflow-hidden font-mono cursor-text"
         onClick={() => inputRef.current?.focus()}

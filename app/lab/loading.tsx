@@ -1,10 +1,13 @@
-// Skeleton shown while the lab terminal page loads.
+// Skeleton shown while the lab terminal page loads. The copper mark powers up while
+// the terminal boots, which fits the lab's hardware theme.
+
+import CopperMark from "@/components/shared/marks/CopperMark"
 
 export default function LabLoading() {
   return (
     <div className="container max-w-3xl py-24 space-y-8">
       <div className="space-y-3">
-        <div className="h-10 w-20 bg-muted rounded animate-pulse" />
+        <CopperMark size={44} className="text-foreground" />
         <div className="h-5 w-72 bg-muted rounded animate-pulse" />
       </div>
       <div className="rounded-xl border border-border overflow-hidden">

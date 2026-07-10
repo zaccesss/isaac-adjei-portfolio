@@ -1,10 +1,12 @@
 // Skeleton shown while the experience page loads.
 
+import IAMark from "@/components/shared/marks/IAMark"
+
 export default function ExperienceLoading() {
   return (
     <div className="container max-w-3xl py-24 space-y-10">
       <div className="space-y-3">
-        <div className="h-10 w-40 bg-muted rounded animate-pulse" />
+        <IAMark size={40} className="text-muted-foreground/50 animate-pulse" />
         <div className="h-5 w-64 bg-muted rounded animate-pulse" />
       </div>
       <div className="space-y-8">
