@@ -1,10 +1,12 @@
 // Skeleton shown while the blog listing page loads.
 
+import IAMark from "@/components/shared/marks/IAMark"
+
 export default function BlogLoading() {
   return (
     <div className="container max-w-4xl py-24 space-y-12">
       <div className="space-y-4">
-        <div className="h-10 w-24 bg-muted rounded animate-pulse" />
+        <IAMark size={40} className="text-muted-foreground/50 animate-pulse" />
         <div className="h-5 w-96 bg-muted rounded animate-pulse" />
       </div>
       <div className="space-y-6">

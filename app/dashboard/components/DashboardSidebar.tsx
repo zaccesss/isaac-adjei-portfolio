@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
+import IAMark from "@/components/shared/marks/IAMark"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
 import {
@@ -284,6 +285,9 @@ export default function DashboardSidebar({
     <div className={`flex items-center pt-2 pb-1 ${!isMobile && collapsed ? "justify-center" : "justify-between"}`}>
       {(isMobile || !collapsed) && (
         <div className="flex items-center gap-2.5 min-w-0">
+          <Link href="/" title="Home" aria-label="Isaac Adjei, home" className="shrink-0 rounded hover:opacity-80 transition-opacity">
+            <IAMark size={26} />
+          </Link>
           {user.image && (
             <Image src={user.image} alt={user.name ?? "avatar"} width={28} height={28} className="rounded-full shrink-0" />
           )}
@@ -293,8 +297,10 @@ export default function DashboardSidebar({
           </div>
         </div>
       )}
-      {!isMobile && collapsed && user.image && (
-        <Image src={user.image} alt={user.name ?? "avatar"} width={28} height={28} className="rounded-full" />
+      {!isMobile && collapsed && (
+        <Link href="/" title="Home" aria-label="Isaac Adjei, home" className="rounded hover:opacity-80 transition-opacity">
+          <IAMark size={24} />
+        </Link>
       )}
       {!isMobile && (
         <button

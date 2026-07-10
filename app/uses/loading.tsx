@@ -1,10 +1,12 @@
 // Skeleton shown while the uses page loads.
 
+import IAMark from "@/components/shared/marks/IAMark"
+
 export default function UsesLoading() {
   return (
     <div className="container max-w-2xl py-24 space-y-14">
       <div className="space-y-3">
-        <div className="h-10 w-24 bg-muted rounded animate-pulse" />
+        <IAMark size={40} className="text-muted-foreground/50 animate-pulse" />
         <div className="h-5 w-72 bg-muted rounded animate-pulse" />
       </div>
       {Array.from({ length: 4 }).map((_, i) => (

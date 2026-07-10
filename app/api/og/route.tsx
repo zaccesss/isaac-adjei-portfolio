@@ -45,20 +45,30 @@ export async function GET(req: NextRequest) {
         >
           <div
             style={{
-              width: "60px",
-              height: "60px",
-              borderRadius: "12px",
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              width: "64px",
+              height: "64px",
+              borderRadius: "16px",
+              background: "#121212",
+              border: "1px solid rgba(250, 250, 250, 0.14)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "28px",
-              fontWeight: "bold",
-              color: "white",
               marginRight: "20px",
             }}
           >
-            IA
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                fontSize: "38px",
+                fontWeight: 800,
+                letterSpacing: "-3px",
+                color: "#FAFAFA",
+              }}
+            >
+              ia
+              <span style={{ color: "#5778DB" }}>.</span>
+            </div>
           </div>
           <div
             style={{
