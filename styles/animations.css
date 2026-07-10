@@ -43,3 +43,23 @@
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* IA signature mark: the cursive stroke signs itself, the accent swash underlines it,
+   the tittle pops in. Remounting the group (via a changing key) restarts the sign.
+   Reduced motion falls back to the fully signed mark. */
+.script-sign { fill: none; stroke: currentColor; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 100; stroke-dashoffset: 0; }
+.script-swash { fill: none; stroke: hsl(var(--primary)); stroke-width: 2; stroke-linecap: round; opacity: 0.6; stroke-dasharray: 100; stroke-dashoffset: 0; }
+.script-tittle { fill: hsl(var(--primary)); transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .script-mark .script-sign { animation: script-draw 2s cubic-bezier(0.4, 0, 0.3, 1) both; }
+  .script-mark .script-swash { animation: script-draw 0.55s ease 1.95s both; }
+  .script-mark .script-tittle {
+    animation:
+      script-tittle-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 1.75s both,
+      script-tittle-blink 2.6s ease-in-out 2.4s infinite;
+  }
+}
+@keyframes script-draw { from { stroke-dashoffset: 100; } }
+@keyframes script-tittle-pop { from { opacity: 0; transform: scale(0); } }
+/* Once signed, the i-dot keeps blinking as a live status light. */
+@keyframes script-tittle-blink { 0%, 62%, 100% { opacity: 1; } 80% { opacity: 0.28; } }
