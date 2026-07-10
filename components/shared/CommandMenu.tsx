@@ -20,6 +20,7 @@ import {
   Home, User, Briefcase, Code, Mail, Cpu, BookOpen, Link2, NotebookPen,
   FlaskConical, Clock, Wrench, Info, ScrollText, Trophy, LayoutList, Shield, Rss,
   GraduationCap, Lightbulb, Tag, SearchIcon, Activity,
+  HeartHandshake, Users, LifeBuoy,
 } from "lucide-react"
 import { DialogTitle } from "@/components/ui/dialog"
 import { useModKey } from "@/hooks/useModKey"
@@ -62,6 +63,9 @@ export default function CommandMenu() {
             a: "/all-pages",
             r: "/privacy",
             x: "/security-policy",
+            c: "/contribute",
+            k: "/code-of-conduct",
+            h: "/support",
             p: "/respub",
             t: "/til",
             z: "/tags",
@@ -251,6 +255,21 @@ export default function CommandMenu() {
             <Shield className="mr-2 h-4 w-4" />
             Security Policy
             <CommandShortcut>{shiftShortcut("X")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="contribute contributing guide bug pull request idea hardware software" onSelect={() => go("/contribute")}>
+            <HeartHandshake className="mr-2 h-4 w-4" />
+            Contributing
+            <CommandShortcut>{shiftShortcut("C")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="code of conduct community standards contributor covenant" onSelect={() => go("/code-of-conduct")}>
+            <Users className="mr-2 h-4 w-4" />
+            Code of Conduct
+            <CommandShortcut>{shiftShortcut("K")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="support help get in touch questions email" onSelect={() => go("/support")}>
+            <LifeBuoy className="mr-2 h-4 w-4" />
+            Support
+            <CommandShortcut>{shiftShortcut("H")}</CommandShortcut>
           </CommandItem>
           <CommandItem value="status uptime monitoring health system incidents" onSelect={() => goExternal("https://status.isaacadjei.me")}>
             <Activity className="mr-2 h-4 w-4" />
