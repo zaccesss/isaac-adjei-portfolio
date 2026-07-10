@@ -14,10 +14,6 @@ export default function Footer() {
         <SocialLinks showLabel footerOnly className="justify-center" />
 
         <div className="flex items-center flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link>
-          <span aria-hidden="true">·</span>
-          <Link href="/til" className="hover:text-foreground transition-colors">TIL</Link>
-          <span aria-hidden="true">·</span>
           <Link href="/now" className="hover:text-foreground transition-colors">Now</Link>
           <span aria-hidden="true">·</span>
           <Link href="/notes" className="hover:text-foreground transition-colors">Notes</Link>

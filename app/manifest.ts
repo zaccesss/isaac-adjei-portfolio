@@ -16,16 +16,22 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait",
     icons: [
       {
-        src: "/images/avatar.png",
+        src: "/icon.svg",
         sizes: "any",
-        type: "image/png",
+        type: "image/svg+xml",
         purpose: "any",
       },
       {
-        src: "/images/avatar.png",
+        src: "/icon.svg",
         sizes: "any",
-        type: "image/png",
+        type: "image/svg+xml",
         purpose: "maskable",
+      },
+      {
+        src: "/apple-icon",
+        sizes: "180x180",
+        type: "image/png",
+        purpose: "any",
       },
     ],
   }

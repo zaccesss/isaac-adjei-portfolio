@@ -14,7 +14,7 @@ export function GET() {
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title><xsl:value-of select="/rss/channel/title" /> - RSS Feed</title>
-        <link rel="icon" type="image/png" href="/images/avatar.webp" />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <style>
           *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
           :root {

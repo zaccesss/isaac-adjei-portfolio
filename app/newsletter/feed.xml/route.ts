@@ -89,7 +89,7 @@ function buildHtml(issues: NewsletterIssue[], baseUrl: string, page = 1) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Newsletter RSS Feed | Isaac Adjei</title>
-    <link rel="icon" type="image/png" href="${baseUrl}/images/avatar.webp" />
+    <link rel="icon" type="image/svg+xml" href="${baseUrl}/icon.svg" />
     <link rel="alternate" type="application/rss+xml" title="Newsletter: Isaac Adjei" href="${baseUrl}/newsletter/feed.xml" />
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

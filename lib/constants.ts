@@ -32,6 +32,7 @@ export const NAV_LINKS = [
   { label: "Projects", href: ROUTES.projects },
   { label: "Skills", href: ROUTES.skills },
   { label: "Blog", href: ROUTES.blog },
+  { label: "TIL", href: ROUTES.til },
   { label: "Newsletter", href: ROUTES.newsletter },
   { label: "Contact", href: ROUTES.contact },
   { label: "Links", href: ROUTES.links },

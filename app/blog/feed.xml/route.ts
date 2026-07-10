@@ -117,7 +117,7 @@ function buildHtml(posts: ReturnType<typeof getPublishedPosts>, baseUrl = SITE_U
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RSS Feed | Isaac Adjei</title>
-    <link rel="icon" type="image/png" href="${baseUrl}/images/avatar.webp" />
+    <link rel="icon" type="image/svg+xml" href="${baseUrl}/icon.svg" />
     <link rel="alternate" type="application/rss+xml" title="Isaac Adjei RSS" href="${baseUrl}/blog/feed.xml" />
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

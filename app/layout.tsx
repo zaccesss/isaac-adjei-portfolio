@@ -8,6 +8,7 @@ import "./globals.css"
 import "@/styles/animations.css"
 import PublicShell from "@/components/layout/PublicShell"
 import CommandMenu from "@/components/shared/CommandMenu"
+import FaviconAnimator from "@/components/shared/FaviconAnimator"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { SITE_URL } from "@/lib/constants"
 import { Analytics } from "@vercel/analytics/next"
@@ -65,11 +66,8 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-  icons: {
-    icon: [{ url: "/images/avatar.png", type: "image/png" }],
-    apple: [{ url: "/images/avatar.png", type: "image/png" }],
-    shortcut: ["/images/avatar.png"],
-  },
+  // Favicon + apple-touch icon come from the app/icon.svg and app/apple-icon.tsx
+  // file conventions, so there is no manual icons block to keep in sync.
   manifest: "/manifest.webmanifest",
   openGraph: {
     type: "website",
@@ -146,6 +144,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           <PublicShell>{children}</PublicShell>
           <CommandMenu />
+          <FaviconAnimator />
           <Analytics />
         </ThemeProvider>
       </body>
