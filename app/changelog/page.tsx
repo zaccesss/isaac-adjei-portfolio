@@ -28,6 +28,18 @@ type ChangeEntry = {
 // I list releases newest-first.
 const releases: ChangeEntry[] = [
   {
+    version: "Unreleased",
+    date: "2026-07-10",
+    added: [
+      "/contribute: a full contributing guide covering the range of what I build - software, hardware, images and design, writing and courses, and this site; sections on ways to help, pull requests, using AI, patience and getting in touch, each cross-linked to its GitHub repo",
+      "/code-of-conduct: a short personal intro followed by the Contributor Covenant 2.1 in full",
+      "/support: where to get help - discussions, an issue, my support email and my contact page",
+    ],
+    changed: [
+      "/security-policy: added a cross-link to its GitHub repo and a pointer to my projects",
+    ],
+  },
+  {
     version: "v2.21.0",
     date: "2026-06-22",
     added: [
