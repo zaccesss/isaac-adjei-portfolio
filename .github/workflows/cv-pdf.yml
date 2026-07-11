@@ -93,7 +93,15 @@ jobs:
       - name: Create artefact PR
         env:
           GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_PAT }}
+          SIGNING_KEY: ${{ secrets.CI_SIGNING_KEY }}
         run: |
+          if [ -n "$SIGNING_KEY" ]; then
+            printf '%s\n' "$SIGNING_KEY" > ~/.sign_key && chmod 600 ~/.sign_key
+            ssh-keygen -y -f ~/.sign_key > ~/.sign_key.pub
+            git config gpg.format ssh
+            git config user.signingkey ~/.sign_key.pub
+            git config commit.gpgsign true
+          fi
           git config user.name "Isaac Adjei"
           git config user.email "code@isaacadjei.me"
           git add public/resume/Isaac_Adjei_CV.pdf public/resume/Isaac_Adjei_CV.docx \
