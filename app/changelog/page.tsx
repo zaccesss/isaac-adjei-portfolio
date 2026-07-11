@@ -40,6 +40,44 @@ const releases: ChangeEntry[] = [
     ],
   },
   {
+    version: "v2.24.0",
+    date: "2026-07-10",
+    label: "New identity",
+    added: [
+      "A signature 'ia' mark now heads every page - it signs itself when you arrive, types the name letter by letter on your first visit of a session and re-signs as you move around; the dot on the i blinks as a little status light",
+      "404: a small constellation of the initials draws itself above the terminal",
+      "/lab: the loading screen powers up as a copper circuit-board trace and a braille divider spelling the initials sits under the terminal",
+      "Loading screens across blog, projects, search and the other sections pulse a small 'ia' mark instead of a grey bar",
+    ],
+    changed: [
+      "New favicon and app icon: an 'ia' tile that follows your device's light or dark mode, with two blue dots gently alternating in the browser tab where supported",
+      "TIL moved into the main navigation after Blog; the duplicate Blog and TIL links left the footer",
+      "Link previews: the share card's logo tile now uses the site's own colours instead of the old purple gradient",
+    ],
+  },
+  {
+    version: "v2.23.0",
+    date: "2026-07-06",
+    added: [
+      "/links: my Gitea profile joined the code forges list",
+    ],
+  },
+  {
+    version: "v2.22.0",
+    date: "2026-07-05",
+    changed: [
+      "/lab: the Spotify genre split and listening-era charts were rebuilt on the same chart set as the rest of the lab, so they render crisper and match the coding charts",
+    ],
+  },
+  {
+    version: "v2.21.1",
+    date: "2026-07-02",
+    fixed: [
+      "/links: the GitHub, GitLab, Codeberg, Stack Overflow and Hackster links pointed at misspelt handles - all corrected",
+      "/lab: the projects donut no longer drifts out of line with the languages donut when project names run long",
+    ],
+  },
+  {
     version: "v2.21.0",
     date: "2026-06-22",
     added: [
