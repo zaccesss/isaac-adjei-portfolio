@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase"
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
 import { syncApplicationToLinear, syncDeadlineToLinear } from "@/lib/linear-sync"
 import { GH_OWNER } from "@/lib/site-config"
+import { encryptVaultData, decryptVaultRow } from "@/lib/vault-crypto"
 
 // I require a valid dashboard session for EVERY server action below. Next.js server actions
 // are publicly callable POST endpoints, so without an explicit check inside each one an
@@ -561,13 +562,14 @@ export async function createVaultEntry(data: {
   // returned null (which the dialog treats as a cancel) while still logging phantom activity.
   const { data: inserted, error } = await supabase
     .from("vault")
-    .insert({ ...data, key_expiry: data.key_expiry || null })
+    .insert(encryptVaultData({ ...data, key_expiry: data.key_expiry || null }))
     .select()
     .single()
   if (error) return null
   void logActivity("vault.create", data.name)
   revalidatePath("/dashboard/vault")
-  return inserted
+  // Return the decrypted row so the client can splice it into the local list without a refetch.
+  return decryptVaultRow(inserted)
 }
 
 export async function updateVaultEntry(id: string, data: Partial<{
@@ -595,7 +597,7 @@ export async function updateVaultEntry(id: string, data: Partial<{
   // Same ""::date coercion as createVaultEntry - edits resubmit the whole form, so an empty
   // key-expiry picker sends "" and Postgres would reject the update.
   if (data.key_expiry === "") data.key_expiry = null
-  const { error } = await supabase.from("vault").update(data).eq("id", id)
+  const { error } = await supabase.from("vault").update(encryptVaultData(data)).eq("id", id)
   // I surface the error so the client's revert path (throw -> restore previous list) fires
   if (error) return { error: error.message }
   void logActivity("vault.update", id)

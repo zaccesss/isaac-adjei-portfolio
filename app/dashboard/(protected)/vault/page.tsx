@@ -2,6 +2,7 @@
 // PinGate on the client handles prompting when it is absent.
 import { supabase } from "@/lib/supabase"
 import { cookies } from "next/headers"
+import { decryptVaultRows } from "@/lib/vault-crypto"
 import VaultWrapper from "./VaultWrapper"
 
 export const dynamic = "force-dynamic"
@@ -12,7 +13,7 @@ export default async function VaultPage() {
   const pinVerified = cookieStore.get("dashboard_pin_verified")?.value === "1"
 
   const entries = pinVerified
-    ? (await supabase.from("vault").select("*").order("name")).data ?? []
+    ? decryptVaultRows((await supabase.from("vault").select("*").order("name")).data)
     : []
 
   return <VaultWrapper pinVerified={pinVerified} entries={entries} />
