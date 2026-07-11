@@ -52,7 +52,16 @@ jobs:
 
     - name: Commit and push updated CVs
       if: steps.check-changes.outputs.changed == 'true'
+      env:
+        SIGNING_KEY: ${{ secrets.CI_SIGNING_KEY }}
       run: |
+        if [ -n "$SIGNING_KEY" ]; then
+          printf '%s\n' "$SIGNING_KEY" > ~/.sign_key && chmod 600 ~/.sign_key
+          ssh-keygen -y -f ~/.sign_key > ~/.sign_key.pub
+          git config --local gpg.format ssh
+          git config --local user.signingkey ~/.sign_key.pub
+          git config --local commit.gpgsign true
+        fi
         git config --local user.email "code@isaacadjei.me"
         git config --local user.name "Isaac Adjei"
         git add public/resume/cv.html public/resume/cv-*.html public/resume/cv-*.pdf public/resume/cv-*.docx
