@@ -1,7 +1,11 @@
 // Syncs job applications and university deadlines to Linear.
 // Requires LINEAR_API_KEY and LINEAR_TEAM_ID env vars.
 // On create: creates a Linear issue and returns the new issue ID.
-// On update: updates the state of the existing issue to match the dashboard status.
+// On update: moves the existing issue to the state matching the dashboard status and, for applications,
+// refreshes its title and description so a later edit (renamed company or role, a posting URL added
+// afterwards) propagates instead of going stale.
+// Every call is resilient: a Linear outage or a bad response degrades the sync to a no-op rather than
+// throwing into the fire-and-forget callers in the dashboard actions.
 
 const LINEAR_GQL = "https://api.linear.app/graphql"
 
@@ -27,13 +31,24 @@ const STATUS_TO_LINEAR_STATE: Record<string, string> = {
   "Not Interested":          "Withdrawn",
 }
 
+// One resilient GraphQL caller: it never throws, so a Linear outage or an unparseable response degrades
+// to a no-op (no data) instead of rejecting into the fire-and-forget callers in the dashboard actions.
+// GraphQL-level errors are logged rather than swallowed silently, so a broken query stays visible.
 async function gql(apiKey: string, query: string, variables?: Record<string, unknown>) {
-  const res = await fetch(LINEAR_GQL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: apiKey },
-    body: JSON.stringify({ query, variables }),
-  })
-  return res.json() as Promise<{ data?: Record<string, unknown>; errors?: { message: string }[] }>
+  type GqlResult = { data?: Record<string, unknown>; errors?: { message: string }[] }
+  try {
+    const res = await fetch(LINEAR_GQL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: apiKey },
+      body: JSON.stringify({ query, variables }),
+    })
+    const json = (await res.json()) as GqlResult
+    if (json.errors?.length) console.error(`[linear-sync] GraphQL errors: ${json.errors.map((e) => e.message).join("; ")}`)
+    return json
+  } catch (err) {
+    console.error(`[linear-sync] request failed: ${err instanceof Error ? err.message : String(err)}`)
+    return {} as GqlResult
+  }
 }
 
 async function resolveStateId(apiKey: string, teamId: string, stateName: string): Promise<string | null> {
@@ -67,17 +82,19 @@ export async function syncApplicationToLinear(app: {
   const stateId = await resolveStateId(apiKey, teamId, targetStateName)
   if (!stateId) return null
 
-  if (app.linear_issue_id) {
-    await gql(apiKey, `
-      mutation UpdateIssue($id: String!, $stateId: String!) {
-        issueUpdate(id: $id, input: { stateId: $stateId }) { success }
-      }
-    `, { id: app.linear_issue_id, stateId })
-    return app.linear_issue_id
-  }
-
   const title = `${app.company} - ${app.role}`
   const description = app.url ? `[View posting](${app.url})\n\nType: ${app.type}` : `Type: ${app.type}`
+
+  // Existing issue: move it to the mapped state and refresh the title and description too, so a renamed
+  // company or role, or a posting URL added later, propagates to Linear instead of going stale.
+  if (app.linear_issue_id) {
+    await gql(apiKey, `
+      mutation UpdateIssue($id: String!, $stateId: String!, $title: String!, $description: String!) {
+        issueUpdate(id: $id, input: { stateId: $stateId, title: $title, description: $description }) { success }
+      }
+    `, { id: app.linear_issue_id, stateId, title, description })
+    return app.linear_issue_id
+  }
 
   const result = await gql(apiKey, `
     mutation CreateIssue($teamId: String!, $title: String!, $stateId: String!, $description: String!) {
