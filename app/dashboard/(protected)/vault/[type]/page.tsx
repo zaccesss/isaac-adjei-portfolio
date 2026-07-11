@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase"
 import { notFound } from "next/navigation"
+import { decryptVaultRows } from "@/lib/vault-crypto"
 import VaultTypeClient from "./VaultTypeClient"
 
 export const dynamic = "force-dynamic"
@@ -36,7 +37,7 @@ export default async function VaultTypePage({ params }: { params: Promise<{ type
 
   return (
     <VaultTypeClient
-      entries={entries ?? []}
+      entries={decryptVaultRows(entries)}
       type={dbType}
       typeSlug={type}
       typeLabel={TYPE_LABELS[type]}
