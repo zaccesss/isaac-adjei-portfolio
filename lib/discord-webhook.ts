@@ -4,9 +4,25 @@
 // incident, so I find out even if the Healthchecks key is not set, and can tell a deleted webhook from a
 // rate limit or a bad payload at a glance. A bare "403" is useless; the body (e.g. code 10015 "Unknown
 // Webhook") is what actually tells me what broke. The caller still owns the Healthchecks ping.
-import { createIncidentIssue } from "@/lib/incident"
+import { createIncidentIssue, findOpenIncidentId, addIncidentComment } from "@/lib/incident"
 
 export type DiscordSendResult = { ok: boolean; status?: number; error?: string }
+
+// Files a dead-webhook incident, but dedupes: while an incident for this webhook slug is already open,
+// it comments on that one issue instead of filing a fresh duplicate on every failed send. The stable
+// "Discord <slug> webhook" key matches both the "failing" and "errored" titles for the same feed.
+async function fileDeadWebhookIncident(slug: string, title: string, description: string): Promise<void> {
+  try {
+    const openId = await findOpenIncidentId(`Discord ${slug} webhook`)
+    if (openId) {
+      await addIncidentComment(openId, `Still failing.\n\n${description}`)
+      return
+    }
+    await createIncidentIssue(title, description)
+  } catch {
+    // never let incident filing break the send path
+  }
+}
 
 // Build a full, human-readable failure string from a Discord webhook response. Discord returns a small JSON
 // body like {"message":"Unknown Webhook","code":10015} - I surface the code + message AND the raw body.
@@ -41,12 +57,13 @@ export async function postDiscordWebhook(url: string, body: unknown, slug: strin
       console.error(`[discord:${slug}] send failed - ${detail}`)
       // A 404 / code 10015 almost always means the webhook was deleted or rotated (e.g. a server
       // restructure). Point the env var at the live webhook in discord-webhooks.json.
-      await createIncidentIssue(
+      await fileDeadWebhookIncident(
+        slug,
         `Discord ${slug} webhook failing (${res.status})`,
         `The ${slug} Discord webhook send did not land, so this feed is dark.\n\n**Full error:** ${detail}\n\n` +
           `If this is a 404 / code 10015 "Unknown Webhook", the webhook was deleted or rotated - repoint the ` +
           `env var to the live webhook (see discord-webhooks.json).`,
-      ).catch(() => {})
+      )
       return { ok: false, status: res.status, error: `${slug}: ${detail}` }
     }
 
@@ -55,10 +72,11 @@ export async function postDiscordWebhook(url: string, body: unknown, slug: strin
     // Network-level failure (DNS, TLS, abort) - there is no response, so surface the thrown error in full.
     const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
     console.error(`[discord:${slug}] send threw - ${detail}`)
-    await createIncidentIssue(
+    await fileDeadWebhookIncident(
+      slug,
       `Discord ${slug} webhook errored`,
       `The ${slug} Discord webhook POST threw before any response.\n\n**Full error:** ${detail}`,
-    ).catch(() => {})
+    )
     return { ok: false, error: `${slug}: ${detail}` }
   }
 }

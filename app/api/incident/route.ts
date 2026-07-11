@@ -1,15 +1,24 @@
-// Webhook external monitors POST to when something breaks - a dead cron from Healthchecks, or the site
-// down from Better Stack. It verifies a shared secret (INCIDENT_WEBHOOK_SECRET, passed as ?secret= in
-// the webhook URL or an x-incident-secret header) then opens an urgent Linear issue, so every incident
-// lands in the ops backlog. Guarded: with no secret or no Linear key it returns a clean 503 instead of
-// doing anything. Rate-limited as a public POST endpoint.
+// Webhook external monitors POST to when something breaks or recovers - a dead cron from Healthchecks,
+// or the site down from Better Stack. It verifies a shared secret (INCIDENT_WEBHOOK_SECRET, passed as
+// ?secret= in the webhook URL or an x-incident-secret header), then opens an urgent Linear issue on a
+// down and resolves the same issue on the matching up, so every incident lands in the ops backlog and
+// closes itself when the check is healthy again. A flapping check updates one issue instead of filing a
+// new one each dip. Guarded: with no secret or no Linear key it returns a clean 503 instead of doing
+// anything. Rate-limited as a public POST endpoint.
 import { NextRequest, NextResponse } from "next/server"
-import { createIncidentIssue } from "@/lib/incident"
+import {
+  createIncidentIssue,
+  findOpenIncidentId,
+  addIncidentComment,
+  resolveIncident,
+} from "@/lib/incident"
 import { heavyApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 
 export const dynamic = "force-dynamic"
 
 const NO_STORE = { "Cache-Control": "no-store" }
+
+const asStr = (v: unknown): string => (typeof v === "string" ? v.trim() : "")
 
 export async function POST(req: NextRequest) {
   const secret = process.env.INCIDENT_WEBHOOK_SECRET
@@ -26,38 +35,64 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "rate limited" }, { status: 429, headers: NO_STORE })
   }
 
-  // The monitors send different payload shapes, so I read a name field for the title where present and
-  // fall back to the raw body for the description. A parse failure still files a bare incident.
-  let title = "Incident reported"
-  let detail = ""
+  // The monitors send different payload shapes, so I read the check name, status and tags where present
+  // and keep the raw body as a fallback detail. A parse failure still files a bare incident.
+  let name = ""
+  let status = ""
+  let tags = ""
+  let rawDetail = ""
   try {
     const contentType = req.headers.get("content-type") || ""
     if (contentType.includes("application/json")) {
       const body = (await req.json()) as Record<string, unknown>
-      title = pickTitle(body) ?? title
-      detail = "```json\n" + JSON.stringify(body, null, 2).slice(0, 3000) + "\n```"
+      const check = body.check as Record<string, unknown> | undefined
+      name = asStr(body.name) || asStr(body.check_name) || asStr(check?.name)
+      status = (asStr(body.status) || asStr(check?.status)).toLowerCase()
+      tags = asStr(body.tags) || asStr(check?.tags)
     } else {
-      const text = await req.text()
-      if (text) detail = text.slice(0, 3000)
+      rawDetail = (await req.text()).slice(0, 2000)
     }
   } catch {
     // ignore parse errors - still file a bare incident so nothing is missed
   }
 
   const source = req.nextUrl.searchParams.get("source") || "monitor"
-  const description = `Reported by **${source}** at ${new Date().toISOString()}\n\n${detail}`.trim()
+  const now = new Date().toISOString()
+
+  // A recovery (up): resolve the matching open incident rather than opening a new one.
+  if (status === "up" && name) {
+    const openId = await findOpenIncidentId(name)
+    if (openId) {
+      const resolved = await resolveIncident(openId, `**${name}** recovered (${source}, ${now}).`)
+      return NextResponse.json({ ok: resolved, action: "resolved", issueId: openId }, { status: 200, headers: NO_STORE })
+    }
+    return NextResponse.json({ ok: true, action: "no-open-incident" }, { status: 200, headers: NO_STORE })
+  }
+
+  // Otherwise it is a down (or an unlabelled alert): open an incident, or update the open one if this
+  // check is already down, so a flap does not stack duplicates.
+  const title = name ? `${name} is down` : "Incident reported"
+  const description = [
+    name ? `**${name}** is **down**.` : "A monitored check reported an incident.",
+    `Reported by **${source}** at ${now}.`,
+    tags ? `Tags: \`${tags}\`` : "",
+    rawDetail ? `\n\`\`\`\n${rawDetail}\n\`\`\`` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n")
+    .trim()
+
+  if (name) {
+    const openId = await findOpenIncidentId(name)
+    if (openId) {
+      await addIncidentComment(openId, `Still down (${source}, ${now}).`)
+      return NextResponse.json({ ok: true, action: "commented", issueId: openId }, { status: 200, headers: NO_STORE })
+    }
+  }
 
   const issueId = await createIncidentIssue(title, description)
   return NextResponse.json(
-    { ok: Boolean(issueId), issueId },
+    { ok: Boolean(issueId), action: "created", issueId },
     { status: issueId ? 200 : 502, headers: NO_STORE },
   )
-}
-
-// Reads the obvious name fields: Healthchecks ($NAME / check.name) and Better Stack-style payloads.
-function pickTitle(body: Record<string, unknown>): string | null {
-  const check = body.check as Record<string, unknown> | undefined
-  const name = body.name ?? body.check_name ?? check?.name
-  if (typeof name === "string" && name.trim()) return `Incident: ${name.trim()}`
-  return null
 }
