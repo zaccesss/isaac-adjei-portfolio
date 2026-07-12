@@ -14,6 +14,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- Silenced the dashboard console for good: the content security policy now names the hosts the Cloudflare beacon and GA4's regional collectors actually use, both analytics scripts load on the public site only via a pathname-aware component (my own dashboard traffic was skewing the visitor stats), and the dashboard greeting and relative-time badges render client-side only, which removes the React hydration mismatch the server's UTC clock caused against the visitor's local time
 - Made the recycle bin trustworthy end to end. Restoring a soft-deleted item now verifies a row was actually revived (and re-inserts from the snapshot when it was not) before the recovery copy is dropped, so a restore can never silently destroy the only backup; deleting a habit, streak or module now snapshots its logs and assessments inside the trash entry, so a restore brings the history back rather than a hollow parent; resetting a streak now leaves an undo point in the trash, where before it wiped every check-in with no recovery at all; the nightly trash cleanup now hard-deletes the hidden rows and storage blobs behind expired soft-deleted items instead of orphaning them forever, and emptying the trash pages its read so items past the first thousand are handled too
 
 ### Changed
