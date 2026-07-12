@@ -30,13 +30,16 @@ const IMPORTABLE_TABLES = EXPORT_TABLES.filter((t) => !NON_IMPORTABLE.has(t))
 // so every table is paged the same way getBlogReadEvents does. A read error is returned, not
 // swallowed, so a failed table can never export as an empty array that later looks like a
 // clean restore.
+// Paging orders by id (the primary key on every export table) rather than created_at:
+// assessments, habit_logs, streak_logs and wakatime_daily have no created_at column, so
+// ordering by it made those four fail - silently empty in every old backup, a loud error now.
 async function q(table: string): Promise<{ rows: unknown[]; error?: string }> {
   const rows: unknown[] = []
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase
       .from(table)
       .select("*")
-      .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
       .range(from, from + 999)
     if (error) return { rows, error: error.message }
     if (!data || data.length === 0) break

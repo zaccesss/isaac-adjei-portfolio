@@ -184,8 +184,15 @@ function ExportImportPanel() {
     try {
       const res = await fetch(url)
       if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string }
-        const text = res.status === 403 ? "Unlock the PIN first, then export." : body.error ?? "Export failed."
+        const body = (await res.json().catch(() => ({}))) as { error?: string; tables?: Record<string, string> }
+        // Name the failing tables so a broken export is diagnosable from the message alone.
+        const failed = Object.keys(body.tables ?? {})
+        const text =
+          res.status === 403
+            ? "Unlock the PIN first, then export."
+            : failed.length > 0
+            ? `Export failed for: ${failed.join(", ")}.`
+            : body.error ?? "Export failed."
         setMessage({ text, ok: false })
         return
       }
