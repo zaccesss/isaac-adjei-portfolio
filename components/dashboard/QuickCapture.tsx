@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
+import { savedOk } from "@/lib/save-result"
 import {
   createDiaryEntry, createNote, createGoal, createApplication,
   createFaithEntry, createStudySession, createHabit, createStreak, createBodyMetric,
@@ -47,8 +48,10 @@ function DiaryTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.title.trim() || !form.content.trim()) return
-    startTransition(() => void createDiaryEntry({ title: form.title, content: form.content, mood: form.mood }))
-    onDone()
+    startTransition(async () => {
+      const res = await createDiaryEntry({ title: form.title, content: form.content, mood: form.mood })
+      if (savedOk(res, "Could not save diary entry")) onDone()
+    })
   }
 
   return (
@@ -80,8 +83,10 @@ function NoteTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.title.trim()) return
-    startTransition(() => void createNote({ title: form.title, content: form.content, folder: "General", tags: [], pinned: false, locked: false, color: null }))
-    onDone()
+    startTransition(async () => {
+      const res = await createNote({ title: form.title, content: form.content, folder: "General", tags: [], pinned: false, locked: false, color: null })
+      if (savedOk(res, "Could not save note")) onDone()
+    })
   }
 
   return (
@@ -99,8 +104,10 @@ function GoalTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.title.trim() || !form.category || !form.target_date) return
-    startTransition(() => void createGoal({ title: form.title, description: form.description, category: form.category, status: "not_started", target_date: form.target_date, progress: 0 }))
-    onDone()
+    startTransition(async () => {
+      const res = await createGoal({ title: form.title, description: form.description, category: form.category, status: "not_started", target_date: form.target_date, progress: 0 })
+      if (savedOk(res, "Could not save goal")) onDone()
+    })
   }
 
   return (
@@ -127,8 +134,10 @@ function ApplicationTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.company.trim() || !form.role.trim()) return
-    startTransition(() => void createApplication({ company: form.company, role: form.role, type: form.type || "graduate", applied_date: today(), deadline: "", status: "applied", notes: "", url: form.url, starred: false }))
-    onDone()
+    startTransition(async () => {
+      const res = await createApplication({ company: form.company, role: form.role, type: form.type || "graduate", applied_date: today(), deadline: "", status: "applied", notes: "", url: form.url, starred: false })
+      if (savedOk(res, "Could not save application")) onDone()
+    })
   }
 
   return (
@@ -155,15 +164,17 @@ function FaithTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.type) return
-    startTransition(() => void createFaithEntry({
-      date: today(),
-      type: form.type,
-      title: form.title || undefined,
-      notes: form.notes || undefined,
-      duration_m: form.duration_m ? parseInt(form.duration_m) : undefined,
-      completed: true,
-    }))
-    onDone()
+    startTransition(async () => {
+      const res = await createFaithEntry({
+        date: today(),
+        type: form.type,
+        title: form.title || undefined,
+        notes: form.notes || undefined,
+        duration_m: form.duration_m ? parseInt(form.duration_m) : undefined,
+        completed: true,
+      })
+      if (savedOk(res, "Could not save faith entry")) onDone()
+    })
   }
 
   return (
@@ -188,15 +199,17 @@ function StudyTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.subject.trim() || !form.duration_m) return
-    startTransition(() => void createStudySession({
-      date: today(),
-      subject: form.subject,
-      duration_m: parseInt(form.duration_m),
-      technique: form.technique || undefined,
-      notes: form.notes || undefined,
-      productive: true,
-    }))
-    onDone()
+    startTransition(async () => {
+      const res = await createStudySession({
+        date: today(),
+        subject: form.subject,
+        duration_m: parseInt(form.duration_m),
+        technique: form.technique || undefined,
+        notes: form.notes || undefined,
+        productive: true,
+      })
+      if (savedOk(res, "Could not save study session")) onDone()
+    })
   }
 
   return (
@@ -216,8 +229,10 @@ function HabitTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.name.trim()) return
-    startTransition(() => void createHabit({ name: form.name, description: form.description || undefined, color: form.color }))
-    onDone()
+    startTransition(async () => {
+      const res = await createHabit({ name: form.name, description: form.description || undefined, color: form.color })
+      if (savedOk(res, "Could not add habit")) onDone()
+    })
   }
 
   return (
@@ -245,8 +260,10 @@ function StreakTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.name.trim()) return
-    startTransition(() => void createStreak({ name: form.name, icon: form.icon, description: form.description, color: form.color, order_index: 0 }))
-    onDone()
+    startTransition(async () => {
+      const res = await createStreak({ name: form.name, icon: form.icon, description: form.description, color: form.color, order_index: 0 })
+      if (savedOk(res, "Could not add streak")) onDone()
+    })
   }
 
   return (
@@ -277,14 +294,16 @@ function HealthTab({ onDone }: { onDone: () => void }) {
 
   function submit() {
     if (!form.metric.trim() || !form.value) return
-    startTransition(() => void createBodyMetric({
-      date: today(),
-      metric: form.metric,
-      value: parseFloat(form.value),
-      unit: form.unit,
-      notes: form.notes || undefined,
-    }))
-    onDone()
+    startTransition(async () => {
+      const res = await createBodyMetric({
+        date: today(),
+        metric: form.metric,
+        value: parseFloat(form.value),
+        unit: form.unit,
+        notes: form.notes || undefined,
+      })
+      if (savedOk(res, "Could not log metric")) onDone()
+    })
   }
 
   function onMetricChange(v: string) {

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { createUniDeadline, updateUniDeadline, deleteUniDeadline } from "../../../actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -70,7 +71,7 @@ function DeadlinesClientInner({ deadlines, modules }: { deadlines: Deadline[]; m
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     startTransition(async () => {
-      await createUniDeadline({
+      const res = await createUniDeadline({
         module_id: form.module_id || undefined,
         title: form.title, type: form.type,
         due_date: form.due_date,
@@ -78,20 +79,21 @@ function DeadlinesClientInner({ deadlines, modules }: { deadlines: Deadline[]; m
         notes: form.notes || undefined,
         semester: Number(form.semester),
       })
+      if (!savedOk(res, "Could not add deadline")) return
       setOpen(false)
       setForm({ module_id: "", title: "", type: "assignment", due_date: "", weight_pct: "", notes: "", semester: "1" })
     })
   }
 
   function setStatus(id: string, status: string) {
-    startTransition(async () => { await updateUniDeadline(id, {
+    startTransition(async () => { savedOk(await updateUniDeadline(id, {
       status,
       submitted_at: status === "submitted" ? new Date().toISOString() : undefined,
-    }) })
+    }), "Could not update deadline") })
   }
 
   function setGrade(id: string, grade: string) {
-    startTransition(async () => { await updateUniDeadline(id, { grade_received: grade || null, status: "graded" }) })
+    startTransition(async () => { savedOk(await updateUniDeadline(id, { grade_received: grade || null, status: "graded" }), "Could not save grade") })
   }
 
   const filtered = deadlines.filter((d) => {
@@ -246,7 +248,7 @@ function DeadlinesClientInner({ deadlines, modules }: { deadlines: Deadline[]; m
                         onKeyDown={(e) => e.key === "Enter" && setGrade(d.id, (e.target as HTMLInputElement).value)}
                       />
                     )}
-                    <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity" title="Delete deadline" onClick={() => startTransition(async () => { await deleteUniDeadline(d.id) })} disabled={isPending}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity" title="Delete deadline" onClick={() => startTransition(async () => { savedOk(await deleteUniDeadline(d.id), "Could not delete deadline") })} disabled={isPending}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>

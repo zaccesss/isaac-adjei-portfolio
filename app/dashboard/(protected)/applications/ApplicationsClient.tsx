@@ -8,6 +8,8 @@
 import { useState, useTransition, useRef } from "react"
 import Link from "next/link"
 import { createApplication, updateApplication, deleteApplication, archiveApplication, reopenApplication, bulkDeleteApplications } from "../../actions"
+import { savedOk } from "@/lib/save-result"
+import { toast } from "sonner"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useBulkSelect } from "@/hooks/useBulkSelect"
 import { Button } from "@/components/ui/button"
@@ -1011,10 +1013,11 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       category: cat,
       interview_prep: null,
     }
-    setApps((prev) => [optimistic, ...prev])
+    const prevApps = apps
+    setApps((p) => [optimistic, ...p])
     setAddOpen(false)
-    startTransition(() =>
-      void createApplication({
+    startTransition(async () => {
+      const res = await createApplication({
         company: data.company,
         role: data.role,
         type: data.type,
@@ -1035,7 +1038,8 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         sponsors_visa: data.sponsors_visa || undefined,
         category: cat || undefined,
       })
-    )
+      if (!savedOk(res, "Could not save application")) setApps(prevApps)
+    })
   }
 
   function handleEdit(data: FormData) {
@@ -1094,6 +1098,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setApps(prev)
+        toast.error("Could not save the change")
       }
     })
   }
@@ -1114,6 +1119,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setApps(prev)
+        toast.error("Could not save the change")
       }
     })
   }
@@ -1135,6 +1141,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setApps(prev)
+        toast.error("Could not save the change")
       }
     })
   }
@@ -1156,6 +1163,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setApps(prev)
+        toast.error("Could not save the change")
       }
     })
   }
@@ -1169,6 +1177,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setApps(prev)
+        toast.error("Could not save the change")
       }
     })
   }
@@ -1188,6 +1197,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setApps(prev)
+        toast.error("Could not save the change")
       }
     })
   }

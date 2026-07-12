@@ -9,6 +9,7 @@ import {
   deleteMedicationReminder,
   type MedicationReminderInput,
 } from "./actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -129,8 +130,8 @@ export default function MedicationReminderClient({ reminders }: { reminders: Med
   }
 
   function onToggle(r: MedicationReminder) {
-    startTransition(() => {
-      void toggleMedicationReminder(r.id, !r.active)
+    startTransition(async () => {
+      savedOk(await toggleMedicationReminder(r.id, !r.active), "Could not update reminder")
     })
   }
 
@@ -142,8 +143,8 @@ export default function MedicationReminderClient({ reminders }: { reminders: Med
       confirmLabel: "Delete",
     })
     if (!ok) return
-    startTransition(() => {
-      void deleteMedicationReminder(r.id)
+    startTransition(async () => {
+      savedOk(await deleteMedicationReminder(r.id), "Could not delete reminder")
     })
   }
 

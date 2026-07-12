@@ -9,6 +9,7 @@ import { ChevronLeft, Edit2, Trash2, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { deleteInventoryItem, updateInventoryItem } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
 import { Input } from "@/components/ui/input"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import MarkdownEditor from "@/components/shared/MarkdownEditor"
@@ -111,19 +112,22 @@ function EditDialog({
 
   function handleSave() {
     if (!form.name.trim()) return
-    onSaved({
-      ...item,
-      ...form,
-      description: form.description || null,
-      purchase_date: form.purchase_date || null,
-      price_paid: form.price_paid || null,
-      serial_number: form.serial_number || null,
-      notes: form.notes || null,
-      warranty_expiry: form.warranty_expiry || null,
-      url: form.url || null,
+    startTransition(async () => {
+      const res = await updateInventoryItem(item.id, form)
+      if (!savedOk(res, "Could not save item")) return
+      onSaved({
+        ...item,
+        ...form,
+        description: form.description || null,
+        purchase_date: form.purchase_date || null,
+        price_paid: form.price_paid || null,
+        serial_number: form.serial_number || null,
+        notes: form.notes || null,
+        warranty_expiry: form.warranty_expiry || null,
+        url: form.url || null,
+      })
+      onClose()
     })
-    startTransition(() => void updateInventoryItem(item.id, form))
-    onClose()
   }
 
   return (
@@ -224,7 +228,7 @@ export default function InventoryItemClient({
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteInventoryItem(item.id)
+      if (!savedOk(await deleteInventoryItem(item.id), "Could not delete item")) return
       router.push(`/dashboard/inventory/${category}`)
     })
   }

@@ -10,6 +10,8 @@ import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import type { UserFile } from "@/app/dashboard/actions"
 import { deleteFile, renameFile, moveFile, createDownloadSignedUrl } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
+import { toast } from "sonner"
 
 function formatBytes(b: number): string {
   if (b < 1024) return `${b} B`
@@ -181,17 +183,31 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
     })
     if (!ok) return
     const ids = Array.from(selected)
-    setFiles((prev) => prev.filter((f) => !ids.includes(f.id)))
+    const prev = files
+    setFiles((p) => p.filter((f) => !ids.includes(f.id)))
     setSelected(new Set())
-    ids.forEach((id) => startTransition(() => void deleteFile(id)))
+    startTransition(async () => {
+      const results = await Promise.all(ids.map((id) => deleteFile(id)))
+      if (results.some((r) => r && typeof r === "object" && "error" in r && (r as { error?: unknown }).error)) {
+        setFiles(prev)
+        toast.error("Could not delete some files")
+      }
+    })
   }
 
   async function handleBulkMove(folder: string) {
     const ids = Array.from(selected)
-    setFiles((prev) => prev.map((f) => ids.includes(f.id) ? { ...f, folder } : f))
+    const prev = files
+    setFiles((p) => p.map((f) => ids.includes(f.id) ? { ...f, folder } : f))
     addFolder(folder)
     setSelected(new Set())
-    ids.forEach((id) => startTransition(() => void moveFile(id, folder)))
+    startTransition(async () => {
+      const results = await Promise.all(ids.map((id) => moveFile(id, folder)))
+      if (results.some((r) => r && typeof r === "object" && "error" in r && (r as { error?: unknown }).error)) {
+        setFiles(prev)
+        toast.error("Could not move some files")
+      }
+    })
   }
 
   function persistFolders(next: string[]) {
@@ -232,10 +248,11 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
       return f
     })
     setFiles(updatedFiles)
-    // Update files in DB
-    updatedFiles.forEach((f) => {
-      const orig = files.find((o) => o.id === f.id)
-      if (orig && orig.folder !== f.folder) startTransition(() => void moveFile(f.id, f.folder))
+    // Update files in DB. Collected into one transition so a failure surfaces a single toast.
+    const moves = updatedFiles.filter((f) => { const orig = files.find((o) => o.id === f.id); return orig && orig.folder !== f.folder }).map((f) => ({ id: f.id, folder: f.folder }))
+    if (moves.length) startTransition(async () => {
+      const results = await Promise.all(moves.map((m) => moveFile(m.id, m.folder)))
+      if (results.some((r) => r && typeof r === "object" && "error" in r && (r as { error?: unknown }).error)) toast.error("Could not move some files")
     })
 
     // Update extraFolders
@@ -263,9 +280,10 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
       return f
     })
     setFiles(updatedFiles)
-    updatedFiles.forEach((f) => {
-      const orig = files.find((o) => o.id === f.id)
-      if (orig && orig.folder !== f.folder) startTransition(() => void moveFile(f.id, f.folder))
+    const moves = updatedFiles.filter((f) => { const orig = files.find((o) => o.id === f.id); return orig && orig.folder !== f.folder }).map((f) => ({ id: f.id, folder: f.folder }))
+    if (moves.length) startTransition(async () => {
+      const results = await Promise.all(moves.map((m) => moveFile(m.id, m.folder)))
+      if (results.some((r) => r && typeof r === "object" && "error" in r && (r as { error?: unknown }).error)) toast.error("Could not move some files")
     })
 
     const updatedExtra = extraFolders.map((p) => {
@@ -292,14 +310,19 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
     })
     if (!ok) return
 
+    const movedIds: string[] = []
     const updatedFiles = files.map((f) => {
       if (f.folder === path || f.folder.startsWith(path + "/")) {
-        startTransition(() => void moveFile(f.id, "General"))
+        movedIds.push(f.id)
         return { ...f, folder: "General" }
       }
       return f
     })
     setFiles(updatedFiles)
+    if (movedIds.length) startTransition(async () => {
+      const results = await Promise.all(movedIds.map((id) => moveFile(id, "General")))
+      if (results.some((r) => r && typeof r === "object" && "error" in r && (r as { error?: unknown }).error)) toast.error("Could not move some files")
+    })
 
     const updatedExtra = extraFolders.filter((p) => p !== path && !p.startsWith(path + "/"))
     persistFolders(updatedExtra)
@@ -347,19 +370,28 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
       destructive: true,
     })
     if (!ok) return
-    setFiles((prev) => prev.filter((f) => f.id !== file.id))
-    startTransition(() => void deleteFile(file.id))
+    const prev = files
+    setFiles((p) => p.filter((f) => f.id !== file.id))
+    startTransition(async () => {
+      if (!savedOk(await deleteFile(file.id), "Could not delete file")) setFiles(prev)
+    })
   }
 
   function handleRenameFile(id: string, name: string) {
-    setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, name } : f)))
-    startTransition(() => void renameFile(id, name))
+    const prev = files
+    setFiles((p) => p.map((f) => (f.id === id ? { ...f, name } : f)))
+    startTransition(async () => {
+      if (!savedOk(await renameFile(id, name), "Could not rename file")) setFiles(prev)
+    })
   }
 
   function handleMoveFile(id: string, folder: string) {
-    setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, folder } : f)))
+    const prev = files
+    setFiles((p) => p.map((f) => (f.id === id ? { ...f, folder } : f)))
     addFolder(folder)
-    startTransition(() => void moveFile(id, folder))
+    startTransition(async () => {
+      if (!savedOk(await moveFile(id, folder), "Could not move file")) setFiles(prev)
+    })
   }
 
   const topLevel = allFolderPaths.filter((f) => !f.includes("/"))

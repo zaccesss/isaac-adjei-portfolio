@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { createUniNote, updateUniNote, deleteUniNote } from "../../../actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import MarkdownEditor from "@/components/shared/MarkdownEditor"
@@ -44,18 +45,17 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
     e.preventDefault()
     const tags = form.tags.split(",").map((t) => t.trim()).filter(Boolean)
     startTransition(async () => {
-      if (editNote) {
-        await updateUniNote(editNote.id, { title: form.title, content: form.content, type: form.type, tags })
-      } else {
-        await createUniNote({ module_id: form.module_id || undefined, title: form.title, content: form.content, type: form.type, tags })
-      }
+      const res = editNote
+        ? await updateUniNote(editNote.id, { title: form.title, content: form.content, type: form.type, tags })
+        : await createUniNote({ module_id: form.module_id || undefined, title: form.title, content: form.content, type: form.type, tags })
+      if (!savedOk(res, "Could not save note")) return
       setOpen(false)
       resetForm()
     })
   }
 
   function togglePin(n: UniNote) {
-    startTransition(async () => { await updateUniNote(n.id, { pinned: !n.pinned }) })
+    startTransition(async () => { savedOk(await updateUniNote(n.id, { pinned: !n.pinned }), "Could not update note") })
   }
 
   const moduleIds = [...new Set(notes.filter((n) => n.uni_modules).map((n) => n.uni_modules!.code))]
@@ -146,7 +146,7 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={(e) => e.stopPropagation()}>
                   <Button size="icon" variant="ghost" className="h-6 w-6" title={n.pinned ? "Unpin note" : "Pin note"} onClick={() => togglePin(n)} disabled={isPending}><Pin className="h-3 w-3" /></Button>
                   <Button size="icon" variant="ghost" className="h-6 w-6" title="Edit note" onClick={() => openEdit(n)}><Pencil className="h-3 w-3" /></Button>
-                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive" title="Delete note" onClick={() => startTransition(async () => { await deleteUniNote(n.id) })} disabled={isPending}><Trash2 className="h-3 w-3" /></Button>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive" title="Delete note" onClick={() => startTransition(async () => { savedOk(await deleteUniNote(n.id), "Could not delete note") })} disabled={isPending}><Trash2 className="h-3 w-3" /></Button>
                 </div>
               </div>
               {n.content && <MarkdownContent compact className="line-clamp-3">{n.content}</MarkdownContent>}

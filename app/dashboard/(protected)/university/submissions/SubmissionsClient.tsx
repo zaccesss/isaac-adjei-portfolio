@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { createUniSubmission, deleteUniSubmission } from "../../../actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -30,13 +31,14 @@ function SubmissionsClientInner({ submissions, modules, deadlines }: {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     startTransition(async () => {
-      await createUniSubmission({
+      const res = await createUniSubmission({
         module_id: form.module_id || undefined,
         deadline_id: form.deadline_id || undefined,
         title: form.title,
         file_name: form.file_name || undefined,
         notes: form.notes || undefined,
       })
+      if (!savedOk(res, "Could not add submission")) return
       setOpen(false)
       setForm({ module_id: "", deadline_id: "", title: "", file_name: "", notes: "" })
     })
@@ -143,7 +145,7 @@ function SubmissionsClientInner({ submissions, modules, deadlines }: {
                 </a>
               )}
               <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity shrink-0"
-                title="Delete submission" onClick={() => startTransition(async () => { await deleteUniSubmission(s.id) })} disabled={isPending}>
+                title="Delete submission" onClick={() => startTransition(async () => { savedOk(await deleteUniSubmission(s.id), "Could not delete submission") })} disabled={isPending}>
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>

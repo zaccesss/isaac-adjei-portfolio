@@ -6,6 +6,8 @@
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
 import { createVaultEntry, updateVaultEntry, deleteVaultEntry, toggleVaultHidden, toggleVaultLocked } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
+import { toast } from "sonner"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -242,6 +244,7 @@ function VaultForm({ initial, fixedType, onClose }: {
       // - without it the new entry would render with a client-side uuid that mismatches the DB
       startTransition(async () => {
         const inserted = await createVaultEntry(data)
+        if (!savedOk(inserted, "Could not save entry")) return
         onClose(inserted as VaultEntry)
       })
     }
@@ -366,6 +369,7 @@ export default function VaultTypeClient({
           if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
         } catch {
           setEntries(prev)
+          toast.error("Could not save entry")
         }
       })
     } else {
@@ -393,14 +397,18 @@ export default function VaultTypeClient({
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setEntries(prev)
+        toast.error("Could not delete entry")
       }
     })
   }
 
   function handleToggle(id: string, field: "hidden" | "locked", value: boolean) {
-    setEntries((prev) => prev.map((e) => e.id === id ? { ...e, [field]: value } as VaultEntry : e))
-    if (field === "hidden") toggleVaultHidden(id, value)
-    else toggleVaultLocked(id, value)
+    const prev = entries
+    setEntries((p) => p.map((e) => e.id === id ? { ...e, [field]: value } as VaultEntry : e))
+    startTransition(async () => {
+      const res = await (field === "hidden" ? toggleVaultHidden(id, value) : toggleVaultLocked(id, value))
+      if (!savedOk(res, "Could not update entry")) setEntries(prev)
+    })
   }
 
   return (

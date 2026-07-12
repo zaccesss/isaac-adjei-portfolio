@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { createCourseModule, updateCourseModule, deleteCourseModule } from "../../actions"
+import { savedOk } from "@/lib/save-result"
 import { setConfig } from "../../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -136,22 +137,35 @@ export default function CourseClient({ modules: initial, config: initialConfig }
 
   function handleAdd(data: typeof emptyModForm) {
     // I add the module to local state immediately so the table row appears without waiting for the DB
+    const prev = modules
     const optimistic: CourseModule = { id: crypto.randomUUID(), ...data, section: data.section || null, prerequisites: data.prerequisites || null }
     setModules((m) => [...m, optimistic])
     setAddOpen(false)
-    startTransition(() => void createCourseModule({ ...data, section: data.section || null, prerequisites: data.prerequisites || null }))
+    startTransition(async () => {
+      const res = await createCourseModule({ ...data, section: data.section || null, prerequisites: data.prerequisites || null })
+      if (!savedOk(res, "Could not add module")) setModules(prev)
+    })
   }
 
   function handleEdit(data: typeof emptyModForm) {
     if (!editMod) return
-    setModules((m) => m.map((x) => x.id === editMod.id ? { ...x, ...data } : x))
+    const prev = modules
+    const editId = editMod.id
+    setModules((m) => m.map((x) => x.id === editId ? { ...x, ...data } : x))
     setEditMod(null)
-    startTransition(() => void updateCourseModule(editMod.id, data))
+    startTransition(async () => {
+      const res = await updateCourseModule(editId, data)
+      if (!savedOk(res, "Could not update module")) setModules(prev)
+    })
   }
 
   function handleDelete(id: string) {
+    const prev = modules
     setModules((m) => m.filter((x) => x.id !== id))
-    startTransition(() => void deleteCourseModule(id))
+    startTransition(async () => {
+      const res = await deleteCourseModule(id)
+      if (!savedOk(res, "Could not delete module")) setModules(prev)
+    })
   }
 
   function updateConfigField<K extends keyof CourseConfig>(key: K, value: CourseConfig[K]) {
@@ -159,7 +173,7 @@ export default function CourseClient({ modules: initial, config: initialConfig }
     // I update local state first so the page reflects the change while the server round-trip is in flight
     setConfigState(updated)
     // I persist the entire config object as a single blob to avoid managing multiple config keys
-    startTransition(() => void setConfig("course_data", updated))
+    startTransition(async () => { savedOk(await setConfig("course_data", updated), "Could not save changes") })
   }
 
   const totalCredits = modules.reduce((s, m) => s + (m.credits ?? 0), 0)

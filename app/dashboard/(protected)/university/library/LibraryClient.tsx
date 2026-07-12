@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { createLibraryBook, returnLibraryBook, deleteLibraryBook } from "../../../actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -34,7 +35,8 @@ function LibraryClientInner({ books, modules }: { books: Book[]; modules: Module
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     startTransition(async () => {
-      await createLibraryBook({ title: form.title, author: form.author || undefined, isbn: form.isbn || undefined, module_id: form.module_id || undefined, borrowed_at: form.borrowed_at, due_date: form.due_date, notes: form.notes || undefined })
+      const res = await createLibraryBook({ title: form.title, author: form.author || undefined, isbn: form.isbn || undefined, module_id: form.module_id || undefined, borrowed_at: form.borrowed_at, due_date: form.due_date, notes: form.notes || undefined })
+      if (!savedOk(res, "Could not add book")) return
       setOpen(false)
       setForm({ title: "", author: "", isbn: "", module_id: "", borrowed_at: today, due_date: "", notes: "" })
     })
@@ -159,11 +161,11 @@ function LibraryClientInner({ books, modules }: { books: Book[]; modules: Module
                 </div>
                 <div className="flex gap-1 shrink-0">
                   {!b.returned_at && (
-                    <Button size="sm" variant="outline" className="h-7 text-xs gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => startTransition(async () => { await returnLibraryBook(b.id) })} disabled={isPending}>
+                    <Button size="sm" variant="outline" className="h-7 text-xs gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => startTransition(async () => { savedOk(await returnLibraryBook(b.id), "Could not return book") })} disabled={isPending}>
                       <Check className="h-3 w-3" />Return
                     </Button>
                   )}
-                  <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity" title="Delete book" onClick={() => startTransition(async () => { await deleteLibraryBook(b.id) })} disabled={isPending}>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity" title="Delete book" onClick={() => startTransition(async () => { savedOk(await deleteLibraryBook(b.id), "Could not delete book") })} disabled={isPending}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>

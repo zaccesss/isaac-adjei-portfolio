@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { createUniResource, deleteUniResource } from "../../../actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -29,7 +30,8 @@ export default function ResourcesClient({ resources, modules }: { resources: Res
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     startTransition(async () => {
-      await createUniResource({ module_id: form.module_id || undefined, title: form.title, url: form.url || undefined, type: form.type, notes: form.notes || undefined, semester: Number(form.semester) })
+      const res = await createUniResource({ module_id: form.module_id || undefined, title: form.title, url: form.url || undefined, type: form.type, notes: form.notes || undefined, semester: Number(form.semester) })
+      if (!savedOk(res, "Could not add resource")) return
       setOpen(false)
       setForm({ module_id: "", title: "", url: "", type: "link", notes: "", semester: "1" })
     })
@@ -119,7 +121,7 @@ export default function ResourcesClient({ resources, modules }: { resources: Res
                   </div>
                   {r.notes && <p className="text-xs text-muted-foreground mt-0.5">{r.notes}</p>}
                 </div>
-                <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity shrink-0" title="Delete resource" onClick={() => startTransition(async () => { await deleteUniResource(r.id) })} disabled={isPending}>
+                <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive transition-opacity shrink-0" title="Delete resource" onClick={() => startTransition(async () => { savedOk(await deleteUniResource(r.id), "Could not delete resource") })} disabled={isPending}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>

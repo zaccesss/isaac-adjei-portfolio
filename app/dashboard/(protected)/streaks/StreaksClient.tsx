@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react"
 import { createStreak, updateStreak, deleteStreak, resetStreak, checkInStreak, undoStreakCheckIn } from "../../actions"
+import { savedOk } from "@/lib/save-result"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -504,11 +506,15 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
 
   function handleAdd() {
     if (!form.name.trim()) return
+    const prev = streaks
     const optimistic: Streak = { id: crypto.randomUUID(), ...form, order_index: streaks.length }
     setStreaks((s) => [...s, optimistic])
     setOpen(false)
     setForm(emptyForm)
-    startTransition(() => void createStreak({ ...form, order_index: optimistic.order_index }))
+    startTransition(async () => {
+      const res = await createStreak({ ...form, order_index: optimistic.order_index })
+      if (!savedOk(res, "Could not add streak")) setStreaks(prev)
+    })
   }
 
   function handleDelete(id: string) {
@@ -520,6 +526,7 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setStreaks(prev)
+        toast.error("Could not delete streak")
       }
     })
   }
@@ -542,6 +549,7 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setLogs(prev)
+        toast.error("Could not reset streak")
       }
     })
   }
@@ -562,19 +570,27 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setStreaks(prev)
+        toast.error("Could not save streak")
       }
     })
     setEditStreak(null)
   }
 
   function handleCheckIn(streakId: string, date: string, undo: boolean) {
+    const prevLogs = logs
     if (undo) {
       setLogs((l) => l.filter((x) => !(x.streak_id === streakId && x.date === date)))
-      startTransition(() => void undoStreakCheckIn(streakId, date))
+      startTransition(async () => {
+        const res = await undoStreakCheckIn(streakId, date)
+        if (!savedOk(res, "Could not update check-in")) setLogs(prevLogs)
+      })
     } else {
       const newLog: Log = { id: crypto.randomUUID(), streak_id: streakId, date, completed: true }
       setLogs((l) => [...l, newLog])
-      startTransition(() => void checkInStreak(streakId, date))
+      startTransition(async () => {
+        const res = await checkInStreak(streakId, date)
+        if (!savedOk(res, "Could not update check-in")) setLogs(prevLogs)
+      })
     }
   }
 
