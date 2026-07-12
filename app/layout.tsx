@@ -3,7 +3,6 @@
 import type { Metadata, Viewport } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
-import Script from "next/script"
 import "./globals.css"
 import "@/styles/animations.css"
 import PublicShell from "@/components/layout/PublicShell"
@@ -12,6 +11,7 @@ import FaviconAnimator from "@/components/shared/FaviconAnimator"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { SITE_URL } from "@/lib/constants"
 import { Analytics } from "@vercel/analytics/next"
+import SiteAnalytics from "@/components/shared/Analytics"
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 const CF_BEACON_TOKEN = process.env.NEXT_PUBLIC_CF_BEACON_TOKEN
@@ -107,30 +107,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
         />
-        {GA_ID && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${GA_ID}');
-              `}
-            </Script>
-          </>
-        )}
-        {/* Cloudflare Web Analytics - privacy-friendly, cookieless. Loads only when the token is set. */}
-        {CF_BEACON_TOKEN && (
-          <Script
-            src="https://static.cloudflareinsights.com/beacon.min.js"
-            strategy="afterInteractive"
-            data-cf-beacon={`{"token": "${CF_BEACON_TOKEN}"}`}
-          />
-        )}
+        {/* Both analytics scripts live in a pathname-aware client component so they never
+            load on /dashboard - my own traffic skews the stats. */}
+        <SiteAnalytics gaId={GA_ID} cfToken={CF_BEACON_TOKEN} />
       </head>
       <body
         suppressHydrationWarning

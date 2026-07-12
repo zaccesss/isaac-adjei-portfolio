@@ -1,7 +1,10 @@
 const isDev = process.env.NODE_ENV === "development"
 
-const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com", "https://www.googletagmanager.com"]
-const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io", "https://www.google-analytics.com", "https://analytics.google.com", "https://api.lanyard.rest"]
+// static.cloudflareinsights.com serves the CF beacon script; the beacon posts to
+// cloudflareinsights.com. GA4 collects via regional hosts (region1.google-analytics.com and
+// friends), so connect-src needs the wildcard, not just www.
+const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com", "https://www.googletagmanager.com", "https://static.cloudflareinsights.com"]
+const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io", "https://*.google-analytics.com", "https://analytics.google.com", "https://api.lanyard.rest", "https://cloudflareinsights.com"]
 
 if (isDev) {
   scriptSrc.push("'unsafe-eval'")

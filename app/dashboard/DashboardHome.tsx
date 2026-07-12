@@ -3,6 +3,7 @@
 // prop computed server-side so this component stays pure client-side presentation.
 
 import Link from "next/link"
+import { useSyncExternalStore } from "react"
 import { motion } from "framer-motion"
 import {
   Target, Briefcase, Flame, BookOpen, BookMarked,
@@ -25,25 +26,40 @@ type Summary = {
   university: { upcomingDeadlines: number; activeModules: number }
 }
 
-function getGreeting(): string {
-  const hour = new Date().getHours()
+function getGreeting(hour: number): string {
   if (hour < 12) return "Good morning"
   if (hour < 17) return "Good afternoon"
   return "Good evening"
 }
 
-// I compute a human-readable relative time string without a library to keep the bundle lean
-function relativeTime(isoString: string | null): string {
+// I compute a human-readable relative time string without a library to keep the bundle lean.
+// A null clock (before mount) renders blank: the server renders in UTC and the browser in
+// local time, so any clock-derived text in the SSR HTML can differ at hydration (React #418).
+function relativeTime(isoString: string | null, now: number | null): string {
   if (!isoString) return "Never"
-  const diff = Date.now() - new Date(isoString).getTime()
+  if (now === null) return ""
+  const diff = now - new Date(isoString).getTime()
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
   if (days === 0) return "Today"
   if (days === 1) return "Yesterday"
   return `${days} days ago`
 }
 
+// The browser clock exposed as an external store, read once per page load: the server
+// snapshot is null, so no time-derived text is in the server HTML to disagree with the
+// client at hydration (the #418 mismatch on /dashboard - the server renders in UTC and
+// the visitor's clock is local). Nothing to subscribe to; the value is stable per load.
+const subscribeNever = () => () => {}
+let clientLoadTime: number | null = null
+const getClientNow = () => {
+  if (clientLoadTime === null) clientLoadTime = Date.now()
+  return clientLoadTime
+}
+const getServerNow = () => null
+
 export default function DashboardHome({ summary }: { summary: Summary }) {
-  const greeting = getGreeting()
+  const now = useSyncExternalStore(subscribeNever, getClientNow, getServerNow)
+  const greeting = now === null ? "Hello" : getGreeting(new Date(now).getHours())
 
   const cards = [
     {
@@ -101,7 +117,7 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
       stat: summary.diary.lastMood
         ? `Last mood: ${summary.diary.lastMood}`
         : "No entries yet",
-      badge: relativeTime(summary.diary.lastEntry),
+      badge: relativeTime(summary.diary.lastEntry, now),
       badgeClass: "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300",
     },
     {
@@ -132,7 +148,7 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
       label: "Notes",
       stat: `${summary.notes.total} notes`,
       badge: summary.notes.lastUpdated
-        ? relativeTime(summary.notes.lastUpdated)
+        ? relativeTime(summary.notes.lastUpdated, now)
         : null,
       badgeClass: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
     },
@@ -156,7 +172,7 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
       accentClass: "border-l-indigo-500",
       iconClass: "text-indigo-500",
       label: "Faith",
-      stat: summary.faith.lastEntry ? `Last entry: ${relativeTime(summary.faith.lastEntry)}` : "No entries yet",
+      stat: summary.faith.lastEntry ? `Last entry: ${relativeTime(summary.faith.lastEntry, now)}` : "No entries yet",
       badge: null,
       badgeClass: "",
     },
