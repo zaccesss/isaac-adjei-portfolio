@@ -3,6 +3,7 @@
 // deletes whatever the DB says is expired. Authenticated by CRON_SECRET only.
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
+import { purgeSoftDeleted } from "@/lib/trash"
 import { pingHealthcheck } from "@/lib/healthcheck-ping"
 import { isLondonTime } from "@/lib/london-time"
 export async function GET(req: Request) {
@@ -22,15 +23,50 @@ export async function GET(req: Request) {
     return NextResponse.json({ skipped: "not 03:00 UK" })
   }
 
-  const { error, count } = await supabase
-    .from("trash")
-    .delete({ count: "exact" })
-    .lt("expires_at", new Date().toISOString())
+  // Expired entries are processed like permanentlyDelete, not just dropped: a soft-deleted row
+  // (calendar events, files) must be hard-deleted with its Storage blob, or it lingers hidden
+  // forever once its trash handle is gone. Batched reads because PostgREST caps at 1000 rows;
+  // an entry whose purge fails is kept (its trash row is the only handle) and retried tomorrow.
+  let deleted = 0
+  let purgeFailures = 0
+  for (let batch = 0; batch < 40; batch++) {
+    const { data: expired, error: readErr } = await supabase
+      .from("trash")
+      .select("id, table_name, original_id, data")
+      .lt("expires_at", new Date().toISOString())
+      .limit(500)
+    if (readErr) {
+      console.error("[trash-cleanup]", readErr.message)
+      await pingHealthcheck("trash-cleanup", "fail")
+      return NextResponse.json({ error: readErr.message }, { status: 500 })
+    }
+    if (!expired || expired.length === 0) break
 
-  if (error) {
-    console.error("[trash-cleanup]", error.message)
+    const deletable: string[] = []
+    for (const item of expired) {
+      const purgeErr = await purgeSoftDeleted(item)
+      if (purgeErr) {
+        purgeFailures++
+        console.error("[trash-cleanup] purge", item.table_name, item.original_id, purgeErr)
+        continue
+      }
+      deletable.push(item.id)
+    }
+    if (deletable.length === 0) break
+
+    const { error: delErr } = await supabase.from("trash").delete().in("id", deletable)
+    if (delErr) {
+      console.error("[trash-cleanup]", delErr.message)
+      await pingHealthcheck("trash-cleanup", "fail")
+      return NextResponse.json({ error: delErr.message }, { status: 500 })
+    }
+    deleted += deletable.length
+    if (expired.length < 500) break
+  }
+
+  if (purgeFailures > 0) {
     await pingHealthcheck("trash-cleanup", "fail")
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ deleted, purge_failures: purgeFailures }, { status: 500 })
   }
 
   // Self-prune the cron_runs idempotency ledger (migration 043) so it never grows unbounded.
@@ -39,5 +75,5 @@ export async function GET(req: Request) {
   if (pruneError) console.error("[trash-cleanup] cron_runs prune", pruneError.message)
 
   await pingHealthcheck("trash-cleanup")
-  return NextResponse.json({ deleted: count ?? 0 })
+  return NextResponse.json({ deleted })
 }
