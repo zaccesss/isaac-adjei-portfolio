@@ -40,10 +40,11 @@ export const COMMANDS = [
     options: [
       { type: SUB, name: "stats", description: "Live pipeline: applied, interviewing, offers", usage: "/app stats" },
       { type: SUB, name: "list", description: "Most recent live applications", usage: "/app list" },
-      { type: SUB, name: "add", description: "Add an application", usage: "/app add company:Google role:SWE Intern status:Applied",
+      { type: SUB, name: "add", description: "Add an application", usage: "/app add company:Google role:SWE Intern type:Internship status:Applied",
         options: [
           { type: STR, name: "company", description: "Company", required: true },
           { type: STR, name: "role", description: "Role", required: true },
+          { type: STR, name: "type", description: "Type (optional, defaults to Internship)", required: false },
           { type: STR, name: "status", description: "Status (optional, defaults to Applied)", required: false },
         ] },
       { type: SUB, name: "status", description: "Update an application's status", usage: "/app status name:Google to:Interview",
