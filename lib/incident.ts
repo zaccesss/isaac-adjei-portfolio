@@ -51,21 +51,24 @@ export async function createIncidentIssue(title: string, description: string): P
   return data?.issueCreate?.issue?.id ?? null
 }
 
-// Finds an open (not completed or canceled) incident whose title mentions this check, so a flapping
-// check updates one issue instead of filing a new one each time. Returns the issue id, or null.
-export async function findOpenIncidentId(checkName: string): Promise<string | null> {
-  if (!checkName.trim()) return null
+// Finds an open (not completed or canceled) incident by title, so a flapping check updates one
+// issue instead of filing a new one each time. Exact match by default so one check's name can
+// never be a substring of another's ("api" matching "api-backup is down"); "prefix" mode exists
+// for the dead-webhook dedupe, whose stable key starts both of its title variants.
+export async function findOpenIncidentId(title: string, match: "exact" | "prefix" = "exact"): Promise<string | null> {
+  if (!title.trim()) return null
   const teamId = await resolveOpsTeamId()
   if (!teamId) return null
+  const titleFilter = match === "exact" ? "{ eqIgnoreCase: $q }" : "{ startsWith: $q }"
   const data = await linear<{ issues?: { nodes: { id: string }[] } }>(
     `query FindOpenIncident($teamId: ID!, $q: String!) {
       issues(first: 1, filter: {
         team: { id: { eq: $teamId } },
-        title: { containsIgnoreCase: $q },
+        title: ${titleFilter},
         state: { type: { nin: ["completed", "canceled"] } }
       }) { nodes { id } }
     }`,
-    { teamId, q: checkName.trim() },
+    { teamId, q: title.trim() },
   )
   return data?.issues?.nodes[0]?.id ?? null
 }

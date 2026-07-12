@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { redis } from "@/lib/redis"
+import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 import { getTagsForArtists, aggregateGenres } from "@/lib/lastfm"
 
 async function getAccessToken(): Promise<string | null> {
@@ -25,6 +26,11 @@ export const revalidate = 0
 const RANGES = ["short_term", "medium_term", "long_term"]
 
 export async function GET(req: Request) {
+  // The same public rate limit the other widget routes carry - this one fans out to
+  // several Spotify calls per hit, so it is the last one that should be unthrottled.
+  if (!await checkRateLimit(publicApiLimiter, getIp(req))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
   try {
     const rangeParam = new URL(req.url).searchParams.get("range") ?? "short_term"
     const range = RANGES.includes(rangeParam) ? rangeParam : "short_term"

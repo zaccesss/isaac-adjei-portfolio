@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { secretEquals } from "@/lib/secure-compare"
 import { sendWeeklyDigest } from "@/lib/send-weekly-digest"
 import { pingHealthcheck } from "@/lib/healthcheck-ping"
 import { isLondonTime, claimCronRun } from "@/lib/london-time"
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  if (authHeader !== `Bearer ${cronSecret}`) {
+  if (!secretEquals(authHeader, `Bearer ${cronSecret}`)) {
     return NextResponse.json(
       { error: "Unauthorised: invalid CRON_SECRET" },
       { status: 401, headers: { "Cache-Control": "no-store" } }

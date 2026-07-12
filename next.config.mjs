@@ -2,9 +2,11 @@ const isDev = process.env.NODE_ENV === "development"
 
 // static.cloudflareinsights.com serves the CF beacon script; the beacon posts to
 // cloudflareinsights.com. GA4 collects via regional hosts (region1.google-analytics.com and
-// friends), so connect-src needs the wildcard, not just www.
-const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com", "https://www.googletagmanager.com", "https://static.cloudflareinsights.com"]
-const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io", "https://*.google-analytics.com", "https://analytics.google.com", "https://api.lanyard.rest", "https://cloudflareinsights.com"]
+// friends), so connect-src needs the wildcard, not just www. vercel.live (script, connect,
+// frame and the pusher websocket) is the Vercel Toolbar, which Vercel injects for me as a
+// logged-in team member - visitors never load it, but blocking it spams my own console.
+const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com", "https://www.googletagmanager.com", "https://static.cloudflareinsights.com", "https://vercel.live"]
+const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io", "https://*.google-analytics.com", "https://analytics.google.com", "https://api.lanyard.rest", "https://cloudflareinsights.com", "https://vercel.live", "wss://ws-us3.pusher.com"]
 
 if (isDev) {
   scriptSrc.push("'unsafe-eval'")
@@ -70,7 +72,7 @@ const nextConfig = {
               `connect-src ${connectSrc.join(" ")}`,
               // I include 'self' so the /cv page can embed /resume/cv.html in an iframe
               // giscus.app is required for the blog comments iframe
-              "frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://open.spotify.com https://giscus.app",
+              "frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://open.spotify.com https://giscus.app https://vercel.live",
               // I use SAMEORIGIN instead of 'none' so the CV iframe can load same-origin content
               "frame-ancestors 'self'",
               "base-uri 'self'",

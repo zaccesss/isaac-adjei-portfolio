@@ -59,7 +59,11 @@ export async function GET(req: Request) {
   if (cutoff) query = query.gte("date", cutoff)
 
   const { data: rows, error } = await query
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // The real error goes to the server log only - a public route must not echo DB internals.
+  if (error) {
+    console.error("[wakatime-stats]", error.message)
+    return NextResponse.json({ error: "Unavailable" }, { status: 500 })
+  }
   const days = (rows ?? []) as WakatimeRow[]
 
   // Streak - always computed from all data going backwards from today

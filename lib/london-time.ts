@@ -34,7 +34,7 @@ export function isLondonTime(hour: number, weekday?: string, date: Date = new Da
   return p.hour === hour && (weekday === undefined || p.weekday === weekday)
 }
 
-// Idempotency claim backed by the cron_runs table (migration 043). Atomically claims (job, London-day)
+// Idempotency claim backed by the cron_runs table (migration 044). Atomically claims (job, London-day)
 // and returns true only for the first caller that day, so a delayed duplicate cron run cannot re-send.
 // `on_conflict=job,run_date` + `ignoreDuplicates` makes the insert a no-op on the second call: the
 // returned rows are empty, so we report "already ran". Any DB error is treated as "already ran" so a

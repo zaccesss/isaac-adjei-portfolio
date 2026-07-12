@@ -3,6 +3,7 @@
 // cookie expires after 60 days, so that gives a 10-day window to renew before the
 // Cloudflare Worker stops being able to read PSN presence.
 import { NextRequest, NextResponse } from "next/server"
+import { secretEquals } from "@/lib/secure-compare"
 import { redis } from "@/lib/redis"
 import { isLondonTime, claimCronRun } from "@/lib/london-time"
 
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  if (authHeader !== `Bearer ${cronSecret}`) {
+  if (!secretEquals(authHeader, `Bearer ${cronSecret}`)) {
     return NextResponse.json(
       { error: "Unauthorised" },
       { status: 401, headers: { "Cache-Control": "no-store" } }

@@ -84,7 +84,7 @@ See [docs/DASHBOARD.md](docs/DASHBOARD.md) for the full route list and Supabase 
 
 Seven role-specific CVs (software, embedded, devops, data, quant, security, general) are generated from `public/resume/cv.html` using `scripts/generate-role-cvs.js`. The `cv-pdf.yml` workflow regenerates all PDFs and DOCX files automatically whenever `cv.html` is pushed to main.
 
-SQL for the Supabase database lives in `sql/schema.sql` (fresh install) and `sql/migrations/` (incremental). See [sql/README.md](sql/README.md).
+SQL for the Supabase database lives in `sql/migrations/` - numbered, idempotent files that build the whole schema (there is no schema.sql). See [sql/README.md](sql/README.md).
 
 ---
 
@@ -142,7 +142,7 @@ app/                                  Next.js App Router
 │                                     PIN lock, Linear, scraper and workflow status, ...)
 └── dashboard/
     ├── (protected)/                  Auth-required dashboard pages:
-    │                                 activity, analytics, applications, assistant, blog-analytics,
+    │                                 activity, analytics, applications, assistant, post-analytics,
     │                                 calendar, coding, contacts, course, diary, faith, files,
     │                                 goals, gym, habits, health, internships, inventory, me,
     │                                 modules, notes, opensource, settings, streaks, study, tech,

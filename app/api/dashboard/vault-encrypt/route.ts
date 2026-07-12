@@ -16,12 +16,20 @@ export async function POST() {
     return NextResponse.json({ error: "VAULT_ENCRYPTION_KEY is not set or not 32 bytes" }, { status: 500 })
   }
 
-  const { data: rows, error } = await supabase.from("vault").select("*")
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // Paged past the 1000-row PostgREST cap so a grown vault still migrates in full - the
+  // migration is idempotent, but a silent partial pass would look complete.
+  const rows: Record<string, unknown>[] = []
+  for (let from = 0; ; from += 1000) {
+    const { data: page, error } = await supabase.from("vault").select("*").order("id").range(from, from + 999)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!page || page.length === 0) break
+    rows.push(...page)
+    if (page.length < 1000) break
+  }
 
   let encrypted = 0
   let skipped = 0
-  for (const row of rows ?? []) {
+  for (const row of rows) {
     if (!needsEncryption(row)) {
       skipped++
       continue
@@ -36,5 +44,5 @@ export async function POST() {
     encrypted++
   }
 
-  return NextResponse.json({ ok: true, encrypted, skipped, total: (rows ?? []).length })
+  return NextResponse.json({ ok: true, encrypted, skipped, total: rows.length })
 }

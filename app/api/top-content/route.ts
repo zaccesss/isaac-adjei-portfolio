@@ -13,7 +13,11 @@ export async function GET(req: Request) {
     .select("slug, post_type")
     .eq("depth", 100)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // The real error goes to the server log only - a public route must not echo DB internals.
+  if (error) {
+    console.error("[top-content]", error.message)
+    return NextResponse.json({ error: "Unavailable" }, { status: 500 })
+  }
 
   const blogCounts: Record<string, number> = {}
   const tilCounts: Record<string, number> = {}

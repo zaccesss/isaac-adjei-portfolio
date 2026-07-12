@@ -1,4 +1,4 @@
--- 044: revoke the default table grants from the API roles on schema public.
+-- 045: revoke the default table grants from the API roles on schema public.
 --
 -- Every table already has RLS enabled with no policies (default deny) and every runtime
 -- path uses the service role, so the anon and authenticated roles have no legitimate use

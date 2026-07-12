@@ -55,7 +55,7 @@ Spans the portfolio repo (Vercel Cron) and the automations repo (GitHub Actions)
 - Healthchecks.io monitors: the digest ping times shifted; auto-created checks are period-based so steady state is fine, a one-time flap on changeover self-heals
 - Did NOT touch the public changelog page (`app/changelog/page.tsx`) - it already lags CHANGELOG.md and only carries public-facing releases
 
-## 2026-07-02 (PR #644) - Reminders page, digest comparison and readership relabel
+## 2026-07-02 (PR #645) - Reminders page, digest comparison and readership relabel
 
 ### Reminders (/dashboard/reminders)
 

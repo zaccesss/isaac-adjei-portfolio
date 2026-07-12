@@ -16,4 +16,4 @@ Private dashboard - requires a valid NextAuth session (GitHub OAuth). All protec
 
 For the full route list see [docs/DASHBOARD.md](../../docs/DASHBOARD.md).
 
-Key routes: `applications`, `activity`, `blog-analytics`, `coding`, `diary`, `goals`, `gym`, `habits`, `health`, `internships`, `inventory`, `me`, `modules`, `notes`, `opensource`, `settings`, `streaks`, `tech`, `vault`, `wishlist`.
+Key routes: `applications`, `activity`, `post-analytics`, `coding`, `diary`, `goals`, `gym`, `habits`, `health`, `internships`, `inventory`, `me`, `modules`, `notes`, `opensource`, `settings`, `streaks`, `tech`, `vault`, `wishlist`.
