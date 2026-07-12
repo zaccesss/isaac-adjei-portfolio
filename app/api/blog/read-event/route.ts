@@ -53,9 +53,15 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // btoa (not Buffer) so this stays edge-safe. ASCII-only IPs encode fine; I strip any
-  // non-Latin1 bytes first so btoa never throws on an odd x-forwarded-for value.
-  const ipHash = ip === "unknown" ? "unknown" : btoa(ip.replace(/[^\x00-\xFF]/g, "")).slice(0, 12)
+  // A salted one-way hash (Web Crypto, so this stays edge-safe): the stored value only needs
+  // to be stable per visitor for dedupe, and the old base64 form was reversible back to the IP.
+  // Salting with the auth secret keeps the hash unlinkable without server access.
+  let ipHash = "unknown"
+  if (ip !== "unknown") {
+    const salt = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || ""
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${salt}.${ip}`))
+    ipHash = Array.from(new Uint8Array(digest).slice(0, 6), (b) => b.toString(16).padStart(2, "0")).join("")
+  }
 
   await supabase.from("blog_read_events").upsert(
     {

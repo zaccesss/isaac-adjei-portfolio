@@ -2,6 +2,7 @@
 // has passed. The 7-day window is set when items are moved to trash, so this route just
 // deletes whatever the DB says is expired. Authenticated by CRON_SECRET only.
 import { NextResponse } from "next/server"
+import { secretEquals } from "@/lib/secure-compare"
 import { supabase } from "@/lib/supabase"
 import { purgeSoftDeleted } from "@/lib/trash"
 import { pingHealthcheck } from "@/lib/healthcheck-ping"
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "CRON_SECRET not set" }, { status: 401 })
   }
   const auth = req.headers.get("Authorization")
-  if (auth !== `Bearer ${cronSecret}`) {
+  if (!secretEquals(auth, `Bearer ${cronSecret}`)) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
   }
 
@@ -69,7 +70,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ deleted, purge_failures: purgeFailures }, { status: 500 })
   }
 
-  // Self-prune the cron_runs idempotency ledger (migration 043) so it never grows unbounded.
+  // Self-prune the cron_runs idempotency ledger (migration 044) so it never grows unbounded.
   const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
   const { error: pruneError } = await supabase.from("cron_runs").delete().lt("run_date", cutoff)
   if (pruneError) console.error("[trash-cleanup] cron_runs prune", pruneError.message)

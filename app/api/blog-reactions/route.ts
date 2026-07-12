@@ -16,6 +16,10 @@ export type ReactionType = (typeof PRESET_TYPES)[number]
 
 const PRESET_DEFAULTS: Record<string, 0> = Object.fromEntries(PRESET_TYPES.map((t) => [t, 0]))
 
+// Same slug rule as blog/read-event, so arbitrary strings cannot mint Redis keys for
+// nonexistent posts and pollute the keyspace.
+const VALID_SLUG = /^[a-z0-9-]{1,120}$/
+
 function reactionKey(slug: string, type: string) {
   return `reactions:${slug}:${type}`
 }
@@ -38,7 +42,7 @@ function isValidType(type: string): boolean {
 
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("slug")
-  if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 })
+  if (!slug || !VALID_SLUG.test(slug)) return NextResponse.json({ error: "slug required" }, { status: 400 })
 
   if (!redis) {
     return NextResponse.json(
@@ -84,7 +88,7 @@ export async function POST(req: NextRequest) {
     const { slug, type } = body
     const action = body.action ?? "react"
 
-    if (!slug || !type) {
+    if (!slug || !type || !VALID_SLUG.test(slug)) {
       return NextResponse.json({ error: "slug and type required" }, { status: 400 })
     }
     if (!isValidType(type)) {

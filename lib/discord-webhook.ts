@@ -13,7 +13,7 @@ export type DiscordSendResult = { ok: boolean; status?: number; error?: string }
 // "Discord <slug> webhook" key matches both the "failing" and "errored" titles for the same feed.
 async function fileDeadWebhookIncident(slug: string, title: string, description: string): Promise<void> {
   try {
-    const openId = await findOpenIncidentId(`Discord ${slug} webhook`)
+    const openId = await findOpenIncidentId(`Discord ${slug} webhook`, "prefix")
     if (openId) {
       await addIncidentComment(openId, `Still failing.\n\n${description}`)
       return

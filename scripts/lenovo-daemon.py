@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # I push my Lenovo laptop's battery level and charging state to Upstash Redis every 120 seconds so my portfolio dashboard can display the device widget in real time.
 """
-Lenovo daemon - writes battery and charging state to Upstash Redis every 30s.
+Lenovo daemon - writes battery and charging state to Upstash Redis every 120s.
 No weather or location - that is Mac only. Runs as a Windows service via NSSM.
 
 Setup:

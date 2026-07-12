@@ -1,6 +1,6 @@
 // I list all my public profiles grouped by category for the /links page.
 
-import { DISCORD_USER_ID } from "@/lib/site-config"
+import { DISCORD_USER_ID, GITHUB_USER } from "@/lib/site-config"
 
 export interface LinkItem {
   title: string
@@ -109,7 +109,7 @@ export const profileLinks: LinkItem[] = [
   {
     title: "GitHub",
     description: "Code, projects and open source",
-    url: "https://www.github.com/zaccesss",
+    url: `https://www.github.com/${GITHUB_USER}`,
     icon: "github",
     category: "code",
   },

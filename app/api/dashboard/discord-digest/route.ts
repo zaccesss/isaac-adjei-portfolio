@@ -3,6 +3,7 @@
 // The actual message-building logic lives in lib/send-discord-digest.ts so it can
 // also be triggered manually from the dashboard without going through HTTP.
 import { NextRequest, NextResponse } from "next/server"
+import { secretEquals } from "@/lib/secure-compare"
 import { sendDiscordDigest } from "@/lib/send-discord-digest"
 import { pingHealthcheck } from "@/lib/healthcheck-ping"
 import { isLondonTime, claimCronRun } from "@/lib/london-time"
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  if (authHeader !== `Bearer ${cronSecret}`) {
+  if (!secretEquals(authHeader, `Bearer ${cronSecret}`)) {
     return NextResponse.json(
       { error: "Unauthorised: invalid CRON_SECRET" },
       { status: 401, headers: { "Cache-Control": "no-store" } }

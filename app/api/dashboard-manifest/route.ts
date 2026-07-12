@@ -13,16 +13,18 @@ export function GET() {
     background_color: "#09090b",
     theme_color: "#09090b",
     orientation: "portrait",
+    // The install icon is the ia brand mark, not my face - the avatar files stay on disk
+    // for the blog author card and links page.
     icons: [
       {
-        src: "/images/avatar.png",
+        src: "/icon.svg",
         sizes: "any",
-        type: "image/png",
+        type: "image/svg+xml",
         purpose: "any",
       },
       {
-        src: "/images/avatar.png",
-        sizes: "any",
+        src: "/apple-icon",
+        sizes: "180x180",
         type: "image/png",
         purpose: "maskable",
       },

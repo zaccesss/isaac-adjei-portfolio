@@ -1,6 +1,6 @@
 // Webhook external monitors POST to when something breaks or recovers - a dead cron from Healthchecks,
-// or the site down from Better Stack. It verifies a shared secret (INCIDENT_WEBHOOK_SECRET, passed as
-// ?secret= in the webhook URL or an x-incident-secret header), then opens an urgent Linear issue on a
+// or the site down from Better Stack. It verifies a shared secret (INCIDENT_WEBHOOK_SECRET, sent as an
+// x-incident-secret header - never in the URL, where it would land in logs), then opens an urgent Linear issue on a
 // down and resolves the same issue on the matching up, so every incident lands in the ops backlog and
 // closes itself when the check is healthy again. A flapping check updates one issue instead of filing a
 // new one each dip. Guarded: with no secret or no Linear key it returns a clean 503 instead of doing
@@ -13,6 +13,7 @@ import {
   resolveIncident,
 } from "@/lib/incident"
 import { heavyApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
+import { secretEquals } from "@/lib/secure-compare"
 
 export const dynamic = "force-dynamic"
 
@@ -26,8 +27,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "incident webhook not configured" }, { status: 503, headers: NO_STORE })
   }
 
-  const provided = req.nextUrl.searchParams.get("secret") || req.headers.get("x-incident-secret")
-  if (provided !== secret) {
+  const provided = req.headers.get("x-incident-secret")
+  if (!secretEquals(provided, secret)) {
     return NextResponse.json({ error: "unauthorised" }, { status: 401, headers: NO_STORE })
   }
 
@@ -59,9 +60,10 @@ export async function POST(req: NextRequest) {
   const source = req.nextUrl.searchParams.get("source") || "monitor"
   const now = new Date().toISOString()
 
-  // A recovery (up): resolve the matching open incident rather than opening a new one.
+  // A recovery (up): resolve the matching open incident rather than opening a new one. The lookup
+  // is on the exact title this route creates, so "api" can never match "api-backup is down".
   if (status === "up" && name) {
-    const openId = await findOpenIncidentId(name)
+    const openId = await findOpenIncidentId(`${name} is down`)
     if (openId) {
       const resolved = await resolveIncident(openId, `**${name}** recovered (${source}, ${now}).`)
       return NextResponse.json({ ok: resolved, action: "resolved", issueId: openId }, { status: 200, headers: NO_STORE })
@@ -83,7 +85,7 @@ export async function POST(req: NextRequest) {
     .trim()
 
   if (name) {
-    const openId = await findOpenIncidentId(name)
+    const openId = await findOpenIncidentId(title)
     if (openId) {
       await addIncidentComment(openId, `Still down (${source}, ${now}).`)
       return NextResponse.json({ ok: true, action: "commented", issueId: openId }, { status: 200, headers: NO_STORE })

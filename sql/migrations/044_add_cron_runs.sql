@@ -1,4 +1,4 @@
--- 043_add_cron_runs.sql
+-- 044_add_cron_runs.sql
 -- Idempotency ledger for scheduled cron jobs. Every time-pinned cron now fires from TWO crons
 -- (a GMT branch and a BST branch) and gates on Europe/London local time so exactly one run acts.
 -- This table is the belt-and-braces guard: a job that SENDS a user-facing message (digests,
@@ -9,7 +9,7 @@
 -- Written only by the Next.js server (lib/supabase.ts) and the automations workflow scripts, both
 -- via the Supabase service-role key. RLS is ENABLED with no policy so the anon role is default-deny,
 -- matching 036_lock_down_rls.sql. Safe to run on existing databases and safe to re-run.
--- Run: psql "$(cat /tmp/supabase_db_url.txt)" -f sql/migrations/043_add_cron_runs.sql
+-- Run: psql "$(cat /tmp/supabase_db_url.txt)" -f sql/migrations/044_add_cron_runs.sql
 --   (or paste into the Supabase SQL Editor).
 
 create table if not exists cron_runs (

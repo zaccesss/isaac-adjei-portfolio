@@ -2,6 +2,7 @@
 // for each active day. Authenticated by CRON_SECRET so it cannot be triggered by arbitrary requests, and
 // it guards on the Strava keys so a missing key returns a clean "not configured" state instead of failing.
 import { NextRequest, NextResponse } from "next/server"
+import { secretEquals } from "@/lib/secure-compare"
 import { syncStravaActivities, stravaConfigured } from "@/lib/strava"
 import { pingHealthcheck } from "@/lib/healthcheck-ping"
 import { isLondonTime } from "@/lib/london-time"
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic"
 
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret || req.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || !secretEquals(req.headers.get("authorization"), `Bearer ${cronSecret}`)) {
     return NextResponse.json({ error: "unauthorised" }, { status: 401, headers: { "Cache-Control": "no-store" } })
   }
   // Two crons (a GMT and a BST branch) hit this route; act only at 04:00 UK. No idempotency claim is

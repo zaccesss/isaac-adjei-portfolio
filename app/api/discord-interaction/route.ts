@@ -43,6 +43,18 @@ async function followup(token: string, content: string) {
 // Today's date in my timezone, so a late-night check-in still lands on the right day.
 const localToday = (): string => new Date().toLocaleDateString("en-CA", { timeZone: "Europe/London" })
 
+// The true UTC instant of London midnight for a London calendar day, for timestamp filters:
+// PostgREST parses a bare timestamp as UTC, so during BST a plain "T00:00:00" window would
+// start an hour into the day. London is only ever UTC+0 or UTC+1.
+const londonDayStartUtc = (day: string): string => {
+  const guess = new Date(`${day}T00:00:00Z`)
+  const hourInLondon = Number(
+    new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", hour: "numeric", hour12: false }).format(guess),
+  )
+  if (hourInLondon === 1) guess.setUTCHours(-1)
+  return guess.toISOString()
+}
+
 // Mirror every bot write into the dashboard activity log, so /dashboard/activity shows what I did from
 // Discord too. Best-effort: a logging failure must never break the command that triggered it.
 async function logBotActivity(action: string, detail?: string): Promise<void> {
@@ -148,8 +160,11 @@ const INTERVIEW_STATUSES = new Set([
 // ─── Read commands ───────────────────────────────────────────
 
 // PostgREST .or() filters are comma-separated, so strip characters that would break the filter string when
-// I interpolate the owner's search term. It is my own input, so this is about robustness not security.
-const safe = (s: string): string => s.replace(/[,()]/g, " ").trim()
+// I interpolate the owner's search term, plus the LIKE wildcards - a lone "%" would match every row.
+// It is my own input, so this is about robustness not security. Same character set as searchDashboard.
+const safe = (s: string): string => s.replace(/[,()\\%_]/g, " ").trim()
+// Every bot search term goes through this to build its ilike pattern.
+const like = (s: string): string => `%${safe(s)}%`
 
 async function goalCommand(sub: CommandOption | undefined): Promise<string> {
   const opt = (n: string) => sub?.options?.find((o) => o.name === n)?.value
@@ -164,7 +179,7 @@ async function goalCommand(sub: CommandOption | undefined): Promise<string> {
   if (sub?.name === "done" || sub?.name === "delete" || sub?.name === "progress") {
     const q = String(opt("name") ?? "").trim()
     if (!q) return `Give me a name: \`/goal ${sub.name} name:…\``
-    const { data: matches } = await supabase.from("goals").select("id,title").ilike("title", `%${q}%`).limit(5)
+    const { data: matches } = await supabase.from("goals").select("id,title").ilike("title", like(q)).limit(5)
     if (!matches?.length) return `No goal matching "${q}".`
     if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => m.title).join(", ")}. Be more specific.`
     const g = matches[0]
@@ -209,7 +224,7 @@ async function appCommand(sub: CommandOption | undefined): Promise<string> {
   if (sub?.name === "status" || sub?.name === "delete") {
     const q = safe(String(opt("name") ?? ""))
     if (!q) return `Give a name: \`/app ${sub.name} name:Google\``
-    const { data: matches } = await supabase.from("applications").select("id,company,role").or(`company.ilike.%${q}%,role.ilike.%${q}%`).limit(5)
+    const { data: matches } = await supabase.from("applications").select("id,company,role").or(`company.ilike.${like(q)},role.ilike.${like(q)}`).limit(5)
     if (!matches?.length) return `No application matching "${q}".`
     if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => `${m.company} (${m.role})`).join(", ")}. Be more specific.`
     const a = matches[0]
@@ -252,7 +267,7 @@ async function ossCommand(sub: CommandOption | undefined): Promise<string> {
   if (sub?.name === "delete") {
     const q = safe(String(opt("name") ?? ""))
     if (!q) return "Give a name: `/oss delete name:next.js`"
-    const { data: matches } = await supabase.from("opensource_contributions").select("id,repo,pr_title").or(`repo.ilike.%${q}%,pr_title.ilike.%${q}%`).limit(5)
+    const { data: matches } = await supabase.from("opensource_contributions").select("id,repo,pr_title").or(`repo.ilike.${like(q)},pr_title.ilike.${like(q)}`).limit(5)
     if (!matches?.length) return `No contribution matching "${q}".`
     if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => `${m.repo} (${m.pr_title})`).join(", ")}. Be more specific.`
     await supabase.from("opensource_contributions").delete().eq("id", matches[0].id)
@@ -322,7 +337,7 @@ async function calendarCommand(sub: CommandOption | undefined): Promise<string> 
   if (sub?.name === "delete") {
     const q = String(opt("name") ?? "").trim()
     if (!q) return "Give a name: `/calendar delete name:Dentist`"
-    const { data: matches } = await supabase.from("calendar_events").select("id,title").eq("is_deleted", false).ilike("title", `%${q}%`).limit(5)
+    const { data: matches } = await supabase.from("calendar_events").select("id,title").eq("is_deleted", false).ilike("title", like(q)).limit(5)
     if (!matches?.length) return `No event matching "${q}".`
     if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
     await supabase.from("calendar_events").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", matches[0].id)
@@ -357,7 +372,7 @@ async function contactCommand(sub: CommandOption | undefined): Promise<string> {
   if (sub?.name === "logged" || sub?.name === "delete" || sub?.name === "find") {
     const q = String(opt("name") ?? "").trim()
     if (!q) return `Give a name: \`/contact ${sub.name} name:Jane\``
-    const { data: matches } = await supabase.from("contacts").select("id,name,company,role,last_contact").ilike("name", `%${q}%`).limit(5)
+    const { data: matches } = await supabase.from("contacts").select("id,name,company,role,last_contact").ilike("name", like(q)).limit(5)
     if (!matches?.length) return `No contact matching "${q}".`
     if (sub.name === "find") {
       return matches.map((m) => `**${m.name}**${m.company ? ` - ${m.company}` : ""}${m.role ? ` (${m.role})` : ""}${m.last_contact ? ` _(last ${m.last_contact})_` : ""}`).join("\n")
@@ -394,7 +409,7 @@ async function reminderCommand(sub: CommandOption | undefined): Promise<string> 
   if (sub?.name === "done" || sub?.name === "delete") {
     const q = String(opt("name") ?? "").trim()
     if (!q) return `Give a name: \`/reminder ${sub.name} name:bank\``
-    const { data: matches } = await supabase.from("reminders").select("id,title").ilike("title", `%${q}%`).limit(5)
+    const { data: matches } = await supabase.from("reminders").select("id,title").ilike("title", like(q)).limit(5)
     if (!matches?.length) return `No reminder matching "${q}".`
     if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
     if (sub.name === "delete") {
@@ -499,11 +514,11 @@ async function healthCommand(sub: CommandOption | undefined): Promise<string> {
   }
 
   if (group === "med") {
-    const dayStart = `${today}T00:00:00`
+    const dayStart = londonDayStartUtc(today)
     if (cmd?.name === "taken") {
       const q = String(opt("name") ?? "").trim()
       let query = supabase.from("medication_doses").select("id,name").eq("status", "sent").gte("sent_at", dayStart)
-      if (q) query = query.ilike("name", `%${q}%`)
+      if (q) query = query.ilike("name", like(q))
       const { data: rows } = await query.order("sent_at", { ascending: false }).limit(1)
       if (!rows?.length) return q ? `No pending dose today matching "${q}".` : "No pending doses today. 💊"
       await supabase.from("medication_doses").update({ status: "taken", taken_at: new Date().toISOString() }).eq("id", rows[0].id)
@@ -735,7 +750,7 @@ async function noteCommand(sub: CommandOption | undefined): Promise<string> {
   if (sub?.name === "delete") {
     const q = String(opt("name") ?? "").trim()
     if (!q) return "Give a name: `/note delete name:groceries`"
-    const { data: matches } = await supabase.from("notes").select("id,title").ilike("title", `%${q}%`).limit(5)
+    const { data: matches } = await supabase.from("notes").select("id,title").ilike("title", like(q)).limit(5)
     if (!matches?.length) return `No note matching "${q}".`
     if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
     await supabase.from("notes").delete().eq("id", matches[0].id)
@@ -761,7 +776,7 @@ async function wishlistCommand(sub: CommandOption | undefined): Promise<string> 
   if (sub?.name === "remove") {
     const q = String(opt("name") ?? "").trim()
     if (!q) return "Give a name: `/wishlist remove name:keyboard`"
-    const { data: matches } = await supabase.from("wishlist").select("id,name").ilike("name", `%${q}%`).limit(5)
+    const { data: matches } = await supabase.from("wishlist").select("id,name").ilike("name", like(q)).limit(5)
     if (!matches?.length) return `No wishlist item matching "${q}".`
     if (matches.length > 1) return `More than one: ${matches.map((m) => m.name).join(", ")}. Be more specific.`
     await supabase.from("wishlist").delete().eq("id", matches[0].id)
@@ -787,7 +802,7 @@ async function inventoryCommand(sub: CommandOption | undefined): Promise<string>
   if (sub?.name === "remove") {
     const q = String(opt("name") ?? "").trim()
     if (!q) return "Give a name: `/inventory remove name:Pi`"
-    const { data: matches } = await supabase.from("inventory_items").select("id,name").ilike("name", `%${q}%`).limit(5)
+    const { data: matches } = await supabase.from("inventory_items").select("id,name").ilike("name", like(q)).limit(5)
     if (!matches?.length) return `No inventory item matching "${q}".`
     if (matches.length > 1) return `More than one: ${matches.map((m) => m.name).join(", ")}. Be more specific.`
     await supabase.from("inventory_items").delete().eq("id", matches[0].id)
@@ -797,7 +812,7 @@ async function inventoryCommand(sub: CommandOption | undefined): Promise<string>
   if (sub?.name === "find") {
     const q = String(opt("name") ?? "").trim()
     if (!q) return "Give a name: `/inventory find name:cable`"
-    const { data } = await supabase.from("inventory_items").select("name,category,quantity").ilike("name", `%${q}%`).limit(10)
+    const { data } = await supabase.from("inventory_items").select("name,category,quantity").ilike("name", like(q)).limit(10)
     if (!data?.length) return `No inventory item matching "${q}".`
     return data.map((i) => `• ${i.name} _(${i.category}${i.quantity && i.quantity > 1 ? `, x${i.quantity}` : ""})_`).join("\n")
   }
@@ -885,7 +900,7 @@ async function uniCommand(sub: CommandOption | undefined): Promise<string> {
     if (cmd?.name === "done") {
       const q = String(opt("name") ?? "").trim()
       if (!q) return "Give a name: `/uni deadline done name:Essay`"
-      const { data: matches } = await supabase.from("uni_deadlines").select("id,title").ilike("title", `%${q}%`).neq("status", "graded").limit(5)
+      const { data: matches } = await supabase.from("uni_deadlines").select("id,title").ilike("title", like(q)).neq("status", "graded").limit(5)
       if (!matches?.length) return `No deadline matching "${q}".`
       if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
       await supabase.from("uni_deadlines").update({ status: "submitted", submitted_at: new Date().toISOString() }).eq("id", matches[0].id)
@@ -907,7 +922,7 @@ async function uniCommand(sub: CommandOption | undefined): Promise<string> {
     if (cmd?.name === "return") {
       const q = String(opt("name") ?? "").trim()
       if (!q) return "Give a name: `/uni book return name:Clean Code`"
-      const { data: matches } = await supabase.from("uni_library_books").select("id,title").is("returned_at", null).ilike("title", `%${q}%`).limit(5)
+      const { data: matches } = await supabase.from("uni_library_books").select("id,title").is("returned_at", null).ilike("title", like(q)).limit(5)
       if (!matches?.length) return `No book on loan matching "${q}".`
       if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
       await supabase.from("uni_library_books").update({ returned_at: today }).eq("id", matches[0].id)

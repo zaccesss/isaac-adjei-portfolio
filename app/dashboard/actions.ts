@@ -468,6 +468,14 @@ export async function updateApplication(id: string, data: Partial<{
   // Postgres accepts the update, and surface the error so the client's revert path can fire.
   for (const k of ["applied_date", "deadline", "opening_date", "last_year_opening"] as const)
     if (data[k] === "") (data as Record<string, unknown>)[k] = null
+  // Moving to Applied or Submitted stamps applied_date (today, London) when it was not set by
+  // hand, so the applications timeline stays real without me filling the date every time.
+  if (data.status && ["applied", "submitted"].includes(data.status.toLowerCase()) && !data.applied_date) {
+    const { data: existing } = await supabase.from("applications").select("applied_date").eq("id", id).single()
+    if (existing && !existing.applied_date) {
+      data.applied_date = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/London" })
+    }
+  }
   const { error } = await supabase.from("applications").update(data).eq("id", id)
   if (error) return { error: error.message }
   void logActivity("application.update", data.status ? `status → ${data.status}` : (data.company ?? id))
