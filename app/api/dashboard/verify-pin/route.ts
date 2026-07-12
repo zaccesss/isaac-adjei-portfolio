@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
-import { verifyPin } from "@/lib/pin"
+import { verifyPin, signPinToken, pinSubject, PIN_COOKIE, PIN_TTL_SECONDS } from "@/lib/pin"
 import { auth } from "@/auth"
 
 // Brute-force protection on the PIN itself: 5 attempts per 15 minutes per IP.
@@ -50,13 +50,19 @@ export async function POST(req: NextRequest) {
   }
 
   // I set an httpOnly cookie so the PIN gate stays unlocked for 4 hours across
-  // Diary, Notes and Vault without the user having to re-enter it each time
+  // Diary, Notes, Modules and Vault. The value is a signed token bound to my session
+  // subject, so sending the cookie name with a made-up value can never pass the gate.
+  const subject = pinSubject(session)
+  const token = subject ? signPinToken(subject) : null
+  if (!token) {
+    return NextResponse.json({ error: "PIN gate unavailable" }, { status: 500 })
+  }
   const res = NextResponse.json({ ok: true })
-  res.cookies.set("dashboard_pin_verified", "1", {
+  res.cookies.set(PIN_COOKIE, token, {
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 4,
+    maxAge: PIN_TTL_SECONDS,
     path: "/",
   })
   return res
@@ -68,6 +74,6 @@ export async function DELETE(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
 
   const res = NextResponse.json({ ok: true })
-  res.cookies.delete("dashboard_pin_verified")
+  res.cookies.delete(PIN_COOKIE)
   return res
 }

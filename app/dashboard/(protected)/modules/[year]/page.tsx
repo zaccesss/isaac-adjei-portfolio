@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
+import { isPinVerified } from "@/lib/pin"
 import ModulesYearClient from "./ModulesYearClient"
 
 export const dynamic = "force-dynamic"
@@ -20,6 +21,10 @@ const YEAR_LABELS: Record<string, string> = {
 }
 
 export default async function ModulesYearPage({ params }: { params: Promise<{ year: string }> }) {
+  // Marks live here just like the index, so the same server-side PIN check applies;
+  // the index hosts the unlock prompt.
+  if (!(await isPinVerified())) redirect("/dashboard/modules")
+
   const { year } = await params
   const yearNum = YEAR_SLUGS[year]
   if (!yearNum) notFound()

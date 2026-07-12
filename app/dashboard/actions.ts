@@ -1024,8 +1024,16 @@ export async function deleteHealthNutrition(id: string) {
 
 // I store arbitrary JSON blobs in a single config table keyed by a string rather than creating a table per setting.
 // This keeps the schema stable even as I add new dashboard preferences over time.
+// Only the keys below may pass through these two actions - dashboard_pin_hash is deliberately
+// absent, so the PIN hash can never be read or replaced through a session-callable action.
+// A new dashboard preference gets added here when its feature lands.
+const CONFIG_KEYS = new Set(["course_data", "ical_feeds", "me_profile", "theme_preference", "us_data"])
+// Caps a config value well above the largest current blob, so a caller cannot store unbounded JSON.
+const CONFIG_VALUE_MAX_CHARS = 64_000
+
 export async function getConfig(key: string) {
   await requireAuth()
+  if (!CONFIG_KEYS.has(key)) return null
   const { data } = await supabase.from("config").select("value").eq("key", key).single()
   // I return null rather than throwing so callers can treat a missing key as "use default"
   return data?.value ?? null
@@ -1042,7 +1050,8 @@ export const getCachedTheme = unstable_cache(
 
 export async function setConfig(key: string, value: unknown) {
   await requireAuth()
-  if (!validStr(key)) return INVALID
+  if (!validStr(key) || !CONFIG_KEYS.has(key)) return INVALID
+  if (JSON.stringify(value ?? null).length > CONFIG_VALUE_MAX_CHARS) return INVALID
   // I upsert on the key column so the first write creates the row and subsequent ones update it
   // - no separate "does this key exist?" check needed, which would waste a round trip
   const { error } = await supabase.from("config").upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" })

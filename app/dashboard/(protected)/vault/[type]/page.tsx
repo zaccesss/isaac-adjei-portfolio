@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
+import { isPinVerified } from "@/lib/pin"
 import { decryptVaultRows } from "@/lib/vault-crypto"
 import VaultTypeClient from "./VaultTypeClient"
 
@@ -25,6 +26,10 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 export default async function VaultTypePage({ params }: { params: Promise<{ type: string }> }) {
+  // The per-type pages carry the same secrets as the index, so they get the same
+  // server-side PIN check; the index hosts the unlock prompt.
+  if (!(await isPinVerified())) redirect("/dashboard/vault")
+
   const { type } = await params
   const dbType = TYPE_SLUGS[type]
   if (!dbType) notFound()
