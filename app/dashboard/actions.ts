@@ -10,6 +10,7 @@ import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
 import { syncApplicationToLinear, syncDeadlineToLinear } from "@/lib/linear-sync"
 import { GH_OWNER } from "@/lib/site-config"
 import { encryptVaultData, decryptVaultRow } from "@/lib/vault-crypto"
+import { SOFT_DELETE_TABLES, purgeSoftDeleted } from "@/lib/trash"
 
 // I require a valid dashboard session for EVERY server action below. Next.js server actions
 // are publicly callable POST endpoints, so without an explicit check inside each one an
@@ -47,22 +48,43 @@ export async function logActivity(action: string, detail?: string) {
   if (error) console.error("[activity_log]", error.message, error.details)
 }
 
-// Tables that "delete" by flipping is_deleted=true (the row stays) rather than removing it. Trash
-// restore/purge has to treat them specially: re-inserting their original id would hit a PK conflict.
-const SOFT_DELETE_TABLES = new Set(["calendar_events", "user_files"])
+type TrashChildSpec = { table: string; fk: string }
 
-async function moveToTrash(tableName: string, id: string, displayName?: string) {
+async function moveToTrash(tableName: string, id: string, displayName?: string, children?: TrashChildSpec[]) {
   // maybeSingle (not single) so a missing row reads as null rather than an error. If the read
   // genuinely fails or the backup insert fails, throw so the calling delete aborts BEFORE removing
   // the row - otherwise a failed backup would let the caller hard-delete with nothing recoverable.
   const { data, error } = await supabase.from(tableName).select("*").eq("id", id).maybeSingle()
   if (error) throw new Error(`Trash backup could not read ${tableName} ${id}: ${error.message}`)
   if (!data) return
+  // Child rows (habit logs, streak check-ins, module assessments) ride inside the snapshot
+  // under _children, so a restore brings the parent back WITH its history. Paged: a years-old
+  // daily habit can exceed PostgREST's 1000-row cap.
+  const snapshot: Record<string, unknown> = { ...data }
+  if (children && children.length > 0) {
+    const all: Record<string, unknown[]> = {}
+    for (const child of children) {
+      const rows: unknown[] = []
+      for (let from = 0; ; from += 1000) {
+        const { data: page, error: childErr } = await supabase
+          .from(child.table)
+          .select("*")
+          .eq(child.fk, id)
+          .range(from, from + 999)
+        if (childErr) throw new Error(`Trash backup could not read ${child.table} for ${tableName} ${id}: ${childErr.message}`)
+        if (!page || page.length === 0) break
+        rows.push(...page)
+        if (page.length < 1000) break
+      }
+      if (rows.length > 0) all[child.table] = rows
+    }
+    if (Object.keys(all).length > 0) snapshot._children = all
+  }
   const { error: insErr } = await supabase.from("trash").insert({
     table_name: tableName,
     original_id: id,
-    display_name: displayName ?? null,
-    data,
+    display_name: displayName ?? (typeof data.name === "string" ? data.name : null),
+    data: snapshot,
   })
   if (insErr) throw new Error(`Trash backup failed for ${tableName} ${id}: ${insErr.message}`)
 }
@@ -232,7 +254,10 @@ export async function updateModule(id: string, data: Partial<{
 export async function deleteModule(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await moveToTrash("modules", id)
+  // The assessments ride inside the snapshot so a restore brings the module back WITH its marks.
+  await moveToTrash("modules", id, undefined, [{ table: "assessments", fk: "module_id" }])
+  const { error: childErr } = await supabase.from("assessments").delete().eq("module_id", id)
+  if (childErr) return { error: childErr.message }
   const { error } = await supabase.from("modules").delete().eq("id", id)
   if (error) return { error: error.message }
   void logActivity("module.delete", id)
@@ -768,7 +793,10 @@ export async function updateStreak(id: string, data: Partial<{
 export async function deleteStreak(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await moveToTrash("streaks", id)
+  // The check-in logs ride inside the snapshot so a restore brings the streak back WITH its history.
+  await moveToTrash("streaks", id, undefined, [{ table: "streak_logs", fk: "streak_id" }])
+  const { error: logsErr } = await supabase.from("streak_logs").delete().eq("streak_id", id)
+  if (logsErr) return { error: logsErr.message }
   const { error } = await supabase.from("streaks").delete().eq("id", id)
   if (error) return { error: error.message }
   void logActivity("streak.delete", id)
@@ -778,6 +806,10 @@ export async function deleteStreak(id: string) {
 export async function resetStreak(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
+  // A reset wipes every check-in, so snapshot them first: the streak row plus its logs go to the
+  // trash, and restoring that entry undoes the reset (the row upserts over itself, the logs
+  // re-insert). Without this a reset was the only destructive action with no recovery copy at all.
+  await moveToTrash("streaks", id, undefined, [{ table: "streak_logs", fk: "streak_id" }])
   // I clear every check-in for this streak so the current and longest streak both fall back to zero.
   const { error } = await supabase.from("streak_logs").delete().eq("streak_id", id)
   if (error) return { error: error.message }
@@ -841,7 +873,8 @@ export async function updateHabit(id: string, data: { name?: string; color?: str
 export async function deleteHabit(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  await moveToTrash("habits", id)
+  // The logs ride inside the snapshot so a restore brings the habit back WITH its history.
+  await moveToTrash("habits", id, undefined, [{ table: "habit_logs", fk: "habit_id" }])
   // I delete the logs first, then the habit itself; check both writes so a failure of either is
   // surfaced rather than silently leaving orphaned logs or a phantom delete.
   const { error: logsErr } = await supabase.from("habit_logs").delete().eq("habit_id", id)
@@ -2004,22 +2037,51 @@ export async function getTrash(): Promise<TrashItem[]> {
 export async function restoreFromTrash(trashId: string) {
   await requireAuth()
   if (!validId(trashId)) return INVALID
-  const { data: item } = await supabase.from("trash").select("*").eq("id", trashId).single()
+  const { data: item, error: readErr } = await supabase.from("trash").select("*").eq("id", trashId).single()
+  if (readErr) return { error: readErr.message }
   if (!item) return INVALID
 
-  // Soft-delete tables still hold the row (is_deleted=true), so restore by clearing the flag - a
-  // re-insert would collide on the primary key. Hard-delete tables genuinely removed the row, so
-  // re-insert it from the snapshot.
-  const result = SOFT_DELETE_TABLES.has(item.table_name)
-    ? await supabase.from(item.table_name).update({ is_deleted: false }).eq("id", item.original_id)
-    : await supabase.from(item.table_name).insert({
-        ...(item.data as Record<string, unknown>),
-        id: item.original_id,
-      })
-  // Only drop the backup once the restore actually succeeded, so a failed restore never destroys the
-  // recovery copy.
-  if (result.error) return { error: result.error.message }
-  await supabase.from("trash").delete().eq("id", trashId)
+  const { _children, ...row } = (item.data ?? {}) as Record<string, unknown> & {
+    _children?: Record<string, Record<string, unknown>[]>
+  }
+
+  if (SOFT_DELETE_TABLES.has(item.table_name)) {
+    // Soft-delete tables still hold the row (is_deleted=true), so restore by clearing the flag.
+    // Clearing it matches ZERO rows without an error when the hidden row is gone, so I count the
+    // matches and fall back to re-inserting the snapshot - otherwise the restore would do nothing
+    // and the only recovery copy would still be destroyed below.
+    const { data: updated, error: updErr } = await supabase
+      .from(item.table_name)
+      .update({ is_deleted: false })
+      .eq("id", item.original_id)
+      .select("id")
+    if (updErr) return { error: updErr.message }
+    if (!updated || updated.length === 0) {
+      const { error: insErr } = await supabase
+        .from(item.table_name)
+        .insert({ ...row, id: item.original_id, is_deleted: false })
+      if (insErr) return { error: insErr.message }
+    }
+  } else {
+    // Upsert rather than insert so restoring a snapshot of a still-existing row (a streak reset
+    // backup) undoes the change instead of failing on the primary key.
+    const { error: upErr } = await supabase
+      .from(item.table_name)
+      .upsert({ ...row, id: item.original_id }, { onConflict: "id" })
+    if (upErr) return { error: upErr.message }
+    // Bring back the snapshotted history (habit logs, streak check-ins, assessments). On a child
+    // failure the parent stays restored and the trash entry is kept, so restoring again retries
+    // the children without duplicating anything.
+    for (const [childTable, childRows] of Object.entries(_children ?? {})) {
+      if (!Array.isArray(childRows) || childRows.length === 0) continue
+      const { error: childErr } = await supabase.from(childTable).upsert(childRows, { onConflict: "id" })
+      if (childErr) return { error: `Restored ${item.table_name} but its ${childTable} failed: ${childErr.message}` }
+    }
+  }
+  // Only drop the backup once the restore actually succeeded, so a failed restore never destroys
+  // the recovery copy - and a failed drop is reported rather than leaving a stale entry silently.
+  const { error: delErr } = await supabase.from("trash").delete().eq("id", trashId)
+  if (delErr) return { error: delErr.message }
   void logActivity(`${item.table_name}.restore`, item.display_name ?? item.original_id)
   revalidatePath("/dashboard", "layout")
 }
@@ -2027,21 +2089,15 @@ export async function restoreFromTrash(trashId: string) {
 export async function permanentlyDelete(trashId: string) {
   await requireAuth()
   if (!validId(trashId)) return INVALID
-  const { data: item } = await supabase.from("trash").select("*").eq("id", trashId).single()
-  if (item && SOFT_DELETE_TABLES.has(item.table_name)) {
-    // The underlying row is only soft-deleted, so a permanent delete must hard-delete it too,
-    // otherwise it lingers hidden forever. For files, also remove the actual blob from Storage.
-    // I check this hard-delete: the trash entry is the only handle to original_id, so if I dropped
-    // it below while this failed the hidden row would become a permanent orphan.
-    const { error: rowErr } = await supabase.from(item.table_name).delete().eq("id", item.original_id)
-    if (rowErr) return { error: rowErr.message }
-    if (item.table_name === "user_files") {
-      const path = (item.data as Record<string, unknown>)?.storage_path
-      if (typeof path === "string" && path) {
-        try { await supabase.storage.from("user-files").remove([path]) } catch {}
-      }
-    }
-  }
+  // A failed read must abort: falling through would delete the trash entry - the only handle to
+  // a soft-deleted row - while skipping the hard-delete, orphaning that row forever.
+  const { data: item, error: readErr } = await supabase.from("trash").select("*").eq("id", trashId).single()
+  if (readErr) return { error: readErr.message }
+  if (!item) return INVALID
+  // The underlying row of a soft-delete table is only hidden, so a permanent delete must
+  // hard-delete it too (and the Storage blob for files) - shared logic in lib/trash.ts.
+  const purgeErr = await purgeSoftDeleted(item)
+  if (purgeErr) return { error: purgeErr }
   const { error: trashErr } = await supabase.from("trash").delete().eq("id", trashId)
   if (trashErr) return { error: trashErr.message }
   void logActivity("trash.permanent_delete", trashId)
@@ -2051,18 +2107,23 @@ export async function permanentlyDelete(trashId: string) {
 export async function emptyTrash() {
   await requireAuth()
   // Hard-delete the underlying rows + Storage blobs for any soft-deleted items first, so emptying
-  // the trash does not leave orphaned hidden rows or files behind.
-  const { data: items } = await supabase.from("trash").select("table_name, original_id, data")
-  for (const it of items ?? []) {
-    if (!SOFT_DELETE_TABLES.has(it.table_name)) continue
-    const { error: rowErr } = await supabase.from(it.table_name).delete().eq("id", it.original_id)
-    if (rowErr) return { error: rowErr.message }
-    if (it.table_name === "user_files") {
-      const path = (it.data as Record<string, unknown>)?.storage_path
-      if (typeof path === "string" && path) {
-        try { await supabase.storage.from("user-files").remove([path]) } catch {}
-      }
-    }
+  // the trash does not leave orphaned hidden rows or files behind. The read is paged (PostgREST
+  // caps at 1000 rows) and checked - a failed or truncated read followed by the delete-all below
+  // would orphan every soft-deleted row it missed.
+  const items: { table_name: string; original_id: string; data: unknown }[] = []
+  for (let from = 0; ; from += 1000) {
+    const { data: page, error: readErr } = await supabase
+      .from("trash")
+      .select("table_name, original_id, data")
+      .range(from, from + 999)
+    if (readErr) return { error: readErr.message }
+    if (!page || page.length === 0) break
+    items.push(...page)
+    if (page.length < 1000) break
+  }
+  for (const it of items) {
+    const purgeErr = await purgeSoftDeleted(it)
+    if (purgeErr) return { error: purgeErr }
   }
   const { error } = await supabase.from("trash").delete().neq("id", "00000000-0000-0000-0000-000000000000")
   if (error) return { error: error.message }
