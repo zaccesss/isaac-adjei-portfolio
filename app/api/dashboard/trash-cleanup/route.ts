@@ -70,7 +70,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ deleted, purge_failures: purgeFailures }, { status: 500 })
   }
 
-  // Self-prune the cron_runs idempotency ledger (migration 044) so it never grows unbounded.
+  // Self-prune the cron_runs idempotency ledger (migration 045) so it never grows unbounded.
   const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
   const { error: pruneError } = await supabase.from("cron_runs").delete().lt("run_date", cutoff)
   if (pruneError) console.error("[trash-cleanup] cron_runs prune", pruneError.message)

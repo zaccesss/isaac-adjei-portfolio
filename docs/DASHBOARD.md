@@ -149,30 +149,14 @@ Category grouping note: the Supabase column has `DEFAULT 'Software Engineering'`
 
 ## Supabase schema
 
-Full schema in `sql/schema.sql`. Run on a fresh project to create all tables from scratch. For existing databases, run the individual migration files in `sql/migrations/` (001-015) in order. See [sql/README.md](../sql/README.md) for the fresh-install guide.
+The whole schema is built from the numbered files in `sql/migrations/` - there is no `sql/schema.sql` any more (it embedded real seed data and was removed). A fresh project runs every migration in numeric order; an existing database runs only the ones not yet applied. The authoritative list of every migration and what it adds lives in [sql/migrations/README.md](../sql/migrations/README.md) - that is the single source of truth, so it is not duplicated here.
 
-Migrations (run in order for existing databases):
+Key applications columns added in migrations (all in Section B):
 
-```text
-001_add_jobs_table.sql
-002_add_vault_table.sql
-003_add_blog_reactions.sql
-004_add_opensource_contributions.sql
-005_add_blog_read_events.sql
-006_add_wakatime_daily.sql
-007_add_blog_read_funnel_function.sql
-008_add_inventory_url.sql
-008_add_wakatime_os.sql
-009_ensure_activity_log.sql
-010_add_trash_table.sql
-011_add_contacts_table.sql
-012_add_detail_to_activity_log.sql
-013_add_contacts_phone_github.sql
-014_add_linear_issue_id.sql
-015_add_markdown_column_comments.sql
-```
+- `opening_date`, `last_year_opening`, `housing_location`, `cv_required`, `cover_letter_required`, `written_answers`, `category` (B.8 - added 2026-05-21)
+- `last_scraped_at`, `sponsors_visa` (B.9 - added 2026-05-28)
 
-Note: two files are numbered 008 (inventory URL and WakaTime OS columns were added in the same batch). Both are safe to run in either order. Keep `sql/schema.sql` in sync when adding new migrations.
+Inventory URL field (added in migration 008):
 
 Key applications columns added in migrations (all in Section B):
 

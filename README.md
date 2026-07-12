@@ -247,8 +247,7 @@ scripts/
 └── ps5-daemon.py                     Legacy PS5 polling script (superseded by Cloudflare Worker)
 
 sql/
-├── schema.sql                        Full DROP+CREATE schema for fresh Supabase installs
-└── migrations/                       Incremental migrations 001 onward (40+) - see sql/README.md
+└── migrations/                       Numbered migrations 001-046 that build the whole schema - see sql/README.md
 
 styles/
 └── animations.css                    Shared keyframe animations

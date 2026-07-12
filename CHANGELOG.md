@@ -26,7 +26,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Cron idempotency ledger (`cron_runs` table, migration 044): a `(job, run_date)` primary key that each message-sending job claims before it sends, so a scheduled run that the platform delayed into its target hour can never double-post the same digest, reminder or alert. Written by both the Next.js server and the automations scripts via the service-role key; RLS enabled with no policy to match migration 036. The daily trash-cleanup cron prunes rows older than 90 days so it never grows unbounded
+- Cron idempotency ledger (`cron_runs` table, migration 045): a `(job, run_date)` primary key that each message-sending job claims before it sends, so a scheduled run that the platform delayed into its target hour can never double-post the same digest, reminder or alert. Written by both the Next.js server and the automations scripts via the service-role key; RLS enabled with no policy to match migration 037. The daily trash-cleanup cron prunes rows older than 90 days so it never grows unbounded
 - Midday WakaTime sync (automations repo): a second daily sync at 12:30 UK so the coding dashboard reflects the morning's hours during the day, on top of the end-of-day sync that now runs as the first step of the coding-recap workflow
 
 ### Changed
@@ -524,8 +524,8 @@ A pre-Phase-5 hardening pass: a full audit of the dashboard, server actions, scr
 
 ### Added
 
-- Dashboard: file manager at `/dashboard/files` - upload, rename, move between folders, soft delete, signed download; backed by Supabase Storage and `user_files` table (migration 034)
-- Dashboard: calendar custom events - create, edit and delete individual events (not just iCal feeds); FAB and slot-click to open form; detail sheet with edit/delete for custom events; `calendar_events` table (migration 033)
+- Dashboard: file manager at `/dashboard/files` - upload, rename, move between folders, soft delete, signed download; backed by Supabase Storage and `user_files` table (migration 035)
+- Dashboard: calendar custom events - create, edit and delete individual events (not just iCal feeds); FAB and slot-click to open form; detail sheet with edit/delete for custom events; `calendar_events` table (migration 034)
 - Dashboard: timetable redesigned with Day/Week/Month/Year view switcher; week grid with hour rows; week navigation; custom event creation (meetings, society events etc) merged with iCal feed
 - Dashboard: full-text search (`Cmd+K`) now queries Supabase with 300ms debounce across goals, notes, diary, applications, contacts, habits and streaks
 - Dashboard: application analytics added as an inline tab on the Applications page, filtered to the current type tab (Internships, Graduate Schemes etc); combined all-types analytics at `/dashboard/analytics/applications`

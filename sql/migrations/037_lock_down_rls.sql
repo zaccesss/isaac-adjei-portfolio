@@ -1,4 +1,4 @@
--- 036_lock_down_rls.sql
+-- 037_lock_down_rls.sql
 -- Drop the per-table "allow all" RLS policies. The Next.js server (lib/supabase.ts) and every
 -- workflow now use the Supabase service-role key, which bypasses RLS, so the anon key can be left
 -- with no access to any table. Applied to the live database via psql on 2026-06-22.
