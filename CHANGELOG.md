@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+
+- Hardened the dashboard PIN gate. The verified cookie is now a signed, expiring token bound to my session and checked server-side on every gated page rather than a bare flag; the per-type vault and modules pages and both notes pages now perform the same server-side PIN check their index pages already did, so gated content never reaches the browser without it; change-pin carries the same rate limit as verify-pin and a failed save now reports the failure instead of success; the config actions accept only a fixed set of preference keys, so the PIN hash is not reachable through them
+
 ### Changed
 
 - Made Dependabot auto-merge ecosystem-aware: patch and minor bumps and major GitHub Actions bumps auto-merge once the `Lint and Build` check passes, but major `npm` bumps are now held for manual review instead of auto-merging, since a breaking runtime bump could pass lint and build and still deploy. The `automerge` label path (used by `cv-pdf.yml`) is unchanged
