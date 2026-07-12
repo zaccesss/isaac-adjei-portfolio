@@ -8,6 +8,7 @@ import { webcrypto } from "node:crypto"
 import { gatherDigestData, type DigestData } from "@/lib/digest-facts"
 import { getExpiringItems } from "@/lib/vault-expiry-check"
 import { supabase } from "@/lib/supabase"
+import { trashAndDelete } from "@/lib/trash"
 
 export const dynamic = "force-dynamic"
 
@@ -63,6 +64,26 @@ async function logBotActivity(action: string, detail?: string): Promise<void> {
   } catch {
     // best-effort only
   }
+}
+
+// Supabase does not throw on a write error - it returns { error } - so an unchecked write looks like it
+// worked. Every bot write goes through this so a failure is reported honestly instead of the command
+// claiming success. Returns a user-facing line on failure (the real error goes to the server log), or
+// null when the write succeeded.
+async function run(write: PromiseLike<{ error: unknown }>, what: string): Promise<string | null> {
+  const { error } = await write
+  if (error) {
+    console.error(`[discord] ${what} failed:`, (error as { message?: string })?.message ?? error)
+    return `⚠️ Could not ${what}. The write failed so nothing changed - try again.`
+  }
+  return null
+}
+
+// A recoverable delete (via trashAndDelete) failed. The row was NOT removed, so say so rather than
+// showing the usual "deleted" tick.
+function deleteFailed(thing: string, error: string): string {
+  console.error(`[discord] delete ${thing} failed:`, error)
+  return `⚠️ Could not delete that ${thing}. It was not removed - try again.`
 }
 
 // Current and longest run of consecutive completed days from a set of YYYY-MM-DD log dates. Dates are
@@ -172,7 +193,8 @@ async function goalCommand(sub: CommandOption | undefined): Promise<string> {
     const title = String(opt("title") ?? "").trim()
     if (!title) return "Give a title: `/goal add title:Learn Rust`"
     const category = String(opt("category") ?? "Personal").trim() || "Personal"
-    await supabase.from("goals").insert({ title, category, status: "not_started", progress: 0 })
+    const err = await run(supabase.from("goals").insert({ title, category, status: "not_started", progress: 0 }), "add that goal")
+    if (err) return err
     await logBotActivity("goal.create", title)
     return `✅ Added goal **${title}** _(${category})_.`
   }
@@ -184,12 +206,14 @@ async function goalCommand(sub: CommandOption | undefined): Promise<string> {
     if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => m.title).join(", ")}. Be more specific.`
     const g = matches[0]
     if (sub.name === "done") {
-      await supabase.from("goals").update({ status: "done", progress: 100 }).eq("id", g.id)
+      const err = await run(supabase.from("goals").update({ status: "done", progress: 100 }).eq("id", g.id), "mark that goal done")
+      if (err) return err
       await logBotActivity("goal.update", `${g.title} done`)
       return `✅ Marked goal **${g.title}** done.`
     }
     if (sub.name === "delete") {
-      await supabase.from("goals").delete().eq("id", g.id)
+      const derr = await trashAndDelete("goals", g.id, g.title)
+      if (derr) return deleteFailed("goal", derr)
       await logBotActivity("goal.delete", g.title)
       return `🗑️ Deleted goal **${g.title}**.`
     }
@@ -197,7 +221,8 @@ async function goalCommand(sub: CommandOption | undefined): Promise<string> {
     if (!Number.isFinite(pct)) return "Give a percentage: `/goal progress name:… pct:50`"
     const clamped = Math.max(0, Math.min(100, pct))
     const status = clamped >= 100 ? "done" : clamped > 0 ? "in_progress" : "not_started"
-    await supabase.from("goals").update({ progress: clamped, status }).eq("id", g.id)
+    const err = await run(supabase.from("goals").update({ progress: clamped, status }).eq("id", g.id), "update that goal")
+    if (err) return err
     await logBotActivity("goal.update", `${g.title} ${clamped}%`)
     return `📈 **${g.title}** now at **${clamped}%**.`
   }
@@ -217,9 +242,11 @@ async function appCommand(sub: CommandOption | undefined): Promise<string> {
     const role = String(opt("role") ?? "").trim()
     if (!company || !role) return "Give company + role: `/app add company:Google role:SWE Intern`"
     const status = String(opt("status") ?? "Applied").trim() || "Applied"
-    await supabase.from("applications").insert({ company, role, type: "Internship", status, applied_date: localToday() })
+    const type = String(opt("type") ?? "Internship").trim() || "Internship"
+    const err = await run(supabase.from("applications").insert({ company, role, type, status, applied_date: localToday() }), "add that application")
+    if (err) return err
     await logBotActivity("application.create", `${company} - ${role}`)
-    return `✅ Added **${company}** - ${role} _(${status})_.`
+    return `✅ Added **${company}** - ${role} _(${type}, ${status})_.`
   }
   if (sub?.name === "status" || sub?.name === "delete") {
     const q = safe(String(opt("name") ?? ""))
@@ -229,13 +256,15 @@ async function appCommand(sub: CommandOption | undefined): Promise<string> {
     if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => `${m.company} (${m.role})`).join(", ")}. Be more specific.`
     const a = matches[0]
     if (sub.name === "delete") {
-      await supabase.from("applications").delete().eq("id", a.id)
+      const derr = await trashAndDelete("applications", a.id, `${a.company} - ${a.role}`)
+      if (derr) return deleteFailed("application", derr)
       await logBotActivity("application.delete", `${a.company} - ${a.role}`)
       return `🗑️ Deleted **${a.company}** - ${a.role}.`
     }
     const to = String(opt("to") ?? "").trim()
     if (!to) return "Usage: `/app status name:Google to:Interview`"
-    await supabase.from("applications").update({ status: to }).eq("id", a.id)
+    const err = await run(supabase.from("applications").update({ status: to }).eq("id", a.id), "update that application")
+    if (err) return err
     await logBotActivity("application.update", `${a.company} -> ${to}`)
     return `✅ **${a.company}** - ${a.role} is now _${to}_.`
   }
@@ -260,7 +289,8 @@ async function ossCommand(sub: CommandOption | undefined): Promise<string> {
     if (!repo) return "Give a repo: `/oss add repo:vercel/next.js title:Fix typo url:…`"
     const pr_title = String(opt("title") ?? "Contribution").trim() || "Contribution"
     const pr_url = String(opt("url") ?? "").trim() || null
-    await supabase.from("opensource_contributions").insert({ repo, pr_title, pr_url, status: "open" })
+    const err = await run(supabase.from("opensource_contributions").insert({ repo, pr_title, pr_url, status: "open" }), "log that contribution")
+    if (err) return err
     await logBotActivity("opensource.create", `${repo} - ${pr_title}`)
     return `✅ Logged contribution to **${repo}**: ${pr_title}.`
   }
@@ -270,7 +300,8 @@ async function ossCommand(sub: CommandOption | undefined): Promise<string> {
     const { data: matches } = await supabase.from("opensource_contributions").select("id,repo,pr_title").or(`repo.ilike.${like(q)},pr_title.ilike.${like(q)}`).limit(5)
     if (!matches?.length) return `No contribution matching "${q}".`
     if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => `${m.repo} (${m.pr_title})`).join(", ")}. Be more specific.`
-    await supabase.from("opensource_contributions").delete().eq("id", matches[0].id)
+    const derr = await trashAndDelete("opensource_contributions", matches[0].id, `${matches[0].repo} - ${matches[0].pr_title}`)
+    if (derr) return deleteFailed("contribution", derr)
     await logBotActivity("opensource.delete", `${matches[0].repo} - ${matches[0].pr_title}`)
     return `🗑️ Deleted contribution to **${matches[0].repo}**.`
   }
@@ -330,7 +361,8 @@ async function calendarCommand(sub: CommandOption | undefined): Promise<string> 
     const when = parseWhenToUtc(String(opt("when") ?? ""))
     if (!title || !when) return "Usage: `/calendar add title:Dentist when:2026-07-20 14:00`"
     const end = new Date(new Date(when).getTime() + 60 * 60_000).toISOString()
-    await supabase.from("calendar_events").insert({ title, start_at: when, end_at: end })
+    const err = await run(supabase.from("calendar_events").insert({ title, start_at: when, end_at: end }), "add that event")
+    if (err) return err
     await logBotActivity("calendar.create", title)
     return `✅ Added **${title}** to the calendar.`
   }
@@ -340,7 +372,8 @@ async function calendarCommand(sub: CommandOption | undefined): Promise<string> 
     const { data: matches } = await supabase.from("calendar_events").select("id,title").eq("is_deleted", false).ilike("title", like(q)).limit(5)
     if (!matches?.length) return `No event matching "${q}".`
     if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
-    await supabase.from("calendar_events").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", matches[0].id)
+    const derr = await trashAndDelete("calendar_events", matches[0].id, matches[0].title)
+    if (derr) return deleteFailed("event", derr)
     await logBotActivity("calendar.delete", matches[0].title)
     return `🗑️ Removed **${matches[0].title}** from the calendar.`
   }
@@ -365,7 +398,8 @@ async function contactCommand(sub: CommandOption | undefined): Promise<string> {
     const name = String(opt("name") ?? "").trim()
     if (!name) return "Give a name: `/contact add name:Jane Doe company:Google`"
     const company = String(opt("company") ?? "").trim() || null
-    await supabase.from("contacts").insert({ name, company })
+    const err = await run(supabase.from("contacts").insert({ name, company }), "add that contact")
+    if (err) return err
     await logBotActivity("contact.create", name)
     return `✅ Added contact **${name}**${company ? ` _(${company})_` : ""}.`
   }
@@ -380,11 +414,13 @@ async function contactCommand(sub: CommandOption | undefined): Promise<string> {
     if (matches.length > 1) return `More than one: ${matches.map((m) => m.name).join(", ")}. Be more specific.`
     const c = matches[0]
     if (sub.name === "logged") {
-      await supabase.from("contacts").update({ last_contact: today, follow_up: false }).eq("id", c.id)
+      const err = await run(supabase.from("contacts").update({ last_contact: today, follow_up: false }).eq("id", c.id), "log that contact")
+      if (err) return err
       await logBotActivity("contact.update", `${c.name} contacted`)
       return `✅ Logged contact with **${c.name}** today.`
     }
-    await supabase.from("contacts").delete().eq("id", c.id)
+    const derr = await trashAndDelete("contacts", c.id, c.name)
+    if (derr) return deleteFailed("contact", derr)
     await logBotActivity("contact.delete", c.name)
     return `🗑️ Deleted contact **${c.name}**.`
   }
@@ -402,7 +438,8 @@ async function reminderCommand(sub: CommandOption | undefined): Promise<string> 
     const title = String(opt("title") ?? "").trim()
     const when = parseWhenToUtc(String(opt("when") ?? ""))
     if (!title || !when) return "Usage: `/reminder add title:Call the bank when:2026-07-20 14:00`"
-    await supabase.from("reminders").insert({ kind: "appointment", title, event_at: when, lead_minutes: [1440], channels: ["discord"] })
+    const err = await run(supabase.from("reminders").insert({ kind: "appointment", title, event_at: when, lead_minutes: [1440], channels: ["discord"] }), "set that reminder")
+    if (err) return err
     await logBotActivity("reminder.create", title)
     return `✅ Reminder set for **${title}**.`
   }
@@ -413,11 +450,13 @@ async function reminderCommand(sub: CommandOption | undefined): Promise<string> 
     if (!matches?.length) return `No reminder matching "${q}".`
     if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
     if (sub.name === "delete") {
-      await supabase.from("reminders").delete().eq("id", matches[0].id)
+      const derr = await trashAndDelete("reminders", matches[0].id, matches[0].title)
+      if (derr) return deleteFailed("reminder", derr)
       await logBotActivity("reminder.delete", matches[0].title)
       return `🗑️ Deleted reminder **${matches[0].title}**.`
     }
-    await supabase.from("reminders").update({ active: false }).eq("id", matches[0].id)
+    const err = await run(supabase.from("reminders").update({ active: false }).eq("id", matches[0].id), "mark that reminder done")
+    if (err) return err
     await logBotActivity("reminder.update", `${matches[0].title} done`)
     return `✅ Marked reminder **${matches[0].title}** done.`
   }
@@ -482,14 +521,16 @@ async function healthCommand(sub: CommandOption | undefined): Promise<string> {
       const protein = Number(opt("protein"))
       const name = String(opt("name") ?? "").trim() || "meal"
       const meal = String(opt("meal") ?? "snack").trim() || "snack"
-      await supabase.from("nutrition_logs").insert({ date: today, meal, name, calories, protein_g: Number.isFinite(protein) ? protein : null })
+      const err = await run(supabase.from("nutrition_logs").insert({ date: today, meal, name, calories, protein_g: Number.isFinite(protein) ? protein : null }), "log that meal")
+      if (err) return err
       await logBotActivity("nutrition.create", `${name} ${calories}kcal`)
       return `✅ Logged **${name}** - ${calories} kcal${Number.isFinite(protein) ? `, ${protein}g protein` : ""}.`
     }
     if (cmd?.name === "undo") {
       const { data: rows } = await supabase.from("nutrition_logs").select("id,name").eq("date", today).order("created_at", { ascending: false }).limit(1)
       if (!rows?.length) return "No meal logged today to undo."
-      await supabase.from("nutrition_logs").delete().eq("id", rows[0].id)
+      const err = await run(supabase.from("nutrition_logs").delete().eq("id", rows[0].id), "undo that meal")
+      if (err) return err
       await logBotActivity("nutrition.delete", String(rows[0].name))
       return `↩️ Removed today's last meal (${rows[0].name}).`
     }
@@ -500,14 +541,16 @@ async function healthCommand(sub: CommandOption | undefined): Promise<string> {
       const type = String(opt("type") ?? "").trim()
       const minutes = Math.round(Number(opt("minutes")))
       if (!type || !Number.isFinite(minutes) || minutes <= 0) return "Usage: `/health workout log type:Run minutes:40`"
-      await supabase.from("workout_logs").insert({ date: today, type, duration_min: minutes })
+      const err = await run(supabase.from("workout_logs").insert({ date: today, type, duration_min: minutes }), "log that workout")
+      if (err) return err
       await logBotActivity("workout.create", `${type} ${minutes}m`)
       return `✅ Logged **${type}** for ${minutes}m.`
     }
     if (cmd?.name === "undo") {
       const { data: rows } = await supabase.from("workout_logs").select("id,type").eq("date", today).order("created_at", { ascending: false }).limit(1)
       if (!rows?.length) return "No workout logged today to undo."
-      await supabase.from("workout_logs").delete().eq("id", rows[0].id)
+      const err = await run(supabase.from("workout_logs").delete().eq("id", rows[0].id), "undo that workout")
+      if (err) return err
       await logBotActivity("workout.delete", String(rows[0].type))
       return `↩️ Removed today's last workout (${rows[0].type}).`
     }
@@ -521,14 +564,16 @@ async function healthCommand(sub: CommandOption | undefined): Promise<string> {
       if (q) query = query.ilike("name", like(q))
       const { data: rows } = await query.order("sent_at", { ascending: false }).limit(1)
       if (!rows?.length) return q ? `No pending dose today matching "${q}".` : "No pending doses today. 💊"
-      await supabase.from("medication_doses").update({ status: "taken", taken_at: new Date().toISOString() }).eq("id", rows[0].id)
+      const err = await run(supabase.from("medication_doses").update({ status: "taken", taken_at: new Date().toISOString() }).eq("id", rows[0].id), "mark that dose taken")
+      if (err) return err
       await logBotActivity("medication.taken", String(rows[0].name))
       return `✅ Marked **${rows[0].name}** as taken.`
     }
     if (cmd?.name === "undo") {
       const { data: rows } = await supabase.from("medication_doses").select("id,name").eq("status", "taken").order("taken_at", { ascending: false }).limit(1)
       if (!rows?.length) return "No dose marked taken to undo."
-      await supabase.from("medication_doses").update({ status: "sent", taken_at: null }).eq("id", rows[0].id)
+      const err = await run(supabase.from("medication_doses").update({ status: "sent", taken_at: null }).eq("id", rows[0].id), "undo that dose")
+      if (err) return err
       await logBotActivity("medication.undo", String(rows[0].name))
       return `↩️ Unmarked **${rows[0].name}**.`
     }
@@ -561,7 +606,8 @@ async function weightCommand(sub: CommandOption | undefined): Promise<string> {
   if (sub?.name === "log") {
     const kg = Number(sub.options?.find((o) => o.name === "kg")?.value)
     if (!Number.isFinite(kg) || kg <= 0 || kg > 999) return "Give a weight in kg: `/weight log kg:75.5`"
-    await supabase.from("body_metrics").insert({ date: today, metric: "weight_kg", value: kg, unit: "kg" })
+    const err = await run(supabase.from("body_metrics").insert({ date: today, metric: "weight_kg", value: kg, unit: "kg" }), "log your weight")
+    if (err) return err
     await logBotActivity("health.create", `Weight ${kg}kg`)
     return `✅ Logged **${kg}kg** for today.`
   }
@@ -572,10 +618,11 @@ async function weightCommand(sub: CommandOption | undefined): Promise<string> {
       .select("id")
       .eq("metric", "weight_kg")
       .eq("date", today)
-      .order("id", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(1)
     if (!rows?.length) return "No weight logged today to undo."
-    await supabase.from("body_metrics").delete().eq("id", rows[0].id)
+    const err = await run(supabase.from("body_metrics").delete().eq("id", rows[0].id), "undo that weight entry")
+    if (err) return err
     await logBotActivity("health.delete", "Weight (undo)")
     return "↩️ Removed today's weight entry."
   }
@@ -618,7 +665,8 @@ async function habitCommand(sub: CommandOption | undefined): Promise<string> {
   if (sub.name === "all") {
     if (!active.length) return "No active habits to mark."
     const rows = active.map((h) => ({ habit_id: h.id, date: today, completed: true }))
-    await supabase.from("habit_logs").upsert(rows, { onConflict: "habit_id,date" })
+    const err = await run(supabase.from("habit_logs").upsert(rows, { onConflict: "habit_id,date" }), "mark all habits done")
+    if (err) return err
     await logBotActivity("habit.checkin", `Marked all ${active.length} habits done`)
     return `✅ Marked **all ${active.length}** habits done for today.`
   }
@@ -642,11 +690,13 @@ async function habitCommand(sub: CommandOption | undefined): Promise<string> {
     if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => m.name).join(", ")}. Be more specific.`
     const h = matches[0]
     if (sub.name === "done") {
-      await supabase.from("habit_logs").upsert({ habit_id: h.id, date: today, completed: true }, { onConflict: "habit_id,date" })
+      const err = await run(supabase.from("habit_logs").upsert({ habit_id: h.id, date: today, completed: true }, { onConflict: "habit_id,date" }), "mark that habit done")
+      if (err) return err
       await logBotActivity("habit.checkin", h.name)
       return `✅ Marked **${h.name}** done for today.`
     }
-    await supabase.from("habit_logs").delete().eq("habit_id", h.id).eq("date", today)
+    const err = await run(supabase.from("habit_logs").delete().eq("habit_id", h.id).eq("date", today), "unmark that habit")
+    if (err) return err
     await logBotActivity("habit.undo_checkin", h.name)
     return `↩️ Unmarked **${h.name}** for today.`
   }
@@ -670,7 +720,8 @@ async function streakCommand(sub: CommandOption | undefined): Promise<string> {
   if (sub.name === "all") {
     if (!active.length) return "No active streaks to log."
     const rows = active.map((s) => ({ streak_id: s.id, date: today, completed: true }))
-    await supabase.from("streak_logs").upsert(rows, { onConflict: "streak_id,date" })
+    const err = await run(supabase.from("streak_logs").upsert(rows, { onConflict: "streak_id,date" }), "log all streaks")
+    if (err) return err
     await logBotActivity("streak.checkin", `Logged all ${active.length} streaks`)
     return `✅ Logged **all ${active.length}** streaks for today.`
   }
@@ -679,7 +730,8 @@ async function streakCommand(sub: CommandOption | undefined): Promise<string> {
     const { data: logs } = await supabase.from("streak_logs").select("streak_id").eq("date", today)
     const n = (logs ?? []).length
     if (!n) return "No streak check-ins to clear for today."
-    await supabase.from("streak_logs").delete().eq("date", today)
+    const err = await run(supabase.from("streak_logs").delete().eq("date", today), "clear today's streak check-ins")
+    if (err) return err
     await logBotActivity("streak.undo_checkin", `Cleared all ${n} streak check-ins`)
     return `↩️ Cleared **all ${n}** streak check-ins for today.`
   }
@@ -708,11 +760,13 @@ async function streakCommand(sub: CommandOption | undefined): Promise<string> {
     if (matches.length > 1) return `More than one matches "${q}": ${matches.map((m) => m.name).join(", ")}. Be more specific.`
     const s = matches[0]
     if (sub.name === "log") {
-      await supabase.from("streak_logs").upsert({ streak_id: s.id, date: today, completed: true }, { onConflict: "streak_id,date" })
+      const err = await run(supabase.from("streak_logs").upsert({ streak_id: s.id, date: today, completed: true }, { onConflict: "streak_id,date" }), "log that streak")
+      if (err) return err
       await logBotActivity("streak.checkin", s.name)
       return `✅ Logged **${s.name}** for today.`
     }
-    await supabase.from("streak_logs").delete().eq("streak_id", s.id).eq("date", today)
+    const err = await run(supabase.from("streak_logs").delete().eq("streak_id", s.id).eq("date", today), "undo that streak check-in")
+    if (err) return err
     await logBotActivity("streak.undo_checkin", s.name)
     return `↩️ Removed today's check-in for **${s.name}**.`
   }
@@ -727,7 +781,8 @@ async function diaryCommand(sub: CommandOption | undefined): Promise<string> {
     if (!text) return "Give some text: `/diary add text:Today I…`"
     const mood = String(opt("mood") ?? "neutral").trim() || "neutral"
     const title = text.length > 50 ? `${text.slice(0, 50)}…` : text
-    await supabase.from("diary").insert({ title, content: text, mood })
+    const err = await run(supabase.from("diary").insert({ title, content: text, mood }), "save that diary entry")
+    if (err) return err
     await logBotActivity("diary.create", title)
     return "✅ Diary entry saved."
   }
@@ -743,7 +798,8 @@ async function noteCommand(sub: CommandOption | undefined): Promise<string> {
     if (!text) return "Give some text: `/note add text:Remember to…`"
     const folder = String(opt("folder") ?? "General").trim() || "General"
     const title = text.length > 60 ? `${text.slice(0, 60)}…` : text
-    await supabase.from("notes").insert({ title, content: text, folder })
+    const err = await run(supabase.from("notes").insert({ title, content: text, folder }), "save that note")
+    if (err) return err
     await logBotActivity("note.create", title)
     return `✅ Note saved to **${folder}**.`
   }
@@ -753,7 +809,8 @@ async function noteCommand(sub: CommandOption | undefined): Promise<string> {
     const { data: matches } = await supabase.from("notes").select("id,title").ilike("title", like(q)).limit(5)
     if (!matches?.length) return `No note matching "${q}".`
     if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
-    await supabase.from("notes").delete().eq("id", matches[0].id)
+    const derr = await trashAndDelete("notes", matches[0].id, matches[0].title)
+    if (derr) return deleteFailed("note", derr)
     await logBotActivity("note.delete", matches[0].title)
     return `🗑️ Deleted note **${matches[0].title}**.`
   }
@@ -769,7 +826,8 @@ async function wishlistCommand(sub: CommandOption | undefined): Promise<string> 
     const name = String(opt("item") ?? "").trim()
     if (!name) return "Give an item: `/wishlist add item:Mechanical keyboard`"
     const category = String(opt("category") ?? "General").trim() || "General"
-    await supabase.from("wishlist").insert({ name, category, status: "wanted" })
+    const err = await run(supabase.from("wishlist").insert({ name, category, status: "wanted" }), "add that item")
+    if (err) return err
     await logBotActivity("wishlist.create", name)
     return `✅ Added **${name}** to the wishlist.`
   }
@@ -779,7 +837,8 @@ async function wishlistCommand(sub: CommandOption | undefined): Promise<string> 
     const { data: matches } = await supabase.from("wishlist").select("id,name").ilike("name", like(q)).limit(5)
     if (!matches?.length) return `No wishlist item matching "${q}".`
     if (matches.length > 1) return `More than one: ${matches.map((m) => m.name).join(", ")}. Be more specific.`
-    await supabase.from("wishlist").delete().eq("id", matches[0].id)
+    const derr = await trashAndDelete("wishlist", matches[0].id, matches[0].name)
+    if (derr) return deleteFailed("wishlist item", derr)
     await logBotActivity("wishlist.delete", matches[0].name)
     return `🗑️ Removed **${matches[0].name}** from the wishlist.`
   }
@@ -795,7 +854,8 @@ async function inventoryCommand(sub: CommandOption | undefined): Promise<string>
     const name = String(opt("item") ?? "").trim()
     if (!name) return "Give an item: `/inventory add item:Raspberry Pi 5`"
     const category = String(opt("category") ?? "Tech and Devices").trim() || "Tech and Devices"
-    await supabase.from("inventory_items").insert({ name, category })
+    const err = await run(supabase.from("inventory_items").insert({ name, category }), "add that item")
+    if (err) return err
     await logBotActivity("inventory.create", name)
     return `✅ Added **${name}** to inventory.`
   }
@@ -805,7 +865,8 @@ async function inventoryCommand(sub: CommandOption | undefined): Promise<string>
     const { data: matches } = await supabase.from("inventory_items").select("id,name").ilike("name", like(q)).limit(5)
     if (!matches?.length) return `No inventory item matching "${q}".`
     if (matches.length > 1) return `More than one: ${matches.map((m) => m.name).join(", ")}. Be more specific.`
-    await supabase.from("inventory_items").delete().eq("id", matches[0].id)
+    const derr = await trashAndDelete("inventory_items", matches[0].id, matches[0].name)
+    if (derr) return deleteFailed("inventory item", derr)
     await logBotActivity("inventory.delete", matches[0].name)
     return `🗑️ Removed **${matches[0].name}** from inventory.`
   }
@@ -834,14 +895,16 @@ async function studyCommand(sub: CommandOption | undefined): Promise<string> {
     const subject = String(opt("subject") ?? "").trim()
     if (!Number.isFinite(minutes) || minutes <= 0) return "Give minutes: `/study log minutes:60 subject:Maths`"
     if (!subject) return "Give a subject: `/study log minutes:60 subject:Maths`"
-    await supabase.from("study_sessions").insert({ date: today, subject, duration_m: minutes, productive: true })
+    const err = await run(supabase.from("study_sessions").insert({ date: today, subject, duration_m: minutes, productive: true }), "log that study session")
+    if (err) return err
     await logBotActivity("study.create", `${minutes}m of ${subject}`)
     return `✅ Logged **${minutes}m** of ${subject}.`
   }
   if (sub?.name === "undo") {
-    const { data: rows } = await supabase.from("study_sessions").select("id,subject").eq("date", today).order("id", { ascending: false }).limit(1)
+    const { data: rows } = await supabase.from("study_sessions").select("id,subject").eq("date", today).order("created_at", { ascending: false }).limit(1)
     if (!rows?.length) return "No study session logged today to undo."
-    await supabase.from("study_sessions").delete().eq("id", rows[0].id)
+    const err = await run(supabase.from("study_sessions").delete().eq("id", rows[0].id), "undo that study session")
+    if (err) return err
     await logBotActivity("study.delete", String(rows[0].subject))
     return `↩️ Removed today's last study session (${rows[0].subject}).`
   }
@@ -862,14 +925,16 @@ async function faithCommand(sub: CommandOption | undefined): Promise<string> {
   if (sub?.name === "log") {
     const type = String(opt("type") ?? "bible").trim() || "bible"
     const title = String(opt("title") ?? "").trim() || null
-    await supabase.from("faith_entries").insert({ date: today, type, title, completed: true })
+    const err = await run(supabase.from("faith_entries").insert({ date: today, type, title, completed: true }), "log that faith entry")
+    if (err) return err
     await logBotActivity("faith.create", type)
     return `✅ Logged a **${type}** entry for today.`
   }
   if (sub?.name === "undo") {
-    const { data: rows } = await supabase.from("faith_entries").select("id,type").eq("date", today).order("id", { ascending: false }).limit(1)
+    const { data: rows } = await supabase.from("faith_entries").select("id,type").eq("date", today).order("created_at", { ascending: false }).limit(1)
     if (!rows?.length) return "No faith entry logged today to undo."
-    await supabase.from("faith_entries").delete().eq("id", rows[0].id)
+    const err = await run(supabase.from("faith_entries").delete().eq("id", rows[0].id), "undo that faith entry")
+    if (err) return err
     await logBotActivity("faith.delete", String(rows[0].type))
     return "↩️ Removed today's last faith entry."
   }
@@ -893,7 +958,8 @@ async function uniCommand(sub: CommandOption | undefined): Promise<string> {
       const title = String(opt("title") ?? "").trim()
       const due = String(opt("due") ?? "").trim()
       if (!title || !due) return "Usage: `/uni deadline add title:Essay due:2026-05-01`"
-      await supabase.from("uni_deadlines").insert({ title, due_date: due, status: "not_started" })
+      const err = await run(supabase.from("uni_deadlines").insert({ title, due_date: due, status: "not_started" }), "add that deadline")
+      if (err) return err
       await logBotActivity("deadline.create", title)
       return `✅ Added deadline **${title}** due ${due}.`
     }
@@ -903,7 +969,8 @@ async function uniCommand(sub: CommandOption | undefined): Promise<string> {
       const { data: matches } = await supabase.from("uni_deadlines").select("id,title").ilike("title", like(q)).neq("status", "graded").limit(5)
       if (!matches?.length) return `No deadline matching "${q}".`
       if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
-      await supabase.from("uni_deadlines").update({ status: "submitted", submitted_at: new Date().toISOString() }).eq("id", matches[0].id)
+      const err = await run(supabase.from("uni_deadlines").update({ status: "submitted", submitted_at: new Date().toISOString() }).eq("id", matches[0].id), "mark that deadline submitted")
+      if (err) return err
       await logBotActivity("deadline.update", `${matches[0].title} submitted`)
       return `✅ Marked **${matches[0].title}** submitted.`
     }
@@ -915,7 +982,8 @@ async function uniCommand(sub: CommandOption | undefined): Promise<string> {
       const title = String(opt("title") ?? "").trim()
       const due = String(opt("due") ?? "").trim()
       if (!title || !due) return "Usage: `/uni book add title:Clean Code due:2026-05-01`"
-      await supabase.from("uni_library_books").insert({ title, due_date: due, borrowed_at: today })
+      const err = await run(supabase.from("uni_library_books").insert({ title, due_date: due, borrowed_at: today }), "add that book")
+      if (err) return err
       await logBotActivity("book.create", title)
       return `✅ Borrowed **${title}**, due ${due}.`
     }
@@ -925,7 +993,8 @@ async function uniCommand(sub: CommandOption | undefined): Promise<string> {
       const { data: matches } = await supabase.from("uni_library_books").select("id,title").is("returned_at", null).ilike("title", like(q)).limit(5)
       if (!matches?.length) return `No book on loan matching "${q}".`
       if (matches.length > 1) return `More than one: ${matches.map((m) => m.title).join(", ")}. Be more specific.`
-      await supabase.from("uni_library_books").update({ returned_at: today }).eq("id", matches[0].id)
+      const err = await run(supabase.from("uni_library_books").update({ returned_at: today }).eq("id", matches[0].id), "return that book")
+      if (err) return err
       await logBotActivity("book.update", `${matches[0].title} returned`)
       return `✅ Returned **${matches[0].title}**.`
     }
@@ -938,7 +1007,8 @@ async function uniCommand(sub: CommandOption | undefined): Promise<string> {
     if (cmd?.name === "add") {
       const title = String(opt("title") ?? "").trim()
       if (!title) return "Give a title: `/uni submission add title:Lab report`"
-      await supabase.from("uni_submissions").insert({ title })
+      const err = await run(supabase.from("uni_submissions").insert({ title }), "log that submission")
+      if (err) return err
       await logBotActivity("submission.create", title)
       return `✅ Logged submission **${title}**.`
     }
@@ -1003,9 +1073,11 @@ export async function POST(req: Request) {
 
   // Slash command (type 2). Owner-only: this endpoint is public, so I check the invoking user id.
   if (interaction.type === 2) {
+    // Fail CLOSED: if DISCORD_OWNER_ID is unset the gate rejects everyone rather than waving every
+    // caller through - this endpoint is public, so an unconfigured owner id must not mean "no gate".
     const ownerId = process.env.DISCORD_OWNER_ID
     const userId = interaction.member?.user?.id ?? interaction.user?.id
-    if (ownerId && userId !== ownerId) {
+    if (!ownerId || userId !== ownerId) {
       return Response.json({ type: 4, data: { content: "Not authorised.", flags: 64 } })
     }
 
