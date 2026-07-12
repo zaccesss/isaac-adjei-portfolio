@@ -1825,10 +1825,40 @@ export async function clearAllApplications() {
   await requireAuth()
   // I exclude status='scraped' from BOTH the read and the delete so this only clears tracked
   // applications - the scraped Jobs tab is cleared separately by clearAllJobs.
-  const { data } = await supabase.from("applications").select("*").neq("status", "scraped")
-  if (data && data.length > 0) {
+
+  // How many tracked rows there are, so I can prove I backed up every one before deleting.
+  const { count, error: countErr } = await supabase
+    .from("applications")
+    .select("id", { count: "exact", head: true })
+    .neq("status", "scraped")
+  if (countErr) return { error: countErr.message }
+  const expected = count ?? 0
+  if (expected === 0) return
+
+  // Read is paged: PostgREST caps a single response at 1000 rows, so an unpaged read would back
+  // up only the first 1000 while the delete removed every tracked row.
+  const rows: { id: string; company: string | null; role: string | null }[] = []
+  for (let from = 0; ; from += 1000) {
+    const { data, error: readErr } = await supabase
+      .from("applications")
+      .select("*")
+      .neq("status", "scraped")
+      .range(from, from + 999)
+    // A discarded read error would drop me straight to the delete with no backup.
+    if (readErr) return { error: readErr.message }
+    if (!data || data.length === 0) break
+    rows.push(...(data as typeof rows))
+    if (data.length < 1000) break
+  }
+
+  // I only delete once the backup holds every row the count promised.
+  if (rows.length < expected) {
+    return { error: `Backup incomplete (${rows.length} of ${expected} read) - nothing deleted` }
+  }
+
+  for (let i = 0; i < rows.length; i += 500) {
     const { error: insErr } = await supabase.from("trash").insert(
-      data.map((row) => ({
+      rows.slice(i, i + 500).map((row) => ({
         table_name: "applications",
         original_id: row.id,
         display_name: `${row.company} - ${row.role}`,
@@ -1839,9 +1869,10 @@ export async function clearAllApplications() {
     // nothing recoverable.
     if (insErr) return { error: insErr.message }
   }
+
   const { error: delErr } = await supabase.from("applications").delete().neq("status", "scraped")
   if (delErr) return { error: delErr.message }
-  void logActivity("application.cleared", `${data?.length ?? 0} applications moved to trash`)
+  void logActivity("application.cleared", `${rows.length} applications moved to trash`)
   revalidatePath("/dashboard/applications")
 }
 

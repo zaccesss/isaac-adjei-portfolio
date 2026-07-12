@@ -177,14 +177,36 @@ function ExportImportPanel() {
     })
   }
 
+  // The export is fetched rather than a plain anchor download so a PIN or auth rejection shows a
+  // message instead of silently saving the error JSON as if it were the backup.
+  async function downloadExport(url: string) {
+    setMessage(null)
+    try {
+      const res = await fetch(url)
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
+        const text = res.status === 403 ? "Unlock the PIN first, then export." : body.error ?? "Export failed."
+        setMessage({ text, ok: false })
+        return
+      }
+      const blob = await res.blob()
+      const href = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = href
+      a.download = `dashboard-export-${new Date().toISOString().slice(0, 10)}.json`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(href)
+    } catch {
+      setMessage({ text: "Export failed.", ok: false })
+    }
+  }
+
   function exportSelected() {
     const tables = EXPORT_SECTIONS.filter((s) => selected.has(s.label)).flatMap((s) => s.tables)
     if (tables.length === 0) return
-    const a = document.createElement("a")
-    a.href = `/api/export?tables=${encodeURIComponent(tables.join(","))}`
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
+    void downloadExport(`/api/export?tables=${encodeURIComponent(tables.join(","))}`)
   }
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -196,11 +218,19 @@ function ExportImportPanel() {
       const text = await file.text()
       const bundle = JSON.parse(text) as unknown
       const res = await fetch("/api/export", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bundle) })
-      const result = await res.json() as { total?: number; error?: string }
-      if (!res.ok || result.error) {
+      const result = await res.json() as { total?: number; error?: string; tables?: Record<string, { imported: number; error?: string }> }
+      if (res.status === 403) {
+        setMessage({ text: "Unlock the PIN first, then import.", ok: false })
+      } else if (!res.ok && res.status !== 207) {
         setMessage({ text: result.error ?? "Import failed.", ok: false })
       } else {
-        setMessage({ text: `Imported ${result.total ?? 0} records successfully.`, ok: true })
+        // A 207 means some tables imported and others failed - name them rather than claiming success.
+        const failed = Object.entries(result.tables ?? {}).filter(([, r]) => r.error).map(([t]) => t)
+        if (failed.length > 0) {
+          setMessage({ text: `Imported ${result.total ?? 0} records; these tables failed: ${failed.join(", ")}.`, ok: false })
+        } else {
+          setMessage({ text: `Imported ${result.total ?? 0} records successfully.`, ok: true })
+        }
       }
     } catch {
       setMessage({ text: "Failed to parse file. Make sure it is a valid dashboard export.", ok: false })
@@ -217,9 +247,9 @@ function ExportImportPanel() {
           <p className="text-sm font-medium">Export all data</p>
           <p className="text-xs text-muted-foreground">Downloads every table as a single JSON file.</p>
         </div>
-        <a href="/api/export" download className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border border-border bg-background hover:bg-muted transition-colors">
+        <Button type="button" size="sm" variant="outline" onClick={() => void downloadExport("/api/export")} className="gap-1.5">
           <Download className="h-3.5 w-3.5" /> Export JSON
-        </a>
+        </Button>
       </div>
 
       <details className="rounded-md border border-border/60 bg-background/40">
