@@ -10,6 +10,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Security
 
 - Hardened the dashboard PIN gate. The verified cookie is now a signed, expiring token bound to my session and checked server-side on every gated page rather than a bare flag; the per-type vault and modules pages and both notes pages now perform the same server-side PIN check their index pages already did, so gated content never reaches the browser without it; change-pin carries the same rate limit as verify-pin and a failed save now reports the failure instead of success; the config actions accept only a fixed set of preference keys, so the PIN hash is not reachable through them
+- Made the full-backup export and import trustworthy. The export now pages every table past the 1000-row PostgREST cap instead of silently truncating each one at 1000, and a table that fails to read makes the whole export fail loudly rather than downloading as if complete; both the export and the import are now behind the PIN as well as the session, since the bundle carries diary and vault content. The import validates every row, re-encrypts any legacy plaintext vault row on the way in, caps the payload size and reports a partial failure instead of claiming success. Clearing all tracked applications now pages and verifies its trash backup against the row count before deleting, so a read past the first 1000 rows can never be lost
 
 ### Changed
 

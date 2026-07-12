@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { isPinVerified } from "@/lib/pin"
 import { supabase } from "@/lib/supabase"
+import { encryptVaultData, needsEncryption } from "@/lib/vault-crypto"
 
 export const dynamic = "force-dynamic"
 
@@ -24,16 +26,38 @@ const EXPORT_TABLES = [
 const NON_IMPORTABLE = new Set<string>(["user_files", "wakatime_daily", "activity_log"])
 const IMPORTABLE_TABLES = EXPORT_TABLES.filter((t) => !NON_IMPORTABLE.has(t))
 
-async function q(table: string) {
-  const { data } = await supabase.from(table).select("*").order("created_at", { ascending: false })
-  return data ?? []
+// A backup must never be silently truncated: PostgREST caps a single response at 1000 rows,
+// so every table is paged the same way getBlogReadEvents does. A read error is returned, not
+// swallowed, so a failed table can never export as an empty array that later looks like a
+// clean restore.
+async function q(table: string): Promise<{ rows: unknown[]; error?: string }> {
+  const rows: unknown[] = []
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase
+      .from(table)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .range(from, from + 999)
+    if (error) return { rows, error: error.message }
+    if (!data || data.length === 0) break
+    rows.push(...data)
+    if (data.length < 1000) break
+  }
+  return { rows }
+}
+
+// The backup carries the whole diary and vault, so it is gated behind the PIN as well as the
+// session - otherwise it is a one-request bypass of the PIN for that content.
+async function requireSessionAndPin() {
+  const session = await auth()
+  if (!session) return { error: "Unauthorised", status: 401 as const }
+  if (!(await isPinVerified())) return { error: "PIN required", status: 403 as const }
+  return null
 }
 
 export async function GET(req: Request) {
-  // I require an authenticated dashboard session - this endpoint returns the entire personal
-  // database, so it must never be reachable without the GitHub session.
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
+  const gate = await requireSessionAndPin()
+  if (gate) return NextResponse.json({ error: gate.error }, { status: gate.status })
 
   // Optional ?tables=applications,goals exports only those tables; with no param it exports everything.
   const requested = new URL(req.url).searchParams.get("tables")
@@ -43,12 +67,23 @@ export async function GET(req: Request) {
   const tables = selected.length > 0 ? selected : [...EXPORT_TABLES]
 
   const entries = await Promise.all(tables.map(async (t) => [t, await q(t)] as const))
-  const bundle = {
-    exported_at: new Date().toISOString(),
-    version: "1.1",
-    data: Object.fromEntries(entries),
+  const errors: Record<string, string> = {}
+  const data: Record<string, unknown[]> = {}
+  for (const [table, res] of entries) {
+    data[table] = res.rows
+    if (res.error) errors[table] = res.error
   }
 
+  // A backup I cannot trust must fail loudly rather than download looking complete, so any
+  // per-table read error returns a 500 with the offending tables instead of a partial file.
+  if (Object.keys(errors).length > 0) {
+    return NextResponse.json(
+      { error: "Export failed for one or more tables", tables: errors },
+      { status: 500 },
+    )
+  }
+
+  const bundle = { exported_at: new Date().toISOString(), version: "1.1", data }
   const filename = `dashboard-export-${new Date().toISOString().slice(0, 10)}.json`
   return new NextResponse(JSON.stringify(bundle, null, 2), {
     status: 200,
@@ -60,15 +95,27 @@ export async function GET(req: Request) {
   })
 }
 
+// A backup is a big payload but not unbounded - this cap keeps a hostile or corrupt body from
+// being parsed into memory wholesale.
+const MAX_IMPORT_BYTES = 25 * 1024 * 1024
+
 export async function POST(req: Request) {
-  // I require an authenticated dashboard session - this endpoint upserts into every table, so
-  // an unauthenticated caller must never be able to write to the database.
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
+  const gate = await requireSessionAndPin()
+  if (gate) return NextResponse.json({ error: gate.error }, { status: gate.status })
+
+  const declared = Number(req.headers.get("content-length") ?? "0")
+  if (declared > MAX_IMPORT_BYTES) {
+    return NextResponse.json({ error: "Backup too large" }, { status: 413 })
+  }
+
+  const raw = await req.text()
+  if (raw.length > MAX_IMPORT_BYTES) {
+    return NextResponse.json({ error: "Backup too large" }, { status: 413 })
+  }
 
   let bundle: { version?: string; data?: Record<string, unknown[]> }
   try {
-    bundle = (await req.json()) as typeof bundle
+    bundle = JSON.parse(raw) as typeof bundle
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }
@@ -94,10 +141,34 @@ export async function POST(req: Request) {
       results[table] = { imported: 0 }
       continue
     }
-    const { error } = await supabase.from(table).upsert(rows as Record<string, unknown>[], { onConflict: "id" })
+
+    // Every row must be an object carrying an id, so a malformed table cannot upsert junk or
+    // fail the whole restore on one bad row.
+    const valid = rows.every(
+      (r) => r !== null && typeof r === "object" && !Array.isArray(r) && typeof (r as { id?: unknown }).id === "string",
+    )
+    if (!valid) {
+      results[table] = { imported: 0, error: "invalid rows - each row must be an object with a string id" }
+      continue
+    }
+
+    // The vault is stored encrypted at rest, so any legacy plaintext row in an old backup is
+    // re-encrypted on the way in; a row that is already encrypted is left untouched, so nothing
+    // is ever double-encrypted.
+    const toUpsert =
+      table === "vault"
+        ? (rows as Record<string, unknown>[]).map((r) => (needsEncryption(r) ? encryptVaultData(r) : r))
+        : (rows as Record<string, unknown>[])
+
+    const { error } = await supabase.from(table).upsert(toUpsert, { onConflict: "id" })
     results[table] = error ? { imported: 0, error: error.message } : { imported: rows.length }
   }
 
   const totalImported = Object.values(results).reduce((s, r) => s + r.imported, 0)
-  return NextResponse.json({ imported_at: new Date().toISOString(), total: totalImported, tables: results })
+  const failed = Object.values(results).some((r) => r.error)
+  // A partial failure must not return 200 - the caller has to know the restore was incomplete.
+  return NextResponse.json(
+    { imported_at: new Date().toISOString(), total: totalImported, tables: results },
+    { status: failed ? 207 : 200 },
+  )
 }
