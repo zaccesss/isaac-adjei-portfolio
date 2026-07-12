@@ -11,6 +11,7 @@ import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import type { CalendarEvent } from "./page"
 import type { IcalFeed } from "@/app/dashboard/actions"
 import { saveIcalFeeds, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -98,7 +99,7 @@ function EventDetailSheet({
         {!isAllDay(event) && (
           <p className="text-sm text-muted-foreground">
             {event.dtstart.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-            {" "}· {formatTime(event.dtstart)} – {formatTime(event.dtend)}
+            {" "}· {formatTime(event.dtstart)} - {formatTime(event.dtend)}
           </p>
         )}
         {isAllDay(event) && (
@@ -162,12 +163,11 @@ function EventFormDialog({
     const start_at = allDay ? `${date}T00:00:00` : `${date}T${startTime}:00`
     const end_at = allDay ? `${date}T00:00:00` : `${date}T${endTime}:00`
     startTransition(async () => {
-      if (editId) {
-        await updateCalendarEvent(editId, { title: title.trim(), start_at, end_at, location: location || null, description: description || null, colour, all_day: allDay })
-      } else {
-        await createCalendarEvent({ title: title.trim(), start_at, end_at, location: location || undefined, description: description || undefined, colour, all_day: allDay, event_type: "general" })
-      }
+      const res = editId
+        ? await updateCalendarEvent(editId, { title: title.trim(), start_at, end_at, location: location || null, description: description || null, colour, all_day: allDay })
+        : await createCalendarEvent({ title: title.trim(), start_at, end_at, location: location || undefined, description: description || undefined, colour, all_day: allDay, event_type: "general" })
       setSaving(false)
+      if (!savedOk(res, "Could not save event")) return
       onClose()
     })
   }
@@ -218,7 +218,7 @@ function EventFormDialog({
                 onChange={(e) => setStartTime(e.target.value)}
                 className="flex-1 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
-              <span className="text-muted-foreground self-center">–</span>
+              <span className="text-muted-foreground self-center">-</span>
               <input
                 type="time"
                 value={endTime}
@@ -347,7 +347,6 @@ function TimeGrid({
 
     let i = 0
     while (i < placed.length) {
-      const s = minutesFromMidnight(placed[i].event.dtstart)
       let end = minutesFromMidnight(placed[i].event.dtend)
       let j = i + 1
       while (j < placed.length) {
@@ -511,7 +510,7 @@ function WeekView({ events, cursor, onPrev, onNext, onEventClick, onSlotClick }:
     return d
   })
   const today = new Date()
-  const rangeLabel = `${days[0].getDate()} ${MONTHS_SHORT[days[0].getMonth()]} – ${days[6].getDate()} ${MONTHS_SHORT[days[6].getMonth()]} ${days[6].getFullYear()}`
+  const rangeLabel = `${days[0].getDate()} ${MONTHS_SHORT[days[0].getMonth()]} - ${days[6].getDate()} ${MONTHS_SHORT[days[6].getMonth()]} ${days[6].getFullYear()}`
 
   return (
     <div className="flex flex-col gap-3">
@@ -692,8 +691,12 @@ function FeedManager({ feeds, onClose }: { feeds: IcalFeed[]; onClose: () => voi
   const [, startTransition] = useTransition()
 
   function save(updated: IcalFeed[]) {
+    const prev = localFeeds
     setLocalFeeds(updated)
-    startTransition(() => void saveIcalFeeds(updated))
+    startTransition(async () => {
+      const res = await saveIcalFeeds(updated)
+      if (!savedOk(res, "Could not save calendar feeds")) setLocalFeeds(prev)
+    })
   }
 
   function addFeed() {
@@ -907,7 +910,7 @@ export default function CalendarClient({
 
   function handleDeleteEvent(eventId: string) {
     startTransition(async () => {
-      await deleteCalendarEvent(eventId)
+      if (!savedOk(await deleteCalendarEvent(eventId), "Could not delete event")) return
       setDetailEvent(null)
     })
   }

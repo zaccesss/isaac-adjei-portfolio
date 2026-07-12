@@ -11,6 +11,7 @@ import {
   updateAssessmentMark, updateAssessment, createAssessment, deleteAssessment,
   updateModuleStatus, updateModule, createModule, deleteModule,
 } from "../../../actions"
+import { savedOk } from "@/lib/save-result"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -60,7 +61,10 @@ function AssessmentRow({ a, onEdit, onDelete }: {
   function saveMark() {
     // I coerce "" to null so clearing a mark properly removes it rather than storing NaN
     const num = val === "" ? null : parseFloat(val)
-    startTransition(() => void updateAssessmentMark(a.id, num))
+    startTransition(async () => {
+      const res = await updateAssessmentMark(a.id, num)
+      savedOk(res, "Could not save mark")
+    })
     setEditingMark(false)
   }
 
@@ -166,12 +170,16 @@ function AssessmentForm({ initial, moduleId, onClose }: {
     }
     if (initial?.id) {
       // I optimistically close and pass back the updated assessment so the table updates immediately
-      startTransition(() => void updateAssessment(initial.id!, data))
+      startTransition(async () => {
+        const res = await updateAssessment(initial.id!, data)
+        savedOk(res, "Could not update assessment")
+      })
       onClose({ id: initial.id!, ...data, mark_max: form.mark_max } as Assessment)
     } else {
       // I need to await the insert to get the DB-generated id so the row is deletable without a reload
       startTransition(async () => {
         const inserted = await createAssessment(data)
+        if (!savedOk(inserted, "Could not add assessment")) return
         onClose(inserted as Assessment)
       })
     }
@@ -291,15 +299,23 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
     })
     if (!ok) return
     // I update local state first so the row disappears instantly
+    const prevAssessments = mod.assessments
     setMod((m) => ({ ...m, assessments: m.assessments.filter((a) => a.id !== id) }))
-    startTransition(() => void deleteAssessment(id))
+    startTransition(async () => {
+      const res = await deleteAssessment(id)
+      if (!savedOk(res, "Could not delete assessment")) setMod((m) => ({ ...m, assessments: prevAssessments }))
+    })
   }
 
   function saveModuleEdit() {
     // I update local state optimistically so the header name changes before the server responds
+    const prev = mod
     setMod((m) => ({ ...m, ...modDraft }))
     setEditingModule(false)
-    startTransition(() => void updateModule(mod.id, modDraft))
+    startTransition(async () => {
+      const res = await updateModule(mod.id, modDraft)
+      if (!savedOk(res, "Could not update module")) setMod(prev)
+    })
   }
 
   return (
@@ -439,7 +455,7 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
       <div className="flex items-center gap-3">
         <span className="text-sm text-muted-foreground">Module status</span>
         {/* I fire the server action directly in onValueChange rather than requiring a save button */}
-        <Select value={mod.status} onValueChange={(v) => { setMod((m) => ({ ...m, status: v })); startTransition(() => void updateModuleStatus(mod.id, v)) }}>
+        <Select value={mod.status} onValueChange={(v) => { const prevStatus = mod.status; setMod((m) => ({ ...m, status: v })); startTransition(async () => { const res = await updateModuleStatus(mod.id, v); if (!savedOk(res, "Could not update status")) setMod((m) => ({ ...m, status: prevStatus })) }) }}>
           <SelectTrigger className="w-36 h-8 text-sm"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="ongoing">In Progress</SelectItem>
@@ -477,8 +493,9 @@ function AddModuleForm({ yearSlug, onClose }: { yearSlug: string; onClose: (mod:
     startTransition(async () => {
       // I await the insert so I get the DB id back - without it the new module card has no clickable id
       const inserted = await createModule({ ...form, year: yearNum, summary: "", rules: "" })
+      if (!savedOk(inserted, "Could not add module")) return
       // I attach an empty assessments array because the type requires it and there are none yet
-      onClose(inserted ? { ...inserted, assessments: [] } as Module : null)
+      onClose({ ...inserted, assessments: [] } as Module)
     })
   }
 
@@ -578,8 +595,12 @@ export default function ModulesYearClient({
       destructive: true,
     })
     if (!ok) return
+    const prevMods = mods
     setMods((prev) => prev.filter((m) => m.id !== id))
-    startTransition(() => void deleteModule(id))
+    startTransition(async () => {
+      const res = await deleteModule(id)
+      if (!savedOk(res, "Could not delete module")) setMods(prevMods)
+    })
   }
 
   return (

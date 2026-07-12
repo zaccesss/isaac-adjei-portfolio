@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { SiSpotify, SiStrava } from "react-icons/si"
 import { setConfig, clearAllJobs, clearAllApplications, bulkSyncDeadlinesToLinear, bulkSyncApplicationsToLinear } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
 
 type ScraperStatus = {
   lastRun: string | null
@@ -734,7 +735,7 @@ export default function SettingsClient() {
             onClick={() => {
               const next = theme === "dark" ? "light" : "dark"
               setTheme(next)
-              void setConfig("theme_preference", next)
+              void setConfig("theme_preference", next).then((res) => savedOk(res, "Could not save theme"))
             }}
             className="flex items-center gap-2"
           >

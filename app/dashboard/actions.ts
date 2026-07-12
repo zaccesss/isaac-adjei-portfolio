@@ -217,7 +217,7 @@ export async function createModule(data: {
   // I .select().single() here because the client needs the auto-generated id to add to local state
   // without it I would have to refetch the full modules list just to get the new row's id
   const { data: inserted, error } = await supabase.from("modules").insert(data).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("module.create", data.name)
   revalidatePath("/dashboard/modules")
   return inserted
@@ -306,7 +306,7 @@ export async function createAssessment(data: {
   // I return the inserted row so the client can append it to local state
   // without needing to know the DB-generated id ahead of time
   const { data: inserted, error } = await supabase.from("assessments").insert(data).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("grade.create", data.name)
   revalidatePath("/dashboard/modules")
   return inserted
@@ -428,7 +428,7 @@ export async function createApplication(data: {
     opening_date: data.opening_date || null,
     last_year_opening: data.last_year_opening || null,
   }).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("application.create", `${data.company} - ${data.role}`)
   if (inserted) {
     void syncApplicationToLinear({ ...inserted, linear_issue_id: null }).then(async (issueId) => {
@@ -598,7 +598,7 @@ export async function createVaultEntry(data: {
     .insert(encryptVaultData({ ...data, key_expiry: data.key_expiry || null }))
     .select()
     .single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("vault.create", data.name)
   revalidatePath("/dashboard/vault")
   // Return the decrypted row so the client can splice it into the local list without a refetch.
@@ -663,7 +663,7 @@ export async function createDiaryEntry(data: {
   // I return the inserted row so the DiaryClient can prepend it to the top of the list immediately
   // the created_at timestamp comes back from Supabase so the order is correct without client-side guessing
   const { data: inserted, error } = await supabase.from("diary").insert(data).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("diary.create", data.title)
   revalidatePath("/dashboard/diary")
   return inserted
@@ -722,7 +722,7 @@ export async function createNote(data: {
     !optStr(data.color)
   ) return INVALID
   const { data: inserted, error } = await supabase.from("notes").insert(data).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("note.create", data.title)
   revalidatePath("/dashboard/notes")
   return inserted
@@ -776,7 +776,7 @@ export async function createStreak(data: {
     !validNum(data.order_index, 0, 9999)
   ) return INVALID
   const { data: inserted, error } = await supabase.from("streaks").insert(data).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("streak.create", data.name)
   revalidatePath("/dashboard/streaks")
   return inserted
@@ -859,7 +859,7 @@ export async function createHabit(data: { name: string; color?: string; descript
     frequency: "daily",
     active: true,
   }).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("habit.create", data.name)
   revalidatePath("/dashboard/habits")
   return inserted
@@ -931,7 +931,7 @@ export async function createHealthSection(data: {
     !optStr(data.subtype)
   ) return INVALID
   const { data: inserted, error } = await supabase.from("health_sections").insert(data).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("health.create", data.name)
   revalidatePath("/dashboard/health")
   return inserted
@@ -980,7 +980,7 @@ export async function createHealthWorkout(data: {
     !validNum(data.order_index, 0, 9999)
   ) return INVALID
   const { data: inserted, error } = await supabase.from("health_workouts").insert(data).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("health.create", data.day_label)
   revalidatePath("/dashboard/health")
   return inserted
@@ -1174,7 +1174,7 @@ export async function createCourseModule(data: {
     !validNum(data.order_index, 0, 9999)
   ) return INVALID
   const { data: inserted, error } = await supabase.from("course_modules").insert(data).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   revalidatePath("/dashboard/course")
   return inserted
 }
@@ -1226,7 +1226,7 @@ export async function createWishlistItem(data: {
     !optStr(data.notes, MAX_LONG_TEXT)
   ) return INVALID
   const { data: inserted, error } = await supabase.from("wishlist").insert(data).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("wishlist.create", data.name)
   revalidatePath("/dashboard/wishlist")
   return inserted
@@ -1285,7 +1285,7 @@ export async function createInventoryItem(data: {
     !optStr(data.url)
   ) return INVALID
   const { data: inserted, error } = await supabase.from("inventory_items").insert(data).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("inventory.create", data.name)
   revalidatePath("/dashboard/inventory")
   return inserted
@@ -1965,7 +1965,7 @@ export async function createContact(data: {
     .insert({ ...data, follow_up: data.follow_up ?? false })
     .select()
     .single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("contact.create", data.name)
   revalidatePath("/dashboard/contacts")
   return inserted
@@ -2733,7 +2733,7 @@ export async function createCalendarEvent(data: {
     event_type: data.event_type,
     is_deleted: false,
   }).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("calendar.create", data.title)
   revalidatePath("/dashboard/calendar")
   revalidatePath("/dashboard/university/timetable")
@@ -2827,7 +2827,7 @@ export async function uploadFile(data: {
     storage_path: data.storage_path.trim(),
     is_deleted: false,
   }).select().single()
-  if (error) return null
+  if (error) return { error: error.message }
   void logActivity("file.upload", data.name)
   revalidatePath("/dashboard/files")
   return inserted

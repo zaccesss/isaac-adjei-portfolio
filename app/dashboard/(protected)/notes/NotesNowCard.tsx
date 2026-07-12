@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react"
 import { updateNowStatus } from "../../actions"
+import { savedOk } from "@/lib/save-result"
 
 type NowStatus = {
   building?: string
@@ -30,7 +31,7 @@ export default function NotesNowCard({ initial }: { initial: NowStatus }) {
     if (timerRef.current) clearTimeout(timerRef.current)
     setSaving(key)
     timerRef.current = setTimeout(async () => {
-      await updateNowStatus(next)
+      savedOk(await updateNowStatus(next), "Could not save your status")
       setSaving(null)
     }, 800)
   }

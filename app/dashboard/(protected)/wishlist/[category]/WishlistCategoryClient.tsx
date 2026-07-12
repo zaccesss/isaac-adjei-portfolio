@@ -5,6 +5,7 @@
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
 import { createWishlistItem, updateWishlistItem, deleteWishlistItem } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import MarkdownEditor from "@/components/shared/MarkdownEditor"
@@ -162,28 +163,45 @@ export default function WishlistCategoryClient({
       category: finalCategory,
       notes: data.notes || null,
     }
+    const prevItems = items
     setItems((prev) => [...prev, optimistic])
     setAddOpen(false)
-    startTransition(() => void createWishlistItem({ ...data, category: finalCategory }))
+    startTransition(async () => {
+      const res = await createWishlistItem({ ...data, category: finalCategory })
+      if (!savedOk(res, "Could not add item")) setItems(prevItems)
+    })
   }
 
   function handleEdit(data: typeof emptyForm) {
     if (!editItem) return
-    setItems((prev) => prev.map((i) => i.id === editItem.id ? { ...i, ...data, notes: data.notes || null } : i))
+    const prevItems = items
+    const editId = editItem.id
+    setItems((prev) => prev.map((i) => i.id === editId ? { ...i, ...data, notes: data.notes || null } : i))
     setEditItem(null)
-    startTransition(() => void updateWishlistItem(editItem.id, data))
+    startTransition(async () => {
+      const res = await updateWishlistItem(editId, data)
+      if (!savedOk(res, "Could not save item")) setItems(prevItems)
+    })
   }
 
   function handleDelete(id: string) {
+    const prevItems = items
     setItems((prev) => prev.filter((i) => i.id !== id))
-    startTransition(() => void deleteWishlistItem(id))
+    startTransition(async () => {
+      const res = await deleteWishlistItem(id)
+      if (!savedOk(res, "Could not delete item")) setItems(prevItems)
+    })
   }
 
   function handleToggleGotIt(id: string, current: string) {
     // I toggle between "got_it" and "wanted" so tapping the checkbox a second time undoes the check
     const newStatus = current === "got_it" ? "wanted" : "got_it"
+    const prevItems = items
     setItems((prev) => prev.map((i) => i.id === id ? { ...i, status: newStatus } : i))
-    startTransition(() => void updateWishlistItem(id, { status: newStatus }))
+    startTransition(async () => {
+      const res = await updateWishlistItem(id, { status: newStatus })
+      if (!savedOk(res, "Could not update item")) setItems(prevItems)
+    })
   }
 
   return (

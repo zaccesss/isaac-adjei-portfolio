@@ -215,21 +215,26 @@ function OpenSourceClientInner({
     } else {
       patch[field] = value || null
     }
+    const prevRows = rows
     setRows((prev) =>
       prev.map((r) => (r.id === id ? { ...r, ...patch } : r))
     )
     startTransition(async () => {
       const result = await updateOpenSourceContribution(id, patch as Parameters<typeof updateOpenSourceContribution>[1])
-      if (result && "error" in result) flash("err", "Failed to update.")
+      if (result && "error" in result) { setRows(prevRows); flash("err", "Failed to update.") }
     })
   }
 
   async function handleDelete(id: string) {
     const ok = await showConfirm({ title: "Delete this contribution?", destructive: true })
     if (!ok) return
+    const prevRows = rows
     setRows((prev) => prev.filter((r) => r.id !== id))
     removeFromSelected(id)
-    startTransition(async () => { await deleteOpenSourceContribution(id) })
+    startTransition(async () => {
+      const result = await deleteOpenSourceContribution(id)
+      if (result && "error" in result) { setRows(prevRows); flash("err", "Failed to delete.") }
+    })
   }
 
   async function handleBulkDelete() {
@@ -241,8 +246,12 @@ function OpenSourceClientInner({
       destructive: true,
     })
     if (!ok) return
+    const prevRows = rows
     setRows((prev) => prev.filter((r) => !selected.has(r.id)))
-    startTransition(async () => { await bulkDeleteOpenSourceContributions(ids) })
+    startTransition(async () => {
+      const result = await bulkDeleteOpenSourceContributions(ids)
+      if (result && "error" in result) { setRows(prevRows); flash("err", "Failed to delete.") }
+    })
   }
 
   // ── Export ───────────────────────────────────────────────────────────────

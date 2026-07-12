@@ -5,6 +5,7 @@
 
 import { useState, useTransition } from "react"
 import { setConfig } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -173,7 +174,7 @@ export default function UsClient({ data: initial }: { data: UsData }) {
     // I update local state first so edits feel instant without waiting for Supabase
     setData(updated)
     // I store the entire UsData object as a single config key rather than one row per field
-    startTransition(() => void setConfig("us_data", updated))
+    startTransition(async () => { savedOk(await setConfig("us_data", updated), "Could not save changes") })
   }
 
   return (

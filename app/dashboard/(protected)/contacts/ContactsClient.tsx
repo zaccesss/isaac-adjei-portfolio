@@ -7,6 +7,7 @@ import { useState, useRef, useMemo, useTransition } from "react"
 import { Users, Plus, X, ExternalLink, Mail, Phone, Bell, BellOff, Pencil, Github, Trash2, BarChart3 } from "lucide-react"
 import type { Contact } from "@/app/dashboard/actions"
 import { createContact, updateContact, deleteContact, bulkDeleteContacts } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useBulkSelect } from "@/hooks/useBulkSelect"
 import MarkdownContent from "@/components/shared/MarkdownContent"
@@ -186,9 +187,8 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
         last_contact: form.last_contact || null,
         notes: form.notes || undefined,
       })
-      if (result && !("error" in result)) {
-        setContacts((p) => [result as Contact, ...p])
-      }
+      if (!savedOk(result, "Could not add contact")) return
+      setContacts((p) => [result as Contact, ...p])
       setAdding(false)
     } finally {
       savingRef.current = false
@@ -196,7 +196,7 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
   }
 
   async function handleUpdate(id: string, form: FormState) {
-    await updateContact(id, {
+    const res = await updateContact(id, {
       name: form.name,
       company: form.company || undefined,
       role: form.role || undefined,
@@ -208,6 +208,7 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
       last_contact: form.last_contact || null,
       notes: form.notes || undefined,
     })
+    if (!savedOk(res, "Could not save contact")) return
     setContacts((p) =>
       p.map((c) =>
         c.id === id
@@ -232,15 +233,20 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
 
   async function handleToggleFollowUp(contact: Contact) {
     const next = !contact.follow_up
-    await updateContact(contact.id, { follow_up: next })
+    const res = await updateContact(contact.id, { follow_up: next })
+    if (!savedOk(res, "Could not update contact")) return
     setContacts((p) => p.map((c) => c.id === contact.id ? { ...c, follow_up: next } : c))
   }
 
   async function handleDelete(id: string, name: string) {
     const ok = await showConfirm({ title: `Delete "${name}"?`, description: "Contact will be moved to trash.", destructive: true })
     if (!ok) return
+    const prev = contacts
     setContacts((p) => p.filter((c) => c.id !== id))
-    startTransition(() => void deleteContact(id))
+    startTransition(async () => {
+      const res = await deleteContact(id)
+      if (!savedOk(res, "Could not delete contact")) setContacts(prev)
+    })
   }
 
   const followUpQueue = contacts.filter((c) => c.follow_up || needsFollowUp(c))
@@ -289,8 +295,12 @@ export default function ContactsClient({ initial }: { initial: Contact[] }) {
       destructive: true,
     })
     if (!ok) return
+    const prev = contacts
     setContacts((p) => p.filter((c) => !selected.has(c.id)))
-    startTransition(() => void bulkDeleteContacts(ids))
+    startTransition(async () => {
+      const res = await bulkDeleteContacts(ids)
+      if (!savedOk(res, "Could not delete contacts")) setContacts(prev)
+    })
   }
 
   return (

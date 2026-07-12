@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { createFaithEntry, deleteFaithEntry, updateFaithEntry } from "../../actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import MarkdownEditor from "@/components/shared/MarkdownEditor"
@@ -102,18 +103,15 @@ function FaithClientInner({ entries, today }: { entries: FaithEntry[]; today: st
       completed: form.completed,
     }
     startTransition(async () => {
-      if (editEntry) {
-        await updateFaithEntry(editEntry.id, payload)
-      } else {
-        await createFaithEntry(payload)
-      }
+      const res = editEntry ? await updateFaithEntry(editEntry.id, payload) : await createFaithEntry(payload)
+      if (!savedOk(res, "Could not save entry")) return
       setOpen(false)
       resetForm()
     })
   }
 
   function handleDelete(id: string) {
-    startTransition(async () => { await deleteFaithEntry(id) })
+    startTransition(async () => { savedOk(await deleteFaithEntry(id), "Could not delete entry") })
   }
 
   const { period } = useAnalyticsPeriod()

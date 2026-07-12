@@ -4,6 +4,8 @@
 
 import { useState, useTransition } from "react"
 import { createDiaryEntry, updateDiaryEntry, deleteDiaryEntry, toggleDiaryHidden, toggleDiaryPinned, toggleDiaryLocked } from "../../actions"
+import { savedOk } from "@/lib/save-result"
+import { toast } from "sonner"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -260,9 +262,13 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
+    const prevEntries = entries
     setEntries((prev) => [optimistic, ...prev])
     setOpen(false)
-    startTransition(() => void createDiaryEntry({ title: data.title, content: data.content, mood: data.mood }))
+    startTransition(async () => {
+      const res = await createDiaryEntry({ title: data.title, content: data.content, mood: data.mood })
+      if (!savedOk(res, "Could not save diary entry")) setEntries(prevEntries)
+    })
   }
 
   function handleEdit(data: typeof emptyForm) {
@@ -277,6 +283,7 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setEntries(prev)
+        toast.error("Could not save diary entry")
       }
     })
   }
@@ -297,15 +304,18 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setEntries(prev)
+        toast.error("Could not delete diary entry")
       }
     })
   }
 
   function handleToggle(id: string, field: "hidden" | "pinned" | "locked", value: boolean) {
-    setEntries((prev) => prev.map((e) => e.id === id ? { ...e, [field]: value } : e))
-    if (field === "hidden") startTransition(() => void toggleDiaryHidden(id, value))
-    else if (field === "pinned") startTransition(() => void toggleDiaryPinned(id, value))
-    else startTransition(() => void toggleDiaryLocked(id, value))
+    const prev = entries
+    setEntries((p) => p.map((e) => e.id === id ? { ...e, [field]: value } : e))
+    startTransition(async () => {
+      const res = await (field === "hidden" ? toggleDiaryHidden(id, value) : field === "pinned" ? toggleDiaryPinned(id, value) : toggleDiaryLocked(id, value))
+      if (!savedOk(res, "Could not update entry")) setEntries(prev)
+    })
   }
 
   const hiddenCount = entries.filter((e) => e.hidden).length

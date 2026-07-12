@@ -15,6 +15,7 @@ import { ColourPickerDialog } from "@/components/shared/ColourPickerDialog"
 import {
   createHabit, updateHabit, deleteHabit, checkInHabit, undoHabitCheckIn,
 } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { StatCard, BarChart, AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod } from "@/components/analytics"
 import { Pagination } from "@/components/shared/Pagination"
@@ -142,10 +143,14 @@ function HabitsClientInner({
       active: true,
       created_at: new Date().toISOString(),
     }
+    const prev = habits
     setHabits((h) => [...h, optimistic])
     setNewHabitName("")
     setAdding(false)
-    startTransition(() => void createHabit({ name: optimistic.name, color: "#3b82f6" }))
+    startTransition(async () => {
+      const res = await createHabit({ name: optimistic.name, color: "#3b82f6" })
+      if (!savedOk(res, "Could not add habit")) setHabits(prev)
+    })
   }
 
   function handleCheckIn(habitId: string) {
@@ -158,14 +163,29 @@ function HabitsClientInner({
       else next.add(habitId)
       return next
     })
-    startTransition(() => void (isCheckedIn ? undoHabitCheckIn(habitId, today) : checkInHabit(habitId, today)))
+    startTransition(async () => {
+      const res = await (isCheckedIn ? undoHabitCheckIn(habitId, today) : checkInHabit(habitId, today))
+      if (!savedOk(res, "Could not update check-in")) {
+        // Roll the optimistic toggle back so the tick matches what the server actually holds.
+        setTodayLogs((prev) => {
+          const next = new Set(prev)
+          if (isCheckedIn) next.add(habitId)
+          else next.delete(habitId)
+          return next
+        })
+      }
+    })
   }
 
   async function handleDelete(id: string, name: string) {
     const ok = await showConfirm({ title: `Delete "${name}"?`, description: "All check-in history for this habit will be removed.", destructive: true })
     if (!ok) return
+    const prev = habits
     setHabits((h) => h.filter((x) => x.id !== id))
-    startTransition(() => void deleteHabit(id))
+    startTransition(async () => {
+      const res = await deleteHabit(id)
+      if (!savedOk(res, "Could not delete habit")) setHabits(prev)
+    })
   }
 
   function openEdit(habit: Habit) {
@@ -175,8 +195,13 @@ function HabitsClientInner({
 
   function handleSaveEdit() {
     if (!editHabit || !editForm.name.trim()) return
-    setHabits((h) => h.map((x) => x.id === editHabit.id ? { ...x, name: editForm.name.trim(), description: editForm.description.trim() || null, color: editForm.color } : x))
-    startTransition(() => void updateHabit(editHabit.id, { name: editForm.name.trim(), description: editForm.description.trim() || null, color: editForm.color }))
+    const prev = habits
+    const editId = editHabit.id
+    setHabits((h) => h.map((x) => x.id === editId ? { ...x, name: editForm.name.trim(), description: editForm.description.trim() || null, color: editForm.color } : x))
+    startTransition(async () => {
+      const res = await updateHabit(editId, { name: editForm.name.trim(), description: editForm.description.trim() || null, color: editForm.color })
+      if (!savedOk(res, "Could not save habit")) setHabits(prev)
+    })
     setEditHabit(null)
   }
 
@@ -373,8 +398,12 @@ function HabitsClientInner({
                     id: crypto.randomUUID(), name, description: "Daily supplement", frequency: "daily",
                     color: "#22c55e", active: true, created_at: new Date().toISOString(),
                   }
+                  const prev = habits
                   setHabits((h) => [...h, optimistic])
-                  startTransition(() => void createHabit({ name, color: "#22c55e", description: "Daily supplement" }))
+                  startTransition(async () => {
+                    const res = await createHabit({ name, color: "#22c55e", description: "Daily supplement" })
+                    if (!savedOk(res, "Could not add habit")) setHabits(prev)
+                  })
                 }}
                 className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                   exists

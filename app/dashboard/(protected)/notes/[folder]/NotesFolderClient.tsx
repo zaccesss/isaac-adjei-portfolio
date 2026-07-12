@@ -6,6 +6,7 @@
 import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
 import { createNote, updateNote, deleteNote, toggleNoteHidden, toggleNoteLocked, toggleNotePinned } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -85,19 +86,28 @@ export default function NotesFolderClient({
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
+    const prevNotes = notes
     setNotes((n) => [optimistic, ...n])
     setSelected(optimistic)
     setEditing(false)
-    startTransition(() => void createNote(draft))
+    startTransition(async () => {
+      const res = await createNote(draft)
+      if (!savedOk(res, "Could not save note")) { setNotes(prevNotes); setSelected(null) }
+    })
   }
 
   function saveEdit() {
     if (!selected || !draft.title.trim()) return
+    const prevNotes = notes
+    const prevSelected = selected
     const updated = { ...selected, ...draft, updated_at: new Date().toISOString() }
     setNotes((n) => n.map((x) => x.id === selected.id ? updated : x))
     setSelected(updated)
     setEditing(false)
-    startTransition(() => void updateNote(selected.id, draft))
+    startTransition(async () => {
+      const res = await updateNote(prevSelected.id, draft)
+      if (!savedOk(res, "Could not save note")) { setNotes(prevNotes); setSelected(prevSelected) }
+    })
   }
 
   async function handleDelete(id: string) {
@@ -108,9 +118,14 @@ export default function NotesFolderClient({
       destructive: true,
     })
     if (!ok) return
+    const prevNotes = notes
+    const prevSelected = selected
     setNotes((n) => n.filter((x) => x.id !== id))
     if (selected?.id === id) setSelected(null)
-    startTransition(() => void deleteNote(id))
+    startTransition(async () => {
+      const res = await deleteNote(id)
+      if (!savedOk(res, "Could not delete note")) { setNotes(prevNotes); setSelected(prevSelected) }
+    })
   }
 
   function exportNote(note: Note) {
@@ -302,13 +317,13 @@ export default function NotesFolderClient({
                       <Download className="h-3.5 w-3.5 mr-2" />Export .md
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => { const updated = { ...selected, pinned: !selected.pinned }; setNotes((n) => n.map((x) => x.id === selected.id ? updated : x)); setSelected(updated); startTransition(() => void toggleNotePinned(selected.id, !selected.pinned)) }}>
+                    <DropdownMenuItem onClick={() => { const prevNotes = notes; const prevSelected = selected; const updated = { ...selected, pinned: !selected.pinned }; setNotes((n) => n.map((x) => x.id === selected.id ? updated : x)); setSelected(updated); startTransition(async () => { if (!savedOk(await toggleNotePinned(prevSelected.id, !prevSelected.pinned), "Could not update note")) { setNotes(prevNotes); setSelected(prevSelected) } }) }}>
                       {selected.pinned ? <><PinOff className="h-3.5 w-3.5 mr-2" />Unpin</> : <><Pin className="h-3.5 w-3.5 mr-2" />Pin</>}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => { const updated = { ...selected, hidden: !selected.hidden }; setNotes((n) => n.map((x) => x.id === selected.id ? updated : x)); setSelected(updated); startTransition(() => void toggleNoteHidden(selected.id, !selected.hidden)) }}>
+                    <DropdownMenuItem onClick={() => { const prevNotes = notes; const prevSelected = selected; const updated = { ...selected, hidden: !selected.hidden }; setNotes((n) => n.map((x) => x.id === selected.id ? updated : x)); setSelected(updated); startTransition(async () => { if (!savedOk(await toggleNoteHidden(prevSelected.id, !prevSelected.hidden), "Could not update note")) { setNotes(prevNotes); setSelected(prevSelected) } }) }}>
                       {selected.hidden ? <><Eye className="h-3.5 w-3.5 mr-2" />Show</> : <><EyeOff className="h-3.5 w-3.5 mr-2" />Hide</>}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => { const updated = { ...selected, locked: !selected.locked }; setNotes((n) => n.map((x) => x.id === selected.id ? updated : x)); setSelected(updated); startTransition(() => void toggleNoteLocked(selected.id, !selected.locked)) }}>
+                    <DropdownMenuItem onClick={() => { const prevNotes = notes; const prevSelected = selected; const updated = { ...selected, locked: !selected.locked }; setNotes((n) => n.map((x) => x.id === selected.id ? updated : x)); setSelected(updated); startTransition(async () => { if (!savedOk(await toggleNoteLocked(prevSelected.id, !prevSelected.locked), "Could not update note")) { setNotes(prevNotes); setSelected(prevSelected) } }) }}>
                       {selected.locked ? <><Unlock className="h-3.5 w-3.5 mr-2" />Unlock</> : <><Lock className="h-3.5 w-3.5 mr-2" />Lock</>}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

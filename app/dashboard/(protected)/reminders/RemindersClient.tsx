@@ -8,6 +8,7 @@ import {
   deleteReminder,
   type ReminderInput,
 } from "./actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -189,8 +190,8 @@ export default function RemindersClient({ reminders }: { reminders: Reminder[] }
   }
 
   function onToggle(r: Reminder) {
-    startTransition(() => {
-      void toggleReminder(r.id, !r.active)
+    startTransition(async () => {
+      savedOk(await toggleReminder(r.id, !r.active), "Could not update reminder")
     })
   }
 
@@ -202,8 +203,8 @@ export default function RemindersClient({ reminders }: { reminders: Reminder[] }
       confirmLabel: "Delete",
     })
     if (!ok) return
-    startTransition(() => {
-      void deleteReminder(r.id)
+    startTransition(async () => {
+      savedOk(await deleteReminder(r.id), "Could not delete reminder")
     })
   }
 

@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Plus, Trash2, CheckSquare, Square, Save } from "lucide-react"
 import { updateInterviewPrep } from "../../actions"
+import { savedOk } from "@/lib/save-result"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 
 type Question = { id: string; text: string; done: boolean }
@@ -134,9 +135,13 @@ export default function InterviewPrepDialog({
 
   function handleSave() {
     onSave(prep)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 1500)
-    startTransition(() => void updateInterviewPrep(applicationId, prep))
+    startTransition(async () => {
+      const res = await updateInterviewPrep(applicationId, prep)
+      if (!savedOk(res, "Could not save interview prep")) return
+      // Only flash the saved tick once the write has actually landed.
+      setSaved(true)
+      setTimeout(() => setSaved(false), 1500)
+    })
   }
 
   const doneCount = prep.questions.filter((q) => q.done).length

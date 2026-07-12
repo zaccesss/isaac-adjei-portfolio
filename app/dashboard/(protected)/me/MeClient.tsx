@@ -5,6 +5,7 @@
 
 import { useState, useTransition } from "react"
 import { setConfig } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -143,7 +144,7 @@ export default function MeClient({ profile: initial }: { profile: Profile }) {
     // I update local state first so the UI responds immediately without waiting for the server
     setProfile(updated)
     // I persist the whole profile object as one config blob rather than having a separate row per field
-    startTransition(() => void setConfig("me_profile", updated))
+    startTransition(async () => { savedOk(await setConfig("me_profile", updated), "Could not save changes") })
   }
 
   // I use 365.25 days per year to account for leap years in the age calculation

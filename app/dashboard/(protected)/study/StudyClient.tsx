@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { createStudySession, deleteStudySession, updateStudySession } from "../../actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import MarkdownEditor from "@/components/shared/MarkdownEditor"
@@ -92,18 +93,15 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
       productive: form.productive,
     }
     startTransition(async () => {
-      if (editSession) {
-        await updateStudySession(editSession.id, payload)
-      } else {
-        await createStudySession(payload)
-      }
+      const res = editSession ? await updateStudySession(editSession.id, payload) : await createStudySession(payload)
+      if (!savedOk(res, "Could not save session")) return
       setOpen(false)
       resetForm()
     })
   }
 
   function handleDelete(id: string) {
-    startTransition(async () => { await deleteStudySession(id) })
+    startTransition(async () => { savedOk(await deleteStudySession(id), "Could not delete session") })
   }
 
   const { period } = useAnalyticsPeriod()

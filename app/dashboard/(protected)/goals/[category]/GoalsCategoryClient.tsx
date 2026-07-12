@@ -6,6 +6,8 @@ import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
 import { GoalForm, GoalCard } from "../GoalsClient"
 import { createGoal, updateGoal, deleteGoal } from "../../../actions"
+import { savedOk } from "@/lib/save-result"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Target, TrendingUp, BookOpen, Heart, DollarSign, Sparkles } from "lucide-react"
@@ -49,6 +51,7 @@ export default function GoalsCategoryClient({ goals: initial, category }: { goal
 
   function handleAdd(data: typeof emptyForm) {
     // I prepend an optimistic record so the new goal card appears instantly without waiting for Supabase
+    const prev = goals
     const optimistic: Goal = {
       ...data,
       id: crypto.randomUUID(),
@@ -56,9 +59,12 @@ export default function GoalsCategoryClient({ goals: initial, category }: { goal
       target_date: data.target_date || null,
       category,
     }
-    setGoals((prev) => [optimistic, ...prev])
+    setGoals((p) => [optimistic, ...p])
     setAddOpen(false)
-    startTransition(() => void createGoal({ ...data, category }))
+    startTransition(async () => {
+      const res = await createGoal({ ...data, category })
+      if (!savedOk(res, "Could not save goal")) setGoals(prev)
+    })
   }
 
   function handleEdit(data: typeof emptyForm) {
@@ -74,6 +80,7 @@ export default function GoalsCategoryClient({ goals: initial, category }: { goal
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setGoals(prev)
+        toast.error("Could not update goal")
       }
     })
   }
@@ -88,6 +95,7 @@ export default function GoalsCategoryClient({ goals: initial, category }: { goal
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setGoals(prev)
+        toast.error("Could not delete goal")
       }
     })
   }

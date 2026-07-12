@@ -13,6 +13,7 @@ import {
   createWorkoutLog,
   deleteWorkoutLog,
 } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
 
 export type WeightGoal = { startWeight: number; targetWeight: number; startDate: string; targetDate: string }
 type Weight = { id: string; value: number; date: string }
@@ -99,7 +100,7 @@ export default function WeightLossClient({
     const t = parseFloat(gTarget)
     if (!s || !t || !gDate) return
     start(async () => {
-      await setWeightGoal({ startWeight: s, targetWeight: t, startDate: goal?.startDate ?? today, targetDate: gDate })
+      if (!savedOk(await setWeightGoal({ startWeight: s, targetWeight: t, startDate: goal?.startDate ?? today, targetDate: gDate }), "Could not save goal")) return
       setShowGoal(false)
       refresh()
     })
@@ -109,7 +110,7 @@ export default function WeightLossClient({
     const v = parseFloat(wVal)
     if (!v) return
     start(async () => {
-      await logWeight(today, v)
+      if (!savedOk(await logWeight(today, v), "Could not log weight")) return
       setWVal("")
       refresh()
     })
@@ -119,7 +120,7 @@ export default function WeightLossClient({
     const c = parseInt(nCals, 10)
     if (!nName.trim() || isNaN(c)) return
     start(async () => {
-      await createNutritionLog({ date: today, meal: nMeal, name: nName, calories: c, protein_g: nProt ? parseFloat(nProt) : undefined })
+      if (!savedOk(await createNutritionLog({ date: today, meal: nMeal, name: nName, calories: c, protein_g: nProt ? parseFloat(nProt) : undefined }), "Could not log food")) return
       setNName("")
       setNCals("")
       setNProt("")
@@ -130,12 +131,13 @@ export default function WeightLossClient({
   function addWorkout() {
     if (!woType) return
     start(async () => {
-      await createWorkoutLog({
+      const res = await createWorkoutLog({
         date: today,
         type: woType,
         duration_min: woDur ? parseInt(woDur, 10) : undefined,
         calories: woCals ? parseInt(woCals, 10) : undefined,
       })
+      if (!savedOk(res, "Could not log workout")) return
       setWoDur("")
       setWoCals("")
       refresh()
@@ -312,7 +314,7 @@ export default function WeightLossClient({
                 <button
                   type="button"
                   aria-label="Delete"
-                  onClick={() => start(async () => { await deleteNutritionLog(n.id); refresh() })}
+                  onClick={() => start(async () => { if (!savedOk(await deleteNutritionLog(n.id), "Could not delete food")) return; refresh() })}
                   className="text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -355,7 +357,7 @@ export default function WeightLossClient({
                 <button
                   type="button"
                   aria-label="Delete"
-                  onClick={() => start(async () => { await deleteWorkoutLog(w.id); refresh() })}
+                  onClick={() => start(async () => { if (!savedOk(await deleteWorkoutLog(w.id), "Could not delete workout")) return; refresh() })}
                   className="hover:text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5" />

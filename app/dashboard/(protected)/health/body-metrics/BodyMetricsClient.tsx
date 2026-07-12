@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { createBodyMetric, updateBodyMetric, deleteBodyMetric } from "../../../actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -63,20 +64,21 @@ function BodyMetricsClientInner({ metrics }: { metrics: Metric[] }) {
     const value = parseFloat(form.value)
     if (isNaN(value)) return
     startTransition(async () => {
-      await createBodyMetric({
+      const res = await createBodyMetric({
         date: form.date,
         metric: form.metric,
         value,
         unit: form.unit,
         notes: form.notes.trim() || undefined,
       })
+      if (!savedOk(res, "Could not log metric")) return
       setOpen(false)
       setForm({ date: today, metric: "weight_kg", value: "", unit: "kg", notes: "" })
     })
   }
 
   function handleDelete(id: string) {
-    startTransition(async () => { await deleteBodyMetric(id) })
+    startTransition(async () => { savedOk(await deleteBodyMetric(id), "Could not delete metric") })
   }
 
   function openEdit(m: Metric) {
@@ -90,7 +92,8 @@ function BodyMetricsClientInner({ metrics }: { metrics: Metric[] }) {
     const value = parseFloat(editForm.value)
     if (isNaN(value)) return
     startTransition(async () => {
-      await updateBodyMetric(editMetric.id, { date: editForm.date, metric: editForm.metric, value, unit: editForm.unit, notes: editForm.notes.trim() || null })
+      const res = await updateBodyMetric(editMetric.id, { date: editForm.date, metric: editForm.metric, value, unit: editForm.unit, notes: editForm.notes.trim() || null })
+      if (!savedOk(res, "Could not save metric")) return
       setEditMetric(null)
     })
   }

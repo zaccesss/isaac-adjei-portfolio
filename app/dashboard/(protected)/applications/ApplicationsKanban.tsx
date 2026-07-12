@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { updateApplication } from "../../actions"
+import { toast } from "sonner"
 import { ExternalLink } from "lucide-react"
 import { normaliseStatus, isTrackedApplication, KANBAN_COLUMNS as COLUMNS } from "@/lib/application-status"
 
@@ -57,6 +58,7 @@ export default function ApplicationsKanban({ applications: initial }: { applicat
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setApps(prev)
+        toast.error("Could not move that application")
       }
     })
     setDragging(null)

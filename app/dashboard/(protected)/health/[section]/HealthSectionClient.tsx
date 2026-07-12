@@ -10,6 +10,8 @@ import {
   createHealthWorkout, updateHealthWorkout, deleteHealthWorkout,
   updateHealthNutrition, createHealthNutrition, deleteHealthNutrition,
 } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -241,13 +243,17 @@ export default function HealthSectionClient({
 
   function handleAddSection() {
     if (!newSection.name.trim()) return
+    const prev = sections
     const optimistic: Section = { id: crypto.randomUUID(), ...newSection, order_index: sections.length }
     setSections((s) => [...s, optimistic])
     setAddSectionOpen(false)
     setNewSection({ name: "", type: activeSection, icon: SECTION_TYPE_ICONS[activeSection] ?? "💪", color: "#6366f1", subtype: "" })
     const payload = { ...newSection, order_index: sections.length }
     if (newSection.type !== "activity") delete (payload as { subtype?: string }).subtype
-    startTransition(() => void createHealthSection(payload))
+    startTransition(async () => {
+      const res = await createHealthSection(payload)
+      if (!savedOk(res, "Could not add section")) setSections(prev)
+    })
   }
 
   function handleDeleteSection(id: string) {
@@ -260,6 +266,7 @@ export default function HealthSectionClient({
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setSections(prev)
+        toast.error("Could not delete section")
       }
     })
   }
@@ -275,16 +282,20 @@ export default function HealthSectionClient({
       notes: workoutForm.notes || null,
       order_index: workouts.filter((w) => w.section_id === selectedSection.id).length,
     }
+    const prev = workouts
     setWorkouts((w) => [...w, optimistic])
     setAddWorkoutOpen(false)
     setWorkoutForm({ day_label: "", exercises: [{ name: "", sets: "" }], notes: "" })
-    startTransition(() => void createHealthWorkout({
-      section_id: selectedSection.id,
-      day_label: workoutForm.day_label,
-      exercises,
-      notes: workoutForm.notes,
-      order_index: optimistic.order_index,
-    }))
+    startTransition(async () => {
+      const res = await createHealthWorkout({
+        section_id: selectedSection.id,
+        day_label: workoutForm.day_label,
+        exercises,
+        notes: workoutForm.notes,
+        order_index: optimistic.order_index,
+      })
+      if (!savedOk(res, "Could not add workout")) setWorkouts(prev)
+    })
   }
 
   function handleDeleteWorkout(id: string) {
@@ -296,6 +307,7 @@ export default function HealthSectionClient({
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setWorkouts(prev)
+        toast.error("Could not delete workout")
       }
     })
   }
@@ -309,6 +321,7 @@ export default function HealthSectionClient({
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setNutrition(prev)
+        toast.error("Could not save nutrition")
       }
     })
   }
@@ -322,16 +335,21 @@ export default function HealthSectionClient({
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setNutrition(prev)
+        toast.error("Could not delete nutrition")
       }
     })
   }
 
   function handleAddNutritionCat() {
     if (!addNutritionCat.trim()) return
+    const prev = nutrition
     const optimistic: Nutrition = { id: crypto.randomUUID(), category: addNutritionCat, items: [], rules: [], order_index: nutrition.length }
     setNutrition((n) => [...n, optimistic])
     setAddNutritionCat("")
-    startTransition(() => void createHealthNutrition({ category: addNutritionCat, items: [], rules: [], order_index: optimistic.order_index }))
+    startTransition(async () => {
+      const res = await createHealthNutrition({ category: addNutritionCat, items: [], rules: [], order_index: optimistic.order_index })
+      if (!savedOk(res, "Could not add category")) setNutrition(prev)
+    })
   }
 
   const SectionIcon = SECTION_ICONS[activeSection] ?? Dumbbell
@@ -425,6 +443,7 @@ export default function HealthSectionClient({
                         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
                       } catch {
                         setWorkouts(prev)
+                        toast.error("Could not save workout")
                       }
                     })
                     setEditWorkout(null)

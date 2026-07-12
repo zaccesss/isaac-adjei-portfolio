@@ -5,6 +5,7 @@ import { CalendarDays, MapPin, Clock, Info, ChevronDown, ChevronUp, ChevronLeft,
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createCalendarEvent } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
 
 // ── types ─────────────────────────────────────────────────────────────────────
 
@@ -532,7 +533,7 @@ function AddEventForm({ onClose }: { onClose: () => void }) {
     if (!title.trim()) return
     setSaving(true)
     startTransition(async () => {
-      await createCalendarEvent({
+      const res = await createCalendarEvent({
         title: title.trim(),
         start_at: `${date}T${startTime}:00`,
         end_at: `${date}T${endTime}:00`,
@@ -541,6 +542,7 @@ function AddEventForm({ onClose }: { onClose: () => void }) {
         event_type: "timetable",
       })
       setSaving(false)
+      if (!savedOk(res, "Could not save class")) return
       onClose()
     })
   }

@@ -4,6 +4,8 @@ import { useState, useTransition, useMemo, Fragment } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { createInventoryItem, updateInventoryItem, deleteInventoryItem } from "@/app/dashboard/actions"
+import { savedOk } from "@/lib/save-result"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -247,10 +249,14 @@ export default function InventoryCategoryClient({
       warranty_expiry: data.warranty_expiry || null,
       url: data.url || null,
     }
+    const prevItems = items
     setItems((prev) => [...prev, optimistic])
     setAddOpen(false)
     setPage(0)
-    startTransition(() => void createInventoryItem({ ...data, category: data.category || category }))
+    startTransition(async () => {
+      const res = await createInventoryItem({ ...data, category: data.category || category })
+      if (!savedOk(res, "Could not add item")) setItems(prevItems)
+    })
   }
 
   function handleEdit(data: typeof emptyForm) {
@@ -265,6 +271,7 @@ export default function InventoryCategoryClient({
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setItems(prev)
+        toast.error("Could not save item")
       }
     })
   }
@@ -278,6 +285,7 @@ export default function InventoryCategoryClient({
         if (res && (res as { error?: string }).error) throw new Error((res as { error?: string }).error)
       } catch {
         setItems(prev)
+        toast.error("Could not delete item")
       }
     })
   }

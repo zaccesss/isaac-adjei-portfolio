@@ -5,6 +5,7 @@
 import { useState, useMemo, useTransition } from "react"
 import Link from "next/link"
 import { createGoal } from "../../actions"
+import { savedOk } from "@/lib/save-result"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import MarkdownEditor from "@/components/shared/MarkdownEditor"
@@ -228,10 +229,14 @@ export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
 
   function handleAdd(data: typeof emptyForm) {
     // I prepend a local optimistic record so the new goal appears instantly before the DB round-trip
+    const prev = goals
     const optimistic: Goal = { ...data, id: crypto.randomUUID(), description: data.description || null, target_date: data.target_date || null, category: addCategory }
-    setGoals((prev) => [optimistic, ...prev])
+    setGoals((p) => [optimistic, ...p])
     setAddOpen(false)
-    startTransition(() => void createGoal({ ...data, category: addCategory }))
+    startTransition(async () => {
+      const res = await createGoal({ ...data, category: addCategory })
+      if (!savedOk(res, "Could not save goal")) setGoals(prev)
+    })
   }
 
   return (
