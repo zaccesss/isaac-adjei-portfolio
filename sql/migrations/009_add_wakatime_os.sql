@@ -1,4 +1,4 @@
--- 008_add_wakatime_os.sql
+-- 009_add_wakatime_os.sql
 -- Adds the operating_systems JSONB column to wakatime_daily so the coding
 -- activity page can show an OS/machines breakdown matching the WakaTime dashboard.
 -- Safe to run on existing databases - uses ADD COLUMN IF NOT EXISTS.

@@ -143,7 +143,7 @@ Status values: Not Applied, Interested, Application Submitted, Online Assessment
 
 ### Database (Supabase)
 
-All dashboard data is stored in a Supabase Postgres database. For a fresh install run `sql/schema.sql` in the Supabase SQL Editor. For an existing database run the migration files in `sql/migrations/` in order. Key tables:
+All dashboard data is stored in a Supabase Postgres database. The whole schema is built from the numbered migration files in `sql/migrations/` run in order (there is no `schema.sql` any more) - see [sql/migrations/README.md](../sql/migrations/README.md) for the full list. Key tables:
 
 | Table | Purpose |
 | --- | --- |
