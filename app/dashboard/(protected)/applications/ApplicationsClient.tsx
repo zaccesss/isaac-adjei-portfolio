@@ -56,6 +56,7 @@ type Application = {
   written_answers: string | null
   sponsors_visa: string | null
   category: string | null
+  last_scraped_at: string | null
   interview_prep: unknown
 }
 
@@ -669,6 +670,11 @@ function AppRow({
         <NotesCell notes={app.notes} />
       </td>
 
+      {/* Pulled At - when the scraper last saw this listing; manual rows have never been pulled */}
+      <td className="px-2 py-1.5 whitespace-nowrap text-muted-foreground text-xs">
+        {app.last_scraped_at ? formatDate(app.last_scraped_at) : <span className="opacity-40">-</span>}
+      </td>
+
       {/* Actions */}
       <td className="px-2 py-1.5 whitespace-nowrap">
         <div className="flex gap-0.5">
@@ -763,7 +769,7 @@ function CategoryGroup({
     <>
       {/* Category header row */}
       <tr className="bg-muted/60 dark:bg-muted/40 border-b border-border">
-        <td colSpan={isEvent ? 9 : 15} className="px-2 py-1.5">
+        <td colSpan={isEvent ? 10 : 16} className="px-2 py-1.5">
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
@@ -995,6 +1001,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       created_at: new Date().toISOString(),
       url: data.url || null,
       location: null,
+      last_scraped_at: null,
       notes: data.notes || null,
       applied_date: data.applied_date || null,
       deadline: data.deadline || null,
@@ -1521,6 +1528,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
                     </>
                   )}
                   <th className="px-2 py-2 text-left font-semibold whitespace-nowrap">Notes</th>
+                  <th className="px-2 py-2 text-left font-semibold whitespace-nowrap">Pulled At</th>
                   <th className="px-2 py-2 text-left font-semibold whitespace-nowrap sr-only">Actions</th>
                 </tr>
               </thead>
