@@ -43,6 +43,7 @@ function buildEmailHtml(
   facts: DigestFacts,
   summary: string | null,
   expiring: DigestData["expiring"],
+  appliedList: DigestData["appliedList"],
 ): string {
   const summaryBlock = summary
     ? `<tr><td style="padding:22px 32px 0;">
@@ -52,11 +53,17 @@ function buildEmailHtml(
       </td></tr>`
     : ""
 
+  // The roles themselves, not just counts, so the email is actionable at a glance.
+  const appliedRows = appliedList
+    .map((a) => row(`${a.company} - ${a.role}`, a.detail ?? "", "#475569"))
+    .join("")
   const applications = section(
     "Applications",
     row("New applications", facts.applied) +
       row("Interviews / assessments", facts.interviews, "#2563eb") +
-      row("Offers", facts.offers, "#16a34a"),
+      row("Offers", facts.offers, "#16a34a") +
+      appliedRows +
+      (facts.applied > appliedList.length ? row("...and more", facts.applied - appliedList.length) : ""),
   )
 
   const codingStudy = section(
@@ -67,7 +74,12 @@ function buildEmailHtml(
   )
 
   const fitnessRows =
-    (facts.workouts > 0 ? row("Workouts", facts.workouts) + row("Distance", `${facts.workoutDistanceKm} km`, "#FC4C02") : "") +
+    (facts.workouts > 0
+      ? row("Workouts", facts.workouts) +
+        (facts.sports ? row("Sports", facts.sports) : "") +
+        row("Distance", `${facts.workoutDistanceKm} km`, "#FC4C02") +
+        (facts.workoutCalories > 0 ? row("Calories burned", `${facts.workoutCalories} kcal`, "#FC4C02") : "")
+      : "") +
     (facts.currentWeight != null
       ? row(
           "Weight",
@@ -77,9 +89,20 @@ function buildEmailHtml(
       : "")
   const fitness = section("Fitness & body", fitnessRows)
 
+  const music =
+    facts.musicPlays > 0
+      ? section(
+          "Music",
+          row("Plays", facts.musicPlays) +
+            row("Listening time", `${facts.musicHours} h`, "#7c3aed") +
+            (facts.topArtist ? row("Top artist", facts.topArtist) : ""),
+        )
+      : ""
+
   const content = section(
     "Content",
-    row("Visitor reads (public site)", facts.reads) +
+    row("Visitor opens (public site)", facts.reads) +
+      (facts.finishedReads > 0 ? row("Finished reads", facts.finishedReads) : "") +
       (facts.published > 0 ? row("Published", `${facts.published} posts / TILs`) : "") +
       (facts.openSource > 0 ? row("Open-source contributions", facts.openSource) : ""),
   )
@@ -148,6 +171,7 @@ function buildEmailHtml(
           ${codingStudy}
           ${content}
           ${fitness}
+          ${music}
           ${goals}
           ${streaksHabits}
           ${faithDiary}
@@ -171,17 +195,13 @@ function buildEmailHtml(
 }
 
 export async function sendWeeklyDigest(): Promise<DigestResult> {
-  // Scheduled for 00:30 UK on Monday, so the covered week is the Mon-Sun that just ended. Label the
-  // range Monday..Sunday (end = the day that just ended) rather than showing today's Monday date.
-  const now = new Date()
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-  const periodEnd = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-  const startDate = formatDate(weekAgo.toISOString())
-  const endDate = formatDate(periodEnd.toISOString())
-
-  const { facts, expiring } = await gatherDigestData(7 * 24, "the past week")
+  // Scheduled for 00:30 UK on Monday, so the covered week is the Mon-Sun that just ended. The label
+  // range comes from the gatherer's covered days, so it always matches the figures exactly.
+  const { facts, expiring, appliedList, coveredStart, coveredEnd } = await gatherDigestData(7 * 24, "the past week")
+  const startDate = formatDate(`${coveredStart}T12:00:00`)
+  const endDate = formatDate(`${coveredEnd}T12:00:00`)
   const summary = await digestAiSummary(facts, true)
-  const html = buildEmailHtml(startDate, endDate, facts, summary, expiring)
+  const html = buildEmailHtml(startDate, endDate, facts, summary, expiring, appliedList)
 
   const subject = `Your week in review - ${startDate} to ${endDate}`
   const apiKey = process.env.RESEND_API_KEY
