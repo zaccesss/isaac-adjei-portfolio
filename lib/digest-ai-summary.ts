@@ -35,6 +35,12 @@ export type DigestFacts = {
   // fitness
   workouts: number
   workoutDistanceKm: number
+  workoutCalories: number
+  sports: string
+  // music
+  musicPlays: number
+  musicHours: number
+  topArtist: string | null
   // university
   deadlinesDueSoon: number
   nextDeadline: string | null
@@ -51,6 +57,7 @@ export type DigestFacts = {
   nextEvent: string | null
   // content
   reads: number
+  finishedReads: number
   published: number
   openSource: number
   // body metrics
@@ -103,7 +110,10 @@ export async function digestAiSummary(facts: DigestFacts, detailed = false): Pro
     `Goals: ${facts.goalsUpdated} updated (${facts.goalsDone} done, ${facts.goalsInProgress} in progress)`,
     `Coding: ${facts.codingHours}h${facts.topLanguages ? `, top languages ${facts.topLanguages}` : ""}`,
     `Study: ${facts.studyHours}h`,
-    `Fitness: ${facts.workouts} workouts, ${facts.workoutDistanceKm}km`,
+    `Fitness: ${facts.workouts} workouts, ${facts.workoutDistanceKm}km${facts.workoutCalories > 0 ? `, ${facts.workoutCalories} kcal burned` : ""}${facts.sports ? ` (${facts.sports})` : ""}`,
+    facts.musicPlays > 0
+      ? `Music: ${facts.musicPlays} plays, ${facts.musicHours}h listening${facts.topArtist ? `, top artist ${facts.topArtist}` : ""}`
+      : null,
     `Streaks: ${facts.streakCheckIns} check-ins across ${facts.activeStreaks} active streaks`,
     `Habits: ${facts.habitCheckIns} check-ins across ${facts.activeHabits} active habits`,
     `Faith: ${facts.faithEntries} entries`,
@@ -115,7 +125,7 @@ export async function digestAiSummary(facts: DigestFacts, detailed = false): Pro
     facts.upcomingEvents > 0
       ? `Calendar: ${facts.upcomingEvents} events coming up${facts.nextEvent ? `, next ${facts.nextEvent}` : ""}`
       : null,
-    `Blog audience: visitors read Isaac's published posts ${facts.reads} times on the public site${facts.published > 0 ? `; Isaac published ${facts.published} new posts or TILs` : ""}`,
+    `Blog audience: visitors opened Isaac's published posts ${facts.reads} times on the public site, finishing ${facts.finishedReads}${facts.published > 0 ? `; Isaac published ${facts.published} new posts or TILs` : ""}`,
     facts.openSource > 0 ? `Open-source contributions: ${facts.openSource}` : null,
     facts.currentWeight != null
       ? `Weight: ${facts.currentWeight}kg${facts.weightChange != null && facts.weightChange !== 0 ? ` (${facts.weightChange > 0 ? "up" : "down"} ${Math.abs(facts.weightChange)}kg this period)` : ""}`
@@ -147,7 +157,7 @@ export async function digestAiSummary(facts: DigestFacts, detailed = false): Pro
       ? "Write two thorough paragraphs (roughly 9 to 14 sentences) that walk through every area that has any activity, weaving in the actual figures, so it reads as a proper, detailed rundown and leaves nothing relevant out."
       : "Write 3 to 5 sentences, kept tight.",
     "Address Isaac as 'you', be encouraging and specific, and cover the areas that actually have activity",
-    "(applications, coding, study, fitness, weight, faith, goals, streaks, habits, content, diary).",
+    "(applications, coding, study, fitness, weight, music, faith, goals, streaks, habits, content, diary).",
     "Use ONLY the figures given. Never invent numbers, companies, names or events.",
     "The blog audience figure is other people reading Isaac's published posts on his public site. It is",
     "never posts Isaac read himself, so phrase it as readership (for example 'your posts were read 12",

@@ -1,19 +1,51 @@
-// I gather every tracked area for a time window (the last N hours) and reduce it to the figures the digest
-// summary and templates need. One shared gatherer so the weekly email and the daily Discord digest stay
-// consistent and comprehensive. Window-based counts use the applied_date/date/created_at columns; the
-// deadlines, calendar events and expiring items look forward from today regardless of the window, since
-// those are "coming up" nudges rather than "what happened this period".
+// I gather every tracked area for a window of COMPLETED London days and reduce it to the figures the
+// digest summary and templates need. One shared gatherer so the weekly email and the daily Discord digest
+// stay consistent and comprehensive. Both senders label the digest with the period that just ended (the
+// day, or the Mon-Sun week), so the window covers exactly those calendar days in Europe/London - never
+// today's partial rows, which used to nearly double the coding hours when the digest was triggered
+// manually in the afternoon. The bot's /today and /week are the exception: they pass includeToday and
+// get a window ending on the current day. The deadlines, calendar events and expiring items still look
+// forward from today regardless of the window, since those are "coming up" nudges rather than "what
+// happened".
 import { supabase } from "@/lib/supabase"
 import { getExpiringItems } from "@/lib/vault-expiry-check"
+import { london } from "@/lib/london-time"
 import { posts } from "@/data/blog"
 import { tilEntries } from "@/data/til"
 import type { DigestFacts } from "@/lib/digest-ai-summary"
 
 export type DigestData = {
   facts: DigestFacts
-  appliedList: { company: string; role: string; url: string | null }[]
+  // The London calendar days the window actually covered (YYYY-MM-DD, inclusive), so the senders label
+  // the digest from the same range the queries used instead of re-deriving it.
+  coveredStart: string
+  coveredEnd: string
+  appliedList: { company: string; role: string; url: string | null; detail: string | null }[]
   followUps: { name: string; last_contact: string | null }[]
   expiring: { name: string; type: string; daysLeft: number }[]
+}
+
+// The UTC instant of London midnight on the given YYYY-MM-DD, DST-correct: of the two offsets London
+// ever uses, exactly one lands at 00:00 on that date (the clocks change at 01:00, so midnight always
+// exists once).
+function londonMidnightUtc(dateStr: string): Date {
+  for (const offset of ["+01:00", "Z"]) {
+    const candidate = new Date(`${dateStr}T00:00:00${offset}`)
+    const p = london(candidate)
+    if (p.date === dateStr && p.hour === 0) return candidate
+  }
+  return new Date(`${dateStr}T00:00:00Z`)
+}
+
+// Pages a listening-history-sized query past PostgREST's 1000-row cap.
+async function pageAll<T>(build: (from: number, to: number) => PromiseLike<{ data: T[] | null }>): Promise<T[]> {
+  const rows: T[] = []
+  for (let from = 0; ; from += 1000) {
+    const { data } = await build(from, from + 999)
+    rows.push(...(data ?? []))
+    if (!data || data.length < 1000) break
+  }
+  return rows
 }
 
 const INTERVIEW_STATUSES = new Set([
@@ -39,17 +71,27 @@ const TYPE_LABELS: Record<string, string> = {
 }
 const humanizeType = (t: string): string => TYPE_LABELS[t] ?? "an item"
 
-export async function gatherDigestData(hoursBack: number, period: string): Promise<DigestData> {
+export async function gatherDigestData(hoursBack: number, period: string, opts?: { includeToday?: boolean }): Promise<DigestData> {
   const now = new Date()
-  const since = new Date(now.getTime() - hoursBack * 3_600_000)
-  const sinceIso = since.toISOString()
-  const sinceDate = sinceIso.slice(0, 10)
-  // The window before this one (the previous day or week), so the summary can compare periods. Timestamp
-  // columns use this directly (symmetric with the current window's .gte(sinceIso)); date columns need a
-  // matched-length window computed below, because the current date queries are inclusive up through today.
-  const prevSince = new Date(now.getTime() - 2 * hoursBack * 3_600_000)
-  const prevSinceIso = prevSince.toISOString()
-  const today = now.toISOString().slice(0, 10)
+  // The covered window = N London calendar days (N = 1 daily, 7 weekly). By default they are the last N
+  // COMPLETED days - dateEnd is the day that just ended, the same day both digest senders put in their
+  // label. The bot's /today and /week pass includeToday, so their window ends on the current day
+  // instead ("today so far"). Date columns filter [dateStart..dateEnd] inclusive; timestamp columns use
+  // the matching London-midnight instants [sinceIso..endIso). The previous window for comparisons is
+  // the N days immediately before, contiguous by construction, so both windows always hold the same
+  // number of calendar days.
+  const days = Math.max(1, Math.round(hoursBack / 24))
+  const today = london(now).date
+  // "The day that just ended" = the calendar day before the current London date, stepped through
+  // London midnight (a now-minus-24h shortcut would skip the 23-hour clocks-forward day once a year).
+  const dateEnd = opts?.includeToday ? today : london(new Date(londonMidnightUtc(today).getTime() - 12 * 3_600_000)).date
+  const endMidnight = londonMidnightUtc(dateEnd)
+  const dateStart = days === 1 ? dateEnd : london(new Date(endMidnight.getTime() - (days - 1) * 86_400_000 + 12 * 3_600_000)).date
+  const sinceIso = londonMidnightUtc(dateStart).toISOString()
+  const dayAfterEnd = london(new Date(endMidnight.getTime() + 36 * 3_600_000)).date
+  const endIso = londonMidnightUtc(dayAfterEnd).toISOString()
+  const prevDateStart = london(new Date(londonMidnightUtc(dateStart).getTime() - days * 86_400_000 + 12 * 3_600_000)).date
+  const prevSinceIso = londonMidnightUtc(prevDateStart).toISOString()
   const horizon = new Date(now.getTime() + 14 * 86_400_000).toISOString().slice(0, 10)
   const in7 = new Date(now.getTime() + 7 * 86_400_000).toISOString()
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 86_400_000).toISOString().slice(0, 10)
@@ -69,24 +111,31 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
     followR,
     eventsR,
     readsR,
+    finishedR,
+    musicRows,
     osR,
     weightR,
     weightGoalR,
     expiring,
   ] = await Promise.all([
-    supabase.from("goals").select("status,updated_at").gte("updated_at", sinceIso),
+    supabase.from("goals").select("status,updated_at").gte("updated_at", sinceIso).lt("updated_at", endIso),
     supabase
       .from("applications")
-      .select("company,role,status,url,applied_date")
+      .select("company,role,status,url,applied_date,category,work_mode,location")
       .not("status", "in", '("Not Applied","Not Interested","scraped")')
-      .gte("applied_date", sinceDate),
-    supabase.from("streak_logs").select("streak_id,date").gte("date", sinceDate),
-    supabase.from("habit_logs").select("habit_id,date").gte("date", sinceDate),
+      .gte("applied_date", dateStart)
+      .lte("applied_date", dateEnd),
+    supabase.from("streak_logs").select("streak_id,date").gte("date", dateStart).lte("date", dateEnd),
+    supabase.from("habit_logs").select("habit_id,date").gte("date", dateStart).lte("date", dateEnd),
     supabase.from("habits").select("id", { count: "exact", head: true }).eq("active", true),
-    supabase.from("wakatime_daily").select("date,total_seconds,languages").gte("date", sinceDate),
-    supabase.from("study_sessions").select("duration_m,date").gte("date", sinceDate),
-    supabase.from("faith_entries").select("id,date").gte("date", sinceDate),
-    supabase.from("strava_activities").select("distance_m,start_date").gte("start_date", sinceIso),
+    supabase.from("wakatime_daily").select("date,total_seconds,languages").gte("date", dateStart).lte("date", dateEnd),
+    supabase.from("study_sessions").select("duration_m,date").gte("date", dateStart).lte("date", dateEnd),
+    supabase.from("faith_entries").select("id,date").gte("date", dateStart).lte("date", dateEnd),
+    supabase
+      .from("strava_activities")
+      .select("sport_type,distance_m,calories,start_date")
+      .gte("start_date", sinceIso)
+      .lt("start_date", endIso),
     supabase
       .from("uni_deadlines")
       .select("title,due_date,status")
@@ -94,7 +143,12 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
       .lte("due_date", horizon)
       .neq("status", "graded")
       .order("due_date", { ascending: true }),
-    supabase.from("diary").select("mood,created_at").gte("created_at", sinceIso).order("created_at", { ascending: false }),
+    supabase
+      .from("diary")
+      .select("mood,created_at")
+      .gte("created_at", sinceIso)
+      .lt("created_at", endIso)
+      .order("created_at", { ascending: false }),
     supabase
       .from("contacts")
       .select("name,last_contact,follow_up")
@@ -109,19 +163,35 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
       .lte("start_at", in7)
       .order("start_at", { ascending: true })
       .limit(20),
-    supabase.from("blog_read_events").select("id", { count: "exact", head: true }).gte("created_at", sinceIso),
-    supabase.from("opensource_contributions").select("id", { count: "exact", head: true }).gte("created_at", sinceIso),
+    supabase
+      .from("blog_read_events")
+      .select("id", { count: "exact", head: true })
+      .eq("depth", 25)
+      .gte("created_at", sinceIso)
+      .lt("created_at", endIso),
+    supabase
+      .from("blog_read_events")
+      .select("id", { count: "exact", head: true })
+      .eq("depth", 100)
+      .gte("created_at", sinceIso)
+      .lt("created_at", endIso),
+    pageAll<{ artist_name: string | null; duration_ms: number | null }>((from, to) =>
+      supabase
+        .from("listening_history")
+        .select("artist_name,duration_ms")
+        .gte("played_at", sinceIso)
+        .lt("played_at", endIso)
+        .range(from, to),
+    ),
+    supabase
+      .from("opensource_contributions")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", sinceIso)
+      .lt("created_at", endIso),
     supabase.from("body_metrics").select("value,date").eq("metric", "weight_kg").order("date", { ascending: false }).limit(90),
     supabase.from("config").select("value").eq("key", "weight_goal").maybeSingle(),
     getExpiringItems(),
   ])
-
-  // The current date-column queries are .gte(sinceDate) with no upper bound, so they span sinceDate..today
-  // inclusive. I match the previous date window to that same number of calendar dates ending the day before
-  // sinceDate, so the comparison is like for like (a naive prevSinceDate would be one day short and make a
-  // flat week look like a jump). Timestamp columns stay symmetric on prevSinceIso.
-  const windowDates = Math.round((new Date(today).getTime() - new Date(sinceDate).getTime()) / 86_400_000) + 1
-  const prevDateStart = new Date(new Date(sinceDate).getTime() - windowDates * 86_400_000).toISOString().slice(0, 10)
 
   // The same headline figures for the window before this one, kept to cheap counts and sums, so the
   // summary can say "up from yesterday" or "quieter than last week" instead of reciting bare numbers.
@@ -131,13 +201,18 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
       .select("id", { count: "exact", head: true })
       .not("status", "in", '("Not Applied","Not Interested","scraped")')
       .gte("applied_date", prevDateStart)
-      .lt("applied_date", sinceDate),
-    supabase.from("wakatime_daily").select("total_seconds").gte("date", prevDateStart).lt("date", sinceDate),
-    supabase.from("study_sessions").select("duration_m").gte("date", prevDateStart).lt("date", sinceDate),
+      .lt("applied_date", dateStart),
+    supabase.from("wakatime_daily").select("total_seconds").gte("date", prevDateStart).lt("date", dateStart),
+    supabase.from("study_sessions").select("duration_m").gte("date", prevDateStart).lt("date", dateStart),
     supabase.from("strava_activities").select("distance_m").gte("start_date", prevSinceIso).lt("start_date", sinceIso),
-    supabase.from("blog_read_events").select("id", { count: "exact", head: true }).gte("created_at", prevSinceIso).lt("created_at", sinceIso),
-    supabase.from("habit_logs").select("id", { count: "exact", head: true }).gte("date", prevDateStart).lt("date", sinceDate),
-    supabase.from("streak_logs").select("id", { count: "exact", head: true }).gte("date", prevDateStart).lt("date", sinceDate),
+    supabase
+      .from("blog_read_events")
+      .select("id", { count: "exact", head: true })
+      .eq("depth", 25)
+      .gte("created_at", prevSinceIso)
+      .lt("created_at", sinceIso),
+    supabase.from("habit_logs").select("id", { count: "exact", head: true }).gte("date", prevDateStart).lt("date", dateStart),
+    supabase.from("streak_logs").select("id", { count: "exact", head: true }).gte("date", prevDateStart).lt("date", dateStart),
   ])
 
   const goals = goalsR.data ?? []
@@ -169,6 +244,25 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
 
   const studyMinutes = study.reduce((a, r) => a + (r.duration_m ?? 0), 0)
   const fitnessMetres = fitness.reduce((a, r) => a + (r.distance_m ?? 0), 0)
+  const fitnessCalories = fitness.reduce((a, r) => a + ((r as { calories?: number | null }).calories ?? 0), 0)
+  const sportAgg: Record<string, number> = {}
+  for (const r of fitness) {
+    const sport = ((r as { sport_type?: string | null }).sport_type ?? "Workout").replace(/([a-z])([A-Z])/g, "$1 $2")
+    sportAgg[sport] = (sportAgg[sport] ?? 0) + 1
+  }
+  const sports = Object.entries(sportAgg)
+    .sort((a, b) => b[1] - a[1])
+    .map(([s, n]) => (n > 1 ? `${s} x${n}` : s))
+    .join(", ")
+
+  // Music: plays, listening time and the top artist across the window.
+  const musicPlays = musicRows.length
+  const musicHours = round1(musicRows.reduce((a, r) => a + (r.duration_ms ?? 0), 0) / 3_600_000)
+  const artistAgg: Record<string, number> = {}
+  for (const r of musicRows) {
+    if (r.artist_name) artistAgg[r.artist_name] = (artistAgg[r.artist_name] ?? 0) + 1
+  }
+  const topArtist = Object.entries(artistAgg).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
 
   const nextDl = deadlines[0] as { title: string; due_date: string } | undefined
   const nextDeadline = nextDl
@@ -183,7 +277,7 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
   // Weight: latest logged value, and the change across the window (current minus the oldest log in it).
   const weightLogs = (weightR.data ?? []) as { value: number; date: string }[]
   const currentWeight = weightLogs[0]?.value ?? null
-  const windowWeights = weightLogs.filter((w) => w.date >= sinceDate)
+  const windowWeights = weightLogs.filter((w) => w.date >= dateStart)
   const weightChange =
     currentWeight != null && windowWeights.length >= 2 ? round1(currentWeight - windowWeights[windowWeights.length - 1].value) : null
 
@@ -214,10 +308,12 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
     }
   }
 
-  // Posts and TILs published in the window, from the static content (their dates are the publish dates).
+  // Posts and TILs published in the window, from the static content (their dates are the publish dates,
+  // plain YYYY-MM-DD strings, so the calendar-day window compares directly).
+  const inWindow = (d: string | undefined) => !!d && d.slice(0, 10) >= dateStart && d.slice(0, 10) <= dateEnd
   const published =
-    posts.filter((p) => (p as { date?: string }).date && new Date((p as { date: string }).date) >= since).length +
-    tilEntries.filter((t) => (t as { date?: string }).date && new Date((t as { date: string }).date) >= since).length
+    posts.filter((p) => inWindow((p as { date?: string }).date)).length +
+    tilEntries.filter((t) => inWindow((t as { date?: string }).date)).length
 
   const expiringSoon =
     expiring.length > 0
@@ -242,6 +338,11 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
     faithEntries: faith.length,
     workouts: fitness.length,
     workoutDistanceKm: round1(fitnessMetres / 1000),
+    workoutCalories: Math.round(fitnessCalories),
+    sports,
+    musicPlays,
+    musicHours,
+    topArtist,
     deadlinesDueSoon: deadlines.length,
     nextDeadline,
     diaryEntries: diary.length,
@@ -252,6 +353,7 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
     upcomingEvents: events.length,
     nextEvent,
     reads: readsR.count ?? 0,
+    finishedReads: finishedR.count ?? 0,
     published,
     openSource: osR.count ?? 0,
     currentWeight,
@@ -269,10 +371,16 @@ export async function gatherDigestData(hoursBack: number, period: string): Promi
     },
   }
 
-  const appliedList = apps
-    .slice(0, 5)
-    .map((a) => ({ company: a.company as string, role: a.role as string, url: (a.url as string | null) ?? null }))
+  const appliedList = apps.slice(0, 5).map((a) => {
+    const bits = [a.category, a.work_mode, a.location].filter(Boolean) as string[]
+    return {
+      company: a.company as string,
+      role: a.role as string,
+      url: (a.url as string | null) ?? null,
+      detail: bits.length > 0 ? bits.join(" · ") : null,
+    }
+  })
   const expiringList = expiring.slice(0, 5).map((e) => ({ name: e.name, type: e.type, daysLeft: e.daysLeft }))
 
-  return { facts, appliedList, followUps, expiring: expiringList }
+  return { facts, coveredStart: dateStart, coveredEnd: dateEnd, appliedList, followUps, expiring: expiringList }
 }

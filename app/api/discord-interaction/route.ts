@@ -1103,7 +1103,7 @@ export async function POST(req: Request) {
               const hours = name === "week" ? 168 : 24
               const label = name === "week" ? "Past week" : "Today"
               const period = name === "week" ? "the past week" : "today"
-              content = summaryLine(await gatherDigestData(hours, period), label)
+              content = summaryLine(await gatherDigestData(hours, period, { includeToday: true }), label)
               break
             }
             case "goal":

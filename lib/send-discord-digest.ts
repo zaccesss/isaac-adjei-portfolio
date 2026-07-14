@@ -54,7 +54,10 @@ function buildEmbeds(data: DigestData, summary: string | null, label: string) {
     fields.push({
       name: "Fitness & body",
       value: [
-        facts.workouts > 0 ? `Workouts: **${facts.workouts}** (${facts.workoutDistanceKm}km)` : "",
+        facts.workouts > 0
+          ? `Workouts: **${facts.workouts}** (${facts.workoutDistanceKm}km${facts.workoutCalories > 0 ? `, ${facts.workoutCalories} kcal` : ""})`
+          : "",
+        facts.workouts > 0 && facts.sports ? facts.sports : "",
         facts.currentWeight != null
           ? `Weight: **${facts.currentWeight}kg**${facts.weightChange != null && facts.weightChange !== 0 ? ` (${facts.weightChange > 0 ? "+" : ""}${facts.weightChange})` : ""}`
           : "",
@@ -65,10 +68,21 @@ function buildEmbeds(data: DigestData, summary: string | null, label: string) {
     })
   }
 
+  if (facts.musicPlays > 0) {
+    fields.push({
+      name: "Music",
+      value: [`Plays: **${facts.musicPlays}** (${facts.musicHours}h)`, facts.topArtist ? `Top: ${facts.topArtist}` : ""]
+        .filter(Boolean)
+        .join("\n"),
+      inline: true,
+    })
+  }
+
   fields.push({
     name: "Content",
     value: [
-      `Visitor reads: **${facts.reads}**`,
+      `Visitor opens: **${facts.reads}**`,
+      facts.finishedReads > 0 ? `Finished reads: **${facts.finishedReads}**` : "",
       facts.published > 0 ? `Published: **${facts.published}**` : "",
       facts.openSource > 0 ? `Open-source: **${facts.openSource}**` : "",
     ]
@@ -79,7 +93,10 @@ function buildEmbeds(data: DigestData, summary: string | null, label: string) {
 
   // I show recently applied roles so the digest is immediately actionable, not just counts.
   if (appliedList.length > 0) {
-    const lines = appliedList.map((a) => (a.url ? `- [${a.company} - ${a.role}](${a.url})` : `- ${a.company} - ${a.role}`))
+    const lines = appliedList.map((a) => {
+      const name = a.url ? `[${a.company} - ${a.role}](${a.url})` : `${a.company} - ${a.role}`
+      return `- ${name}${a.detail ? ` · ${a.detail}` : ""}`
+    })
     if (facts.applied > appliedList.length) lines.push(`- ...and ${facts.applied - appliedList.length} more`)
     fields.push({ name: "Applied", value: lines.join("\n"), inline: false })
   }
@@ -143,17 +160,16 @@ export async function sendDiscordDigest(): Promise<DiscordDigestResult> {
   const webhookUrl = process.env.DISCORD_WEBHOOK_DIGEST ?? process.env.DISCORD_WEBHOOK_URL
   if (!webhookUrl) return { ok: true, skipped: true }
 
-  // The digest covers the last 24 hours. It is scheduled for 00:30 UK, so the window is the day that
-  // just ended - label it that day (not "now", which would stamp it with the new day's date).
-  const covered = new Date(Date.now() - 24 * 60 * 60 * 1000)
-  const label = covered.toLocaleDateString("en-GB", {
+  // The digest covers the last completed London day. Scheduled for 00:30 UK that is the day that just
+  // ended; a manual trigger later on reports the same completed day. The label comes from the
+  // gatherer's covered range, so it always names exactly the day the figures describe.
+  const data = await gatherDigestData(24, "the past day")
+  const label = new Date(`${data.coveredEnd}T12:00:00`).toLocaleDateString("en-GB", {
     timeZone: "Europe/London",
     weekday: "long",
     day: "numeric",
     month: "long",
   })
-
-  const data = await gatherDigestData(24, "the past day")
   const summary = await digestAiSummary(data.facts)
   const embeds = buildEmbeds(data, summary, label)
 
