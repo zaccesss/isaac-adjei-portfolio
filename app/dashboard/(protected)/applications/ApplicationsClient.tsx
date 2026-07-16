@@ -178,6 +178,10 @@ function appBelongsToTab(app: Application, tab: Tab): boolean {
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
+// Evaluated once per page load, not per render: a scraped row not stamped since this
+// instant has likely left the boards, so its Pulled At cell warns before I click.
+const STALE_PULL_BEFORE = Date.now() - 14 * 86_400_000
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return ""
   const d = new Date(dateStr)
@@ -670,9 +674,24 @@ function AppRow({
         <NotesCell notes={app.notes} />
       </td>
 
-      {/* Pulled At - when the scraper last saw this listing; manual rows have never been pulled */}
-      <td className="px-2 py-1.5 whitespace-nowrap text-muted-foreground text-xs">
-        {app.last_scraped_at ? formatDate(app.last_scraped_at) : <span className="opacity-40">-</span>}
+      {/* Pulled At - when the scraper last saw this listing; manual rows have never been pulled.
+          A stamp older than 14 days means the listing has likely left the boards, so the cell
+          turns red as a do-not-trust-this-link warning before I click through. */}
+      <td className="px-2 py-1.5 whitespace-nowrap text-xs">
+        {app.last_scraped_at ? (
+          new Date(app.last_scraped_at).getTime() < STALE_PULL_BEFORE ? (
+            <span
+              className="text-red-500 dark:text-red-400 font-medium"
+              title="Not seen by the scraper in 14 days - the listing may be gone"
+            >
+              {formatDate(app.last_scraped_at)} · stale
+            </span>
+          ) : (
+            <span className="text-muted-foreground">{formatDate(app.last_scraped_at)}</span>
+          )
+        ) : (
+          <span className="text-muted-foreground opacity-40">-</span>
+        )}
       </td>
 
       {/* Actions */}

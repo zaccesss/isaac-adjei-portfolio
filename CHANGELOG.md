@@ -16,6 +16,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- The Pulled At column doubles as a dead-link warning: a scraped row no scrape has stamped in 14 days shows its date in red with a stale marker, so I know a listing has likely left the boards before I click through
 - A "Pulled At" column at the end of the applications tracker showing when the scraper last saw each listing, so a fresh posting and one that has quietly vanished from the boards are finally distinguishable at a glance; rows I added by hand show a dash
 - Music joins the digests for the first time: plays, listening time and the top artist appear in the daily Discord embed, the weekly email and the AI narrative alongside everything else. Fitness now carries the sports and the calories burned, the reads figure distinguishes opens from finished reads, the applied roles carry their category, work mode and location; the weekly email names the roles applied to instead of only counting them
 - A Sentry-to-Discord relay (`/api/sentry-webhook`): Sentry's free plan has no native Discord integration, so a Sentry Custom Integration now posts issue alerts to this route, which verifies Sentry's signature and reposts a compact embed to the errors Discord channel through the existing webhook. It reuses the same pattern as the incident endpoint, so application errors land alongside the scheduled-job failures
