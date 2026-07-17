@@ -258,7 +258,7 @@ function FaithClientInner({ entries, today }: { entries: FaithEntry[]; today: st
           <p className="text-sm font-medium">Weekly activity</p>
           <ResponsiveContainer width="100%" height={100}>
             <BarChart data={weeks} barSize={14}>
-              <XAxis dataKey="week" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="week" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
               <Tooltip
                 contentStyle={{ fontSize: 12, borderRadius: 6 }}
                 formatter={(v) => [`${v} entries`, "entries"]}

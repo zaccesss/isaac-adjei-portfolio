@@ -552,7 +552,7 @@ export default function WakatimeStats() {
                 <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={weekdayData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                    <XAxis dataKey="day" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} />
+                    <XAxis dataKey="day" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} interval={0} />
                     <YAxis tick={{ fontSize: 9 }} tickLine={false} axisLine={false} allowDecimals={false} />
                     <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v}h`, "Coding"]} />
                     <Bar dataKey="hours" radius={[3, 3, 0, 0]}>

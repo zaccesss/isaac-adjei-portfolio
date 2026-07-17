@@ -38,7 +38,7 @@ export function AssessmentBarChart({ data, tall }: { data: AssessmentPoint[]; ta
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={points} margin={{ top: 8, right: 12, left: -16, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
-          <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} />
+          <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} interval={0} />
           <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} tickLine={false} />
           <Tooltip
             formatter={(v) => [`${v}%`, "Mark"]}

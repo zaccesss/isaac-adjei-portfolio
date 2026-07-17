@@ -238,7 +238,7 @@ function BreakdownSection({
         {/* Bar chart of the top entries */}
         <div>
           <p className="text-xs text-muted-foreground mb-2">Top {data.length} by time</p>
-          <BarChart data={barData} dataKey="time" xKey="name" height={200} valueFormatter={formatHours} />
+          <BarChart data={barData} dataKey="time" xKey="name" height={200} valueFormatter={formatHours} legend name="Hours" />
         </div>
       </div>
     </div>
@@ -605,7 +605,7 @@ function CodingInner({
         <div className="border border-border rounded-lg p-4 bg-card">
           <h2 className="text-sm font-semibold mb-3">Coding: daily (last {numDays} days)</h2>
           <ResponsiveContainer width="100%" height={120}>
-            <RBarChart data={dailyCodings} barSize={6} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+            <RBarChart data={dailyCodings} barSize={6} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 8 }} tickLine={false} axisLine={false} interval={Math.max(1, Math.floor(numDays / 7) - 1)} />
               <YAxis hide />
@@ -618,7 +618,7 @@ function CodingInner({
           <div className="border border-border rounded-lg p-4 bg-card">
             <h2 className="text-sm font-semibold mb-3">GitHub: daily (last {numDays} days)</h2>
             <ResponsiveContainer width="100%" height={120}>
-              <RBarChart data={dailyGH} barSize={6} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+              <RBarChart data={dailyGH} barSize={6} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 8 }} tickLine={false} axisLine={false} interval={Math.max(1, Math.floor(numDays / 7) - 1)} />
                 <YAxis hide />
@@ -635,7 +635,7 @@ function CodingInner({
         <div className="border border-border rounded-lg p-4 bg-card">
           <h2 className="text-sm font-semibold mb-3">Coding: weekly totals</h2>
           <ResponsiveContainer width="100%" height={140}>
-            <RBarChart data={weeklyCodings} barSize={12} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+            <RBarChart data={weeklyCodings} barSize={12} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} interval={2} />
               <YAxis hide />
@@ -648,7 +648,7 @@ function CodingInner({
           <div className="border border-border rounded-lg p-4 bg-card">
             <h2 className="text-sm font-semibold mb-3">GitHub: weekly contributions</h2>
             <ResponsiveContainer width="100%" height={140}>
-              <RBarChart data={weeklyGH} barSize={12} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+              <RBarChart data={weeklyGH} barSize={12} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} interval={2} />
                 <YAxis hide />
@@ -701,9 +701,9 @@ function CodingInner({
           <div className="border border-border rounded-lg p-4 bg-card">
             <h2 className="text-sm font-semibold mb-3">GitHub breakdown: bar (this year)</h2>
             <ResponsiveContainer width="100%" height={150}>
-              <RBarChart data={ghBreakdownData} barSize={24} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
+              <RBarChart data={ghBreakdownData} barSize={24} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} interval={0} />
                 <YAxis hide />
                 <Tooltip formatter={(v) => [v, "Count"]} contentStyle={{ fontSize: "11px" }} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
@@ -762,7 +762,7 @@ function CodingInner({
             <ResponsiveContainer width="100%" height={140}>
               <RBarChart data={weekdayData} barSize={18}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval={0} />
                 <YAxis hide />
                 <Tooltip formatter={(v) => [typeof v === "number" ? formatHours(v) : v, "Time"]} contentStyle={{ fontSize: "11px" }} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Bar dataKey="seconds" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
