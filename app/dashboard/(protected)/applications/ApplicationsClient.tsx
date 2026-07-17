@@ -83,6 +83,56 @@ type Category = (typeof CATEGORIES)[number]
 const _AI_WORD = /\bai\b/i
 const _QUANT_COMPANIES = ["citadel", "optiver", "jane street", "imc", "jump", "two sigma", "susquehanna", "virtu", "drw", "sig ", "flow traders", "akuna", "hudson river", "de shaw"]
 
+// A general careers or search landing page makes me hunt for the role once I get
+// there; a direct posting drops me straight on it. I rank links so that when the
+// same role was scraped from more than one source, the specific posting is the
+// one shown. 2 = looks like a direct posting, 1 = a search/careers landing page,
+// 0 = no link at all.
+const _GENERAL_URL_RE = /\/search|\/results|early-careers|\/campus|\/students?(\/|$|\?)|[?&](q|keyword|keywords|search)=|\/(careers|jobs|vacancies|opportunities)\/?($|\?)/i
+function _urlRank(url: string | null): number {
+  if (!url) return 0
+  return _GENERAL_URL_RE.test(url) ? 1 : 2
+}
+
+// How much I prefer one row over another duplicate of the same role. A row I have
+// already touched (any status other than the raw "scraped") always wins so a real
+// application is never hidden behind its scraped twin; then a starred row, then the
+// most specific link, then the richer row (deadline, location).
+function _appPref(a: Application): number {
+  let score = 0
+  const status = (a.status ?? "").toLowerCase()
+  if (status && status !== "scraped") score += 1000
+  if (a.starred) score += 100
+  score += _urlRank(a.url) * 10
+  if (a.deadline) score += 2
+  if (a.location) score += 1
+  return score
+}
+
+// The same role often lands in the table from several sources (the Trackr plus a
+// direct ATS, or the daily re-scrape before the URL heal caught up), so it shows
+// as duplicate rows - one with the real posting link, one with only the company
+// careers page or none. I collapse those to the single best row FOR DISPLAY ONLY,
+// keyed on company + role + location. Nothing is deleted: every row stays in the
+// database and can still be edited; this only decides which duplicate to render so
+// the user sees one clean row pointing at the most specific link I have for it.
+function dedupeApps(apps: Application[]): Application[] {
+  const norm = (s: string | null) => (s ?? "").toLowerCase().replace(/\s+/g, " ").trim()
+  const best = new Map<string, Application>()
+  const order: string[] = []
+  for (const a of apps) {
+    const key = `${norm(a.company)}||${norm(a.role)}||${norm(a.location)}`
+    const cur = best.get(key)
+    if (!cur) {
+      best.set(key, a)
+      order.push(key)
+    } else if (_appPref(a) > _appPref(cur)) {
+      best.set(key, a)
+    }
+  }
+  return order.map((k) => best.get(k) as Application)
+}
+
 // I auto-detect category from company and role so scraped entries get a sensible default
 // without requiring manual tagging of every row - the user can always override in the edit form
 function detectCategory(company: string, role: string): Category {
@@ -892,7 +942,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   today.setHours(0, 0, 0, 0)
 
   // Tab-filtered apps - archived view shows only archived, default hides them
-  const tabApps = apps.filter((a) => appBelongsToTab(a, activeTab) && (showArchived ? a.archived : !a.archived))
+  const tabApps = dedupeApps(apps.filter((a) => appBelongsToTab(a, activeTab) && (showArchived ? a.archived : !a.archived)))
 
   // Apply filters
   const filtered = tabApps.filter((a) => {
@@ -1330,7 +1380,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
       {/* Tabs */}
       <div className="flex border-b border-border shrink-0 px-4">
         {TAB_TYPES.map((tab) => {
-          const count = apps.filter((a) => appBelongsToTab(a, tab) && !a.archived).length
+          const count = dedupeApps(apps.filter((a) => appBelongsToTab(a, tab) && !a.archived)).length
           return (
             <button
               key={tab}
