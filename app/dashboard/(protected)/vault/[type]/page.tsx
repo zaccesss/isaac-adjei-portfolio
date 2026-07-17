@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase"
 import { notFound, redirect } from "next/navigation"
 import { isPinVerified } from "@/lib/pin"
-import { decryptVaultRows } from "@/lib/vault-crypto"
+import { decryptVaultRows, vaultEncryptionReady } from "@/lib/vault-crypto"
 import VaultTypeClient from "./VaultTypeClient"
 
 export const dynamic = "force-dynamic"
@@ -40,9 +40,13 @@ export default async function VaultTypePage({ params }: { params: Promise<{ type
     .eq("type", dbType)
     .order("name")
 
+  // No key means decrypting would throw, so pass the rows through and let the client warn.
+  const encryptionReady = vaultEncryptionReady()
+
   return (
     <VaultTypeClient
-      entries={decryptVaultRows(entries)}
+      entries={encryptionReady ? decryptVaultRows(entries) : (entries ?? [])}
+      encryptionReady={encryptionReady}
       type={dbType}
       typeSlug={type}
       typeLabel={TYPE_LABELS[type]}

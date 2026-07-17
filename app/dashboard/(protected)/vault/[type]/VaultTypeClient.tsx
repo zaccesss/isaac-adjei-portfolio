@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Plus, Copy, Eye, EyeOff, Trash2, ExternalLink, Check, Search, Edit2, Key, CreditCard, User, StickyNote, Globe, MoreVertical, Lock, Unlock } from "lucide-react"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
+import KeyMissingBanner from "../KeyMissingBanner"
 import { dashboardPage } from "@/lib/animations"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 
@@ -317,11 +318,13 @@ function VaultForm({ initial, fixedType, onClose }: {
 
 export default function VaultTypeClient({
   entries: initial,
+  encryptionReady,
   type,
   typeSlug,
   typeLabel,
 }: {
   entries: VaultEntry[]
+  encryptionReady: boolean
   type: string
   typeSlug: string
   typeLabel: string
@@ -424,6 +427,8 @@ export default function VaultTypeClient({
           { label: typeLabel },
         ]}
       />
+
+      {!encryptionReady && <KeyMissingBanner />}
 
       <div className="flex items-center justify-between">
         <div>

@@ -168,6 +168,7 @@ function ExportImportPanel() {
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [selected, setSelected] = useState<Set<string>>(() => new Set(EXPORT_SECTIONS.map((s) => s.label)))
+  const { confirm, dialog } = useConfirmDialog()
 
   function toggleSection(label: string) {
     setSelected((prev) => {
@@ -180,7 +181,7 @@ function ExportImportPanel() {
 
   // The export is fetched rather than a plain anchor download so a PIN or auth rejection shows a
   // message instead of silently saving the error JSON as if it were the backup.
-  async function downloadExport(url: string) {
+  async function downloadExport(url: string, filename?: string) {
     setMessage(null)
     try {
       const res = await fetch(url)
@@ -201,7 +202,7 @@ function ExportImportPanel() {
       const href = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = href
-      a.download = `dashboard-export-${new Date().toISOString().slice(0, 10)}.json`
+      a.download = filename ?? `dashboard-export-${new Date().toISOString().slice(0, 10)}.json`
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -215,6 +216,20 @@ function ExportImportPanel() {
     const tables = EXPORT_SECTIONS.filter((s) => selected.has(s.label)).flatMap((s) => s.tables)
     if (tables.length === 0) return
     void downloadExport(`/api/export?tables=${encodeURIComponent(tables.join(","))}`)
+  }
+
+  // Deliberately separate from the normal backup: this downloads the vault in the clear for moving
+  // into a password manager, so it demands a typed confirmation on top of the PIN the route enforces.
+  async function exportVaultDecrypted() {
+    const ok = await confirm({
+      title: "Export the vault decrypted?",
+      description: "This downloads every vault secret in the clear as a JSON file, only for importing into a password manager. Anyone who opens the file can read my passwords. Keep it offline then delete it once imported.",
+      confirmLabel: "Export decrypted",
+      destructive: true,
+      typedConfirmation: "export decrypted",
+    })
+    if (!ok) return
+    void downloadExport("/api/export?vault=decrypt", `vault-decrypted-${new Date().toISOString().slice(0, 10)}.json`)
   }
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -294,7 +309,19 @@ function ExportImportPanel() {
           </Button>
         </div>
       </div>
+
+      <div className="flex items-start justify-between gap-3 rounded-md border border-destructive/40 bg-destructive/5 p-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium flex items-center gap-1.5"><Shield className="h-3.5 w-3.5 text-destructive" /> Export vault for a password manager</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Downloads only the vault, decrypted, as a separate file so I can move my secrets into a password manager. The normal backup above keeps the vault encrypted. Behind the PIN plus a typed confirmation.</p>
+        </div>
+        <Button type="button" size="sm" variant="outline" onClick={() => void exportVaultDecrypted()} className="gap-1.5 shrink-0 border-destructive/50 text-destructive hover:text-destructive">
+          <Download className="h-3.5 w-3.5" /> Export decrypted
+        </Button>
+      </div>
+
       {message && <span className={`text-xs ${message.ok ? "text-green-600" : "text-destructive"}`}>{message.text}</span>}
+      {dialog}
     </div>
   )
 }

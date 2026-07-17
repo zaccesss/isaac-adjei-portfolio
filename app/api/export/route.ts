@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { isPinVerified } from "@/lib/pin"
 import { supabase } from "@/lib/supabase"
-import { encryptVaultData, needsEncryption } from "@/lib/vault-crypto"
+import { encryptVaultData, needsEncryption, decryptVaultRows, vaultEncryptionReady } from "@/lib/vault-crypto"
 
 export const dynamic = "force-dynamic"
 
@@ -61,6 +61,34 @@ async function requireSessionAndPin() {
 export async function GET(req: Request) {
   const gate = await requireSessionAndPin()
   if (gate) return NextResponse.json({ error: gate.error }, { status: gate.status })
+
+  // Deliberate decrypt-on-export for migrating into a password manager. It is gated by the session
+  // and the PIN like every export, plus a typed confirmation on the client, and it is kept apart
+  // from the normal backup: a vault-only bundle marked vault_decrypted, its own filename, secrets in
+  // the clear. Never the default export path, so a routine backup always stays encrypted at rest.
+  if (new URL(req.url).searchParams.get("vault") === "decrypt") {
+    if (!vaultEncryptionReady()) {
+      return NextResponse.json({ error: "Vault encryption is not configured, so there is nothing to decrypt." }, { status: 400 })
+    }
+    const { rows, error } = await q("vault")
+    if (error) return NextResponse.json({ error: "Export failed for the vault", detail: error }, { status: 500 })
+    const bundle = {
+      exported_at: new Date().toISOString(),
+      version: "1.1",
+      vault_decrypted: true,
+      note: "Secrets are in the clear. Keep this file offline and delete it once imported.",
+      data: { vault: decryptVaultRows(rows as Record<string, unknown>[]) },
+    }
+    const filename = `vault-decrypted-${new Date().toISOString().slice(0, 10)}.json`
+    return new NextResponse(JSON.stringify(bundle, null, 2), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Cache-Control": "no-store",
+      },
+    })
+  }
 
   // Optional ?tables=applications,goals exports only those tables; with no param it exports everything.
   const requested = new URL(req.url).searchParams.get("tables")
