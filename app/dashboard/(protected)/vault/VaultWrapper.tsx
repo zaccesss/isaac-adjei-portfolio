@@ -31,9 +31,10 @@ type VaultEntry = {
   fields: Record<string, unknown>
 }
 
-export default function VaultWrapper({ pinVerified, entries }: {
+export default function VaultWrapper({ pinVerified, entries, encryptionReady }: {
   pinVerified: boolean
   entries: VaultEntry[]
+  encryptionReady: boolean
 }) {
   const router = useRouter()
 
@@ -73,7 +74,7 @@ export default function VaultWrapper({ pinVerified, entries }: {
           Lock
         </button>
       </div>
-      <VaultClient entries={entries} />
+      <VaultClient entries={entries} encryptionReady={encryptionReady} />
     </div>
   )
 }

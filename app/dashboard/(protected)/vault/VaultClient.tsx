@@ -7,6 +7,7 @@ import { Globe, StickyNote, Key, CreditCard, User, ShieldCheck, Search, BarChart
 import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
 import { Input } from "@/components/ui/input"
 import { StatCard, PieChart } from "@/components/analytics"
+import KeyMissingBanner from "./KeyMissingBanner"
 
 // I keep the VaultEntry type faithful to the DB schema so TypeScript catches any field name drift
 type VaultEntry = {
@@ -85,7 +86,7 @@ const VAULT_TYPES = [
   },
 ]
 
-export default function VaultClient({ entries }: { entries: VaultEntry[] }) {
+export default function VaultClient({ entries, encryptionReady }: { entries: VaultEntry[]; encryptionReady: boolean }) {
   const [search, setSearch] = useState("")
 
   const totalEntries = entries.length
@@ -131,6 +132,7 @@ export default function VaultClient({ entries }: { entries: VaultEntry[] }) {
       initial="hidden"
       animate="visible"
     >
+      {!encryptionReady && <KeyMissingBanner />}
       <div>
         <h1 className="text-xl font-semibold">Vault</h1>
         {totalEntries === 0 ? (

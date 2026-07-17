@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase"
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
 import { syncApplicationToLinear, syncDeadlineToLinear } from "@/lib/linear-sync"
 import { GH_OWNER } from "@/lib/site-config"
-import { encryptVaultData, decryptVaultRow } from "@/lib/vault-crypto"
+import { encryptVaultData, decryptVaultRow, vaultEncryptionReady } from "@/lib/vault-crypto"
 import { SOFT_DELETE_TABLES, purgeSoftDeleted } from "@/lib/trash"
 
 // I require a valid dashboard session for EVERY server action below. Next.js server actions
@@ -587,6 +587,9 @@ export async function createVaultEntry(data: {
     !optStr(data.content, MAX_LONG_TEXT) ||
     !optStr(data.notes, MAX_LONG_TEXT)
   ) return INVALID
+  // Without the encryption key a secret cannot be encrypted, so fail with a clear message rather
+  // than letting encryptVaultData throw an opaque error deep in the insert.
+  if (!vaultEncryptionReady()) return { error: "Vault encryption is not configured. Set VAULT_ENCRYPTION_KEY then reload before saving a secret." }
   // I return the full inserted row so the client can splice it into the local entries list
   // in sorted order without waiting for a page refetch.
   // key_expiry is the vault table's only date column and the form submits "" when its picker is
@@ -627,6 +630,7 @@ export async function updateVaultEntry(id: string, data: Partial<{
 }>) {
   await requireAuth()
   if (!validId(id)) return INVALID
+  if (!vaultEncryptionReady()) return { error: "Vault encryption is not configured. Set VAULT_ENCRYPTION_KEY then reload before saving a secret." }
   // Same ""::date coercion as createVaultEntry - edits resubmit the whole form, so an empty
   // key-expiry picker sends "" and Postgres would reject the update.
   if (data.key_expiry === "") data.key_expiry = null
