@@ -18,9 +18,12 @@ const JUNK_TAGS = new Set([
 export interface LastfmTag { name: string; count: number }
 
 // Normalise a genre for de-duplication: "hip-hop", "hip hop" and "Hip Hop" all collapse to
-// the same key so they merge into a single genre instead of showing twice.
+// the same key so they merge into a single genre instead of showing twice. A trailing plural
+// "s" is dropped too so "afrobeats" folds into "afrobeat"; the length guard leaves short keys
+// like "rnb" alone. The most popular spelling is kept for display, so nothing stored changes.
 export function genreKey(name: string): string {
-  return name.toLowerCase().replace(/[\s\-_/&]+/g, "")
+  const key = name.toLowerCase().replace(/[\s\-_/&]+/g, "")
+  return key.length > 3 ? key.replace(/s$/, "") : key
 }
 
 export async function getArtistTags(artist: string): Promise<LastfmTag[]> {

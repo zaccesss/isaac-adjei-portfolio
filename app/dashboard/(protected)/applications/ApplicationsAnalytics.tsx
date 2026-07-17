@@ -207,7 +207,7 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
           {statusPie.length > 0 ? (
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
-                <Pie data={statusPie} dataKey="value" nameKey="name" cx="40%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
+                <Pie data={statusPie} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
                   {statusPie.map((entry, i) => <Cell key={i} fill={entry.colour} />)}
                 </Pie>
                 <Tooltip content={({ active, payload }) => {
@@ -327,7 +327,7 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={monthlyBar} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} tickLine={false} interval={0} />
                 <YAxis tick={{ fontSize: 10 }} tickLine={false} allowDecimals={false} />
                 <Tooltip content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null
@@ -351,7 +351,7 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={locBar} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 9 }} tickLine={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 9 }} tickLine={false} interval={0} />
                 <YAxis tick={{ fontSize: 10 }} tickLine={false} allowDecimals={false} />
                 <Tooltip content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null

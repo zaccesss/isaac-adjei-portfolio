@@ -37,6 +37,7 @@ const releases: ChangeEntry[] = [
     ],
     changed: [
       "/security-policy: added a cross-link to its GitHub repo and a pointer to my projects",
+      "/lab: the Spotify genre chart folds together genres that differ only by capitalisation or a trailing s, so near-identical genres like afrobeats and afrobeat now read as one slice",
     ],
   },
   {
