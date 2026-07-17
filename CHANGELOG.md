@@ -34,6 +34,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- The Linear view now pages its issues at 25 a page with the shared pager the rest of the dashboard uses, so a growing workspace no longer mounts every open issue at once. The summary counts still cover the whole set; only the grouped list below shows a page at a time
 - Cleaned up the sql folder documentation: the migration files that shared or followed the duplicate 042 number were renumbered into a clean sequence (the old-to-new mapping is documented in the migrations README), the migrations README now lists every file 001-045 with what it adds and both sql READMEs stop referring to the long-removed schema.sql. The root and dashboard READMEs also catch up with the post-analytics route rename
 - Applications now stamp their applied date automatically when they move to Applied or Submitted, so the pipeline timeline stays real without me filling the date by hand
 - Made Dependabot auto-merge ecosystem-aware: patch and minor bumps and major GitHub Actions bumps auto-merge once the `Lint and Build` check passes, but major `npm` bumps are now held for manual review instead of auto-merging, since a breaking runtime bump could pass lint and build and still deploy. The `automerge` label path (used by `cv-pdf.yml`) is unchanged

@@ -3,8 +3,12 @@
 import { useEffect, useMemo, useState } from "react"
 import { ExternalLink, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react"
 import type { LinearIssue } from "@/app/api/dashboard/linear/route"
+import { Pagination } from "@/components/shared/Pagination"
 
 type Response = { configured: boolean; issues: LinearIssue[]; error?: string; detail?: string }
+
+// The Linear workspace is small today; I still page the grouped list so it stays quick as it grows.
+const PAGE_SIZE = 25
 
 const PRIORITY_LABEL: Record<number, { label: string; colour: string }> = {
   0: { label: "No priority", colour: "text-muted-foreground" },
@@ -45,6 +49,7 @@ export default function LinearView() {
   const [data, setData] = useState<Response | null>(null)
   const [loading, setLoading] = useState(true)
   const [showBacklog, setShowBacklog] = useState(false)
+  const [page, setPage] = useState(1)
   // eslint-disable-next-line react-hooks/purity
   const sevenDaysFromNow = useMemo(() => new Date(Date.now() + 7 * 86400000), [])
 
@@ -114,9 +119,16 @@ export default function LinearView() {
 
   const hiddenCount = data.issues.length - visibleIssues.length
 
+  // Page the flattened issues, then group the current page. The summary row above counts the whole
+  // set, so paging never moves the totals; only the grouped list below shows a page at a time.
+  const totalPages = Math.max(1, Math.ceil(visibleIssues.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const projectCount = new Set(visibleIssues.map((i) => i.project?.name ?? i.team.name)).size
+  const pageIssues = visibleIssues.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
   // Group by project (fallback to team)
   const groups = new Map<string, { colour: string; issues: LinearIssue[] }>()
-  for (const issue of visibleIssues) {
+  for (const issue of pageIssues) {
     const key = issue.project?.name ?? issue.team.name
     const colour = issue.project?.color ?? "#94a3b8"
     if (!groups.has(key)) groups.set(key, { colour, issues: [] })
@@ -132,7 +144,7 @@ export default function LinearView() {
             { label: "Active", value: visibleIssues.length },
             { label: "Urgent / High", value: visibleIssues.filter((i) => i.priority <= 2 && i.priority > 0).length },
             { label: "Due soon", value: visibleIssues.filter((i) => i.dueDate && new Date(i.dueDate) <= sevenDaysFromNow).length },
-            { label: "Projects", value: groups.size },
+            { label: "Projects", value: projectCount },
           ].map((s) => (
             <div key={s.label} className="border border-border rounded-lg p-3 bg-card min-w-[90px]">
               <p className="text-lg font-bold tabular-nums">{s.value}</p>
@@ -143,7 +155,7 @@ export default function LinearView() {
         {hiddenCount > 0 || showBacklog ? (
           <button
             type="button"
-            onClick={() => setShowBacklog((v) => !v)}
+            onClick={() => { setShowBacklog((v) => !v); setPage(1) }}
             title={showBacklog ? "Hide backlog and saved issues" : "Show backlog and saved issues"}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1"
           >
@@ -202,6 +214,16 @@ export default function LinearView() {
           </div>
         </div>
       ))}
+
+      <Pagination
+        page={safePage}
+        totalPages={totalPages}
+        onChange={setPage}
+        totalItems={visibleIssues.length}
+        pageSize={PAGE_SIZE}
+        itemLabel="issues"
+        className="pt-2"
+      />
     </div>
   )
 }
