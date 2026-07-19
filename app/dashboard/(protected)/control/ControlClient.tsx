@@ -7,6 +7,7 @@
 // a minute server-side, so the page can poll without hammering GitHub or Healthchecks.
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
 import { Button } from "@/components/ui/button"
@@ -18,92 +19,12 @@ import { SiSpotify, SiStrava } from "react-icons/si"
 import { bulkSyncDeadlinesToLinear, bulkSyncApplicationsToLinear } from "@/app/dashboard/actions"
 import { CONTROL_JOBS, CONTROL_REPO_ORDER, type ControlJob } from "@/lib/control-jobs"
 import MaintenancePanel from "@/app/dashboard/components/MaintenancePanel"
+import {
+  HcPill, RunDots, relativeTime, fmtDuration, findCheck,
+  type JobStatus, type HcCheck, type ControlStatus,
+} from "@/app/dashboard/components/status-ui"
 
-type JobRun = { conclusion: string | null; status: string; startedAt: string; durationS: number | null; url: string }
-type JobStatus = { id: string; runs: JobRun[]; successRate: number | null; schedule: string | null }
-type HcCheck = { name: string; slug: string; status: string; lastPing: string | null; project: string }
-type ControlStatus = {
-  generatedAt: string
-  hasToken: boolean
-  hcConfigured: { automations: boolean; fleet: boolean }
-  scheduleLive: boolean
-  jobs: JobStatus[]
-  checks: HcCheck[]
-}
 type Message = { text: string; ok: boolean }
-
-function relativeTime(isoString: string): string {
-  const diff = Date.now() - new Date(isoString).getTime()
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return "just now"
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
-}
-
-function fmtDuration(s: number | null): string {
-  if (s == null) return ""
-  if (s < 60) return `${s}s`
-  return `${Math.floor(s / 60)}m ${s % 60}s`
-}
-
-// Healthchecks state to a coloured pill. up = pinged on schedule, grace = late, down = missed.
-function HcPill({ check }: { check: HcCheck | null }) {
-  if (!check) return <span className="text-xs text-muted-foreground/50 w-14 text-center shrink-0">-</span>
-  const map: Record<string, { dot: string; label: string }> = {
-    up: { dot: "bg-green-500", label: "up" },
-    grace: { dot: "bg-amber-500", label: "late" },
-    down: { dot: "bg-red-500", label: "down" },
-    paused: { dot: "bg-muted-foreground/40", label: "paused" },
-  }
-  const m = map[check.status] ?? { dot: "bg-muted-foreground/40", label: check.status }
-  return (
-    <span
-      className="flex items-center gap-1.5 text-xs w-14 shrink-0"
-      title={`${check.name}: ${m.label}${check.lastPing ? `, last ping ${relativeTime(check.lastPing)}` : ""}`}
-    >
-      <span className={`h-2 w-2 rounded-full shrink-0 ${m.dot}`} />
-      {m.label}
-    </span>
-  )
-}
-
-// The last runs as dots, oldest to newest, so the row reads like a timeline.
-function RunDots({ runs }: { runs: JobRun[] }) {
-  if (runs.length === 0) return <span className="text-xs text-muted-foreground/50">no runs</span>
-  return (
-    <span className="flex items-center gap-1">
-      {[...runs].reverse().map((r, i) => {
-        const colour =
-          r.status !== "completed" ? "bg-blue-500 animate-pulse"
-          : r.conclusion === "success" ? "bg-green-500"
-          : r.conclusion === "skipped" ? "bg-muted-foreground/40"
-          : "bg-red-500"
-        return (
-          <a
-            key={`${r.startedAt}-${i}`}
-            href={r.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={`${r.conclusion ?? r.status} · ${relativeTime(r.startedAt)}${r.durationS != null ? ` · ${fmtDuration(r.durationS)}` : ""}`}
-            className={`h-2 w-2 rounded-full ${colour} hover:ring-2 hover:ring-primary/40 transition-shadow`}
-          />
-        )
-      })}
-    </span>
-  )
-}
-
-function findCheck(job: ControlJob, checks: HcCheck[]): HcCheck | null {
-  if (!job.hcSlug) return null
-  const slug = job.hcSlug.toLowerCase()
-  return (
-    checks.find((c) => c.slug.toLowerCase() === slug) ??
-    checks.find((c) => c.name.toLowerCase().includes(slug)) ??
-    null
-  )
-}
 
 function JobRow({
   job, status, check, runState, onRun, hasToken,
@@ -319,16 +240,21 @@ export default function ControlClient() {
           <h1 className="text-2xl font-bold tracking-tight">Control</h1>
           <p className="text-muted-foreground text-sm">Run and watch every job across my six repos.</p>
         </div>
-        {checkCounts.total > 0 && (
-          <div className={`flex items-center gap-2 text-sm font-medium ${checkCounts.down > 0 ? "text-red-500" : checkCounts.late > 0 ? "text-amber-500" : "text-green-600"}`}>
-            <span className={`h-2.5 w-2.5 rounded-full ${checkCounts.down > 0 ? "bg-red-500" : checkCounts.late > 0 ? "bg-amber-500" : "bg-green-500"}`} />
-            {checkCounts.down > 0
-              ? `${checkCounts.down} of ${checkCounts.total} down`
-              : checkCounts.late > 0
-              ? `${checkCounts.late} late, rest up`
-              : "All systems operational"}
-          </div>
-        )}
+        <div className="flex items-center gap-3 flex-wrap">
+          {checkCounts.total > 0 && (
+            <Link
+              href="/dashboard/uptime"
+              className={`flex items-center gap-2 text-sm font-medium hover:underline underline-offset-2 ${checkCounts.down > 0 ? "text-red-500" : checkCounts.late > 0 ? "text-amber-500" : "text-green-600"}`}
+            >
+              <span className={`h-2.5 w-2.5 rounded-full ${checkCounts.down > 0 ? "bg-red-500" : checkCounts.late > 0 ? "bg-amber-500" : "bg-green-500"}`} />
+              {checkCounts.down > 0
+                ? `${checkCounts.down} of ${checkCounts.total} down`
+                : checkCounts.late > 0
+                ? `${checkCounts.late} late, rest up`
+                : "All systems operational"}
+            </Link>
+          )}
+        </div>
       </div>
 
       {!statusLoading && status && !status.hasToken && (
