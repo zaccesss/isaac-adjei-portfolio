@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import ApplicationsClient from "./ApplicationsClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Applications", robots: "noindex, nofollow" }
 
 export default async function ApplicationsPage() {
   // The table holds thousands of scraped listings alongside my real applications. PostgREST caps a single

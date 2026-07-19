@@ -6,7 +6,7 @@ import { isPinVerified } from "@/lib/pin"
 import DiaryWrapper from "./DiaryWrapper"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Diary", robots: "noindex, nofollow" }
 
 export default async function DiaryPage() {
   const pinVerified = await isPinVerified()

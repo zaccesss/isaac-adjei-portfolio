@@ -4,7 +4,7 @@ import { parseVEvents } from "@/lib/ical"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 3600
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Timetable", robots: "noindex, nofollow" }
 
 type ICalEvent = {
   uid: string

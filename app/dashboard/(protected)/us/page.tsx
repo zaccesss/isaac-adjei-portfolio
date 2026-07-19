@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase"
 import UsClient from "./UsClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Us", robots: "noindex, nofollow" }
 
 const DEFAULT_DATA = {
   vision: "To build a relationship rooted in God, honesty, mutual growth and unconditional love.",

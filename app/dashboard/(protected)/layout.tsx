@@ -9,13 +9,15 @@ import FloatingAssistant from "@/components/dashboard/FloatingAssistant"
 import ShortcutHelp from "@/components/dashboard/ShortcutHelp"
 import ThemeSync from "@/components/dashboard/ThemeSync"
 import FloatingFormatToolbar from "@/components/shared/FloatingFormatToolbar"
+import DashboardThemeToggle from "../components/DashboardThemeToggle"
 import { Toaster } from "sonner"
 import { getCachedTheme } from "@/app/dashboard/actions"
 
-// I set the metadata here so all protected dashboard pages inherit this title without
-// affecting the root layout used by the public site
+// A title template rather than an absolute title, so every dashboard page names itself in the tab
+// the way the public pages do (Me | Isaac Adjei, Goals | Isaac Adjei); anything without its own
+// title falls back to the plain Dashboard tab.
 export const metadata = {
-  title: { absolute: "Dashboard | Isaac Adjei" },
+  title: { template: "%s | Isaac Adjei", default: "Dashboard | Isaac Adjei" },
   robots: "noindex, nofollow",
 }
 
@@ -34,6 +36,7 @@ export default async function ProtectedDashboardLayout({
     <div className="min-h-screen flex bg-background">
       <InactivityGuard />
       <ThemeSync savedTheme={savedTheme} />
+      <DashboardThemeToggle />
       <DashboardSidebar user={session.user ?? {}} />
       <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-auto min-w-0">
         {children}

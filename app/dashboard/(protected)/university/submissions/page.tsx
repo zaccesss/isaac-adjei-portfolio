@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import SubmissionsClient from "./SubmissionsClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Submissions", robots: "noindex, nofollow" }
 
 export default async function SubmissionsPage() {
   const [{ data: submissions }, { data: modules }, { data: deadlines }] = await Promise.all([

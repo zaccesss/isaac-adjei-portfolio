@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import MeClient from "./MeClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Me", robots: "noindex, nofollow" }
 
 const DEFAULT_PROFILE = {
   name: "Isaac Adjei",

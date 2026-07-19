@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import HabitsClient from "./HabitsClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Habits", robots: "noindex, nofollow" }
 
 export default async function HabitsPage() {
   const today = new Date().toISOString().split("T")[0]

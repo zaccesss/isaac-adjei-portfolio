@@ -36,6 +36,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Tidied the dashboard chrome. Each dashboard page now names itself in the browser tab (Me, Goals, Vault and the rest) rather than every tab reading a generic Dashboard. The light and dark toggle moved out of Settings to a fixed top-right corner like the public pages, keeping the saved preference. The sidebar header dropped the duplicate avatar now that it matches the ia home mark beside it
 - The Linear view now pages its issues at 25 a page with the shared pager the rest of the dashboard uses, so a growing workspace no longer mounts every open issue at once. The summary counts still cover the whole set; only the grouped list below shows a page at a time
 - Cleaned up the sql folder documentation: the migration files that shared or followed the duplicate 042 number were renumbered into a clean sequence (the old-to-new mapping is documented in the migrations README), the migrations README now lists every file 001-045 with what it adds and both sql READMEs stop referring to the long-removed schema.sql. The root and dashboard READMEs also catch up with the post-analytics route rename
 - Applications now stamp their applied date automatically when they move to Applied or Submitted, so the pipeline timeline stays real without me filling the date by hand

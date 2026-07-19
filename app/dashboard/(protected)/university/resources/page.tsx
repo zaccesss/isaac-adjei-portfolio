@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import ResourcesClient from "./ResourcesClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Resources", robots: "noindex, nofollow" }
 
 export default async function ResourcesPage() {
   const [{ data: resources }, { data: modules }] = await Promise.all([

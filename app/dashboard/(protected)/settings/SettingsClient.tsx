@@ -4,16 +4,14 @@ import { useState, useRef } from "react"
 import Link from "next/link"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useRouter } from "next/navigation"
-import { useTheme } from "next-themes"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-  KeyRound, Shield, Clock, Lock, Sun, Moon, Palette, Trash2, Download, SlidersHorizontal,
+  KeyRound, Shield, Clock, Lock, Trash2, Download, SlidersHorizontal,
 } from "lucide-react"
-import { setConfig, clearAllJobs, clearAllApplications } from "@/app/dashboard/actions"
-import { savedOk } from "@/lib/save-result"
+import { clearAllJobs, clearAllApplications } from "@/app/dashboard/actions"
 
 // Friendly sections mapped to the real table names, so I can export just one part (e.g. Applications)
 // instead of the whole database. Table names must match the export route's EXPORT_TABLES.
@@ -204,7 +202,6 @@ function ExportImportPanel() {
 
 export default function SettingsClient() {
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
   const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   const [currentPin, setCurrentPin] = useState("")
@@ -393,43 +390,6 @@ export default function SettingsClient() {
             <span className="text-muted-foreground">PIN-protected pages</span>
             <span className="font-medium">Modules, Diary and Vault</span>
           </div>
-        </div>
-      </section>
-
-      {/* Preferences */}
-      <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
-        <div className="flex items-center gap-2">
-          <Palette className="h-4 w-4 text-muted-foreground" />
-          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Preferences</h2>
-        </div>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-2">
-              {theme === "dark" ? (
-                <Moon className="h-4 w-4 text-muted-foreground shrink-0" />
-              ) : (
-                <Sun className="h-4 w-4 text-muted-foreground shrink-0" />
-              )}
-              <span className="text-sm font-medium">Appearance</span>
-            </div>
-            <p className="text-xs text-muted-foreground pl-6">Toggle between light and dark mode</p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const next = theme === "dark" ? "light" : "dark"
-              setTheme(next)
-              void setConfig("theme_preference", next).then((res) => savedOk(res, "Could not save theme"))
-            }}
-            className="flex items-center gap-2"
-          >
-            <div className="relative h-4 w-4 shrink-0">
-              <Sun className="h-3.5 w-3.5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 absolute inset-0" />
-              <Moon className="h-3.5 w-3.5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 absolute inset-0" />
-            </div>
-            {theme === "dark" ? "Light mode" : "Dark mode"}
-          </Button>
         </div>
       </section>
 

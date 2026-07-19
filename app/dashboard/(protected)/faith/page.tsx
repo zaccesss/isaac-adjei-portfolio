@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import FaithClient from "./FaithClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Faith", robots: "noindex, nofollow" }
 
 export default async function FaithPage() {
   const today = new Date().toISOString().split("T")[0]

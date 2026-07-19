@@ -3,7 +3,7 @@ import { isPinVerified } from "@/lib/pin"
 import ModulesWrapper from "./ModulesWrapper"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Modules", robots: "noindex, nofollow" }
 
 export default async function ModulesPage() {
   // I check the signed PIN cookie server-side so marks data never reaches the browser unauthenticated

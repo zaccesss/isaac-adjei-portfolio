@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import LibraryClient from "./LibraryClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Library", robots: "noindex, nofollow" }
 
 export default async function LibraryPage() {
   const [{ data: books }, { data: modules }] = await Promise.all([

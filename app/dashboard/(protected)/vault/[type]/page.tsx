@@ -5,7 +5,7 @@ import { decryptVaultRows, vaultEncryptionReady } from "@/lib/vault-crypto"
 import VaultTypeClient from "./VaultTypeClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Vault", robots: "noindex, nofollow" }
 
 // I map URL slugs to the actual DB type values stored in the vault table
 const TYPE_SLUGS: Record<string, string> = {
