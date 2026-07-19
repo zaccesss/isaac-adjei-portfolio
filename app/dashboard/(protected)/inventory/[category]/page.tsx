@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import InventoryCategoryClient from "./InventoryCategoryClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Inventory", robots: "noindex, nofollow" }
 
 // I convert a category name to a URL slug for consistent routing
 const toSlug = (s: string) => s.toLowerCase().replace(/\s+/g, "-")

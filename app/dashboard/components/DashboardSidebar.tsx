@@ -12,7 +12,6 @@ import {
   Brain, Church, School, CheckSquare, CalendarDays, ChevronDown, FolderOpen, Sparkles, CalendarClock, Music
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
 import DashboardSearch from "@/components/dashboard/DashboardSearch"
 
 type NavItem = { href: string; label: string; icon: React.ComponentType<{ className?: string }>; sub?: boolean }
@@ -289,9 +288,6 @@ export default function DashboardSidebar({
           <Link href="/" title="Home" aria-label="Isaac Adjei, home" className="shrink-0 rounded hover:opacity-80 transition-opacity">
             <IAMark size={26} />
           </Link>
-          {user.image && (
-            <Image src={user.image} alt={user.name ?? "avatar"} width={28} height={28} className="rounded-full shrink-0" />
-          )}
           <div className="min-w-0">
             <p className="text-xs font-semibold truncate leading-tight">My Dashboard</p>
             {user.name && <p className="text-[10px] text-muted-foreground truncate leading-tight">{user.name}</p>}

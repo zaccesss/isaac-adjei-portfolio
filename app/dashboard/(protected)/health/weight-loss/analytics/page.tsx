@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import WeightLossAnalyticsClient from "./WeightLossAnalyticsClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Weight Loss Analytics", robots: "noindex, nofollow" }
 
 function daysAgo(days: number): Date {
   return new Date(Date.now() - days * 86_400_000)

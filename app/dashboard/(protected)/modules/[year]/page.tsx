@@ -4,7 +4,7 @@ import { isPinVerified } from "@/lib/pin"
 import ModulesYearClient from "./ModulesYearClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Modules", robots: "noindex, nofollow" }
 
 const YEAR_SLUGS: Record<string, number> = {
   "year-1": 1,

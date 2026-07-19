@@ -63,7 +63,8 @@ export default function VaultWrapper({ pinVerified, entries, encryptionReady }: 
 
   return (
     <div className="relative flex flex-col gap-6">
-      <div className="absolute top-0 right-0">
+      {/* Sits left of the fixed theme toggle in the viewport corner so the two never overlap. */}
+      <div className="absolute top-0 right-12">
         <button
           type="button"
           onClick={() => void handleLock()}

@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import InventoryClient from "./InventoryClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Inventory", robots: "noindex, nofollow" }
 
 export default async function InventoryPage() {
   const { data } = await supabase

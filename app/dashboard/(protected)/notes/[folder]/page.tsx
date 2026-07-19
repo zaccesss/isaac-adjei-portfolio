@@ -7,7 +7,7 @@ import { isPinVerified } from "@/lib/pin"
 import NotesFolderClient from "./NotesFolderClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Notes", robots: "noindex, nofollow" }
 
 const toSlug = (s: string) => s.toLowerCase().replace(/\s+/g, "-")
 

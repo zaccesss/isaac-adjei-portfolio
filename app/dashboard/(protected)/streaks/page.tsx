@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import StreaksClient from "./StreaksClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Streaks", robots: "noindex, nofollow" }
 
 export default async function StreaksPage() {
   const today = new Date().toISOString().split("T")[0]

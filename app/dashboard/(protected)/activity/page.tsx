@@ -4,7 +4,7 @@ import { getActivityLogPage } from "../../actions"
 import { Pagination } from "@/components/shared/Pagination"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Activity Log", robots: "noindex, nofollow" }
 
 const PAGE_SIZE = 50
 

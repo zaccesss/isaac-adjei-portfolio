@@ -6,7 +6,7 @@ import { buildRoutineIcal } from "@/lib/routine-ical"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 3600
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Calendar", robots: "noindex, nofollow" }
 
 export type CalendarEvent = {
   uid: string

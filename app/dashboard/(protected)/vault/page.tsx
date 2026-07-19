@@ -6,7 +6,7 @@ import { decryptVaultRows, vaultEncryptionReady } from "@/lib/vault-crypto"
 import VaultWrapper from "./VaultWrapper"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Vault", robots: "noindex, nofollow" }
 
 export default async function VaultPage() {
   const pinVerified = await isPinVerified()

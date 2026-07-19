@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import GoalsCategoryClient from "./GoalsCategoryClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Goals", robots: "noindex, nofollow" }
 
 const VALID_CATEGORIES = ["personal", "academic", "career", "health", "finance", "other"]
 

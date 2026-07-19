@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 import HealthClient from "./HealthClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Health", robots: "noindex, nofollow" }
 
 export default async function HealthPage() {
   const [{ data: sections }, { data: workouts }, { data: nutrition }] = await Promise.all([

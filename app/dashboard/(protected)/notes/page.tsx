@@ -7,7 +7,7 @@ import { isPinVerified } from "@/lib/pin"
 import NotesWrapper from "./NotesWrapper"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Notes", robots: "noindex, nofollow" }
 
 export default async function NotesPage() {
   const pinVerified = await isPinVerified()

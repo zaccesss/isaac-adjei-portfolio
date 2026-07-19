@@ -4,7 +4,7 @@ import { ClipboardList, Upload, Library, CalendarDays, FileText, Plus } from "lu
 import { Button } from "@/components/ui/button"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "University", robots: "noindex, nofollow" }
 
 function daysUntil(dateStr: string) {
   return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000)

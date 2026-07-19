@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import HealthSectionClient from "./HealthSectionClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Health", robots: "noindex, nofollow" }
 
 const VALID_SECTIONS = ["gym", "nutrition", "running"]
 const SECTION_LABELS: Record<string, string> = {

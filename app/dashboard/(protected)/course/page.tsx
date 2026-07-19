@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase"
 import CourseWrapper from "./CourseWrapper"
 
 export const dynamic = "force-dynamic"
-export const metadata = { robots: "noindex, nofollow" }
+export const metadata = { title: "Course", robots: "noindex, nofollow" }
 
 const DEFAULT_CONFIG = {
   programme: "BEng Electronic Engineering and Computer Science",
