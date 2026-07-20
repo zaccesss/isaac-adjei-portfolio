@@ -60,12 +60,16 @@ for (const job of CONTROL_JOBS) {
   if (job.hcSlug) HC_NAME_TO_REPO_LABEL[job.hcSlug.toLowerCase()] = shortRepoName(job.repo)
 }
 
-export function repoLabelForCheckName(checkName: string, source: string): string | null {
-  const byName = HC_NAME_TO_REPO_LABEL[checkName.trim().toLowerCase()]
-  if (byName) return byName
-  // Better Stack only ever watches the live site, and its checks are not named after a job.
-  if (source === "better-stack") return shortRepoName(PORTFOLIO_REPO)
-  return null
+// The repo label plus the job's own label (its Healthchecks slug, already a clean dash-case name
+// like job-scraper or medication-reminders), so an incident is filterable by repo AND by exactly
+// which job broke. A fleet repo with one job (mirror-ops, meta-mirror) has the same name for both,
+// which de-dupes to one label. A Better Stack site-down alert has no job, only the portfolio repo.
+export function labelsForCheckName(checkName: string, source: string): string[] {
+  const slug = checkName.trim().toLowerCase()
+  const repo = HC_NAME_TO_REPO_LABEL[slug]
+  if (repo) return [...new Set([repo, slug])]
+  if (source === "better-stack") return [shortRepoName(PORTFOLIO_REPO)]
+  return []
 }
 
 export const CATEGORY_LABEL_COLOURS: Record<string, string> = {

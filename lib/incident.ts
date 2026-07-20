@@ -7,7 +7,7 @@
 // check is open I update that one issue, and when the check recovers I move the same issue to Done.
 // The check name in the title is the key that ties a down and its later up together.
 import { getLinearTeams } from "@/lib/linear-sync"
-import { resolveMyLinearId, resolveLabelIds, repoLabelForCheckName } from "@/lib/linear-common"
+import { resolveMyLinearId, resolveLabelIds, labelsForCheckName } from "@/lib/linear-common"
 
 const LINEAR_GQL = "https://api.linear.app/graphql"
 
@@ -37,9 +37,10 @@ async function resolveOpsTeamId(): Promise<string | null> {
 }
 
 // Creates an urgent (priority 1) Linear issue and returns its id, or null if it could not. Always
-// assigns to me and tags "health" plus the repo the failing check belongs to (resolved from its
-// name, or "portfolio" for a Better Stack site-down alert), so every incident lands where I will
-// actually see it instead of sitting unassigned and unlabelled in the team backlog.
+// assigns to me and tags "health" plus the repo and the specific job the failing check belongs to
+// (resolved from its name across all six repos, or just "portfolio" for a Better Stack site-down
+// alert with no job of its own), so every incident lands where I will actually see it instead of
+// sitting unassigned and unlabelled in the team backlog.
 export async function createIncidentIssue(
   title: string,
   description: string,
@@ -50,10 +51,10 @@ export async function createIncidentIssue(
   const teamId = await resolveOpsTeamId()
   if (!teamId) return null
 
-  const repoLabel = context?.checkName ? repoLabelForCheckName(context.checkName, context.source ?? "") : null
+  const checkLabels = context?.checkName ? labelsForCheckName(context.checkName, context.source ?? "") : []
   const [assigneeId, labelIds] = await Promise.all([
     resolveMyLinearId(apiKey),
-    resolveLabelIds(apiKey, teamId, ["health", ...(repoLabel ? [repoLabel] : [])]),
+    resolveLabelIds(apiKey, teamId, ["health", ...checkLabels]),
   ])
 
   const data = await linear<{ issueCreate?: { issue?: { id: string } } }>(
