@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const issueId = await createIncidentIssue(title, description)
+  const issueId = await createIncidentIssue(title, description, { checkName: name, source })
   return NextResponse.json(
     { ok: Boolean(issueId), action: "created", issueId },
     { status: issueId ? 200 : 502, headers: NO_STORE },
