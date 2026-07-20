@@ -1,6 +1,11 @@
 // I guard /dashboard at the edge (a quick redirect to login when there is no session cookie) and gate the
 // public site behind a maintenance page when I flip the toggle in Settings. I (logged in) bypass it.
-// Next 16 renamed middleware to proxy: this is the former middleware.ts, same logic, new filename + export.
+// Next 16 renamed middleware to proxy, but proxy is hard-locked to the Node.js runtime with no way to opt
+// back into edge - the docs say explicitly "if you want to continue using the edge runtime, keep using
+// middleware". This file runs on every request across the whole public site, so that swap silently moved
+// it from a near-free edge isolate to a billed Node.js Fluid invocation on every single page view; it was
+// the majority of a month's Fluid Active CPU. Staying on middleware.ts keeps this cheap, which is the
+// entire point of a guard this small and this frequently hit.
 //
 // I deliberately do NOT wrap this in NextAuth's auth(), so it never needs AUTH_SECRET on public pages and
 // never runs the session machinery for every public request. That is safe because the protected dashboard
@@ -37,7 +42,7 @@ function hasSession(req: NextRequest): boolean {
   return req.cookies.has("authjs.session-token") || req.cookies.has("__Secure-authjs.session-token")
 }
 
-export default async function proxy(req: NextRequest) {
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   if (pathname.startsWith("/api/auth")) return NextResponse.next()
