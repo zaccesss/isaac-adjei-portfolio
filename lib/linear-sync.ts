@@ -7,6 +7,8 @@
 // Every call is resilient: a Linear outage or a bad response degrades the sync to a no-op rather than
 // throwing into the fire-and-forget callers in the dashboard actions.
 
+import { resolveMyLinearId, resolveLabelIds } from "@/lib/linear-common"
+
 const LINEAR_GQL = "https://api.linear.app/graphql"
 
 // Maps dashboard status values to Linear state names (as created in the Careers team)
@@ -96,14 +98,19 @@ export async function syncApplicationToLinear(app: {
     return app.linear_issue_id
   }
 
+  const [assigneeId, labelIds] = await Promise.all([
+    resolveMyLinearId(apiKey),
+    resolveLabelIds(apiKey, teamId, ["career", "application"]),
+  ])
+
   const result = await gql(apiKey, `
-    mutation CreateIssue($teamId: String!, $title: String!, $stateId: String!, $description: String!) {
-      issueCreate(input: { teamId: $teamId, title: $title, stateId: $stateId, description: $description }) {
+    mutation CreateIssue($teamId: String!, $title: String!, $stateId: String!, $description: String!, $assigneeId: String, $labelIds: [String!]) {
+      issueCreate(input: { teamId: $teamId, title: $title, stateId: $stateId, description: $description, assigneeId: $assigneeId, labelIds: $labelIds }) {
         success
         issue { id }
       }
     }
-  `, { teamId, title, stateId, description })
+  `, { teamId, title, stateId, description, assigneeId, labelIds })
 
   const issueId = (result.data?.issueCreate as { issue?: { id: string } } | undefined)?.issue?.id ?? null
   return issueId
@@ -151,14 +158,19 @@ export async function syncDeadlineToLinear(deadline: {
   const moduleLabel = deadline.module ? `Module: ${deadline.module}\n` : ""
   const description = `${moduleLabel}Type: ${deadline.type}\nDue: ${due}`
 
+  const [assigneeId, labelIds] = await Promise.all([
+    resolveMyLinearId(apiKey),
+    resolveLabelIds(apiKey, teamId, ["university"]),
+  ])
+
   const result = await gql(apiKey, `
-    mutation CreateIssue($teamId: String!, $title: String!, $stateId: String!, $description: String!, $dueDate: TimelessDate) {
-      issueCreate(input: { teamId: $teamId, title: $title, stateId: $stateId, description: $description, dueDate: $dueDate }) {
+    mutation CreateIssue($teamId: String!, $title: String!, $stateId: String!, $description: String!, $dueDate: TimelessDate, $assigneeId: String, $labelIds: [String!]) {
+      issueCreate(input: { teamId: $teamId, title: $title, stateId: $stateId, description: $description, dueDate: $dueDate, assigneeId: $assigneeId, labelIds: $labelIds }) {
         success
         issue { id }
       }
     }
-  `, { teamId, title: deadline.title, stateId, description, dueDate: due })
+  `, { teamId, title: deadline.title, stateId, description, dueDate: due, assigneeId, labelIds })
 
   const issueId = (result.data?.issueCreate as { issue?: { id: string } } | undefined)?.issue?.id ?? null
   return issueId

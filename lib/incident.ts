@@ -7,6 +7,7 @@
 // check is open I update that one issue, and when the check recovers I move the same issue to Done.
 // The check name in the title is the key that ties a down and its later up together.
 import { getLinearTeams } from "@/lib/linear-sync"
+import { resolveMyLinearId, resolveLabelIds, repoLabelForCheckName } from "@/lib/linear-common"
 
 const LINEAR_GQL = "https://api.linear.app/graphql"
 
@@ -35,18 +36,34 @@ async function resolveOpsTeamId(): Promise<string | null> {
   return teams[0]?.id ?? null
 }
 
-// Creates an urgent (priority 1) Linear issue and returns its id, or null if it could not.
-export async function createIncidentIssue(title: string, description: string): Promise<string | null> {
+// Creates an urgent (priority 1) Linear issue and returns its id, or null if it could not. Always
+// assigns to me and tags "health" plus the repo the failing check belongs to (resolved from its
+// name, or "portfolio" for a Better Stack site-down alert), so every incident lands where I will
+// actually see it instead of sitting unassigned and unlabelled in the team backlog.
+export async function createIncidentIssue(
+  title: string,
+  description: string,
+  context?: { checkName?: string; source?: string },
+): Promise<string | null> {
+  const apiKey = process.env.LINEAR_API_KEY
+  if (!apiKey) return null
   const teamId = await resolveOpsTeamId()
   if (!teamId) return null
+
+  const repoLabel = context?.checkName ? repoLabelForCheckName(context.checkName, context.source ?? "") : null
+  const [assigneeId, labelIds] = await Promise.all([
+    resolveMyLinearId(apiKey),
+    resolveLabelIds(apiKey, teamId, ["health", ...(repoLabel ? [repoLabel] : [])]),
+  ])
+
   const data = await linear<{ issueCreate?: { issue?: { id: string } } }>(
-    `mutation CreateIncident($teamId: String!, $title: String!, $description: String!) {
-      issueCreate(input: { teamId: $teamId, title: $title, description: $description, priority: 1 }) {
+    `mutation CreateIncident($teamId: String!, $title: String!, $description: String!, $assigneeId: String, $labelIds: [String!]) {
+      issueCreate(input: { teamId: $teamId, title: $title, description: $description, priority: 1, assigneeId: $assigneeId, labelIds: $labelIds }) {
         success
         issue { id }
       }
     }`,
-    { teamId, title, description },
+    { teamId, title, description, assigneeId, labelIds },
   )
   return data?.issueCreate?.issue?.id ?? null
 }
