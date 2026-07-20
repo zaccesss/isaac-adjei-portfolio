@@ -93,7 +93,7 @@ SQL for the Supabase database lives in `sql/migrations/` - numbered, idempotent 
 ```text
 .                                     Repo root (Next.js 16 App Router)
 ├── auth.ts                           NextAuth v5 config (GitHub OAuth, login/logout activity)
-├── proxy.ts                          Middleware: maintenance gate and auth cookie check
+├── middleware.ts                     Edge middleware: maintenance gate and auth cookie check
 ├── instrumentation.ts                Sentry server/edge init hook
 ├── sentry.server.config.ts           Sentry setup (Node only - kept off the edge runtime)
 ├── open-next.config.ts               OpenNext build config
