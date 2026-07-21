@@ -15,6 +15,16 @@ const JUNK_TAGS = new Set([
   "under 2000 listeners", "albums i own", "want to see live",
 ])
 
+// Last.fm's tags are free-form and anyone can add one to any artist, so a low-data artist
+// can come back with nothing but junk - e.g. an *arr media-manager label like
+// "funk_add_to_lidarr_batch_5" someone tagged onto an artist by mistake. Real genre tags are
+// always space or hyphen separated ("hip hop", "drum-and-bass"), never snake_case, so an
+// underscore is a reliable enough signal to drop it rather than trying to blocklist every
+// possible junk string.
+function isJunkTag(name: string): boolean {
+  return JUNK_TAGS.has(name) || name.includes("_")
+}
+
 export interface LastfmTag { name: string; count: number }
 
 // Normalise a genre for de-duplication: "hip-hop", "hip hop" and "Hip Hop" all collapse to
@@ -44,7 +54,7 @@ export async function getArtistTags(artist: string): Promise<LastfmTag[]> {
     // Last.fm returns tags newest-popularity-first; keep the first spelling of each genre
     const raw = (data.toptags?.tag ?? [])
       .map((t) => ({ name: t.name.toLowerCase().trim(), count: t.count }))
-      .filter((t) => t.count > 0 && !JUNK_TAGS.has(t.name))
+      .filter((t) => t.count > 0 && !isJunkTag(t.name))
     const seen = new Set<string>()
     const tags: LastfmTag[] = []
     for (const t of raw) {

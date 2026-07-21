@@ -45,6 +45,7 @@ const releases: ChangeEntry[] = [
       "The whole site runs leaner: the guard that gates maintenance mode and the logged-out dashboard redirect now runs at the edge again rather than as a full server function on every request, after a framework rename had quietly made it the bulk of the site's hosting compute",
       "A sweep of every blog post, TIL entry and consumed-page link caught a dozen that had gone dead since they were written; each now points at the correct current source or an equivalent replacement",
       "The Sky Celebration Day post and TIL are live again, reworded to reflect that a red weather warning moved the day to fully virtual on the day itself",
+      "/lab: the genre chart could show a stray non-genre tag for an artist with little Last.fm data of their own; junk tags are now filtered more reliably",
     ],
   },
   {
