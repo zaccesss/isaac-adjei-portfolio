@@ -29,7 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/contact`,                       lastModified: new Date("2026-04-01"), changeFrequency: "yearly",  priority: 0.5  },
     { url: `${SITE_URL}/links`,                         lastModified: new Date("2026-04-01"), changeFrequency: "monthly", priority: 0.4  },
     { url: `${SITE_URL}/notes`,                         lastModified: new Date("2026-05-29"), changeFrequency: "monthly", priority: 0.6  },
-    { url: `${SITE_URL}/notes/world-cup-ai-predictor`,  lastModified: new Date("2026-03-01"), changeFrequency: "monthly", priority: 0.5  },
+    { url: `${SITE_URL}/notes/multi-sport-ai-predictor`, lastModified: new Date("2026-07-21"), changeFrequency: "monthly", priority: 0.5  },
     { url: `${SITE_URL}/notes/prosthetics-health-tech`, lastModified: new Date("2026-03-01"), changeFrequency: "monthly", priority: 0.5  },
     { url: `${SITE_URL}/notes/codeforces-auto-push`,    lastModified: new Date("2026-06-19"), changeFrequency: "monthly", priority: 0.5  },
     { url: `${SITE_URL}/lab`,                           lastModified: new Date("2026-05-15"), changeFrequency: "monthly", priority: 0.5  },

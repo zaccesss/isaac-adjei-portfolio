@@ -155,14 +155,14 @@ export default function NowPage() {
           </div>
           <div className="space-y-1">
             <p className="font-medium text-foreground">
-              <Link href="/notes/world-cup-ai-predictor" className="hover:text-primary transition-colors">
-                World Cup 2026 AI Predictor
+              <Link href="/notes/multi-sport-ai-predictor" className="hover:text-primary transition-colors">
+                Multi-Sport AI Predictor
               </Link>
             </p>
             <p className="leading-relaxed">
-              Getting started on an ML system trained on historical World Cup data to predict
-              group stage outcomes and the eventual winner of FIFA World Cup 2026. Early stages -
-              dataset collection and model architecture planning.
+              The World Cup predictor didn&apos;t ship in time for the 2026 tournament, so I&apos;m
+              generalising the same model architecture into an ongoing platform covering football,
+              NBA, tennis, cricket and F1 instead of one single-tournament deadline.
             </p>
           </div>
           <div className="space-y-1">

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { Terminal, Lightbulb, Wrench, CalendarDays, Github, ExternalLink, ArrowRight } from "lucide-react"
 import InspirationWidget from "@/components/shared/InspirationWidget"
+import { notes } from "@/data/notes"
 
 export const metadata: Metadata = {
   title: "Notes",
@@ -155,93 +156,33 @@ export default function NotesPage() {
         </div>
 
         <div className="space-y-4">
-          <Link
-            href="/notes/world-cup-ai-predictor"
-            className="group block rounded-lg border border-border/60 bg-muted/20 px-6 py-5 hover:border-primary/40 hover:bg-muted/30 transition-all"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2 flex-1">
-                <h3 className="font-semibold group-hover:text-primary transition-colors">
-                  World Cup 2026 AI Predictor
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  An AI system trained on every World Cup result in history to predict group stage
-                  outcomes, knockout results and the eventual winner of FIFA World Cup 2026, hosted
-                  across the USA, Canada and Mexico.
-                </p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {["Python", "ML", "Football", "Data Science", "Web App"].map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+          {notes.map((note) => (
+            <Link
+              key={note.slug}
+              href={`/notes/${note.slug}`}
+              className="group block rounded-lg border border-border/60 bg-muted/20 px-6 py-5 hover:border-primary/40 hover:bg-muted/30 transition-all"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-2 flex-1">
+                  <h3 className="font-semibold group-hover:text-primary transition-colors">
+                    {note.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{note.lead}</p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {note.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-1" />
               </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-1" />
-            </div>
-          </Link>
-
-          <Link
-            href="/notes/prosthetics-health-tech"
-            className="group block rounded-lg border border-border/60 bg-muted/20 px-6 py-5 hover:border-primary/40 hover:bg-muted/30 transition-all"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2 flex-1">
-                <h3 className="font-semibold group-hover:text-primary transition-colors">
-                  Prosthetics and Health Technology Research
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  A personal research project into ocular prosthetics, bionic vision and
-                  bio-integrated electronics. Motivated by losing sight in my right eye to
-                  retinoblastoma at age two. I want to understand where the science actually stands
-                  and where the engineering challenges lie.
-                </p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {["Prosthetics", "Health Tech", "Research", "Bioelectronics", "IoT"].map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-1" />
-            </div>
-          </Link>
-
-          <Link
-            href="/notes/codeforces-auto-push"
-            className="group block rounded-lg border border-border/60 bg-muted/20 px-6 py-5 hover:border-primary/40 hover:bg-muted/30 transition-all"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2 flex-1">
-                <h3 className="font-semibold group-hover:text-primary transition-colors">
-                  Auto-Push CP Solutions to GitHub
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Mapping the landscape of tools that sync competitive programming solutions to
-                  GitHub - what exists for LeetCode, Codeforces and AtCoder, where TryHackMe has
-                  nothing, and the unified extension I want to build.
-                </p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {["Chrome Extension", "Competitive Programming", "GitHub", "Codeforces", "AtCoder", "Automation"].map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-1" />
-            </div>
-          </Link>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -283,7 +224,7 @@ export default function NotesPage() {
             </li>
             <li className="flex gap-2">
               <span className="text-primary shrink-0 mt-0.5">→</span>
-              <span>Start the World Cup AI predictor project (see above)</span>
+              <span>Get the multi-sport AI predictor properly shipped, starting with football (see above)</span>
             </li>
             <li className="flex gap-2">
               <span className="text-primary shrink-0 mt-0.5">→</span>
