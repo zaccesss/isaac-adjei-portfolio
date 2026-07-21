@@ -423,10 +423,12 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
       if (stopped || spotifyTimer || snapshotTimer) return
       pollSpotify()
       pollSnapshot()
-      // Spotify polls every 15s (20s edge cache) so track changes stay near-live while most polls
-      // hit the shared edge copy; the snapshot every 45s (60s cache - the daemons only write every
-      // ~2min, so polling faster than this was refreshing identical data).
-      spotifyTimer = setInterval(pollSpotify, 15000)
+      // Spotify polls every 8s against the route's 10s edge cache, so a poll landing inside that
+      // window is a shared cache hit at no real cost - this just makes track changes feel current
+      // faster without increasing real Spotify/Vercel calls. The snapshot every 45s (60s cache -
+      // the daemons only write every ~2min, so polling faster than this was refreshing identical
+      // data) is unrelated and stays as is.
+      spotifyTimer = setInterval(pollSpotify, 8000)
       snapshotTimer = setInterval(pollSnapshot, 45000)
     }
     const stop = () => {

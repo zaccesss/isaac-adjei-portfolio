@@ -17,7 +17,9 @@ function formatDate(dateStr: string): string {
 }
 
 export default function FeaturedTIL() {
-  const entries = getPublishedTILEntries().slice(0, 3)
+  const entries = getPublishedTILEntries()
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3)
 
   if (entries.length === 0) return null
 

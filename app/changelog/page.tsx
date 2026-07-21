@@ -41,12 +41,15 @@ const releases: ChangeEntry[] = [
       "Blog posts and project pages now name their section in the browser tab, matching TIL: Blog | the post title, Project | the project name. Notes and Consumed detail pages picked up the same convention: Notes | the note title, Consumed | the book, video or artist",
       "Notes pages and every consumed item now have a share button too, matching blog posts, TIL entries and projects",
       "The World Cup 2026 AI Predictor note is rewritten as the Multi-Sport AI Predictor: the tournament happened without it (Spain won), so it now covers what actually happened and the plan to generalise the same model into an open-ended platform covering football, basketball, tennis, cricket, motorsport, rugby, athletics and volleyball, with more sports added over time",
+      "The footer's secondary links reordered to Now, Lab, Notes, Consumed, Research, Tags, Search",
+      "The Spotify now-playing widget updates faster on /now, the homepage and /consumed/music",
     ],
     fixed: [
       "The whole site runs leaner: the guard that gates maintenance mode and the logged-out dashboard redirect now runs at the edge again rather than as a full server function on every request, after a framework rename had quietly made it the bulk of the site's hosting compute",
       "A sweep of every blog post, TIL entry and consumed-page link caught a dozen that had gone dead since they were written; each now points at the correct current source or an equivalent replacement",
       "The Sky Celebration Day post and TIL are live again, reworded to reflect that a red weather warning moved the day to fully virtual on the day itself",
       "/lab: the genre chart could show a stray non-genre tag for an artist with little Last.fm data of their own; junk tags are now filtered more reliably",
+      "The homepage's Today I Learned preview could show older entries ahead of a genuinely new one; it now always shows the 3 most recent",
     ],
   },
   {
