@@ -6,6 +6,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
+import ShareButton from "@/components/shared/ShareButton"
 import {
   books,
   videos,
@@ -166,7 +167,10 @@ function BookView({ book }: { book: BookEntry }) {
             {book.month} 2026
           </span>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight leading-tight">{book.title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-4xl font-bold tracking-tight leading-tight">{book.title}</h1>
+          <ShareButton title={`Consumed | ${book.title}`} />
+        </div>
         <p className="text-xl text-muted-foreground">{book.author}</p>
       </div>
 
@@ -203,7 +207,10 @@ function VideoView({ video }: { video: VideoEntry }) {
             <span key={tag} className={TAG_PILL}>{tag}</span>
           ))}
         </div>
-        <h1 className="text-4xl font-bold tracking-tight leading-tight">{video.title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-4xl font-bold tracking-tight leading-tight">{video.title}</h1>
+          <ShareButton title={`Consumed | ${video.title}`} />
+        </div>
         <p className="text-xl text-muted-foreground">{video.channel}</p>
       </div>
 
@@ -245,7 +252,10 @@ function PodcastView({ podcast }: { podcast: PodcastEntry }) {
         <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium", MONTH_CHIP[podcast.month])}>
           {podcast.month} 2026
         </span>
-        <h1 className="text-4xl font-bold tracking-tight leading-tight">{podcast.title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-4xl font-bold tracking-tight leading-tight">{podcast.title}</h1>
+          <ShareButton title={`Consumed | ${podcast.title}`} />
+        </div>
         <p className="text-xl text-muted-foreground">{podcast.show}</p>
       </div>
 
@@ -287,7 +297,10 @@ function LinkView({ item, category }: { item: LinkEntry; category: string }) {
             <span key={tag} className={TAG_PILL}>{tag}</span>
           ))}
         </div>
-        <h1 className="text-4xl font-bold tracking-tight leading-tight">{item.title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-4xl font-bold tracking-tight leading-tight">{item.title}</h1>
+          <ShareButton title={`Consumed | ${item.title}`} />
+        </div>
         <p className="text-xl text-muted-foreground">{item.source}</p>
       </div>
 
@@ -318,7 +331,10 @@ function ResourceView({ resource }: { resource: ResourceEntry }) {
             {resource.month} 2026
           </span>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight leading-tight">{resource.title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-4xl font-bold tracking-tight leading-tight">{resource.title}</h1>
+          <ShareButton title={`Consumed | ${resource.title}`} />
+        </div>
         <p className="text-sm font-mono text-muted-foreground">{domain}</p>
       </div>
 

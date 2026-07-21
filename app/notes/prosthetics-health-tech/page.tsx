@@ -4,6 +4,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ExternalLink } from "lucide-react"
+import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Notes | Prosthetics and Health Technology Research",
@@ -81,10 +82,11 @@ export default function ProstheticsHealthTechPage() {
             </span>
           ))}
         </div>
-        <div className="flex items-start gap-2">
+        <div className="flex items-start justify-between gap-4">
           <h1 className="text-4xl font-bold tracking-tight">
             Prosthetics and Health Technology Research
           </h1>
+          <ShareButton title="Notes | Prosthetics and Health Technology Research" />
         </div>
         <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
           This is not just a research interest. At age two I lost the sight in my right eye to

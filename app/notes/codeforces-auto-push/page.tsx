@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ExternalLink } from "lucide-react"
+import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Notes | Auto-Push Competitive Programming Solutions to GitHub",
@@ -86,9 +87,12 @@ export default function CodeforcesAutoPushPage() {
             </span>
           ))}
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">
-          Auto-Push CP Solutions to GitHub
-        </h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-4xl font-bold tracking-tight">
+            Auto-Push CP Solutions to GitHub
+          </h1>
+          <ShareButton title="Notes | Auto-Push CP Solutions to GitHub" />
+        </div>
         <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
           Every accepted solution on Codeforces, AtCoder or TryHackMe is worth keeping. It
           documents your progression, gives you a searchable reference for techniques and signals

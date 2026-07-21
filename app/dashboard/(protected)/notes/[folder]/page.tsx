@@ -7,9 +7,19 @@ import { isPinVerified } from "@/lib/pin"
 import NotesFolderClient from "./NotesFolderClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { title: "Notes", robots: "noindex, nofollow" }
 
 const toSlug = (s: string) => s.toLowerCase().replace(/\s+/g, "-")
+
+export async function generateMetadata({ params }: { params: Promise<{ folder: string }> }) {
+  const { folder } = await params
+  if (folder === "hidden") return { title: "Notes | Hidden", robots: "noindex, nofollow" }
+  if (folder === "all") return { title: "Notes | All notes", robots: "noindex, nofollow" }
+
+  const { data: notes } = await supabase.from("notes").select("folder").eq("hidden", false)
+  const match = (notes ?? []).find((n) => toSlug(n.folder) === folder)
+  const label = match?.folder ?? folder.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  return { title: `Notes | ${label}`, robots: "noindex, nofollow" }
+}
 
 export default async function NotesFolderPage({ params }: { params: Promise<{ folder: string }> }) {
   // Folder pages ship full note content, so they get the same server-side PIN check

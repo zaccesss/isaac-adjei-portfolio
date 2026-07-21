@@ -3,7 +3,12 @@ import { notFound } from "next/navigation"
 import InventoryItemClient from "./InventoryItemClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { title: "Inventory Item", robots: "noindex, nofollow" }
+
+export async function generateMetadata({ params }: { params: Promise<{ category: string; id: string }> }) {
+  const { id } = await params
+  const { data: item } = await supabase.from("inventory_items").select("name").eq("id", id).single()
+  return { title: item ? `Inventory | ${item.name}` : "Inventory Item", robots: "noindex, nofollow" }
+}
 
 export default async function InventoryItemPage({
   params,

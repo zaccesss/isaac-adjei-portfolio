@@ -5,6 +5,7 @@ import { ArrowLeft, ExternalLink } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { artists, genres } from "@/data/consumed/music"
 import { consumedSlug } from "@/lib/tags"
+import ShareButton from "@/components/shared/ShareButton"
 
 type Artist = (typeof artists)[number]
 
@@ -64,7 +65,10 @@ export default async function MusicArtistPage({
         <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${genreColor}`}>
           {artist.genre}
         </span>
-        <h1 className="text-4xl font-bold tracking-tight">{artist.name}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-4xl font-bold tracking-tight">{artist.name}</h1>
+          <ShareButton title={`Consumed | ${artist.name}`} />
+        </div>
         <p className="text-base text-muted-foreground leading-relaxed">{artist.note}</p>
       </div>
 
