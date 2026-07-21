@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ExternalLink } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "World Cup 2026 AI Predictor",
+  title: "Notes | World Cup 2026 AI Predictor",
   description:
     "A planned AI project to predict FIFA World Cup 2026 match outcomes using historical data and machine learning.",
   alternates: {

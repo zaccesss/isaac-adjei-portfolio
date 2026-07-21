@@ -10,8 +10,29 @@ const {
   TabStopType, TabStopPosition,
 } = require('docx');
 
+// An .exp-entry can carry data-visible-from="YYYY-MM-DD" (see cv.html) to stay written but hidden
+// until that date, the same idea as the date-gated content on the live site. Applied once here, on
+// the raw HTML before anything else touches it, so every downstream path - the master CV's direct
+// render and every role CV's extraction alike - sees the same filtered experience section. A kept
+// entry has the attribute stripped back out, so the marker-based helpers further down (which split
+// on the plain <div class="exp-entry"> tag) never have to know it was ever gated.
+function filterFutureExperience(html) {
+  const marker = '<div class="exp-entry"';
+  const now = new Date();
+  const parts = html.split(marker);
+  const kept = parts.filter((part, idx) => {
+    if (idx === 0) return true;
+    const match = part.match(/^\s*data-visible-from="([^"]+)"/);
+    if (!match) return true;
+    return new Date(match[1]) <= now;
+  });
+  return kept
+    .map((part, idx) => (idx === 0 ? part : part.replace(/^\s*data-visible-from="[^"]+"/, '')))
+    .join(marker);
+}
+
 const mainCVPath = path.join(process.cwd(), 'public', 'resume', 'cv.html');
-const mainCV = fs.readFileSync(mainCVPath, 'utf8');
+const mainCV = filterFutureExperience(fs.readFileSync(mainCVPath, 'utf8'));
 
 const cvYmlPath = path.join(process.cwd(), 'data', 'cv.yml');
 const cvData = yaml.load(fs.readFileSync(cvYmlPath, 'utf8'));

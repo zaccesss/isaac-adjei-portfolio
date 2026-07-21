@@ -99,13 +99,14 @@ export async function generateMetadata({
     found.type === "link"     ? found.item.description :
     found.type === "resource" ? found.item.description :
     undefined
-  const title = `${found.item.title} - Consumed`
+  const title = `Consumed | ${found.item.title}`
   const desc = description ?? found.item.title
   return {
     title,
     description: desc,
     alternates: { canonical: `https://www.isaacadjei.me/consumed/${category}/${slug}` },
     openGraph: {
+      title,
       images: [`/api/og?title=${encodeURIComponent(found.item.title)}&description=${encodeURIComponent(desc)}`],
     },
   }

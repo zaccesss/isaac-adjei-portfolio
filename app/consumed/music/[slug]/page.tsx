@@ -25,10 +25,11 @@ export async function generateMetadata({
   const artist = findArtist(slug)
   if (!artist) return { title: "Not found" }
   return {
-    title: `${artist.name} - Music`,
+    title: `Consumed | ${artist.name}`,
     description: artist.note,
     alternates: { canonical: `https://www.isaacadjei.me/consumed/music/${slug}` },
     openGraph: {
+      title: `Consumed | ${artist.name}`,
       images: [`/api/og?title=${encodeURIComponent(artist.name)}&description=${encodeURIComponent(artist.note)}`],
     },
   }

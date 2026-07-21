@@ -11,25 +11,50 @@ export interface Experience {
   description: string
   achievements: string[]
   technologies?: string[]
+  /** ISO date (YYYY-MM-DD). Entry is filtered out of the rendered timeline until this date, so it
+   * can be written now and simply appear on its own - see isExperienceVisible below. */
+  visibleFrom?: string
+}
+
+// Real clock, not a Month-style hardcoded year, since a role can begin any year. Read at call time
+// (not module load) so a long-lived server process never freezes the answer at boot.
+export function isExperienceVisible(exp: Experience): boolean {
+  return !exp.visibleFrom || new Date() >= new Date(exp.visibleFrom)
 }
 
 export const experiences: Experience[] = [
-  // PAL Leader - uncomment when role begins in September 2026
-  // {
-  //   id: "pal-leader",
-  //   role: "Peer Assisted Learning (PAL) Leader - Electronics and Programming",
-  //   company: "Aston University, Learning Services",
-  //   location: "Birmingham, UK",
-  //   type: "work" as const,
-  //   startDate: "Sep 2026",
-  //   endDate: "Present",
-  //   description: "Peer Assisted Learning (PAL) Leader at Aston University Learning Services, facilitating structured sessions to help undergraduate students across multiple cohorts build confidence in programming and electronics.",
-  //   achievements: [
-  //     "Facilitate weekly PAL sessions covering Python programming and electronics for multiple student cohorts, adapting session content to different backgrounds and learning needs",
-  //     "Design and prepare structured session materials and targeted exercises aligned with module curricula, ensuring sessions complement rather than duplicate taught content",
-  //     "Develop communication, mentoring and leadership skills by fostering a low-pressure collaborative environment where students feel comfortable asking questions and working through problems together",
-  //   ],
-  // },
+  {
+    id: "pal-leader",
+    role: "Peer Assisted Learning (PAL) Leader - Electronics and Programming",
+    company: "Aston University, Learning Services",
+    location: "Birmingham, UK",
+    type: "work",
+    startDate: "Sep 2026",
+    endDate: "Present",
+    visibleFrom: "2026-09-01",
+    description: "Peer Assisted Learning (PAL) Leader at Aston University Learning Services, facilitating structured sessions to help undergraduate students across multiple cohorts build confidence in programming and electronics.",
+    achievements: [
+      "Facilitate weekly PAL sessions covering Python programming and electronics for multiple student cohorts, adapting session content to different backgrounds and learning needs",
+      "Design and prepare structured session materials and targeted exercises aligned with module curricula, ensuring sessions complement rather than duplicate taught content",
+      "Develop communication, mentoring and leadership skills by fostering a low-pressure collaborative environment where students feel comfortable asking questions and working through problems together",
+    ],
+  },
+  {
+    id: "ces-treasurer",
+    role: "Treasurer",
+    company: "Computing & Electronics Society, Aston Students' Union",
+    location: "Birmingham, UK",
+    type: "work",
+    startDate: "Sep 2026",
+    endDate: "Present",
+    visibleFrom: "2026-09-01",
+    description: "Elected Treasurer of the Computing & Electronics Society at Aston University, managing the society's budget and financial records for the academic year.",
+    achievements: [
+      "Manage the society's budget and financial records, reporting to the committee and the Students' Union",
+      "Elected onto the committee for the Computing & Electronics Society, working alongside the President to run society operations",
+      "Completed the required committee leader training through Aston Students' Union",
+    ],
+  },
   {
     id: "aston-student-rep",
     role: "Student Representative",

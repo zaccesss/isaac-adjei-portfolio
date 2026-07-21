@@ -1,11 +1,27 @@
-# I regenerate all CV artefacts (HTML, PDF, DOCX) from cv.yml on demand via workflow_dispatch.
-# After generation I commit the updated files back to main with [skip ci] so the commit
-# does not trigger another CI run. Only run this after updating cv.yml or cover letter templates.
+# I regenerate all CV artefacts (HTML, PDF, DOCX) from cv.yml on demand via workflow_dispatch, or
+# on the schedule below. After generation I commit the updated files back to main with [skip ci] so
+# the commit does not trigger another CI run.
 
 name: Auto-Generate CVs
 
+# A weekly safety net: cv.yml can carry a visibleFrom date on an experience entry (see
+# data/cv.yml), and nothing else ever touches cv.html to make that take effect once the date
+# passes - a push-triggered regenerate never fires on its own. This catches that, and any other
+# drift between cv.yml and the committed artefacts, on a quiet Sunday slot.
+# cron-ops (my reliable Cloudflare clock, github.com/zaccesss/cron-ops) is the primary path,
+# firing this at the true 02:00 London moment every Sunday; the schedule below is GitHub's own
+# cron acting as a backup should the Worker ever miss a tick, same dual-path pattern as every
+# other cron-ops job. GitHub's own scheduler runs on UTC only, so it lands an hour later during
+# British Summer Time - harmless for a job with no time sensitivity.
 on:
+  schedule:
+    - cron: "0 2 * * 0"
   workflow_dispatch:
+    inputs:
+      reliable_dispatch:
+        description: "cron-ops's reliable-clock dispatch: behaves like the scheduled run (heartbeat, window claim), not a genuine manual run"
+        type: boolean
+        default: false
 
 jobs:
   generate-cvs:
@@ -17,7 +33,36 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
 
+    # The safety-net path is either GitHub's own schedule trigger or cron-ops standing in for it
+    # (reliable_dispatch=true). I claim the window before regenerating, so if the other path
+    # already got here first I skip cleanly rather than running twice - idempotent either way (the
+    # commit step below no-ops with nothing changed) but a wasted run still burns Actions minutes
+    # and spins up headless Chromium for nothing. A 24 hour lookback is comfortably wider than any
+    # gap between cron-ops firing and GitHub's own cron landing late, narrower than the 7 day gap
+    # between slots so the next slot is never mistaken for this one. A genuine manual run (neither
+    # event) is untouched.
+    - name: Claim this window
+      id: claim
+      if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.reliable_dispatch == true)
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        since=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+        claimed=$(gh run list --workflow generate-cvs.yml --json databaseId,status,conclusion,createdAt,event \
+          --jq "[.[] | select(.createdAt >= \"$since\") | select(.databaseId != $GITHUB_RUN_ID) | select(.event == \"schedule\" or .event == \"workflow_dispatch\") | select(.status == \"in_progress\" or .status == \"queued\" or .conclusion == \"success\")] | length > 0")
+        echo "go=$([ "$claimed" = "true" ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+        [ "$claimed" = "true" ] && echo "another regeneration already claimed this window, skipping" || echo "window is mine, regenerating"
+
+    # Dead-man's-switch, part 1: signals the safety-net regeneration has started, so a hang shows
+    # up on Healthchecks rather than looking like a clean run.
+    - name: Heartbeat start
+      if: steps.claim.outputs.go == 'true'
+      env:
+        HEALTHCHECK_URL: ${{ secrets.CV_HEALTHCHECK_URL }}
+      run: '[ -n "$HEALTHCHECK_URL" ] && curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL/start" || true'
+
     - name: Setup Node.js
+      if: steps.claim.outputs.go != 'false'
       uses: actions/setup-node@v4
       with:
         node-version: '22'
@@ -25,6 +70,7 @@ jobs:
 
     # Puppeteer needs these system libs to launch a headless Chromium in the CI environment
     - name: Install Chromium dependencies
+      if: steps.claim.outputs.go != 'false'
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -34,15 +80,18 @@ jobs:
           libxkbcommon0 libxrandr2 xdg-utils
 
     - name: Install dependencies
+      if: steps.claim.outputs.go != 'false'
       run: npm install
 
     # Single consolidated script generates all HTML, PDF and DOCX artefacts
     - name: Generate all CV and cover letter artefacts
+      if: steps.claim.outputs.go != 'false'
       run: node scripts/generate-role-cvs.js
 
     # Skip the commit step entirely if nothing changed to avoid empty commits
     - name: Check for changes
       id: check-changes
+      if: steps.claim.outputs.go != 'false'
       run: |
         if git diff --quiet public/resume/; then
           echo "changed=false" >> $GITHUB_OUTPUT
@@ -51,7 +100,7 @@ jobs:
         fi
 
     - name: Commit and push updated CVs
-      if: steps.check-changes.outputs.changed == 'true'
+      if: steps.claim.outputs.go != 'false' && steps.check-changes.outputs.changed == 'true'
       env:
         SIGNING_KEY: ${{ secrets.CI_SIGNING_KEY }}
       run: |
@@ -70,3 +119,31 @@ jobs:
         # [skip ci] prevents this commit from triggering another CI run
         git commit -m "Auto-regenerate CVs and cover letters [skip ci]"
         git push
+
+    # Dead-man's-switch, part 2: on a successful safety-net run I ping the base URL (up); on a
+    # failed one I ping /fail so Healthchecks alerts me immediately rather than waiting for the
+    # grace window. I only heartbeat when the claim above ran and won, never on a genuine manual
+    # run. Best effort, never fails the run.
+    - name: Heartbeat success
+      if: steps.claim.outputs.go == 'true' && success()
+      env:
+        HEALTHCHECK_URL: ${{ secrets.CV_HEALTHCHECK_URL }}
+      run: '[ -n "$HEALTHCHECK_URL" ] && curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL" || true'
+
+    - name: Heartbeat fail
+      if: steps.claim.outputs.go == 'true' && failure()
+      env:
+        HEALTHCHECK_URL: ${{ secrets.CV_HEALTHCHECK_URL }}
+      run: '[ -n "$HEALTHCHECK_URL" ] && curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL/fail" || true'
+
+    # Posts to my errors channel on any failure so a broken regeneration is loud, not silent - no
+    # portfolio workflow alerted to Discord on failure before this.
+    - name: Alert Discord on failure
+      if: failure()
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_ERRORS }}
+      run: |
+        [ -z "$DISCORD_WEBHOOK" ] && exit 0
+        curl -fsS -m 10 --retry 3 -H "Content-Type: application/json" \
+          -d "{\"content\": \"🔴 **generate-cvs.yml failed** on ${{ github.event_name }} - <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>\"}" \
+          "$DISCORD_WEBHOOK" || true

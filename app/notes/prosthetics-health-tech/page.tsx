@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ExternalLink } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Prosthetics and Health Technology Research",
+  title: "Notes | Prosthetics and Health Technology Research",
   description:
     "A personal research interest in ocular prosthetics, bionic vision and bio-integrated electronics, motivated by losing sight in one eye to retinoblastoma.",
   alternates: {

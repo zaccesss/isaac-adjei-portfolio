@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ExternalLink } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Auto-Push Competitive Programming Solutions to GitHub",
+  title: "Notes | Auto-Push Competitive Programming Solutions to GitHub",
   description: "The landscape of tools for automatically pushing accepted solutions from Codeforces, AtCoder, LeetCode and TryHackMe to GitHub - what exists, what is missing and what I want to build.",
   alternates: {
     canonical: "https://www.isaacadjei.me/notes/codeforces-auto-push",

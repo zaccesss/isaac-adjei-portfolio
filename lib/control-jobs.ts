@@ -115,7 +115,9 @@ export const CONTROL_JOBS: ControlJob[] = [
   }),
   job(PORTFOLIO, "Portfolio", "generate-cvs.yml", {
     label: "Generate CVs",
-    description: "Regenerates the role CV HTML files; manual only",
+    description: "Regenerates every CV and cover letter; also catches date-gated experience entries",
+    hcSlug: "cv-regen",
+    schedule: "02:00 UK, every Sunday",
   }),
   job(PORTFOLIO, "Portfolio", "deploy-ps5-presence.yml", {
     label: "Deploy PS5 presence",
