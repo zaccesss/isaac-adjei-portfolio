@@ -6,7 +6,7 @@ const _how_https_handshake_works: TILEntry = {
     date: "2026-09-02",
     category: "Security",
     published: true,
-    body: "TLS 1.3 does this in one round trip. The client sends a ClientHello with supported cipher suites and a key share ([Diffie-Hellman](https://datatracker.ietf.org/doc/html/rfc7919) public value). The server responds with its certificate, a key share and the Finished message: all encrypted using the derived shared secret. The client verifies the certificate against a trusted CA, derives the same shared secret and sends its Finished. No private key ever traverses the network. The shared secret is derived using [ECDHE](https://blog.cloudflare.com/a-relatively-easy-to-understand-primer-on-elliptic-curve-cryptography/) so it changes every session: this is forward secrecy.",
+    body: "TLS 1.3 does this in one round trip. The client sends a ClientHello with supported cipher suites and a key share ([Diffie-Hellman](https://datatracker.ietf.org/doc/html/rfc7919) public value). The server responds with its certificate, a key share and the Finished message: all encrypted using the derived shared secret. The client verifies the certificate against a trusted CA, derives the same shared secret and sends its Finished. No private key ever traverses the network. The shared secret is derived using [ECDHE](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) so it changes every session: this is forward secrecy.",
     detail: [
       {
         type: "p",

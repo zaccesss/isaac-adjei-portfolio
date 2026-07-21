@@ -6,7 +6,7 @@ const _birthday_reflection_2026: TILEntry = {
     date: "2026-06-25",
     category: "Life",
     published: true,
-    body: "Another year older. I am grateful to God first, then to my family and to everyone who has shaped this journey. This year brought things I did not expect: [git-unlocked on Zenodo](https://doi.org/10.5281/zenodo.15522962) as a citable research publication, the Sky Black Heritage Celebration Day, Phaemos taking shape as a real product, the portfolio becoming something I am genuinely proud to share. I did not plan most of it. I just stayed faithful to the work.",
+    body: "Another year older. I am grateful to God first, then to my family and to everyone who has shaped this journey. This year brought things I did not expect: [git-unlocked on Zenodo](https://doi.org/10.5281/zenodo.20694984) as a citable research publication, the Sky Black Heritage Celebration Day, Phaemos taking shape as a real product, the portfolio becoming something I am genuinely proud to share. I did not plan most of it. I just stayed faithful to the work.",
     detail: [
       {
         type: "p",

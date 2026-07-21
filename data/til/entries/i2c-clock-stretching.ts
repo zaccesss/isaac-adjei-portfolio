@@ -6,7 +6,7 @@ const _i2c_clock_stretching: TILEntry = {
     date: "2026-07-09",
     category: "Embedded",
     published: true,
-    body: "The [I2C protocol](https://www.nxp.com/docs/en/user-guide/UM10204.pdf) lets a peripheral hold the clock line (SCL) low after the master releases it. This pauses data transfer until the peripheral is ready: it stretches the clock cycle. Not all master implementations support this: some STM32 HAL implementations have historically had bugs where the master stops waiting for SCL to go high and the transaction deadlocks. If you are using a sensor that clock-stretches (common in ADCs and environmental sensors that need computation time between command and read), verify your master actually handles stretching.",
+    body: "The [I2C protocol](https://www.i2c-bus.org/i2c-primer/) lets a peripheral hold the clock line (SCL) low after the master releases it. This pauses data transfer until the peripheral is ready: it stretches the clock cycle. Not all master implementations support this: some STM32 HAL implementations have historically had bugs where the master stops waiting for SCL to go high and the transaction deadlocks. If you are using a sensor that clock-stretches (common in ADCs and environmental sensors that need computation time between command and read), verify your master actually handles stretching.",
     detail: [
       {
         type: "p",
@@ -18,8 +18,8 @@ const _i2c_clock_stretching: TILEntry = {
       },
       {
         type: "link",
-        url: "https://www.nxp.com/docs/en/user-guide/UM10204.pdf",
-        label: "NXP: I2C-bus specification",
+        url: "https://www.i2c-bus.org/i2c-primer/",
+        label: "I2C bus primer",
         description: "Section 3.1.9 covers clock stretching: when it is allowed, how long a peripheral can stretch and master requirements.",
       },
     ],

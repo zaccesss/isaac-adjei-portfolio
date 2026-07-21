@@ -28,7 +28,7 @@ const _resources_engineering_and_technology: BlogPost = {
           { text: "FreeRTOS: Mastering the FreeRTOS Real Time Kernel - the official FreeRTOS book. Free PDF, genuinely good.", url: "https://www.freertos.org/Documentation/RTOS_book.html" },
           { text: "Making Embedded Systems - Elecia White - practical and well-written. Better than most university courses on the topic.", url: "https://www.oreilly.com/library/view/making-embedded-systems/9781449308889/" },
           { text: "Embedded.fm podcast - long-running show covering embedded engineering professionally. Good while soldering.", url: "https://embedded.fm" },
-          { text: "NXP I2C specification UM10204 - the definitive I2C protocol reference. Free PDF.", url: "https://www.nxp.com/docs/en/user-guide/UM10204.pdf" },
+          { text: "I2C bus primer - a concise protocol reference (NXP retired its own UM10204 PDF)", url: "https://www.i2c-bus.org/i2c-primer/" },
           { text: "Compiler Explorer (Godbolt) - paste C/C++ and see the assembly output. Invaluable for understanding what the compiler actually does.", url: "https://godbolt.org/" },
         ],
       },

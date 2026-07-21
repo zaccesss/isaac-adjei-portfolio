@@ -62,13 +62,13 @@ export async function generateMetadata({
   const isFuture = new Date(entry.date) > new Date()
 
   return {
-    title: `TIL: ${entry.title}`,
+    title: `TIL | ${entry.title}`,
     description: entry.body,
     ...(isFuture && {
       robots: { index: false, follow: false },
     }),
     openGraph: {
-      title: `TIL: ${entry.title}`,
+      title: `TIL | ${entry.title}`,
       description: entry.body,
     },
   }
@@ -219,7 +219,7 @@ export default async function TILSlugPage({
 
             <div className="flex items-start justify-between gap-4">
               <h1 className="text-2xl font-bold tracking-tight leading-snug">{entry.title}</h1>
-              <ShareButton title={`TIL: ${entry.title}`} />
+              <ShareButton title={`TIL | ${entry.title}`} />
             </div>
           </div>
 

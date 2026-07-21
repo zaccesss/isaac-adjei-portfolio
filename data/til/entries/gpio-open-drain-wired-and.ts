@@ -6,7 +6,7 @@ const _gpio_open_drain_wired_and: TILEntry = {
     date: "2026-08-20",
     category: "Embedded",
     published: true,
-    body: "In push-pull mode a GPIO actively drives high or low. In open-drain mode it can only pull low or release the line to float: the external pull-up resistor pulls it high when no device is pulling down. If you connect multiple open-drain outputs to the same line, the line is low if ANY device pulls low: this is wired-AND. [I2C](https://www.nxp.com/docs/en/user-guide/UM10204.pdf) uses this for both SDA and SCL so that any device on the bus can signal a busy state or stretch the clock without needing to coordinate bus ownership first.",
+    body: "In push-pull mode a GPIO actively drives high or low. In open-drain mode it can only pull low or release the line to float: the external pull-up resistor pulls it high when no device is pulling down. If you connect multiple open-drain outputs to the same line, the line is low if ANY device pulls low: this is wired-AND. [I2C](https://www.i2c-bus.org/i2c-primer/) uses this for both SDA and SCL so that any device on the bus can signal a busy state or stretch the clock without needing to coordinate bus ownership first.",
     detail: [
       {
         type: "p",
@@ -18,8 +18,8 @@ const _gpio_open_drain_wired_and: TILEntry = {
       },
       {
         type: "link",
-        url: "https://www.nxp.com/docs/en/user-guide/UM10204.pdf",
-        label: "NXP: I2C-bus specification (UM10204)",
+        url: "https://www.i2c-bus.org/i2c-primer/",
+        label: "I2C bus primer",
         description: "The definitive I2C specification. Section 3 covers electrical characteristics including pull-up sizing and timing.",
       },
     ],

@@ -75,7 +75,6 @@ const _git_unlocked_open_source_course: BlogPost = {
       {
         type: "ul",
         items: [
-          "A GitHub Pages site at [zaccesss.github.io/git-unlocked](https://zaccesss.github.io/git-unlocked)",
           "Interactive HTML quiz pages with instant answer checking",
           "Animated SVG diagrams for key Git concepts",
           "Accessibility review",
