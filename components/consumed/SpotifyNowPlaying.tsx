@@ -41,7 +41,10 @@ export function SpotifyNowPlaying() {
       } catch {}
     }
     poll()
-    const id = setInterval(poll, 30000)
+    // I poll faster than the 20s edge cache TTL on /api/spotify on purpose: a poll that lands
+    // inside that window is served straight from Cloudflare's cache at no real cost, so this
+    // makes the widget feel current without increasing how often Spotify or Vercel actually get hit
+    const id = setInterval(poll, 8000)
     return () => clearInterval(id)
   }, [])
 

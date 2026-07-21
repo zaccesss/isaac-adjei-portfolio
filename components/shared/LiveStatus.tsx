@@ -90,9 +90,11 @@ export default function LiveStatus({ variant = "card" }: LiveStatusProps) {
       if (stopped || spotifyTimer || snapshotTimer) return
       pollSpotify()
       pollSnapshot()
-      // 15s/45s cadence sits above each route's edge-cache TTL, so most polls are shared cache
-      // hits instead of origin invocations (the old 5s poll vs 4s TTL made every poll a miss).
-      spotifyTimer = setInterval(pollSpotify, 15000)
+      // Spotify polls faster than its 10s edge-cache TTL on purpose: a poll landing inside that
+      // window is a shared cache hit at no real cost, so this just makes the widget feel current
+      // without increasing how often Spotify or Vercel actually get hit. The snapshot poll (45s)
+      // sits above its own route's TTL instead, since that data changes far less often.
+      spotifyTimer = setInterval(pollSpotify, 8000)
       snapshotTimer = setInterval(pollSnapshot, 45000)
     }
     const stop = () => {

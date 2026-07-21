@@ -21,7 +21,7 @@ export default function PrivacyPage() {
     <div className="container max-w-3xl py-24 space-y-12">
       <section className="space-y-4">
         <h1 className="text-4xl font-bold tracking-tight">Privacy Policy</h1>
-        <p className="text-sm text-muted-foreground font-mono">Last updated: June 2026</p>
+        <p className="text-sm text-muted-foreground font-mono">Last updated: July 2026</p>
         <p className="text-lg text-muted-foreground leading-relaxed">
           This page covers how Isaac Adjei handles your data, who owns the content on this site
           and the terms under which you access it. By using this site you agree to the terms

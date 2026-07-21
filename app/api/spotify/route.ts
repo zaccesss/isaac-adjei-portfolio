@@ -6,9 +6,11 @@ import { getSpotify } from "@/lib/live-status"
 import { cdnCache } from "@/lib/cdn-cache"
 
 export async function GET() {
-  // 20s edge cache against the clients' 15s poll: the TTL sits ABOVE the poll interval, so even a
-  // lone viewer's polls mostly hit the shared edge copy (~1 origin call per ~30s per region). The
-  // old 4s TTL under a 5s poll meant every single poll was a cache miss that invoked the function
-  // and hit Spotify - that alone was most of our Vercel Fluid CPU usage.
-  return NextResponse.json(await getSpotify(), { headers: cdnCache(20) })
+  // 10s edge cache, shared by every viewer regardless of which page polls it (/now and
+  // /consumed/music both hit this route): at most one real Spotify/Vercel call per 10s per edge
+  // region, no matter how many people are polling faster than that. The old 4s TTL under a 5s
+  // poll meant every single poll was a cache miss that invoked the function and hit Spotify - that
+  // alone was most of our Vercel Fluid CPU usage. 10s keeps the same protection at a still-tiny
+  // absolute call volume while feeling noticeably more current than the old 20s.
+  return NextResponse.json(await getSpotify(), { headers: cdnCache(10) })
 }
