@@ -3,13 +3,18 @@ import { notFound } from "next/navigation"
 import HealthSectionClient from "./HealthSectionClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { title: "Health", robots: "noindex, nofollow" }
 
 const VALID_SECTIONS = ["gym", "nutrition", "running"]
 const SECTION_LABELS: Record<string, string> = {
   gym: "Gym",
   nutrition: "Nutrition",
   running: "Running",
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ section: string }> }) {
+  const { section } = await params
+  const label = SECTION_LABELS[section]
+  return { title: label ? `Health | ${label}` : "Health", robots: "noindex, nofollow" }
 }
 
 export default async function HealthSectionPage({ params }: { params: Promise<{ section: string }> }) {

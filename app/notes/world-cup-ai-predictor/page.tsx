@@ -4,6 +4,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, ExternalLink } from "lucide-react"
+import ShareButton from "@/components/shared/ShareButton"
 
 export const metadata: Metadata = {
   title: "Notes | World Cup 2026 AI Predictor",
@@ -65,8 +66,9 @@ export default function WorldCupAIPredictorPage() {
             </span>
           ))}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between gap-4">
           <h1 className="text-4xl font-bold tracking-tight">World Cup 2026 AI Predictor</h1>
+          <ShareButton title="Notes | World Cup 2026 AI Predictor" />
         </div>
         <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
           A planned machine learning project for Summer 2026: predict every match of the FIFA World

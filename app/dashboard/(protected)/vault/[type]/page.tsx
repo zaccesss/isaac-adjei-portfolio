@@ -5,7 +5,6 @@ import { decryptVaultRows, vaultEncryptionReady } from "@/lib/vault-crypto"
 import VaultTypeClient from "./VaultTypeClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { title: "Vault", robots: "noindex, nofollow" }
 
 // I map URL slugs to the actual DB type values stored in the vault table
 const TYPE_SLUGS: Record<string, string> = {
@@ -23,6 +22,12 @@ const TYPE_LABELS: Record<string, string> = {
   api_key: "API Keys",
   card: "Cards",
   identity: "Identities",
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ type: string }> }) {
+  const { type } = await params
+  const label = TYPE_LABELS[type]
+  return { title: label ? `Vault | ${label}` : "Vault", robots: "noindex, nofollow" }
 }
 
 export default async function VaultTypePage({ params }: { params: Promise<{ type: string }> }) {

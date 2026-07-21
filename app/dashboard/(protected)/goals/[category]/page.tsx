@@ -3,9 +3,16 @@ import { notFound } from "next/navigation"
 import GoalsCategoryClient from "./GoalsCategoryClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { title: "Goals", robots: "noindex, nofollow" }
 
 const VALID_CATEGORIES = ["personal", "academic", "career", "health", "finance", "other"]
+
+export async function generateMetadata({ params }: { params: Promise<{ category: string }> }) {
+  const { category } = await params
+  const label = VALID_CATEGORIES.includes(category)
+    ? category.charAt(0).toUpperCase() + category.slice(1)
+    : null
+  return { title: label ? `Goals | ${label}` : "Goals", robots: "noindex, nofollow" }
+}
 
 export default async function GoalsCategoryPage({ params }: { params: Promise<{ category: string }> }) {
   const { category } = await params

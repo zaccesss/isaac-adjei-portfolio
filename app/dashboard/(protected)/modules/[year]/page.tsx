@@ -4,7 +4,12 @@ import { isPinVerified } from "@/lib/pin"
 import ModulesYearClient from "./ModulesYearClient"
 
 export const dynamic = "force-dynamic"
-export const metadata = { title: "Modules", robots: "noindex, nofollow" }
+
+export async function generateMetadata({ params }: { params: Promise<{ year: string }> }) {
+  const { year } = await params
+  const label = YEAR_LABELS[year]
+  return { title: label ? `Modules | ${label}` : "Modules", robots: "noindex, nofollow" }
+}
 
 const YEAR_SLUGS: Record<string, number> = {
   "year-1": 1,
