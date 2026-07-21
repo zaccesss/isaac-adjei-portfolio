@@ -41,6 +41,8 @@ const nextConfig = {
     return [
       // I renamed the posts analytics route from blog-analytics to post-analytics; keep old links working.
       { source: "/dashboard/blog-analytics", destination: "/dashboard/post-analytics", permanent: true },
+      // The World Cup predictor note generalised into a multi-sport platform; keep the old link working.
+      { source: "/notes/world-cup-ai-predictor", destination: "/notes/multi-sport-ai-predictor", permanent: true },
     ]
   },
   async headers() {

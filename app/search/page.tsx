@@ -4,6 +4,7 @@
 import type { Metadata } from "next"
 import { getPublishedPosts } from "@/data/blog"
 import { getPublishedTILEntries } from "@/data/til"
+import { notes } from "@/data/notes"
 import { projects } from "@/data/projects"
 import { publications } from "@/data/respub"
 import { books, videos, podcasts, articles, resources, others } from "@/data/consumed"
@@ -19,19 +20,11 @@ export const metadata: Metadata = {
   },
 }
 
-// I keep notes here since they live as hardcoded pages without a central data file.
-export const NOTES_INDEX = [
-  {
-    href: "/notes/world-cup-ai-predictor",
-    title: "World Cup 2026 AI Predictor",
-    description: "A planned AI project to predict FIFA World Cup 2026 match outcomes using historical data and machine learning.",
-  },
-  {
-    href: "/notes/prosthetics-health-tech",
-    title: "Prosthetics and Health Technology Research",
-    description: "Personal research notes on ocular prosthetics, bionic vision and bio-integrated electronics.",
-  },
-]
+export const NOTES_INDEX = notes.map((n) => ({
+  href: `/notes/${n.slug}`,
+  title: n.title,
+  description: n.description,
+}))
 
 // I normalise all consumed categories into a flat searchable index with internal hrefs.
 function buildConsumedIndex() {

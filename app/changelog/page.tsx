@@ -40,6 +40,7 @@ const releases: ChangeEntry[] = [
       "/lab: the Spotify genre chart folds together genres that differ only by capitalisation or a trailing s, so near-identical genres like afrobeats and afrobeat now read as one slice",
       "Blog posts and project pages now name their section in the browser tab, matching TIL: Blog | the post title, Project | the project name. Notes and Consumed detail pages picked up the same convention: Notes | the note title, Consumed | the book, video or artist",
       "Notes pages and every consumed item now have a share button too, matching blog posts, TIL entries and projects",
+      "The World Cup 2026 AI Predictor note is rewritten as the Multi-Sport AI Predictor: the tournament happened without it (Spain won), so it now covers what actually happened and the plan to generalise the same model into an open-ended platform covering football, basketball, tennis, cricket, motorsport, rugby, athletics and volleyball, with more sports added over time",
     ],
     fixed: [
       "The whole site runs leaner: the guard that gates maintenance mode and the logged-out dashboard redirect now runs at the edge again rather than as a full server function on every request, after a framework rename had quietly made it the bulk of the site's hosting compute",
