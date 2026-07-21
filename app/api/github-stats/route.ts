@@ -144,8 +144,18 @@ export async function GET(req: Request) {
     let contributions: GitHubStats["contributions"] = null
     let followers = 0
 
+    if (graphqlRes && !graphqlRes.ok) {
+      // Logged rather than silently defaulted, so a GraphQL failure (a fine-grained PAT missing a
+      // scope, a rate limit, a malformed query) shows up in the function logs instead of just
+      // reading as "0 followers, no contribution graph" with no way to tell why.
+      console.error("github-stats GraphQL request failed:", graphqlRes.status, await graphqlRes.text())
+    }
+
     if (graphqlRes && graphqlRes.ok) {
       const gql = await graphqlRes.json()
+      if (gql?.errors?.length) {
+        console.error("github-stats GraphQL errors:", JSON.stringify(gql.errors))
+      }
       const user = gql?.data?.user
 
       if (user) {

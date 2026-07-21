@@ -5,9 +5,16 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Download, ArrowRight } from "lucide-react"
-import { experiences } from "@/data/experience"
+import { experiences, isExperienceVisible } from "@/data/experience"
 import ExperienceTimeline from "@/components/sections/ExperienceTimeline"
 import { Button } from "@/components/ui/button"
+
+// This page is static by default; a visibleFrom-gated entry (see data/experience.ts) needs the
+// real clock re-checked periodically rather than only at build time, or it stays hidden past its
+// date until the next deploy. An hourly revalidate is the cheap way to get that self-correcting
+// without making every visit a full dynamic render, matching how live-status caching already
+// balances freshness against Vercel Fluid Compute cost on this site.
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: "Experience",
@@ -22,8 +29,9 @@ export const metadata: Metadata = {
 
 export default function ExperiencePage() {
   const volunteeringIds = new Set(["targetjobs-judge", "cancer-research-volunteer"])
-  const professionalExperiences = experiences.filter((exp) => !volunteeringIds.has(exp.id))
-  const volunteeringExperiences = experiences.filter((exp) => volunteeringIds.has(exp.id))
+  const visibleExperiences = experiences.filter(isExperienceVisible)
+  const professionalExperiences = visibleExperiences.filter((exp) => !volunteeringIds.has(exp.id))
+  const volunteeringExperiences = visibleExperiences.filter((exp) => volunteeringIds.has(exp.id))
 
   return (
     <div className="container max-w-3xl py-24 space-y-10">
