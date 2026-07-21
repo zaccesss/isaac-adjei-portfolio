@@ -259,12 +259,13 @@ export async function generateMetadata({
     }
   }
   return {
-    title: post.title,
+    title: `Blog | ${post.title}`,
     description: post.description,
     alternates: {
       canonical: `https://www.isaacadjei.me/blog/${slug}`,
     },
     openGraph: {
+      title: `Blog | ${post.title}`,
       images: [
         post.cover_image
           ? `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.isaacadjei.me"}${post.cover_image}`
@@ -372,7 +373,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             {post.readingTime} min read
           </span>
           <div className="ml-auto">
-            <ShareButton title={post.title} />
+            <ShareButton title={`Blog | ${post.title}`} />
           </div>
         </div>
 

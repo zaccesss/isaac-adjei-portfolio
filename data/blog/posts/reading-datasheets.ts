@@ -130,7 +130,7 @@ uint8_t uart_read_blocking(void) {
         items: [
           { text: "Microchip ATmega644P datasheet - a real datasheet to practise on; register descriptions start at section 14", url: "https://ww1.microchip.com/downloads/en/DeviceDoc/ATmega644P-Datasheet.pdf" },
           { text: "STM32F4 reference manual (RM0090) - a large but well-structured ARM Cortex-M4 reference", url: "https://www.st.com/resource/en/reference_manual/rm0090-stm32f405415-stm32f407417-stm32f427437-and-stm32f429439-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" },
-          { text: "NXP I2C specification UM10204 - the canonical I2C protocol reference; short and worth reading cover to cover", url: "https://www.nxp.com/docs/en/user-guide/UM10204.pdf" },
+          { text: "I2C bus primer - a concise protocol reference (NXP retired its own UM10204 PDF)", url: "https://www.i2c-bus.org/i2c-primer/" },
           { text: "The Art of Electronics - Horowitz and Hill - chapter 1 covers passive components and their real-world behaviour as described in datasheets", url: "https://www.amazon.co.uk/Art-Electronics-Paul-Horowitz/dp/0521809266" },
           { text: "Making Embedded Systems - Elecia White - chapter 2 covers hardware/software boundaries and datasheet-driven development", url: "https://www.oreilly.com/library/view/making-embedded-systems/9781449308889/" },
           { text: "sigrok / PulseView - open-source logic analyser for validating signal timing from datasheets", url: "https://sigrok.org/wiki/PulseView" },

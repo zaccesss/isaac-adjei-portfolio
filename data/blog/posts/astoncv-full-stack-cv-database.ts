@@ -154,7 +154,7 @@ const _astoncv_full_stack_cv_database: BlogPost = {
           { text: "PHP 8 documentation - official language reference", url: "https://www.php.net/manual/en/" },
           { text: "MySQL 8 documentation - official reference for the database used in AstonCV", url: "https://dev.mysql.com/doc/" },
           { text: "mPDF library - PHP library for generating PDF files from HTML", url: "https://mpdf.github.io" },
-          { text: "OWASP PHP Security Cheat Sheet - security best practices for PHP web applications", url: "https://cheatsheetseries.owasp.org/cheatsheets/PHP_Security_Cheat_Sheet.html" },
+          { text: "OWASP PHP Configuration Cheat Sheet - security best practices for PHP web applications", url: "https://cheatsheetseries.owasp.org/cheatsheets/PHP_Configuration_Cheat_Sheet.html" },
           { text: "OWASP SQL Injection Prevention Cheat Sheet - the authoritative guide to the attack vector defended against in AstonCV with prepared statements", url: "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html" },
         ],
       },

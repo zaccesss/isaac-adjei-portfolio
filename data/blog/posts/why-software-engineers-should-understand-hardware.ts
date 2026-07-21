@@ -87,7 +87,7 @@ const _why_software_engineers_should_understand_hardware: BlogPost = {
           { text: "PHAEMOS project - the predictive maintenance platform referenced in this article", url: "/projects/phaemos" },
           { text: "avr-zac repository - bare-metal AVR programming referenced in this article", url: "https://github.com/zaccesss/avr-zac" },
           { text: "Embedded.fm podcast - long-running podcast on embedded engineering, career and hardware", url: "https://embedded.fm" },
-          { text: "The Hardware/Software Interface - Coursera course (University of Washington)", url: "https://www.coursera.org/learn/hardware-software-interface" },
+          { text: "CSE351: The Hardware/Software Interface - University of Washington (the Coursera version was retired; this is the course itself)", url: "https://courses.cs.washington.edu/courses/cse351/" },
           { text: "Wikipedia: Computer architecture - overview of the abstractions between hardware and software", url: "https://en.wikipedia.org/wiki/Computer_architecture" },
           { text: "Computer Systems: A Programmer's Perspective - Bryant and O'Hallaron - the best single book on how software meets hardware", url: "https://csapp.cs.cmu.edu/" },
         ],

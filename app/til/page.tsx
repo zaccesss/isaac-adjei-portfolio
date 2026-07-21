@@ -6,7 +6,7 @@ import { getPublishedTILEntries } from "@/data/til"
 import TILList from "@/components/til/TILList"
 
 export const metadata: Metadata = {
-  title: "TIL: Today I Learned",
+  title: "TIL | Today I Learned",
   description:
     "Short notes from across everything I work on as an Electronic Engineering and Computer Science student: embedded firmware and real-time systems, algorithms and data structures, full-stack web, AI and machine learning, cybersecurity and CTFs, computer architecture, hardware design, git and Linux and whatever else catches my attention that week. From piano practice to Ghanaian cooking, faith and fitness. If it surprised me or would have saved me time, it ends up here.",
   alternates: {

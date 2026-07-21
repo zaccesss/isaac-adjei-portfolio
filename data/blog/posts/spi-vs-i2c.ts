@@ -199,7 +199,7 @@ void i2c_scan(void) {
       {
         type: "ol-links",
         items: [
-          { text: "NXP I2C-bus specification and user manual UM10204 Rev 7.0 (2021)", url: "https://www.nxp.com/docs/en/user-guide/UM10204.pdf" },
+          { text: "I2C bus primer - a concise protocol reference (NXP retired its own UM10204 PDF)", url: "https://www.i2c-bus.org/i2c-primer/" },
           { text: "Wikipedia: Serial Peripheral Interface (SPI) - protocol overview, timing diagrams and variants", url: "https://en.wikipedia.org/wiki/Serial_Peripheral_Interface" },
           { text: "Wikipedia: I2C - protocol history, addressing and electrical characteristics", url: "https://en.wikipedia.org/wiki/I%C2%B2C" },
           { text: "SparkFun: Serial Peripheral Interface (SPI) tutorial", url: "https://learn.sparkfun.com/tutorials/serial-peripheral-interface-spi" },

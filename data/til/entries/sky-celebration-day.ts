@@ -6,11 +6,11 @@ const _sky_celebration_day: TILEntry = {
     date: "2026-06-24",
     category: "Life",
     published: true,
-    body: "I attended the [Sky Black Heritage Undergraduate of the Year](https://careers.sky.com/early-careers) Celebration Day at Sky Campus, Osterley. Being in a room of Black undergraduate finalists from engineering, computing and business, alongside Sky engineers, product managers and executives who have already built careers in those spaces, makes something click. Representation matters not as a sentiment but as a mechanism: seeing it with your own eyes rewires what your brain classifies as achievable.",
+    body: "I attended the [Sky Black Heritage Undergraduate of the Year](https://careers.sky.com/earlycareers) Celebration Day, moved to fully virtual on the day itself after a red weather warning. Being in a room (a virtual one, this time) of Black undergraduate finalists from engineering, computing and business, alongside Sky engineers, product managers and executives who have already built careers in those spaces, still makes something click. Representation matters not as a sentiment but as a mechanism: seeing it with your own eyes rewires what your brain classifies as achievable.",
     detail: [
       {
         type: "p",
-        text: "The event included a fireside chat with this year's winner Valerie Fiamavle and 2025 winner Nigel Danquah-Kuma, a campus tour of Sky's Osterley headquarters and a networking lunch. The conversations in the unstructured time mattered most: hearing how people navigated from university to a role they were excited about, what they wished they had known earlier, what they still find hard.",
+        text: "The event included a fireside chat with this year's winner Valerie Fiamavle and 2025 winner Nigel Danquah-Kuma, with virtual breakout conversations standing in for the campus tour and networking lunch the weather ruled out. The conversations in the unstructured time mattered most: hearing how people navigated from university to a role they were excited about, what they wished they had known earlier, what they still find hard.",
       },
       {
         type: "p",
@@ -22,7 +22,7 @@ const _sky_celebration_day: TILEntry = {
       },
     ],
     tags: ["life", "career", "networking", "faith"],
-    source: { label: "Sky Early Careers", url: "https://careers.sky.com/early-careers" },
+    source: { label: "Sky Early Careers", url: "https://careers.sky.com/earlycareers" },
   }
 
 export default _sky_celebration_day
