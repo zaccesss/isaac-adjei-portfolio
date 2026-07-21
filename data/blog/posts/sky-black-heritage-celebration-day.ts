@@ -9,7 +9,7 @@ const _sky_black_heritage_celebration_day: BlogPost = {
     description:
       "Reflections on being invited to Sky Campus, Osterley, as a finalist for the Black Heritage Undergraduate of the Year award. What the day taught me about Sky, about career, and about the importance of representation.",
     tags: ["Sky", "Career", "Award", "Black Heritage", "Networking", "Personal"],
-    published: false,
+    published: true,
     content: [
       {
         type: "h2",
@@ -24,7 +24,7 @@ const _sky_black_heritage_celebration_day: BlogPost = {
       },
       {
         type: "p",
-        text: "On 24 June 2026 I was invited to [Sky](https://www.sky.com)'s campus in Osterley, West London, for the [Black Heritage Undergraduate of the Year](https://www.undergraduateoftheyear.com/awards/black-heritage) Celebration Day. Being in that room meant a great deal, and I wanted to write about it properly.",
+        text: "On 24 June 2026 I was invited to the [Black Heritage Undergraduate of the Year](https://www.undergraduateoftheyear.com/awards/black-heritage) Celebration Day, originally planned in person at [Sky](https://www.sky.com)'s campus in Osterley, West London. A red weather warning forced a last-minute move to a fully virtual day. Being part of it still meant a great deal, and I wanted to write about it properly.",
       },
       {
         type: "h2",
@@ -60,7 +60,7 @@ const _sky_black_heritage_celebration_day: BlogPost = {
       },
       {
         type: "p",
-        text: "The programme included a fireside chat with Valerie Fiamavle (2026 winner) and Nigel Danquah-Kuma (2025 winner), conversations with Sky professionals from across the business, a tour of the Osterley campus and a networking lunch. The structure was designed to give finalists and guests a genuine sense of what working at Sky looks like, rather than a polished recruitment presentation.",
+        text: "The original programme planned a fireside chat with Valerie Fiamavle (2026 winner) and Nigel Danquah-Kuma (2025 winner), conversations with Sky professionals from across the business, a tour of the Osterley campus and a networking lunch. The weather warning took the campus tour and the in-person lunch off the table, but Sky kept every speaker and every session running online rather than postponing, with virtual breakout conversations standing in for the networking lunch.",
       },
       {
         type: "p",
@@ -84,11 +84,11 @@ const _sky_black_heritage_celebration_day: BlogPost = {
       },
       {
         type: "p",
-        text: "I will update this section after the event with what the day actually taught me. Putting this space here intentionally, because the most valuable insights usually come from conversations you did not plan and rooms you were not expecting to learn from.",
+        text: "A virtual day was not the day anyone planned, but it did not water down what mattered about it. I met people I would not otherwise have crossed paths with, from other universities and other stages of the same journey, and the breakout conversations turned out to be just as candid as an in-person lunch would have been. I learned things about how Sky's technology teams actually work, not just what the recruitment slides say, and about what the two winners wished they had known earlier.",
       },
       {
         type: "p",
-        text: "What I can say before going: being in a room full of people who look like you, who have built things and been recognised for it, matters in ways that are hard to articulate. Representation is not a soft word. It is the difference between a path feeling theoretical and it feeling real.",
+        text: "Being part of a room (even a virtual one) full of people who look like you, who have built things and been recognised for it, matters in ways that are hard to articulate. Representation is not a soft word. It is the difference between a path feeling theoretical and it feeling real.",
       },
       {
         type: "h2",

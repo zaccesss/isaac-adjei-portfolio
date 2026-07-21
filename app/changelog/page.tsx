@@ -38,9 +38,12 @@ const releases: ChangeEntry[] = [
     changed: [
       "/security-policy: added a cross-link to its GitHub repo and a pointer to my projects",
       "/lab: the Spotify genre chart folds together genres that differ only by capitalisation or a trailing s, so near-identical genres like afrobeats and afrobeat now read as one slice",
+      "Blog posts and project pages now name their section in the browser tab, matching TIL: Blog | the post title, Project | the project name",
     ],
     fixed: [
       "The whole site runs leaner: the guard that gates maintenance mode and the logged-out dashboard redirect now runs at the edge again rather than as a full server function on every request, after a framework rename had quietly made it the bulk of the site's hosting compute",
+      "A sweep of every blog post, TIL entry and consumed-page link caught a dozen that had gone dead since they were written; each now points at the correct current source or an equivalent replacement",
+      "The Sky Celebration Day post and TIL are live again, reworded to reflect that a red weather warning moved the day to fully virtual on the day itself",
     ],
   },
   {

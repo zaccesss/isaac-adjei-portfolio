@@ -141,7 +141,7 @@ for (int layer = LAYERS - 1; layer > 0; layer--) {
           { text: "WS2812B datasheet - LED and driver integrated light source (WorldSemi)", url: "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" },
           { text: "Adafruit NeoPixel Uberguide - comprehensive guide to wiring, power and programming NeoPixels", url: "https://learn.adafruit.com/adafruit-neopixel-uberguide" },
           { text: "Arduino Reference - language and library documentation", url: "https://www.arduino.cc/reference/en/" },
-          { text: "Wikipedia: LED cube - background on LED matrix displays", url: "https://en.wikipedia.org/wiki/LED_cube" },
+          { text: "Wikipedia: Volumetric display - LED cubes as a class of volumetric display", url: "https://en.wikipedia.org/wiki/Volumetric_display" },
           { text: "NeoPixel LED Cube - project page on this site", url: "/projects/led-cube" },
           { text: "Adafruit NeoPixel library - GitHub repository and API reference", url: "https://github.com/adafruit/Adafruit_NeoPixel" },
         ],
