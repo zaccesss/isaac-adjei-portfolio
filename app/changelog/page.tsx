@@ -30,6 +30,9 @@ const releases: ChangeEntry[] = [
   {
     version: "Unreleased",
     date: "2026-07-10",
+    security: [
+      "Patched a dependency vulnerability flagged across three separate alerts, all the same underlying issue in a shared transitive package",
+    ],
     added: [
       "/contribute: a full contributing guide covering the range of what I build - software, hardware, images and design, writing and courses, and this site; sections on ways to help, pull requests, using AI, patience and getting in touch, each cross-linked to its GitHub repo",
       "/code-of-conduct: a short personal intro followed by the Contributor Covenant 2.1 in full",
