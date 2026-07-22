@@ -90,8 +90,18 @@
   },
   "overrides": {
     "@typescript-eslint/typescript-estree": {
-      "brace-expansion": "5.0.6"
+      "brace-expansion": "5.0.7"
     },
+    "glob": {
+      "brace-expansion": "5.0.7"
+    },
+    "@sentry/bundler-plugin-core": {
+      "brace-expansion": "5.0.7"
+    },
+    "@node-minify/core": {
+      "brace-expansion": "2.1.2"
+    },
+    "brace-expansion": "1.1.16",
     "esbuild": ">=0.25.2",
     "ws": ">=8.21.0"
   },
