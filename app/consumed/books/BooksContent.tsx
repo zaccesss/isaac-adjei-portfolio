@@ -3,20 +3,28 @@
 import { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, BookOpen, ExternalLink, FileText } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { books, MONTHS, MONTH_CHIP, isMonthAvailable, type Month } from "@/data/consumed"
-import { consumedSlug } from "@/lib/tags"
+import { ArrowLeft, BookOpen } from "lucide-react"
+import { books, MONTHS, isMonthAvailable, sortByRecency, yearsFrom } from "@/data/consumed"
+import { ConsumedFilterBar } from "@/components/consumed/ConsumedFilterBar"
+import { ConsumedCategoryTabs } from "@/components/consumed/ConsumedCategoryTabs"
+import { BookCard } from "@/components/consumed/BookCard"
 
 export default function BooksContent() {
   const searchParams = useSearchParams()
   const preview = searchParams.get("preview") === "1"
+  const [activeYear, setActiveYear] = useState<string>("all")
   const [activeMonth, setActiveMonth] = useState<string>("all")
+  const [search, setSearch] = useState("")
 
-  const availableMonths = MONTHS.filter((m) => isMonthAvailable(m, preview))
-  const filtered = books
-    .filter((b) => isMonthAvailable(b.month, preview))
-    .filter((b) => activeMonth === "all" || b.month === activeMonth)
+  const years = yearsFrom(books)
+  const availableMonths = MONTHS.filter((m) => isMonthAvailable(m, new Date().getFullYear(), preview))
+  const filtered = sortByRecency(
+    books
+      .filter((b) => isMonthAvailable(b.month, b.year, preview))
+      .filter((b) => activeYear === "all" || String(b.year) === activeYear)
+      .filter((b) => activeMonth === "all" || b.month === activeMonth)
+      .filter((b) => !search || b.title.toLowerCase().includes(search.toLowerCase()) || b.author.toLowerCase().includes(search.toLowerCase()) || b.genre.toLowerCase().includes(search.toLowerCase()))
+  )
 
   return (
     <div className="container py-24 space-y-10">
@@ -40,88 +48,25 @@ export default function BooksContent() {
         </p>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground tracking-widest uppercase font-mono">Year</span>
-          <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-mono text-primary font-medium">2026</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveMonth("all")}
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-              activeMonth === "all"
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
-            )}
-          >
-            All
-          </button>
-          {availableMonths.map((m) => (
-            <button
-              type="button"
-              key={m}
-              onClick={() => setActiveMonth(m)}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                activeMonth === m
-                  ? cn("border-current", MONTH_CHIP[m])
-                  : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
-              )}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ConsumedFilterBar
+        years={years}
+        activeYear={activeYear}
+        onYearChange={setActiveYear}
+        months={availableMonths}
+        activeMonth={activeMonth}
+        onMonthChange={setActiveMonth}
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search books by title, author or genre..."
+      />
+
+      <ConsumedCategoryTabs active="books" counts={{ books: filtered.length }} />
 
       {filtered.length === 0 ? (
         <p className="text-sm text-muted-foreground py-8 text-center">No books for this month yet.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((b) => (
-            <div key={b.title} className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-5 hover:border-border transition-colors">
-              <div className="flex items-start justify-between gap-2">
-                <div className="space-y-0.5 flex-1 min-w-0">
-                  <Link
-                    href={`/consumed/books/${consumedSlug(b.title)}`}
-                    className="text-sm font-semibold text-foreground leading-snug hover:text-primary transition-colors block"
-                  >
-                    {b.title}
-                  </Link>
-                  <p className="text-xs text-muted-foreground">{b.author}</p>
-                </div>
-                <span className={cn("shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium", MONTH_CHIP[b.month])}>
-                  {b.month.slice(0, 3)}
-                </span>
-              </div>
-              <span className={cn("self-start inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-medium", b.genreColor)}>
-                {b.genre}
-              </span>
-              <p className="text-xs text-muted-foreground leading-relaxed flex-1">{b.note}</p>
-              <div className="flex items-center gap-3 mt-auto">
-                <Link
-                  href={`/consumed/books/${consumedSlug(b.title)}`}
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline underline-offset-2"
-                >
-                  <FileText className="h-3 w-3" />
-                  Notes
-                </Link>
-                {b.link && (
-                  <a
-                    href={b.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    {b.link.includes("amazon") ? "Amazon" : "Free resource"}
-                  </a>
-                )}
-              </div>
-            </div>
-          ))}
+          {filtered.map((b) => <BookCard key={b.title} book={b} />)}
         </div>
       )}
     </div>

@@ -10,10 +10,29 @@ export const MONTH_NUMBER: Record<Month, number> = {
   September: 8, October: 9, November: 10, December: 11,
 }
 
-export function isMonthAvailable(month: Month, preview: boolean): boolean {
+// Year-aware: a month in a past year is always available, a month in a future year never is,
+// and a month in the current year follows the same "has this month started yet" gating as
+// before. Replaces the old hardcoded-2026 version so content keeps working correctly into 2027
+// and beyond.
+export function isMonthAvailable(month: Month, year: number, preview: boolean): boolean {
   if (preview) return true
   const now = new Date()
-  return now >= new Date(2026, MONTH_NUMBER[month], 1)
+  return now >= new Date(year, MONTH_NUMBER[month], 1)
+}
+
+// Newest first: sorts by year descending, then by month descending within a year. Every consumed
+// listing (the hub and every category subpage) uses this so nothing shows oldest-first again.
+export function sortByRecency<T extends { year: number; month: Month }>(items: T[]): T[] {
+  return [...items].sort((a, b) => b.year - a.year || MONTH_NUMBER[b.month] - MONTH_NUMBER[a.month])
+}
+
+// All distinct years present across one or more item arrays, newest first. Falls back to just
+// the current year if a category has no items yet, so the Year filter never renders empty.
+export function yearsFrom(...lists: { year: number }[][]): number[] {
+  const years = new Set<number>()
+  for (const list of lists) for (const item of list) years.add(item.year)
+  if (years.size === 0) years.add(new Date().getFullYear())
+  return [...years].sort((a, b) => b - a)
 }
 
 export const MONTH_CHIP: Record<Month, string> = {
@@ -43,6 +62,7 @@ export type VideoEntry = {
   title: string
   channel: string
   month: Month
+  year: number
   uploaded: string
   tags: string[]
   description?: string
@@ -55,6 +75,7 @@ export type PodcastEntry = {
   title: string
   show: string
   month: Month
+  year: number
   description?: string
 }
 
@@ -64,6 +85,7 @@ export type BookEntry = {
   genre: string
   genreColor: string
   month: Month
+  year: number
   note: string
   link?: string
 }
@@ -75,6 +97,7 @@ export type ResourceEntry = {
   category: "Docs" | "Course" | "Tool" | "Blog" | "Reference"
   categoryColor: string
   month: Month
+  year: number
 }
 
 // I use this type for both articles and the catch-all others category.
@@ -84,6 +107,7 @@ export type LinkEntry = {
   url: string
   description: string
   month: Month
+  year: number
   tags: string[]
 }
 

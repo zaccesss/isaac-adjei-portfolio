@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ExternalLink, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { MONTH_CHIP, type LinkEntry } from "@/data/consumed"
-import { consumedSlug } from "@/lib/tags"
+import { consumedSlug, normTag } from "@/lib/tags"
 
 export function LinkCard({ item, category }: { item: LinkEntry; category: "articles" | "others" }) {
   const slug = consumedSlug(item.title)
@@ -37,9 +37,13 @@ export function LinkCard({ item, category }: { item: LinkEntry; category: "artic
           {item.month.slice(0, 3)}
         </span>
         {item.tags.map((tag) => (
-          <span key={tag} className="rounded-full border border-border/40 bg-muted/40 px-2 py-0.5 text-[10px] text-muted-foreground">
+          <Link
+            key={tag}
+            href={`/tags/${normTag(tag)}`}
+            className="rounded-full border border-border/40 bg-muted/40 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+          >
             {tag}
-          </span>
+          </Link>
         ))}
         <Link
           href={subpageHref}

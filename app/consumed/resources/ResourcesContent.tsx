@@ -4,27 +4,32 @@ import { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, BookMarked } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { resources, MONTHS, MONTH_CHIP, isMonthAvailable, type Month } from "@/data/consumed"
+import { resources, MONTHS, isMonthAvailable, sortByRecency, yearsFrom } from "@/data/consumed"
+import { ConsumedFilterBar } from "@/components/consumed/ConsumedFilterBar"
+import { ConsumedCategoryTabs } from "@/components/consumed/ConsumedCategoryTabs"
 import { ResourceCard } from "@/components/consumed/ResourceCard"
 
 export default function ResourcesContent() {
   const searchParams = useSearchParams()
   const preview = searchParams.get("preview") === "1"
+  const [activeYear, setActiveYear] = useState<string>("all")
   const [activeMonth, setActiveMonth] = useState<string>("all")
+  const [search, setSearch] = useState("")
 
-  const availableMonths = MONTHS.filter((m) => isMonthAvailable(m, preview))
-  const filtered = resources
-    .filter((r) => isMonthAvailable(r.month, preview))
-    .filter((r) => activeMonth === "all" || r.month === activeMonth)
+  const years = yearsFrom(resources)
+  const availableMonths = MONTHS.filter((m) => isMonthAvailable(m, new Date().getFullYear(), preview))
+  const filtered = sortByRecency(
+    resources
+      .filter((r) => isMonthAvailable(r.month, r.year, preview))
+      .filter((r) => activeYear === "all" || String(r.year) === activeYear)
+      .filter((r) => activeMonth === "all" || r.month === activeMonth)
+      .filter((r) => !search || r.title.toLowerCase().includes(search.toLowerCase()) || r.category.toLowerCase().includes(search.toLowerCase()))
+  )
 
   return (
     <div className="container py-24 space-y-10">
       <div className="space-y-4 max-w-2xl">
-        <Link
-          href="/consumed"
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
+        <Link href="/consumed" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Consumed
         </Link>
@@ -40,41 +45,19 @@ export default function ResourcesContent() {
         </p>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground tracking-widest uppercase font-mono">Year</span>
-          <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-mono text-primary font-medium">2026</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveMonth("all")}
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-              activeMonth === "all"
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
-            )}
-          >
-            All
-          </button>
-          {availableMonths.map((m) => (
-            <button
-              type="button"
-              key={m}
-              onClick={() => setActiveMonth(m)}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                activeMonth === m
-                  ? cn("border-current", MONTH_CHIP[m])
-                  : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
-              )}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ConsumedFilterBar
+        years={years}
+        activeYear={activeYear}
+        onYearChange={setActiveYear}
+        months={availableMonths}
+        activeMonth={activeMonth}
+        onMonthChange={setActiveMonth}
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search resources by title or category..."
+      />
+
+      <ConsumedCategoryTabs active="resources" counts={{ resources: filtered.length }} />
 
       {filtered.length === 0 ? (
         <p className="text-sm text-muted-foreground py-8 text-center">No resources for this month yet.</p>

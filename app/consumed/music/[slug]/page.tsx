@@ -4,13 +4,25 @@ import Link from "next/link"
 import { ArrowLeft, ExternalLink } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { artists, genres } from "@/data/consumed/music"
-import { consumedSlug } from "@/lib/tags"
+import { consumedSlug, normTag } from "@/lib/tags"
 import ShareButton from "@/components/shared/ShareButton"
+import { ConsumedPrevNext } from "@/components/consumed/ConsumedPrevNext"
 
 type Artist = (typeof artists)[number]
 
 function findArtist(slug: string): Artist | null {
   return artists.find((a) => consumedSlug(a.name) === slug) ?? null
+}
+
+function findPrevNext(currentName: string) {
+  const idx = artists.findIndex((a) => a.name === currentName)
+  if (idx === -1) return { prev: null, next: null }
+  const prevArtist = idx > 0 ? artists[idx - 1] : null
+  const nextArtist = idx < artists.length - 1 ? artists[idx + 1] : null
+  return {
+    prev: prevArtist ? { title: prevArtist.name, href: `/consumed/music/${consumedSlug(prevArtist.name)}` } : null,
+    next: nextArtist ? { title: nextArtist.name, href: `/consumed/music/${consumedSlug(nextArtist.name)}` } : null,
+  }
 }
 
 export function generateStaticParams() {
@@ -52,6 +64,7 @@ export default async function MusicArtistPage({
     : null
 
   const genreColor = GENRE_COLOUR[artist.genre] ?? "bg-muted/40 text-muted-foreground border-border/40"
+  const { prev, next } = findPrevNext(artist.name)
 
   return (
     <div className="container max-w-3xl py-24 space-y-10">
@@ -62,9 +75,9 @@ export default async function MusicArtistPage({
       </nav>
 
       <div className="space-y-4">
-        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${genreColor}`}>
+        <Link href={`/tags/${normTag(artist.genre)}`} className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium hover:opacity-80 transition-opacity ${genreColor}`}>
           {artist.genre}
-        </span>
+        </Link>
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-4xl font-bold tracking-tight">{artist.name}</h1>
           <ShareButton title={`Consumed | ${artist.name}`} />
@@ -103,6 +116,8 @@ export default async function MusicArtistPage({
       )}
 
       <Separator />
+
+      <ConsumedPrevNext prev={prev} next={next} prevLabel="Previous" nextLabel="Next" />
 
       <Link
         href="/consumed/music"
