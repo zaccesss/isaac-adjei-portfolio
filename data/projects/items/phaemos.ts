@@ -35,7 +35,6 @@ const _phaemos: Project = {
     github: "https://github.com/zaccesss/phaemos",
     demo: "https://phaemos.com",
     date: "2025 - Present",
-    ongoing: true,
     highlights: [
       "Four hardware nodes: ESP32 primary (11 sensors), STM32 Black Pill (100Hz FFT vibration), Arduino Nano (secondary BME280/moisture) and Raspberry Pi Pico 2W (MicroPython ambient node)",
       "FastAPI backend processes every telemetry POST in under 200ms - validate, store across 25-field schema, evaluate alert rules, score ML model and respond",

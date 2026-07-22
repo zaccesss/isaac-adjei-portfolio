@@ -10,10 +10,16 @@ import { type Project } from "@/data/projects"
 import ProjectCard from "./ProjectCard"
 import { relevanceScore } from "@/lib/search"
 import ProjectFilter from "./ProjectFilter"
+import { CONTENT_YEAR_MONTH_FILTERS } from "@/lib/feature-flags"
 
 type Category = Project["category"] | "all"
 
 const PER_PAGE = 9
+
+// A project's date is free text ("2026", "2025 - Present") - I only need the leading year to filter.
+function projectYear(dateStr: string): number {
+  return parseInt(dateStr.split(" - ")[0].trim(), 10)
+}
 
 interface Props {
   projects: Project[]
@@ -21,12 +27,15 @@ interface Props {
 
 export default function ProjectGrid({ projects }: Props) {
   const [filter, setFilter] = useState<Category>("all")
+  const [year, setYear] = useState<string>("all")
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
 
+  const years = [...new Set(projects.map((p) => projectYear(p.date)))].sort((a, b) => b - a)
   const q = search.toLowerCase().trim()
   const filtered = projects
     .filter((p) => filter === "all" || p.category === filter)
+    .filter((p) => year === "all" || String(projectYear(p.date)) === year)
     .filter((p) => !q || p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q))
     .sort((a, b) => q ? relevanceScore(b.title, b.description, q) - relevanceScore(a.title, a.description, q) : 0)
   const totalPages = Math.ceil(filtered.length / PER_PAGE)
@@ -34,6 +43,11 @@ export default function ProjectGrid({ projects }: Props) {
 
   function handleFilter(next: Category) {
     setFilter(next)
+    setPage(1)
+  }
+
+  function handleYear(next: string) {
+    setYear(next)
     setPage(1)
   }
 
@@ -52,6 +66,37 @@ export default function ProjectGrid({ projects }: Props) {
         className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
       />
       <ProjectFilter active={filter} onChange={handleFilter} />
+
+      {CONTENT_YEAR_MONTH_FILTERS && years.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground tracking-widest uppercase font-mono">Year</span>
+          <button
+            type="button"
+            onClick={() => handleYear("all")}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              year === "all"
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+            }`}
+          >
+            All
+          </button>
+          {years.map((y) => (
+            <button
+              type="button"
+              key={y}
+              onClick={() => handleYear(String(y))}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                year === String(y)
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+              }`}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <p className="text-muted-foreground text-center py-16">No projects in this category yet.</p>

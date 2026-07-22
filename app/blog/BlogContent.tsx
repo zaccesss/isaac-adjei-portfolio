@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { getPublishedPosts, POST_TYPES, type PostType } from "@/data/blog"
 import NewsletterForm from "@/components/shared/NewsletterForm"
+import { monthsFromDates } from "@/lib/utils"
+import { CONTENT_YEAR_MONTH_FILTERS } from "@/lib/feature-flags"
 
 const POSTS_PER_PAGE = 7
 
@@ -35,15 +37,21 @@ function formatDate(dateStr: string): string {
 
 export default function BlogPage() {
   const [activeType, setActiveType] = useState<PostType | "all">("all")
+  const [activeYear, setActiveYear] = useState<string>("all")
+  const [activeMonth, setActiveMonth] = useState<string>("all")
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
 
   const allPosts = getPublishedPosts().sort((a, b) =>
     new Date(b.date).getTime() - new Date(a.date).getTime()
   )
+  const years = [...new Set(allPosts.map((p) => new Date(p.date).getFullYear()))].sort((a, b) => b - a)
+  const months = monthsFromDates(allPosts.map((p) => p.date))
   const q = search.toLowerCase().trim()
   const filtered = allPosts
     .filter((p) => activeType === "all" || p.type === activeType)
+    .filter((p) => activeYear === "all" || String(new Date(p.date).getFullYear()) === activeYear)
+    .filter((p) => activeMonth === "all" || String(new Date(p.date).getMonth()) === activeMonth)
     .filter((p) => !q || p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q))
     .sort((a, b) => q ? relevanceScore(b.title, b.description, q) - relevanceScore(a.title, a.description, q) : 0)
 
@@ -53,6 +61,16 @@ export default function BlogPage() {
   // I reset to page 1 whenever the filter changes so the user does not land on a non-existent page
   function setFilter(type: PostType | "all") {
     setActiveType(type)
+    setPage(1)
+  }
+
+  function setYear(year: string) {
+    setActiveYear(year)
+    setPage(1)
+  }
+
+  function setMonth(month: string) {
+    setActiveMonth(month)
     setPage(1)
   }
 
@@ -110,6 +128,68 @@ export default function BlogPage() {
           </button>
         ))}
       </div>
+
+      {CONTENT_YEAR_MONTH_FILTERS && years.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground tracking-widest uppercase font-mono">Year</span>
+          <button
+            type="button"
+            onClick={() => setYear("all")}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              activeYear === "all"
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+            }`}
+          >
+            All
+          </button>
+          {years.map((y) => (
+            <button
+              type="button"
+              key={y}
+              onClick={() => setYear(String(y))}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                activeYear === String(y)
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+              }`}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {CONTENT_YEAR_MONTH_FILTERS && months.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground tracking-widest uppercase font-mono">Month</span>
+          <button
+            type="button"
+            onClick={() => setMonth("all")}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              activeMonth === "all"
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+            }`}
+          >
+            All
+          </button>
+          {months.map((m) => (
+            <button
+              type="button"
+              key={m.index}
+              onClick={() => setMonth(String(m.index))}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                activeMonth === String(m.index)
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+              }`}
+            >
+              {m.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Post grid */}
       {filtered.length > 0 ? (

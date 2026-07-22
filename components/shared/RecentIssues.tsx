@@ -6,6 +6,8 @@
 import { useEffect, useState } from "react"
 import { ExternalLink, Rss, Newspaper, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from "lucide-react"
 import { fieldScore } from "@/lib/search"
+import { monthsFromDates } from "@/lib/utils"
+import { CONTENT_YEAR_MONTH_FILTERS } from "@/lib/feature-flags"
 import type { NewsletterIssue } from "@/app/api/newsletter-issues/route"
 
 const ISSUES_PER_PAGE = 7
@@ -22,6 +24,8 @@ export default function RecentIssues() {
   const [issues, setIssues] = useState<NewsletterIssue[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState("")
+  const [year, setYear] = useState<string>("all")
+  const [month, setMonth] = useState<string>("all")
   const [page, setPage] = useState(1)
 
   useEffect(() => {
@@ -34,7 +38,10 @@ export default function RecentIssues() {
       .catch(() => setLoading(false))
   }, [])
 
-  const filtered = query.trim()
+  const years = [...new Set(issues.map((i) => new Date(i.publishDate).getFullYear()))].sort((a, b) => b - a)
+  const months = monthsFromDates(issues.map((i) => i.publishDate))
+
+  const filtered = (query.trim()
     ? issues
         .filter((i) =>
           i.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -42,6 +49,9 @@ export default function RecentIssues() {
         )
         .sort((a, b) => fieldScore(b.title, query) - fieldScore(a.title, query))
     : issues
+  )
+    .filter((i) => year === "all" || String(new Date(i.publishDate).getFullYear()) === year)
+    .filter((i) => month === "all" || String(new Date(i.publishDate).getMonth()) === month)
 
   const totalPages = Math.ceil(filtered.length / ISSUES_PER_PAGE)
   const paginated = filtered.slice((page - 1) * ISSUES_PER_PAGE, page * ISSUES_PER_PAGE)
@@ -71,6 +81,68 @@ export default function RecentIssues() {
             onChange={(e) => { setQuery(e.target.value); setPage(1) }}
             className="w-full rounded-lg border border-border bg-background pl-9 pr-4 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
+        </div>
+      )}
+
+      {CONTENT_YEAR_MONTH_FILTERS && !loading && years.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground tracking-widest uppercase font-mono">Year</span>
+          <button
+            type="button"
+            onClick={() => { setYear("all"); setPage(1) }}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              year === "all"
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+            }`}
+          >
+            All
+          </button>
+          {years.map((y) => (
+            <button
+              type="button"
+              key={y}
+              onClick={() => { setYear(String(y)); setPage(1) }}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                year === String(y)
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+              }`}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {CONTENT_YEAR_MONTH_FILTERS && !loading && months.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground tracking-widest uppercase font-mono">Month</span>
+          <button
+            type="button"
+            onClick={() => { setMonth("all"); setPage(1) }}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              month === "all"
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+            }`}
+          >
+            All
+          </button>
+          {months.map((m) => (
+            <button
+              type="button"
+              key={m.index}
+              onClick={() => { setMonth(String(m.index)); setPage(1) }}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                month === String(m.index)
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
+              }`}
+            >
+              {m.name}
+            </button>
+          ))}
         </div>
       )}
 

@@ -37,13 +37,6 @@ const currentProjects = [
     githubHref: "https://github.com/zaccesss/avr-zac",
   },
   {
-    name: "ba-from-data-to-decisions",
-    badge: "Ongoing",
-    description:
-      "A structured learning site built alongside working through an executive education business analytics course. Covers probability, statistics, Python, descriptive analytics, machine learning and prescriptive optimisation. Publishing notes and interactive tools module by module.",
-    githubHref: "https://github.com/zaccesss/ba-from-data-to-decisions",
-  },
-  {
     name: "Business Website",
     badge: "Ongoing",
     description:
@@ -105,9 +98,11 @@ export default function NotesPage() {
             <div key={p.name} className="space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-medium text-foreground">{p.name}</p>
-                <span className="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-xs text-green-600 dark:text-green-400">
-                  {p.badge}
-                </span>
+                {p.badge && (
+                  <span className="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-xs text-green-600 dark:text-green-400">
+                    {p.badge}
+                  </span>
+                )}
                 {p.projectHref && (
                   <Link
                     href={p.projectHref}
