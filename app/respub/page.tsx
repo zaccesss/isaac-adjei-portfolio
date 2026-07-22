@@ -2,9 +2,9 @@
 
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Download, FileText, Mail } from "lucide-react"
+import { FileText, Mail } from "lucide-react"
 import { FaLinkedin } from "react-icons/fa6"
-import { SiZenodo, SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si"
+import { SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si"
 import { publications } from "@/data/respub"
 import { cn } from "@/lib/utils"
 
@@ -149,69 +149,22 @@ export default async function ResearchPublicationsPage({
                     </span>
                   </div>
 
-                  <h3 className="text-base font-semibold leading-snug">{pub.title}</h3>
+                  <Link href={`/respub/${pub.id}`} className="block group">
+                    <h3 className="text-base font-semibold leading-snug group-hover:text-primary transition-colors">{pub.title}</h3>
+                  </Link>
                   <p className="text-sm text-muted-foreground">{pub.authors.join(", ")}</p>
 
                   {pub.abstract && (
-                    <p className="text-sm text-muted-foreground leading-relaxed">{pub.abstract}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{pub.abstract}</p>
                   )}
 
-                  {pub.keywords && pub.keywords.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {pub.keywords.map((kw) => (
-                        <span
-                          key={kw}
-                          className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground"
-                        >
-                          {kw}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-4 flex-wrap pt-1">
-                    <Link
-                      href={`https://doi.org/${pub.doi}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-xs font-mono text-primary hover:underline"
-                    >
-                      <FileText className="h-3.5 w-3.5" />
-                      {pub.doi}
-                    </Link>
-                    {pub.zenodoUrl && (
-                      <Link
-                        href={pub.zenodoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <SiZenodo className="h-3.5 w-3.5" />
-                        View on Zenodo
-                      </Link>
-                    )}
-                    {pub.scholarUrl && (
-                      <Link
-                        href={pub.scholarUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <SiGooglescholar className="h-3.5 w-3.5" />
-                        Google Scholar
-                      </Link>
-                    )}
-                    {pub.pdfUrl && (
-                      <a
-                        href={pub.pdfUrl}
-                        download
-                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <Download className="h-3.5 w-3.5" />
-                        Download PDF
-                      </a>
-                    )}
-                  </div>
+                  <Link
+                    href={`/respub/${pub.id}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline pt-1"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    Read details and citation
+                  </Link>
                 </div>
               ))}
             </div>
