@@ -157,6 +157,14 @@ export const profileLinks: LinkItem[] = [
   },
   // Competitive Programming
   {
+    title: "EWskills",
+    description: "Electronics and embedded systems problem solving",
+    url: "https://www.ewskills.com/user/IsaacAdjei",
+    icon: "ewskills",
+    iconImage: "/images/brands/ewskills.webp",
+    category: "competitive",
+  },
+  {
     title: "LeetCode",
     description: "Problem solving and algorithmic practice",
     url: "https://leetcode.com/u/zacadjei",

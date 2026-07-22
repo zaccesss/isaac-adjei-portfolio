@@ -24,6 +24,7 @@ export default function SecurityPolicyPage() {
           <ShieldCheck className="h-8 w-8 text-primary" />
           <h1 className="text-4xl font-bold tracking-tight">Security Policy</h1>
         </div>
+        <p className="text-sm text-muted-foreground font-mono">Last updated: July 2026</p>
         <p className="text-lg text-muted-foreground leading-relaxed">
           I take the security of this site seriously. If you have discovered a vulnerability, I
           appreciate you letting me know responsibly.

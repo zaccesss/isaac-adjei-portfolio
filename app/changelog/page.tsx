@@ -43,6 +43,11 @@ const releases: ChangeEntry[] = [
       "The World Cup 2026 AI Predictor note is rewritten as the Multi-Sport AI Predictor: the tournament happened without it (Spain won), so it now covers what actually happened and the plan to generalise the same model into an open-ended platform covering football, basketball, tennis, cricket, motorsport, rugby, athletics and volleyball, with more sports added over time",
       "The footer's secondary links reordered to Now, Lab, Notes, Consumed, Research, Tags, Search",
       "The Spotify now-playing widget updates faster on /now, the homepage and /consumed/music",
+      "/security-policy and /code-of-conduct now show a \"Last updated\" date, same as /privacy and /notes",
+      "/respub: each publication now has its own page with the full abstract, keywords and a citation section (an APA-style reference plus a copyable BibTeX block); the listing page is a lighter teaser that links into it",
+      "/all-pages reorganised to match the header navigation, with the old flat list split into clearer groups",
+      "/tags now covers notes and consumed resources too, alongside blog, TIL, projects, publications and the rest of consumed",
+      "/links: EWskills joined the Competitive section alongside LeetCode, Codeforces and AtCoder",
     ],
     fixed: [
       "The whole site runs leaner: the guard that gates maintenance mode and the logged-out dashboard redirect now runs at the edge again rather than as a full server function on every request, after a framework rename had quietly made it the bulk of the site's hosting compute",

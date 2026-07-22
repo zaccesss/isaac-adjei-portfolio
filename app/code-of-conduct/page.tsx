@@ -39,6 +39,7 @@ export default function CodeOfConductPage() {
           <Users className="h-8 w-8 text-primary" />
           <h1 className="text-4xl font-bold tracking-tight">Code of Conduct</h1>
         </div>
+        <p className="text-sm text-muted-foreground font-mono">Last updated: July 2026</p>
         <p className="text-lg text-muted-foreground leading-relaxed">
           This is the code of conduct for all my projects, software or hardware, public or private,
           and for this website. I keep the full version here in one place so every repository can point

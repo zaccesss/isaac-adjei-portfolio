@@ -1,9 +1,10 @@
 // I generate /sitemap.xml at build time - only public routes, never /dashboard or any private path.
-// If you add a new public route, add an entry here.
+// I add an entry here whenever I add a new public route.
 
 import { MetadataRoute } from "next"
 import { getPublishedPosts } from "@/data/blog"
 import { getPublishedTILEntries } from "@/data/til"
+import { notes } from "@/data/notes"
 import { projects } from "@/data/projects"
 import { publications } from "@/data/respub"
 import { books, videos, podcasts, articles, resources, others, artists } from "@/data/consumed"
@@ -29,9 +30,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/contact`,                       lastModified: new Date("2026-04-01"), changeFrequency: "yearly",  priority: 0.5  },
     { url: `${SITE_URL}/links`,                         lastModified: new Date("2026-04-01"), changeFrequency: "monthly", priority: 0.4  },
     { url: `${SITE_URL}/notes`,                         lastModified: new Date("2026-05-29"), changeFrequency: "monthly", priority: 0.6  },
-    { url: `${SITE_URL}/notes/multi-sport-ai-predictor`, lastModified: new Date("2026-07-21"), changeFrequency: "monthly", priority: 0.5  },
-    { url: `${SITE_URL}/notes/prosthetics-health-tech`, lastModified: new Date("2026-03-01"), changeFrequency: "monthly", priority: 0.5  },
-    { url: `${SITE_URL}/notes/codeforces-auto-push`,    lastModified: new Date("2026-06-19"), changeFrequency: "monthly", priority: 0.5  },
     { url: `${SITE_URL}/lab`,                           lastModified: new Date("2026-05-15"), changeFrequency: "monthly", priority: 0.5  },
     { url: `${SITE_URL}/newsletter`,                    lastModified: new Date("2026-05-29"), changeFrequency: "yearly",  priority: 0.5  },
     { url: `${SITE_URL}/now`,                           lastModified: new Date("2026-05-29"), changeFrequency: "weekly",  priority: 0.7  },
@@ -84,16 +82,32 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.5,
     }))
 
+  const pubRoutes: MetadataRoute.Sitemap = publications.map((pub) => ({
+    url: `${SITE_URL}/respub/${pub.id}`,
+    lastModified: new Date(pub.year, (pub.month ?? 1) - 1, 1),
+    changeFrequency: "yearly" as const,
+    priority: 0.5,
+  }))
+
+  const noteRoutes: MetadataRoute.Sitemap = notes.map((note) => ({
+    url: `${SITE_URL}/notes/${note.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.5,
+  }))
+
   // I collect all unique normalised tag slugs across all content types for /tags/[tag] routes.
   const tagSlugs = new Set<string>()
   for (const post of getPublishedPosts()) post.tags.forEach((t) => tagSlugs.add(normTag(t)))
   for (const til of getPublishedTILEntries()) til.tags?.forEach((t) => tagSlugs.add(normTag(t)))
+  for (const note of notes) note.tags.forEach((t) => tagSlugs.add(normTag(t)))
   for (const project of projects) project.technologies.forEach((t) => tagSlugs.add(normTag(t)))
   for (const pub of publications) pub.keywords?.forEach((t) => tagSlugs.add(normTag(t)))
   for (const v of videos) v.tags.forEach((t) => tagSlugs.add(normTag(t)))
   for (const a of articles) a.tags.forEach((t) => tagSlugs.add(normTag(t)))
   for (const o of others) o.tags.forEach((t) => tagSlugs.add(normTag(t)))
   for (const b of books) tagSlugs.add(normTag(b.genre))
+  for (const r of resources) tagSlugs.add(normTag(r.category))
 
   const tagRoutes: MetadataRoute.Sitemap = [...tagSlugs].map((slug) => ({
     url: `${SITE_URL}/tags/${slug}`,
@@ -112,5 +126,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...artists.map((a) => ({ url: `${SITE_URL}/consumed/music/${consumedSlug(a.name)}`,      lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.4 })),
   ]
 
-  return [...staticRoutes, ...projectRoutes, ...blogRoutes, ...tilRoutes, ...tagRoutes, ...consumedItemRoutes]
+  return [...staticRoutes, ...projectRoutes, ...blogRoutes, ...tilRoutes, ...noteRoutes, ...pubRoutes, ...tagRoutes, ...consumedItemRoutes]
 }
