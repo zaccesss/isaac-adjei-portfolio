@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Play, ExternalLink, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { MONTH_CHIP, type VideoEntry } from "@/data/consumed"
-import { consumedSlug } from "@/lib/tags"
+import { consumedSlug, normTag } from "@/lib/tags"
 
 export function VideoCard({
   video,
@@ -64,9 +64,13 @@ export function VideoCard({
               {video.month.slice(0, 3)}
             </span>
             {(compact ? video.tags.slice(0, 1) : video.tags).map((tag) => (
-              <span key={tag} className="rounded-full border border-border/40 bg-muted/40 px-2 py-0.5 text-[10px] text-muted-foreground">
+              <Link
+                key={tag}
+                href={`/tags/${normTag(tag)}`}
+                className="rounded-full border border-border/40 bg-muted/40 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+              >
                 {tag}
-              </span>
+              </Link>
             ))}
             <Link
               href={subpageHref}
@@ -141,9 +145,13 @@ export function VideoCard({
             {video.month.slice(0, 3)}
           </span>
           {(compact ? video.tags.slice(0, 1) : video.tags).map((tag) => (
-            <span key={tag} className="rounded-full border border-border/40 bg-muted/40 px-2 py-0.5 text-[10px] text-muted-foreground">
+            <Link
+              key={tag}
+              href={`/tags/${normTag(tag)}`}
+              className="rounded-full border border-border/40 bg-muted/40 px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+            >
               {tag}
-            </span>
+            </Link>
           ))}
           <Link
             href={subpageHref}

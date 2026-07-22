@@ -9,7 +9,7 @@ import { getPublishedTILEntries } from "@/data/til"
 import { notes } from "@/data/notes"
 import { projects } from "@/data/projects"
 import { publications } from "@/data/respub"
-import { videos, articles, others, books, resources } from "@/data/consumed"
+import { videos, articles, others, books, resources, artists } from "@/data/consumed"
 import { normTag, consumedSlug } from "@/lib/tags"
 
 function fmtDate(dateStr: string) {
@@ -32,6 +32,7 @@ export async function generateStaticParams() {
   for (const o of others) o.tags.forEach((t) => slugs.add(normTag(t)))
   for (const b of books) slugs.add(normTag(b.genre))
   for (const r of resources) slugs.add(normTag(r.category))
+  for (const a of artists) slugs.add(normTag(a.genre))
   return [...slugs].map((tag) => ({ tag }))
 }
 
@@ -82,10 +83,12 @@ export default async function TagPage({
   const matchedOthers = others.filter((o) => o.tags.some((t) => normTag(t) === tag))
   const matchedBooks = books.filter((b) => normTag(b.genre) === tag)
   const matchedResources = resources.filter((r) => normTag(r.category) === tag)
+  const matchedArtists = artists.filter((a) => normTag(a.genre) === tag)
 
   const hasConsumed =
     matchedVideos.length > 0 || matchedArticles.length > 0 ||
-    matchedOthers.length > 0 || matchedBooks.length > 0 || matchedResources.length > 0
+    matchedOthers.length > 0 || matchedBooks.length > 0 || matchedResources.length > 0 ||
+    matchedArtists.length > 0
 
   if (
     posts.length === 0 && tils.length === 0 && matchedNotes.length === 0 &&
@@ -104,12 +107,13 @@ export default async function TagPage({
     matchedOthers[0]?.tags.find((t) => normTag(t) === tag) ??
     matchedBooks[0]?.genre ??
     matchedResources[0]?.category ??
+    matchedArtists[0]?.genre ??
     tag
 
   const total =
     posts.length + tils.length + matchedNotes.length + matchedProjects.length + matchedPubs.length +
     matchedVideos.length + matchedArticles.length + matchedOthers.length + matchedBooks.length +
-    matchedResources.length
+    matchedResources.length + matchedArtists.length
 
   return (
     <div className="container max-w-2xl py-24 space-y-12">
@@ -254,10 +258,26 @@ export default async function TagPage({
         </section>
       )}
 
-      {(matchedVideos.length > 0 || matchedArticles.length > 0 || matchedOthers.length > 0 || matchedBooks.length > 0 || matchedResources.length > 0) && (
+      {(matchedVideos.length > 0 || matchedArticles.length > 0 || matchedOthers.length > 0 || matchedBooks.length > 0 || matchedResources.length > 0 || matchedArtists.length > 0) && (
         <section className="space-y-4">
           <h2 className="text-sm font-mono text-primary uppercase tracking-widest">Consumed</h2>
           <ul className="space-y-3">
+            {matchedArtists.map((artist) => (
+              <li key={artist.name}>
+                <Link
+                  href={`/consumed/music/${consumedSlug(artist.name)}`}
+                  className="group flex items-start justify-between gap-4 rounded-lg border border-border/60 bg-muted/30 hover:bg-muted/60 hover:border-border p-4 transition-all"
+                >
+                  <div className="space-y-1 min-w-0">
+                    <p className="text-xs font-medium text-primary">Artist</p>
+                    <p className="font-semibold text-sm leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                      {artist.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-1">{artist.note}</p>
+                  </div>
+                </Link>
+              </li>
+            ))}
             {matchedBooks.map((book) => (
               <li key={book.title}>
                 <Link

@@ -10,7 +10,6 @@ const _avr_zac: Project = {
     technologies: ["C", "Embedded C", "ATmega644P", "PlatformIO", "Microchip Studio", "AVR", "State Machines", "Interrupts", "PWM", "ADC"],
     category: "embedded",
     featured: false,
-    ongoing: true,
     images: [
       "/images/projects/avr-zac/chip.svg",
       "/images/projects/avr-zac/main.svg",

@@ -4,20 +4,28 @@ import { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Tv2 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { videos, MONTHS, MONTH_CHIP, isMonthAvailable, type Month } from "@/data/consumed"
+import { videos, MONTHS, isMonthAvailable, sortByRecency, yearsFrom } from "@/data/consumed"
 import { VideoCard } from "@/components/consumed/VideoCard"
+import { ConsumedFilterBar } from "@/components/consumed/ConsumedFilterBar"
+import { ConsumedCategoryTabs } from "@/components/consumed/ConsumedCategoryTabs"
 
 export default function VideosContent() {
   const searchParams = useSearchParams()
   const preview = searchParams.get("preview") === "1"
+  const [activeYear, setActiveYear] = useState<string>("all")
   const [activeMonth, setActiveMonth] = useState<string>("all")
+  const [search, setSearch] = useState("")
   const [activeVideos, setActiveVideos] = useState<Set<string>>(new Set())
 
-  const availableMonths = MONTHS.filter((m) => isMonthAvailable(m, preview))
-  const filtered = videos
-    .filter((v) => isMonthAvailable(v.month, preview))
-    .filter((v) => activeMonth === "all" || v.month === activeMonth)
+  const years = yearsFrom(videos)
+  const availableMonths = MONTHS.filter((m) => isMonthAvailable(m, new Date().getFullYear(), preview))
+  const filtered = sortByRecency(
+    videos
+      .filter((v) => isMonthAvailable(v.month, v.year, preview))
+      .filter((v) => activeYear === "all" || String(v.year) === activeYear)
+      .filter((v) => activeMonth === "all" || v.month === activeMonth)
+      .filter((v) => !search || v.title.toLowerCase().includes(search.toLowerCase()) || v.channel.toLowerCase().includes(search.toLowerCase()) || v.tags.some((t) => t.toLowerCase().includes(search.toLowerCase())))
+  )
 
   return (
     <div className="container py-24 space-y-10">
@@ -41,41 +49,19 @@ export default function VideosContent() {
         </p>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground tracking-widest uppercase font-mono">Year</span>
-          <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-mono text-primary font-medium">2026</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveMonth("all")}
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-              activeMonth === "all"
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
-            )}
-          >
-            All
-          </button>
-          {availableMonths.map((m) => (
-            <button
-              type="button"
-              key={m}
-              onClick={() => setActiveMonth(m)}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                activeMonth === m
-                  ? cn("border-current", MONTH_CHIP[m])
-                  : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
-              )}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ConsumedFilterBar
+        years={years}
+        activeYear={activeYear}
+        onYearChange={setActiveYear}
+        months={availableMonths}
+        activeMonth={activeMonth}
+        onMonthChange={setActiveMonth}
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search videos by title, channel or tag..."
+      />
+
+      <ConsumedCategoryTabs active="videos" counts={{ videos: filtered.length }} />
 
       {filtered.length === 0 ? (
         <p className="text-sm text-muted-foreground py-8 text-center">No videos for this month yet.</p>

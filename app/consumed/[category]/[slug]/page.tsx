@@ -16,13 +16,15 @@ import {
   others,
   MONTH_CHIP,
   RESOURCE_CHIP,
+  sortByRecency,
   type BookEntry,
   type VideoEntry,
   type PodcastEntry,
   type LinkEntry,
   type ResourceEntry,
 } from "@/data/consumed"
-import { consumedSlug } from "@/lib/tags"
+import { consumedSlug, normTag } from "@/lib/tags"
+import { ConsumedPrevNext } from "@/components/consumed/ConsumedPrevNext"
 
 const CATEGORY_META = {
   books:     { label: "Books",     back: "/consumed/books"     },
@@ -72,6 +74,28 @@ function findItem(category: string, slug: string): Found | null {
     return item ? { type: "link", item } : null
   }
   return null
+}
+
+function sortedCategoryItems(category: ValidCategory): { title: string }[] {
+  if (category === "books") return sortByRecency(books)
+  if (category === "videos") return sortByRecency(videos)
+  if (category === "podcasts") return sortByRecency(podcasts)
+  if (category === "articles") return sortByRecency(articles)
+  if (category === "resources") return sortByRecency(resources)
+  return sortByRecency(others)
+}
+
+function findPrevNext(category: ValidCategory, currentTitle: string) {
+  const sorted = sortedCategoryItems(category)
+  const idx = sorted.findIndex((i) => i.title === currentTitle)
+  if (idx === -1) return { prev: null, next: null }
+  const base = CATEGORY_META[category].back
+  const prevItem = idx > 0 ? sorted[idx - 1] : null
+  const nextItem = idx < sorted.length - 1 ? sorted[idx + 1] : null
+  return {
+    prev: prevItem ? { title: prevItem.title, href: `${base}/${consumedSlug(prevItem.title)}` } : null,
+    next: nextItem ? { title: nextItem.title, href: `${base}/${consumedSlug(nextItem.title)}` } : null,
+  }
 }
 
 export async function generateStaticParams() {
@@ -129,6 +153,7 @@ export default async function ConsumedItemPage({
   if (!found) notFound()
 
   const meta = CATEGORY_META[category]
+  const { prev, next } = findPrevNext(category, found.item.title)
 
   return (
     <div className="container max-w-3xl py-24 space-y-10">
@@ -143,6 +168,8 @@ export default async function ConsumedItemPage({
       {found.type === "podcast"  && <PodcastView  podcast={found.item}  />}
       {found.type === "link"     && <LinkView     item={found.item}     category={category} />}
       {found.type === "resource" && <ResourceView resource={found.item} />}
+
+      <ConsumedPrevNext prev={prev} next={next} />
 
       <Link
         href={meta.back}
@@ -160,11 +187,11 @@ function BookView({ book }: { book: BookEntry }) {
     <div className="space-y-8">
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium", book.genreColor)}>
+          <Link href={`/tags/${normTag(book.genre)}`} className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium hover:opacity-80 transition-opacity", book.genreColor)}>
             {book.genre}
-          </span>
+          </Link>
           <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium", MONTH_CHIP[book.month])}>
-            {book.month} 2026
+            {book.month} {book.year}
           </span>
         </div>
         <div className="flex items-start justify-between gap-4">
@@ -201,10 +228,10 @@ function VideoView({ video }: { video: VideoEntry }) {
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
           <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium", MONTH_CHIP[video.month])}>
-            {video.month} 2026
+            {video.month} {video.year}
           </span>
           {video.tags.map((tag) => (
-            <span key={tag} className={TAG_PILL}>{tag}</span>
+            <Link key={tag} href={`/tags/${normTag(tag)}`} className={cn(TAG_PILL, "hover:text-foreground hover:border-border transition-colors")}>{tag}</Link>
           ))}
         </div>
         <div className="flex items-start justify-between gap-4">
@@ -250,7 +277,7 @@ function PodcastView({ podcast }: { podcast: PodcastEntry }) {
     <div className="space-y-8">
       <div className="space-y-3">
         <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium", MONTH_CHIP[podcast.month])}>
-          {podcast.month} 2026
+          {podcast.month} {podcast.year}
         </span>
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-4xl font-bold tracking-tight leading-tight">{podcast.title}</h1>
@@ -291,10 +318,10 @@ function LinkView({ item, category }: { item: LinkEntry; category: string }) {
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
           <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium", MONTH_CHIP[item.month])}>
-            {item.month} 2026
+            {item.month} {item.year}
           </span>
           {item.tags.map((tag) => (
-            <span key={tag} className={TAG_PILL}>{tag}</span>
+            <Link key={tag} href={`/tags/${normTag(tag)}`} className={cn(TAG_PILL, "hover:text-foreground hover:border-border transition-colors")}>{tag}</Link>
           ))}
         </div>
         <div className="flex items-start justify-between gap-4">
@@ -324,11 +351,11 @@ function ResourceView({ resource }: { resource: ResourceEntry }) {
     <div className="space-y-8">
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium", chip)}>
+          <Link href={`/tags/${normTag(resource.category)}`} className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium hover:opacity-80 transition-opacity", chip)}>
             {resource.category}
-          </span>
+          </Link>
           <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium", MONTH_CHIP[resource.month])}>
-            {resource.month} 2026
+            {resource.month} {resource.year}
           </span>
         </div>
         <div className="flex items-start justify-between gap-4">

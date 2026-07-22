@@ -6,7 +6,7 @@ import { getPublishedTILEntries } from "@/data/til"
 import { notes } from "@/data/notes"
 import { projects } from "@/data/projects"
 import { publications } from "@/data/respub"
-import { videos, articles, others, books, resources } from "@/data/consumed"
+import { videos, articles, others, books, resources, artists } from "@/data/consumed"
 import { normTag } from "@/lib/tags"
 import TagsClient from "@/components/tags/TagsClient"
 
@@ -42,6 +42,7 @@ export default function TagsPage() {
   for (const other of others) other.tags.forEach(addTag)
   for (const book of books) addTag(book.genre)
   for (const resource of resources) addTag(resource.category)
+  for (const artist of artists) addTag(artist.genre)
 
   // I sort by count descending, then alphabetically within the same count.
   const tags = [...counts.entries()]

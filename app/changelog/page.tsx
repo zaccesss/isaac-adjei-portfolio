@@ -48,6 +48,9 @@ const releases: ChangeEntry[] = [
       "/all-pages reorganised to match the header navigation, with the old flat list split into clearer groups",
       "/tags now covers notes and consumed resources too, alongside blog, TIL, projects, publications and the rest of consumed",
       "/links: EWskills joined the Competitive section alongside LeetCode, Codeforces and AtCoder",
+      "/consumed rebuilt: every item now sorts by its real year and month instead of a fixed 2026, search works across the whole page and every category, books and podcasts got proper cards with working links to their own pages, and the category tabs stay visible when switching category instead of disappearing",
+      "Every /consumed item, plus every music artist page, now has prev/next navigation between entries",
+      "/tags and /sitemap.xml now cover music artist genres too, alongside every other tagged content type",
     ],
     fixed: [
       "The whole site runs leaner: the guard that gates maintenance mode and the logged-out dashboard redirect now runs at the edge again rather than as a full server function on every request, after a framework rename had quietly made it the bulk of the site's hosting compute",
@@ -55,6 +58,8 @@ const releases: ChangeEntry[] = [
       "The Sky Celebration Day post and TIL are live again, reworded to reflect that a red weather warning moved the day to fully virtual on the day itself",
       "/lab: the genre chart could show a stray non-genre tag for an artist with little Last.fm data of their own; junk tags are now filtered more reliably",
       "The homepage's Today I Learned preview could show older entries ahead of a genuinely new one; it now always shows the 3 most recent",
+      "Dropped the \"Ongoing\" badge from Phaemos and avr-zac on /projects, now that their date range already carries that meaning",
+      "Trimmed the newsletter page's closing \"explore the rest of the site\" block down to Blog and TIL, since the rest was already one click away from the header or footer",
     ],
   },
   {

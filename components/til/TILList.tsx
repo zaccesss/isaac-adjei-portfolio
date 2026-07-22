@@ -5,7 +5,8 @@
 import { useState, useMemo } from "react"
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
-import { cn, computeReadingTime } from "@/lib/utils"
+import { cn, computeReadingTime, monthsFromDates } from "@/lib/utils"
+import { CONTENT_YEAR_MONTH_FILTERS } from "@/lib/feature-flags"
 import type { TILEntry } from "@/data/til"
 import { relevanceScore } from "@/lib/search"
 
@@ -88,6 +89,8 @@ function highlight(text: string, q: string): React.ReactNode {
 export default function TILList({ entries }: Props) {
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState<string>("all")
+  const [year, setYear] = useState<string>("all")
+  const [month, setMonth] = useState<string>("all")
   const [page, setPage] = useState(1)
 
   const categories = useMemo(() => {
@@ -96,10 +99,20 @@ export default function TILList({ entries }: Props) {
     return Array.from(seen).sort()
   }, [entries])
 
+  const years = useMemo(() => {
+    const seen = new Set<number>()
+    entries.forEach(e => seen.add(new Date(e.date).getFullYear()))
+    return Array.from(seen).sort((a, b) => b - a)
+  }, [entries])
+
+  const months = useMemo(() => monthsFromDates(entries.map(e => e.date)), [entries])
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
     const matches = entries.filter(e => {
       if (category !== "all" && e.category !== category) return false
+      if (year !== "all" && String(new Date(e.date).getFullYear()) !== year) return false
+      if (month !== "all" && String(new Date(e.date).getMonth()) !== month) return false
       if (q) {
         const plain = stripLinks(e.body)
         return e.title.toLowerCase().includes(q) || plain.toLowerCase().includes(q)
@@ -110,14 +123,16 @@ export default function TILList({ entries }: Props) {
     return matches.slice().sort(
       (a, b) => relevanceScore(b.title, stripLinks(b.body), q) - relevanceScore(a.title, stripLinks(a.body), q)
     )
-  }, [entries, search, category])
+  }, [entries, search, category, year, month])
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
-  function setFilter(next: { search?: string; category?: string }) {
+  function setFilter(next: { search?: string; category?: string; year?: string; month?: string }) {
     if (next.search !== undefined) setSearch(next.search)
     if (next.category !== undefined) setCategory(next.category)
+    if (next.year !== undefined) setYear(next.year)
+    if (next.month !== undefined) setMonth(next.month)
     setPage(1)
   }
 
@@ -162,6 +177,70 @@ export default function TILList({ entries }: Props) {
           </button>
         ))}
       </div>
+
+      {/* Year filter */}
+      {CONTENT_YEAR_MONTH_FILTERS && years.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground tracking-widest uppercase font-mono">Year</span>
+          <button
+            onClick={() => setFilter({ year: "all" })}
+            className={cn(
+              "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+              year === "all"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            )}
+          >
+            All
+          </button>
+          {years.map(y => (
+            <button
+              key={y}
+              onClick={() => setFilter({ year: String(y) })}
+              className={cn(
+                "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+                year === String(y)
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Month filter */}
+      {CONTENT_YEAR_MONTH_FILTERS && months.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground tracking-widest uppercase font-mono">Month</span>
+          <button
+            onClick={() => setFilter({ month: "all" })}
+            className={cn(
+              "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+              month === "all"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            )}
+          >
+            All
+          </button>
+          {months.map(m => (
+            <button
+              key={m.index}
+              onClick={() => setFilter({ month: String(m.index) })}
+              className={cn(
+                "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+                month === String(m.index)
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {m.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Count */}
       <p className="text-xs text-muted-foreground font-mono">

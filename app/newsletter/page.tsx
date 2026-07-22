@@ -2,11 +2,10 @@
 // I am a server component so the metadata and OG image are available for crawlers without JS.
 import type { Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
-import { Book, Mail, Zap, BookOpen, Cpu, Globe, Lightbulb, ExternalLink, Clock, FlaskConical, Info, Wrench, Play, GraduationCap } from "lucide-react"
+import { Mail, Zap, BookOpen, Cpu, Globe, Lightbulb, ExternalLink } from "lucide-react"
 import NewsletterForm from "@/components/shared/NewsletterForm"
 import RecentIssues from "@/components/shared/RecentIssues"
 import AuthorCard from "@/components/blog/AuthorCard"
-import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "Newsletter",
@@ -134,80 +133,6 @@ export default function NewsletterPage() {
       <Separator />
 
       <RecentIssues />
-
-      <Separator />
-
-      {/* Cross-links */}
-      <section className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          While you wait, explore the rest of the site.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/blog"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
-          >
-            <BookOpen className="h-4 w-4 text-primary" />
-            Read the blog
-          </Link>
-          <Link
-            href="/til"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
-          >
-            <Lightbulb className="h-4 w-4 text-primary" />
-            Today I Learned
-          </Link>
-          <Link
-            href="/notes"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
-          >
-            <Book className="h-4 w-4 text-primary" />
-            See my notes
-          </Link>
-          <Link
-            href="/respub"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
-          >
-            <GraduationCap className="h-4 w-4 text-primary" />
-            Research and publications
-          </Link>
-          <Link
-            href="/now"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
-          >
-            <Clock className="h-4 w-4 text-primary" />
-            What I am up to now
-          </Link>
-          <Link
-            href="/consumed"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
-          >
-            <Play className="h-4 w-4 text-primary" />
-            Consumed
-          </Link>
-          <Link
-            href="/lab"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
-          >
-            <FlaskConical className="h-4 w-4 text-primary" />
-            Lab
-          </Link>
-          <Link
-            href="/colophon"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
-          >
-            <Info className="h-4 w-4 text-primary" />
-            Colophon
-          </Link>
-          <Link
-            href="/uses"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted/40 transition-colors"
-          >
-            <Wrench className="h-4 w-4 text-primary" />
-            Uses
-          </Link>
-        </div>
-      </section>
 
     </div>
   )

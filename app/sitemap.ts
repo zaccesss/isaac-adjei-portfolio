@@ -108,6 +108,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const o of others) o.tags.forEach((t) => tagSlugs.add(normTag(t)))
   for (const b of books) tagSlugs.add(normTag(b.genre))
   for (const r of resources) tagSlugs.add(normTag(r.category))
+  for (const a of artists) tagSlugs.add(normTag(a.genre))
 
   const tagRoutes: MetadataRoute.Sitemap = [...tagSlugs].map((slug) => ({
     url: `${SITE_URL}/tags/${slug}`,

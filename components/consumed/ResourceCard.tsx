@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ExternalLink, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { RESOURCE_CHIP, MONTH_CHIP, type ResourceEntry } from "@/data/consumed"
-import { consumedSlug } from "@/lib/tags"
+import { consumedSlug, normTag } from "@/lib/tags"
 
 export function ResourceCard({ resource }: { resource: ResourceEntry }) {
   const chip = RESOURCE_CHIP[resource.category]
@@ -34,9 +34,12 @@ export function ResourceCard({ resource }: { resource: ResourceEntry }) {
       </div>
       <p className="text-xs text-muted-foreground leading-relaxed flex-1">{resource.description}</p>
       <div className="flex items-center gap-2">
-        <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium", chip)}>
+        <Link
+          href={`/tags/${normTag(resource.category)}`}
+          className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium hover:opacity-80 transition-opacity", chip)}
+        >
           {resource.category}
-        </span>
+        </Link>
         <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium", MONTH_CHIP[resource.month])}>
           {resource.month.slice(0, 3)}
         </span>

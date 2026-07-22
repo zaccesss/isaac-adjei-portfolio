@@ -23,3 +23,15 @@ export function computeReadingTime(blocks: { type: string; text?: string; code?:
   }, 0)
   return Math.max(1, Math.round(words / 200))
 }
+
+// I derive the distinct months present across a list of ISO date strings, each paired with its
+// month index (0-11) so callers can sort chronologically instead of alphabetically.
+export function monthsFromDates(dates: string[]): { name: string; index: number }[] {
+  const seen = new Map<number, string>()
+  for (const d of dates) {
+    const date = new Date(d)
+    const index = date.getMonth()
+    if (!seen.has(index)) seen.set(index, date.toLocaleDateString("en-GB", { month: "long" }))
+  }
+  return [...seen.entries()].map(([index, name]) => ({ name, index })).sort((a, b) => a.index - b.index)
+}

@@ -98,20 +98,6 @@ export default function NowPage() {
             Starting FPGA development from scratch, learning VHDL and working up to real hardware designs.
           </p>
           <p>
-            Still working through a business analytics course independently, covering probability,
-            statistics, Python, descriptive analytics, ML and prescriptive optimisation. Publishing
-            notes and interactive tools{" "}
-            <a
-              href="https://github.com/zaccesss/ba-from-data-to-decisions"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors"
-            >
-              as I go
-            </a>
-            .
-          </p>
-          <p>
             Getting serious about competitive programming too - working through Neetcode and Leetcode
             consistently, practising on Codeforces and entering hackathons where I can.
           </p>
@@ -168,24 +154,21 @@ export default function NowPage() {
           <div className="space-y-1">
             <p className="font-medium text-foreground">This site</p>
             <p className="leading-relaxed">
-              Several new pages shipped recently:{" "}
-              <Link href="/til" className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
-                /til
-              </Link>{" "}
-              for short daily learnings,{" "}
+              Every publication on{" "}
               <Link href="/respub" className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
                 /respub
               </Link>{" "}
-              for research and publications,{" "}
-              <Link href="/search" className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
-                /search
+              now gets its own page with a proper APA citation and a copyable BibTeX block. Just
+              finished rebuilding{" "}
+              <Link href="/consumed" className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
+                /consumed
               </Link>{" "}
-              and{" "}
+              too: everything is dated by real year instead of a hardcoded one, sorted newest first,
+              searchable in one place, with prev/next navigation between items and every genre or tag
+              properly linked into{" "}
               <Link href="/tags" className="text-primary underline underline-offset-4 hover:text-primary/80 transition-colors">
                 /tags
-              </Link>{" "}
-              across all content. Consumed items now have individual subpages too. Focused on finishing
-              the remaining steps before the PR.
+              </Link>.
             </p>
           </div>
         </div>
@@ -231,9 +214,9 @@ export default function NowPage() {
             events and networking with people doing work I genuinely find interesting.
           </p>
           <p>
-            I have been invited to Sky&apos;s campus the day before my birthday, celebrating being
-            shortlisted for the Black Heritage Undergraduate of the Year award. It means a lot and
-            I am genuinely looking forward to it.
+            Visited Sky&apos;s campus recently for being shortlisted for the Black Heritage
+            Undergraduate of the Year award, the day before my birthday. It meant a lot, and it was a
+            good reminder that the work is being noticed outside of just shipping code.
           </p>
         </div>
       </section>

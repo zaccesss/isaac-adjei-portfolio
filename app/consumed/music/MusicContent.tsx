@@ -3,8 +3,9 @@ import Link from "next/link"
 import { ArrowLeft, Music2, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { artists, genres } from "@/data/consumed"
-import { consumedSlug } from "@/lib/tags"
+import { consumedSlug, normTag } from "@/lib/tags"
 import { SpotifyNowPlaying } from "@/components/consumed/SpotifyNowPlaying"
+import { ConsumedCategoryTabs } from "@/components/consumed/ConsumedCategoryTabs"
 import { Separator } from "@/components/ui/separator"
 
 export default function MusicContent() {
@@ -27,6 +28,8 @@ export default function MusicContent() {
         </p>
       </div>
 
+      <ConsumedCategoryTabs active="music" />
+
       <div className="flex justify-center">
         <SpotifyNowPlaying />
       </div>
@@ -37,22 +40,28 @@ export default function MusicContent() {
         <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Artists</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {artists.map((a) => (
-            <Link
-              key={a.name}
-              href={`/consumed/music/${consumedSlug(a.name)}`}
-              className="group rounded-xl border border-border/60 bg-card p-4 space-y-1.5 block hover:border-primary/40 transition-colors"
-            >
+            <div key={a.name} className="group rounded-xl border border-border/60 bg-card p-4 space-y-1.5 hover:border-primary/40 transition-colors">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{a.name}</p>
-                  <p className="text-xs text-muted-foreground">{a.genre}</p>
+                  <Link
+                    href={`/consumed/music/${consumedSlug(a.name)}`}
+                    className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors"
+                  >
+                    {a.name}
+                  </Link>
+                  <Link
+                    href={`/tags/${normTag(a.genre)}`}
+                    className="block text-xs text-muted-foreground hover:text-foreground transition-colors w-fit"
+                  >
+                    {a.genre}
+                  </Link>
                 </div>
                 {a.youtubeId && (
                   <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
                 )}
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">{a.note}</p>
-            </Link>
+            </div>
           ))}
         </div>
       </div>
