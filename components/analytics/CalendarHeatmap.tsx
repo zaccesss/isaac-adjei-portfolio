@@ -5,7 +5,7 @@
 // stops hand-rolling its own div grid with its own intensity-class lookup and tooltip state.
 
 import ReactECharts from "echarts-for-react"
-import { useEChartsColours, intensityScale } from "./echarts-theme"
+import { useEChartsColours, intensityScale, relativeLevel } from "./echarts-theme"
 
 export interface CalendarHeatmapDatum {
   date: string // "YYYY-MM-DD"
@@ -51,9 +51,9 @@ export function CalendarHeatmap({
 
   const option = {
     tooltip: {
-      formatter: (p: { data: [string, number] }) => {
-        const [date, value] = p.data
-        const formatted = valueFormatter ? valueFormatter(value) : value.toLocaleString()
+      formatter: (p: { data: { value: [string, number]; raw: number } }) => {
+        const [date] = p.data.value
+        const formatted = valueFormatter ? valueFormatter(p.data.raw) : p.data.raw.toLocaleString()
         return `${date}<br/>${formatted}${valueLabel ? ` ${valueLabel}` : ""}`
       },
       backgroundColor: colours.card,
@@ -63,7 +63,7 @@ export function CalendarHeatmap({
     visualMap: {
       show: false,
       min: 0,
-      max,
+      max: 4,
       calculable: false,
       inRange: { color: scale },
     },
@@ -80,7 +80,10 @@ export function CalendarHeatmap({
       {
         type: "heatmap",
         coordinateSystem: "calendar",
-        data: safe.map((d) => [d.date, d.value]),
+        // Coloured by a 0-4 bucket relative to this calendar's own max, not the raw value on a
+        // linear scale - one outlier day would otherwise compress every other real day into the
+        // bottom sliver of the range, reading as "basically empty" everywhere except the peak.
+        data: safe.map((d) => ({ value: [d.date, relativeLevel(d.value, max)], raw: d.value })),
       },
     ],
   }
