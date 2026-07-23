@@ -1,14 +1,16 @@
-// I fetch GitHub profile stats via the authenticated REST API (includes private repos)
-// and contribution data via GraphQL. I sum all-time contributions across every
-// year since the account was created and cache results in Redis for 10 minutes.
+// I fetch GitHub profile stats via the authenticated REST API (includes private repos) and read
+// contribution history from the stored github_contributions_days/_years tables instead of calling
+// GitHub's GraphQL API live - a real per-day history synced daily, not fetched fresh on every page
+// view. I cache the combined result in Redis for 10 minutes.
 
 import { NextResponse } from "next/server"
 import { redis } from "@/lib/redis"
 import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 import { GH_OWNER } from "@/lib/site-config"
+import { getStoredGithubContributions } from "@/lib/github-contributions"
 
 const GITHUB_USER = GH_OWNER
-const CACHE_KEY = "github:stats:v4"
+const CACHE_KEY = "github:stats:v5"
 const CACHE_TTL = 600
 
 interface GitHubRepo {
@@ -61,61 +63,18 @@ export async function GET(req: Request) {
     const pat = process.env.GITHUB_PAT
     const headers = authHeaders(pat)
 
-    const currentYear = new Date().getFullYear()
-
-    // I build aliases for each year from 2020 to current year to get all-time totals in one query.
-    // I also fetch the full heatmap and breakdown for the current year.
-    const yearAliases = Array.from({ length: currentYear - 2019 }, (_, i) => {
-      const y = 2020 + i
-      const from = `${y}-01-01T00:00:00Z`
-      const to = `${y}-12-31T23:59:59Z`
-      if (y === currentYear) {
-        return `
-          y${y}: contributionsCollection(from: "${from}", to: "${to}") {
-            totalCommitContributions
-            totalIssueContributions
-            totalPullRequestContributions
-            contributionCalendar {
-              totalContributions
-              weeks {
-                contributionDays {
-                  contributionCount
-                  date
-                }
-              }
-            }
-          }`
-      }
-      return `
-          y${y}: contributionsCollection(from: "${from}", to: "${to}") {
-            contributionCalendar { totalContributions }
-          }`
-    }).join("")
-
-    const graphqlQuery = {
-      query: `query($login: String!) {
-        user(login: $login) {
-          followers { totalCount }
-          ${yearAliases}
-        }
-      }`,
-      variables: { login: GITHUB_USER },
-    }
-
-    // Use authenticated /user/repos to include private repos
-    const [reposRes, graphqlRes] = await Promise.all([
+    // Use authenticated /user/repos to include private repos. /users/:login gives followers
+    // without needing GraphQL just for one number.
+    const [reposRes, userRes, stored] = await Promise.all([
       fetch(`https://api.github.com/user/repos?affiliation=owner&per_page=100&sort=updated`, {
         headers,
         signal: AbortSignal.timeout(6000),
       }),
-      pat
-        ? fetch("https://api.github.com/graphql", {
-            method: "POST",
-            headers: { ...headers, "Content-Type": "application/json" },
-            body: JSON.stringify(graphqlQuery),
-            signal: AbortSignal.timeout(10000),
-          })
-        : Promise.resolve(null),
+      fetch(`https://api.github.com/users/${GITHUB_USER}`, {
+        headers,
+        signal: AbortSignal.timeout(6000),
+      }),
+      getStoredGithubContributions(),
     ])
 
     if (!reposRes.ok) {
@@ -141,49 +100,23 @@ export async function GET(req: Request) {
       .slice(0, 3)
       .map((r) => ({ name: r.name, description: r.description ?? "", stars: r.stargazers_count, url: r.html_url }))
 
-    let contributions: GitHubStats["contributions"] = null
     let followers = 0
-
-    if (graphqlRes && !graphqlRes.ok) {
-      // Logged rather than silently defaulted, so a GraphQL failure (a fine-grained PAT missing a
-      // scope, a rate limit, a malformed query) shows up in the function logs instead of just
-      // reading as "0 followers, no contribution graph" with no way to tell why.
-      console.error("github-stats GraphQL request failed:", graphqlRes.status, await graphqlRes.text())
+    if (userRes.ok) {
+      const user = await userRes.json()
+      followers = user.followers ?? 0
+    } else {
+      console.error("github-stats /users request failed:", userRes.status, await userRes.text())
     }
 
-    if (graphqlRes && graphqlRes.ok) {
-      const gql = await graphqlRes.json()
-      if (gql?.errors?.length) {
-        console.error("github-stats GraphQL errors:", JSON.stringify(gql.errors))
-      }
-      const user = gql?.data?.user
-
-      if (user) {
-        followers = user.followers?.totalCount ?? 0
-
-        // Sum all-time contributions across every year
-        let allTimeTotal = 0
-        for (let y = 2020; y <= currentYear; y++) {
-          const col = user[`y${y}`]
-          if (col) allTimeTotal += col.contributionCalendar?.totalContributions ?? 0
+    const contributions: GitHubStats["contributions"] = stored.days.length
+      ? {
+          allTimeTotal: stored.allTimeTotal,
+          commits: stored.currentYear.commits,
+          pullRequests: stored.currentYear.pullRequests,
+          issues: stored.currentYear.issues,
+          days: stored.days,
         }
-
-        const currentCol = user[`y${currentYear}`]
-        if (currentCol) {
-          const days: ContributionDay[] = currentCol.contributionCalendar.weeks.flatMap(
-            (w: { contributionDays: { contributionCount: number; date: string }[] }) =>
-              w.contributionDays.map((d) => ({ date: d.date, count: d.contributionCount }))
-          )
-          contributions = {
-            allTimeTotal,
-            commits: currentCol.totalCommitContributions,
-            pullRequests: currentCol.totalPullRequestContributions,
-            issues: currentCol.totalIssueContributions,
-            days,
-          }
-        }
-      }
-    }
+      : null
 
     const stats: GitHubStats = {
       publicRepos: repos.length,

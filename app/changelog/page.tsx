@@ -54,6 +54,7 @@ const releases: ChangeEntry[] = [
       "/consumed rebuilt: every item now sorts by its real year and month instead of a fixed 2026, search works across the whole page and every category, books and podcasts got proper cards with working links to their own pages, and the category tabs stay visible when switching category instead of disappearing",
       "Every /consumed item, plus every music artist page, now has prev/next navigation between entries",
       "/tags and /sitemap.xml now cover music artist genres too, alongside every other tagged content type",
+      "/lab: the GitHub contributions calendar now shows a genuine year of history from a daily-synced record instead of GitHub's own rolling 52-week graph, matching the same calendar style as the Wakatime coding heatmap and Strava's training calendar",
     ],
     fixed: [
       "The whole site runs leaner: the guard that gates maintenance mode and the logged-out dashboard redirect now runs at the edge again rather than as a full server function on every request, after a framework rename had quietly made it the bulk of the site's hosting compute",

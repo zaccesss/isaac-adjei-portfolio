@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, type ReactNode } from "react"
+import { useMemo, type ReactNode } from "react"
 import { Code2 } from "lucide-react"
 import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
@@ -20,8 +20,6 @@ import {
 } from "@/components/analytics"
 import type { WakatimeDayRow, GitHubDay, GitHubContribTotals } from "@/app/dashboard/actions"
 
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 // AI assistant tools/IDEs whose time counts in totals but must never surface as a named
@@ -80,51 +78,6 @@ function formatHours(seconds: number) {
   if (h === 0) return `${m}m`
   if (m === 0) return `${h}h`
   return `${h}h ${m}m`
-}
-
-type GHCell  = { date: string; count: number;   level: 0 | 1 | 2 | 3 | 4 }
-
-function ghIntensity(count: number): 0 | 1 | 2 | 3 | 4 {
-  if (count === 0) return 0
-  if (count < 3)  return 1
-  if (count < 6)  return 2
-  if (count < 10) return 3
-  return 4
-}
-
-const GH_INTENSITY_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: "bg-muted",
-  1: "bg-blue-200 dark:bg-blue-900",
-  2: "bg-blue-400 dark:bg-blue-700",
-  3: "bg-blue-500 dark:bg-blue-500",
-  4: "bg-blue-700 dark:bg-blue-300",
-}
-
-function buildGHGrid(days: GitHubDay[]): GHCell[][] {
-  const byDate = new Map(days.map((d) => [d.date, d.count]))
-  const today = new Date()
-  const start = new Date(today)
-  start.setDate(today.getDate() - ((today.getDay() + 6) % 7) + 7 - 52 * 7)
-  start.setHours(0, 0, 0, 0)
-  const weeks: GHCell[][] = []
-  const cursor = new Date(start)
-  for (let w = 0; w < 52; w++) {
-    const week: GHCell[] = []
-    for (let d = 0; d < 7; d++) {
-      const iso = cursor.toISOString().slice(0, 10)
-      const count = byDate.get(iso) ?? 0
-      week.push({ date: iso, count, level: ghIntensity(count) })
-      cursor.setDate(cursor.getDate() + 1)
-    }
-    weeks.push(week)
-  }
-  return weeks
-}
-
-function monthLabel(week: { date: string }[]): string | null {
-  const firstDay = new Date(week[0].date)
-  if (firstDay.getDate() <= 7) return MONTHS[firstDay.getMonth()]
-  return null
 }
 
 // A single breakdown section (Languages, Editors, Operating systems, Projects). Presents the
@@ -207,16 +160,17 @@ function CodingInner({
   ghDays?: GitHubDay[]
   ghTotals?: GitHubContribTotals
 }) {
-  const [ghTooltip, setGhTooltip] = useState<{ date: string; count: number } | null>(null)
   const { period } = useAnalyticsPeriod()
 
-  // Full-year data for the calendar heatmap (always unfiltered) - GitHub's own 52-week grid is
-  // untouched for now since it has no historical table to draw a real year from yet.
+  // Full-year data for both calendar heatmaps (always unfiltered, independent of the period selector)
   const dailyHeatmapData = useMemo(
     () => rows.map((r) => ({ date: r.date, value: r.total_seconds })),
     [rows]
   )
-  const ghGrid = useMemo(() => buildGHGrid(ghDays), [ghDays])
+  const ghHeatmapData = useMemo(
+    () => ghDays.map((d) => ({ date: d.date, value: d.count })),
+    [ghDays]
+  )
 
   // Period-filtered rows: stats, aggregate charts, and hour×day matrix
   const periodRows = useMemo(() => {
@@ -448,46 +402,7 @@ function CodingInner({
             <h2 className="text-sm font-semibold">GitHub Contributions</h2>
             <span className="text-xs text-muted-foreground">- commits, PRs, issues and reviews</span>
           </div>
-          <div className="flex gap-1 mb-1">
-            <div className="w-6 shrink-0" />
-            {ghGrid.map((week, wi) => (
-              <div key={wi} className="w-3 shrink-0 text-[9px] text-muted-foreground text-center">
-                {monthLabel(week) ?? ""}
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-1">
-            <div className="flex flex-col gap-1 w-6 shrink-0">
-              {DAYS.map((d, i) => (
-                <div key={d} className={`h-3 text-[9px] text-muted-foreground leading-3 ${i % 2 === 0 ? "opacity-0" : ""}`}>{d}</div>
-              ))}
-            </div>
-            {ghGrid.map((week, wi) => (
-              <div key={wi} className="flex flex-col gap-1">
-                {week.map((cell) => (
-                  <div
-                    key={cell.date}
-                    className={`h-3 w-3 rounded-sm cursor-default transition-opacity hover:opacity-80 ${GH_INTENSITY_CLASS[cell.level]}`}
-                    onMouseEnter={() => setGhTooltip({ date: cell.date, count: cell.count })}
-                    onMouseLeave={() => setGhTooltip(null)}
-                    title={`${cell.date}: ${cell.count} contribution${cell.count !== 1 ? "s" : ""}`}
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
-          {ghTooltip && (
-            <div className="mt-2 text-xs text-muted-foreground">
-              {ghTooltip.date}: {ghTooltip.count} contribution{ghTooltip.count !== 1 ? "s" : ""}
-            </div>
-          )}
-          <div className="flex items-center gap-1.5 mt-3">
-            <span className="text-xs text-muted-foreground">Less</span>
-            {([0, 1, 2, 3, 4] as const).map((lvl) => (
-              <div key={lvl} className={`h-3 w-3 rounded-sm ${GH_INTENSITY_CLASS[lvl]}`} />
-            ))}
-            <span className="text-xs text-muted-foreground">More</span>
-          </div>
+          <CalendarHeatmap data={ghHeatmapData} valueLabel="contributions" />
         </div>
       )}
 

@@ -3,57 +3,12 @@
 import { useEffect, useState } from "react"
 import TypingMotto from "@/components/shared/TypingMotto"
 import { Github, Star, Users, BookOpen, ExternalLink, GitCommitHorizontal, GitPullRequest, CircleDot, GitBranch } from "lucide-react"
-import type { GitHubStats, ContributionDay } from "@/app/api/github-stats/route"
+import type { GitHubStats } from "@/app/api/github-stats/route"
+import { CalendarHeatmap } from "@/components/analytics"
 
 interface LastPush {
   repo: string | null
   relativeTime: string | null
-}
-
-function ContributionGrid({ days }: { days: ContributionDay[] }) {
-  const max = Math.max(...days.map((d) => d.count), 1)
-
-  function intensity(count: number): string {
-    if (count === 0) return "bg-muted/40 dark:bg-zinc-800"
-    const pct = count / max
-    if (pct <= 0.25) return "bg-primary/25"
-    if (pct <= 0.5) return "bg-primary/50"
-    if (pct <= 0.75) return "bg-primary/75"
-    return "bg-primary"
-  }
-
-  // Group into weeks
-  const weeks: ContributionDay[][] = []
-  for (let i = 0; i < days.length; i += 7) {
-    weeks.push(days.slice(i, i + 7))
-  }
-
-  return (
-    <div className="space-y-1.5">
-      <div className="overflow-x-auto">
-        <div className="flex gap-[3px] min-w-max">
-          {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-[3px]">
-              {week.map((day) => (
-                <div
-                  key={day.date}
-                  title={`${day.date}: ${day.count} contribution${day.count !== 1 ? "s" : ""}`}
-                  className={`w-[10px] h-[10px] rounded-sm transition-colors ${intensity(day.count)}`}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="flex items-center justify-end gap-1.5">
-        <span className="text-[10px] text-muted-foreground font-mono">Less</span>
-        {["bg-muted/40 dark:bg-zinc-800", "bg-primary/25", "bg-primary/50", "bg-primary/75", "bg-primary"].map((cls, i) => (
-          <div key={i} className={`w-[10px] h-[10px] rounded-sm ${cls}`} />
-        ))}
-        <span className="text-[10px] text-muted-foreground font-mono">More</span>
-      </div>
-    </div>
-  )
 }
 
 export default function GitHubStats() {
@@ -166,7 +121,12 @@ export default function GitHubStats() {
                 ))}
               </div>
 
-              <ContributionGrid days={stats.contributions.days} />
+              <CalendarHeatmap
+                data={stats.contributions.days.map((d) => ({ date: d.date, value: d.count }))}
+                valueLabel="contributions"
+                height={140}
+                cellSize={10}
+              />
             </div>
           )}
 
