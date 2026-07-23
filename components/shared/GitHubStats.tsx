@@ -1,10 +1,48 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import dynamic from "next/dynamic"
 import TypingMotto from "@/components/shared/TypingMotto"
 import { Github, Star, Users, BookOpen, ExternalLink, GitCommitHorizontal, GitPullRequest, CircleDot, GitBranch } from "lucide-react"
 import type { GitHubStats } from "@/app/api/github-stats/route"
-import { CalendarHeatmap } from "@/components/analytics"
+import { CalendarHeatmap, type CalendarHeatmapDatum } from "@/components/analytics"
+
+// Dynamically imported without SSR (three.js/react-three-fiber need a real DOM+WebGL context),
+// matching components/lab/PCBViewer.tsx's existing pattern for the only other three.js usage here.
+const IsometricContributionCalendar = dynamic(() => import("@/components/analytics/IsometricContributionCalendar"), {
+  ssr: false,
+})
+
+// Defers mounting the (WebGL-heavy) isometric panel until it actually scrolls into view, so a
+// visitor who never scrolls this far never pays for the three.js bundle or a WebGL context at all.
+function LazyIsometricCalendar({ data }: { data: CalendarHeatmapDatum[] }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div ref={ref} style={{ minHeight: visible ? undefined : 320 }}>
+      {visible && (
+        <IsometricContributionCalendar data={data} valueLabel="contributions" height={320} />
+      )}
+    </div>
+  )
+}
 
 interface LastPush {
   repo: string | null
@@ -126,6 +164,12 @@ export default function GitHubStats() {
                 valueLabel="contributions"
                 height={140}
                 cellSize={10}
+              />
+
+              {/* A circuit-board-styled isometric read of the same data, for the fun of it -
+                  lazy-mounted so it costs nothing until scrolled into view. */}
+              <LazyIsometricCalendar
+                data={stats.contributions.days.map((d) => ({ date: d.date, value: d.count }))}
               />
             </div>
           )}
