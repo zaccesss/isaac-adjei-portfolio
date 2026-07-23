@@ -1730,21 +1730,23 @@ export type BlogReadEvent = {
 
 // Raw scroll-depth events, so the analytics page can recompute the funnel, heatmap and reads-over-time for
 // any selected period rather than only the all-time aggregate the RPCs return. Paged because PostgREST
-// caps a single response at 1000 rows.
+// caps a single response at 1000 rows - fetched in parallel (a count query, then one burst of range()
+// calls) rather than one page at a time, since a growing events table should not cost the analytics page
+// another sequential round trip on every load.
 export async function getBlogReadEvents(): Promise<BlogReadEvent[]> {
   await requireAuth()
-  const all: BlogReadEvent[] = []
-  for (let from = 0; ; from += 1000) {
-    const { data } = await supabase
-      .from("blog_read_events")
-      .select("slug, depth, post_type, created_at")
-      .order("created_at", { ascending: false })
-      .range(from, from + 999)
-    if (!data || data.length === 0) break
-    all.push(...(data as BlogReadEvent[]))
-    if (data.length < 1000) break
-  }
-  return all
+  const { count } = await supabase.from("blog_read_events").select("id", { count: "exact", head: true })
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / 1000))
+  const pages = await Promise.all(
+    Array.from({ length: totalPages }, (_, i) =>
+      supabase
+        .from("blog_read_events")
+        .select("slug, depth, post_type, created_at")
+        .order("created_at", { ascending: false })
+        .range(i * 1000, i * 1000 + 999)
+    )
+  )
+  return pages.flatMap((p) => (p.data as BlogReadEvent[] | null) ?? [])
 }
 
 // ─── WakaTime Heatmap ────────────────────────────────────────────────────────
