@@ -29,14 +29,24 @@ const VARS: Record<keyof EChartsColours, string> = {
   card: "--card",
 }
 
+// Comma-separated, since globals.css defines each token as bare "H S% L%" components and
+// ECharts' own colour parser (zrender's color.js) only recognises the legacy comma-separated
+// hsl(H, S%, L%) form - the space-separated CSS Color 4 syntax parses fine in a DOM style
+// attribute (what the Recharts wrappers use) but silently fails inside ECharts' canvas draw
+// calls, falling back to solid black for every cell that should have used one of these tokens.
+function toHslString(raw: string): string {
+  const [h, s, l] = raw.split(/\s+/)
+  return `hsl(${h}, ${s}, ${l})`
+}
+
 const FALLBACK: EChartsColours = {
-  border: "hsl(214.3 31.8% 91.4%)",
-  primary: "hsl(225 65% 40%)",
-  muted: "hsl(210 40% 96.1%)",
-  mutedForeground: "hsl(215.4 16.3% 46.9%)",
-  foreground: "hsl(222.2 84% 4.9%)",
-  background: "hsl(0 0% 100%)",
-  card: "hsl(0 0% 100%)",
+  border: toHslString("214.3 31.8% 91.4%"),
+  primary: toHslString("225 65% 40%"),
+  muted: toHslString("210 40% 96.1%"),
+  mutedForeground: toHslString("215.4 16.3% 46.9%"),
+  foreground: toHslString("222.2 84% 4.9%"),
+  background: toHslString("0 0% 100%"),
+  card: toHslString("0 0% 100%"),
 }
 
 export function useEChartsColours(): EChartsColours {
@@ -44,17 +54,22 @@ export function useEChartsColours(): EChartsColours {
   const [colours, setColours] = useState<EChartsColours>(FALLBACK)
 
   useEffect(() => {
-    const styles = getComputedStyle(document.documentElement)
-    const next = {} as EChartsColours
-    for (const key of Object.keys(VARS) as (keyof EChartsColours)[]) {
-      const raw = styles.getPropertyValue(VARS[key]).trim()
-      next[key] = raw ? `hsl(${raw})` : FALLBACK[key]
-    }
-    // getComputedStyle only reflects reality once the theme class has painted, so this reads an
-    // external system (the DOM) rather than deriving from React state - the sanctioned case for
-    // an effect-driven setState, just not one the lint rule can tell apart from a render loop.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setColours(next)
+    // next-themes flips the class on <html> in the same tick this effect fires, but the browser
+    // hasn't necessarily recalculated computed style for that class yet - reading synchronously
+    // here could still return the PREVIOUS theme's values (reproduced live: toggling the theme
+    // left every chart on stale colours until a full page reload re-ran this effect after the
+    // class was already settled). Deferring the read to the next animation frame guarantees the
+    // style recalculation from the class change has actually happened first.
+    const raf = requestAnimationFrame(() => {
+      const styles = getComputedStyle(document.documentElement)
+      const next = {} as EChartsColours
+      for (const key of Object.keys(VARS) as (keyof EChartsColours)[]) {
+        const raw = styles.getPropertyValue(VARS[key]).trim()
+        next[key] = raw ? toHslString(raw) : FALLBACK[key]
+      }
+      setColours(next)
+    })
+    return () => cancelAnimationFrame(raf)
   }, [resolvedTheme])
 
   return colours

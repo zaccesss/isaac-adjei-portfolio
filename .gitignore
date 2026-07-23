@@ -12,6 +12,7 @@ discord-webhooks.json
 
 # testing
 /coverage
+.playwright-mcp/
 
 # next.js
 /.next/

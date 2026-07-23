@@ -34,6 +34,7 @@ const releases: ChangeEntry[] = [
       "Patched a dependency vulnerability flagged across three separate alerts, all the same underlying issue in a shared transitive package",
     ],
     added: [
+      "/lab: the GitHub contributions calendar now has a second, circuit-board-styled isometric view underneath the usual flat one - one extruded block per day lit up like an LED on the busiest days, defaulting to a fixed isometric angle but now with drag to rotate, scroll to zoom and a flat top-down view too",
       "/contribute: a full contributing guide covering the range of what I build - software, hardware, images and design, writing and courses, and this site; sections on ways to help, pull requests, using AI, patience and getting in touch, each cross-linked to its GitHub repo",
       "/code-of-conduct: a short personal intro followed by the Contributor Covenant 2.1 in full",
       "/support: where to get help - discussions, an issue, my support email and my contact page",
@@ -57,6 +58,7 @@ const releases: ChangeEntry[] = [
       "/lab: the GitHub contributions calendar now shows a genuine year of history from a daily-synced record instead of GitHub's own rolling 52-week graph, matching the same calendar style as the Wakatime coding heatmap and Strava's training calendar",
     ],
     fixed: [
+      "/lab and the dashboard: heatmap and calendar colours could silently fall back to solid black instead of the real colour scale, and switching light or dark mode left every chart's colours a step behind until a full reload - both fixed",
       "The whole site runs leaner: the guard that gates maintenance mode and the logged-out dashboard redirect now runs at the edge again rather than as a full server function on every request, after a framework rename had quietly made it the bulk of the site's hosting compute",
       "A sweep of every blog post, TIL entry and consumed-page link caught a dozen that had gone dead since they were written; each now points at the correct current source or an equivalent replacement",
       "The Sky Celebration Day post and TIL are live again, reworded to reflect that a red weather warning moved the day to fully virtual on the day itself",
