@@ -68,3 +68,20 @@ export function useEChartsColours(): EChartsColours {
 export function intensityScale(colours: EChartsColours): string[] {
   return [colours.border, "#93c5fd", "#60a5fa", "#3b82f6", colours.primary]
 }
+
+// Buckets a raw value into a 0-4 intensity level relative to the data's own max, exactly matching
+// the percentage thresholds the old hand-rolled heatmaps used (relativeIntensity/intensityIndex).
+// This is deliberately NOT a plain linear min-max scale: heatmap activity is typically dominated by
+// a handful of outlier hours/days (one marathon coding session, one viral post), and interpolating
+// colour linearly between 0 and that single outlier compresses almost every other real value into
+// the bottom sliver of the range - everything reads as "basically zero" except the one peak cell.
+// Bucketing by percentage-of-max keeps genuinely active cells visually distinct from empty ones
+// regardless of how extreme the single busiest cell is.
+export function relativeLevel(value: number, max: number): 0 | 1 | 2 | 3 | 4 {
+  if (value <= 0 || max <= 0) return 0
+  const ratio = value / max
+  if (ratio < 0.15) return 1
+  if (ratio < 0.35) return 2
+  if (ratio < 0.65) return 3
+  return 4
+}
