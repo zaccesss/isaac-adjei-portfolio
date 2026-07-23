@@ -33,7 +33,10 @@ export function GridHeatmap({
 }: GridHeatmapProps) {
   const colours = useEChartsColours()
   const scale = colourScale ?? intensityScale(colours)
-  const max = Math.max(...data.map((d) => d.value), 1)
+  // Defends against NaN/null reaching ECharts (e.g. a sparse upstream array with a missing hour) -
+  // an unmappable value renders as a solid, uncoloured block instead of quietly becoming 0.
+  const safe = data.map((d) => ({ ...d, value: Number.isFinite(d.value) ? d.value : 0 }))
+  const max = Math.max(...safe.map((d) => d.value), 1)
 
   const option = {
     tooltip: {
@@ -50,14 +53,14 @@ export function GridHeatmap({
     xAxis: {
       type: "category",
       data: HOUR_LABELS,
-      splitArea: { show: true },
+      splitArea: { show: true, areaStyle: { color: [colours.card, colours.muted] } },
       axisLabel: { color: colours.mutedForeground, fontSize: 9, interval: 2 },
       axisLine: { lineStyle: { color: colours.border } },
     },
     yAxis: {
       type: "category",
       data: DAY_LABELS,
-      splitArea: { show: true },
+      splitArea: { show: true, areaStyle: { color: [colours.card, colours.muted] } },
       axisLabel: { color: colours.mutedForeground, fontSize: 10 },
       axisLine: { lineStyle: { color: colours.border } },
     },
@@ -71,8 +74,8 @@ export function GridHeatmap({
     series: [
       {
         type: "heatmap",
-        data: data.map((d) => [d.hour, d.day, d.value]),
-        itemStyle: { borderWidth: 2, borderColor: colours.background },
+        data: safe.map((d) => [d.hour, d.day, d.value]),
+        itemStyle: { borderWidth: 2, borderColor: colours.card },
       },
     ],
   }

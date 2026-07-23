@@ -21,6 +21,7 @@ import {
   LineChart,
   PieChart,
   CalendarHeatmap,
+  useEChartsColours,
 } from "@/components/analytics"
 import type { StravaActivity } from "@/lib/strava"
 
@@ -98,12 +99,15 @@ function Heatmap({ activities, now }: { activities: StravaActivity[]; now: numbe
 
   const data = [...byDay.entries()].map(([date, value]) => ({ date, value: Math.round(value * 10) / 10 }))
 
+  const colours = useEChartsColours()
+
   return (
     <CalendarHeatmap
       data={data}
       range={[dayISO(start), dayISO(today)]}
       valueLabel="km"
       valueFormatter={(v) => v.toFixed(1)}
+      colourScale={[colours.border, "#fed7aa", "#fdba74", "#fb923c", "#FC4C02"]}
     />
   )
 }
