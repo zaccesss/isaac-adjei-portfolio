@@ -7,9 +7,7 @@
 // Every call is resilient: a Linear outage or a bad response degrades the sync to a no-op rather than
 // throwing into the fire-and-forget callers in the dashboard actions.
 
-import { resolveMyLinearId, resolveLabelIds } from "@/lib/linear-common"
-
-const LINEAR_GQL = "https://api.linear.app/graphql"
+import { resolveMyLinearId, resolveLabelIds, gql } from "@/lib/linear-common"
 
 // Maps dashboard status values to Linear state names (as created in the Careers team)
 const STATUS_TO_LINEAR_STATE: Record<string, string> = {
@@ -33,35 +31,15 @@ const STATUS_TO_LINEAR_STATE: Record<string, string> = {
   "Not Interested":          "Withdrawn",
 }
 
-// One resilient GraphQL caller: it never throws, so a Linear outage or an unparseable response degrades
-// to a no-op (no data) instead of rejecting into the fire-and-forget callers in the dashboard actions.
-// GraphQL-level errors are logged rather than swallowed silently, so a broken query stays visible.
-async function gql(apiKey: string, query: string, variables?: Record<string, unknown>) {
-  type GqlResult = { data?: Record<string, unknown>; errors?: { message: string }[] }
-  try {
-    const res = await fetch(LINEAR_GQL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: apiKey },
-      body: JSON.stringify({ query, variables }),
-    })
-    const json = (await res.json()) as GqlResult
-    if (json.errors?.length) console.error(`[linear-sync] GraphQL errors: ${json.errors.map((e) => e.message).join("; ")}`)
-    return json
-  } catch (err) {
-    console.error(`[linear-sync] request failed: ${err instanceof Error ? err.message : String(err)}`)
-    return {} as GqlResult
-  }
-}
-
 async function resolveStateId(apiKey: string, teamId: string, stateName: string): Promise<string | null> {
-  const data = await gql(apiKey, `
+  const data = await gql<{ team?: { states?: { nodes: { id: string; name: string }[] } } }>(apiKey, `
     query TeamStates($teamId: String!) {
       team(id: $teamId) {
         states { nodes { id name } }
       }
     }
   `, { teamId })
-  const states = (data.data?.team as { states?: { nodes: { id: string; name: string }[] } } | undefined)?.states?.nodes ?? []
+  const states = data?.team?.states?.nodes ?? []
   return states.find((s) => s.name === stateName)?.id ?? null
 }
 
@@ -103,7 +81,7 @@ export async function syncApplicationToLinear(app: {
     resolveLabelIds(apiKey, teamId, ["career", "application"]),
   ])
 
-  const result = await gql(apiKey, `
+  const result = await gql<{ issueCreate?: { issue?: { id: string } } }>(apiKey, `
     mutation CreateIssue($teamId: String!, $title: String!, $stateId: String!, $description: String!, $assigneeId: String, $labelIds: [String!]) {
       issueCreate(input: { teamId: $teamId, title: $title, stateId: $stateId, description: $description, assigneeId: $assigneeId, labelIds: $labelIds }) {
         success
@@ -112,8 +90,7 @@ export async function syncApplicationToLinear(app: {
     }
   `, { teamId, title, stateId, description, assigneeId, labelIds })
 
-  const issueId = (result.data?.issueCreate as { issue?: { id: string } } | undefined)?.issue?.id ?? null
-  return issueId
+  return result?.issueCreate?.issue?.id ?? null
 }
 
 // Maps uni_deadlines.status values to Linear state names.
@@ -163,7 +140,7 @@ export async function syncDeadlineToLinear(deadline: {
     resolveLabelIds(apiKey, teamId, ["university"]),
   ])
 
-  const result = await gql(apiKey, `
+  const result = await gql<{ issueCreate?: { issue?: { id: string } } }>(apiKey, `
     mutation CreateIssue($teamId: String!, $title: String!, $stateId: String!, $description: String!, $dueDate: TimelessDate, $assigneeId: String, $labelIds: [String!]) {
       issueCreate(input: { teamId: $teamId, title: $title, stateId: $stateId, description: $description, dueDate: $dueDate, assigneeId: $assigneeId, labelIds: $labelIds }) {
         success
@@ -172,15 +149,14 @@ export async function syncDeadlineToLinear(deadline: {
     }
   `, { teamId, title: deadline.title, stateId, description, dueDate: due, assigneeId, labelIds })
 
-  const issueId = (result.data?.issueCreate as { issue?: { id: string } } | undefined)?.issue?.id ?? null
-  return issueId
+  return result?.issueCreate?.issue?.id ?? null
 }
 
 export async function getLinearTeams(): Promise<{ id: string; name: string }[]> {
   const apiKey = process.env.LINEAR_API_KEY
   if (!apiKey) return []
-  const data = await gql(apiKey, `query { teams { nodes { id name } } }`)
-  return (data.data?.teams as { nodes: { id: string; name: string }[] } | undefined)?.nodes ?? []
+  const data = await gql<{ teams?: { nodes: { id: string; name: string }[] } }>(apiKey, `query { teams { nodes { id name } } }`)
+  return data?.teams?.nodes ?? []
 }
 
 export function linearConfigured(): boolean {
