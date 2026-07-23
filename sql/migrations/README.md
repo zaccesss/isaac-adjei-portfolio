@@ -54,6 +54,7 @@ All files use `IF NOT EXISTS`, `CREATE OR REPLACE`, or `DO` blocks so they are s
 | 044 | `044_listening_history.sql` | listening_history table (every Spotify play, deduped by played_at) | Both |
 | 045 | `045_add_cron_runs.sql` | cron_runs idempotency ledger for the time-pinned scheduled jobs | Both |
 | 046 | `046_revoke_public_grants.sql` | revokes anon/authenticated grants on schema public + default privileges | Both |
+| 047 | `047_github_contributions.sql` | github_contributions_days + github_contributions_years tables (real per-day contribution history) | Both |
 
 ## The 2026-07-12 renumbering
 

@@ -8,7 +8,7 @@ import { auth } from "@/auth"
 import { supabase } from "@/lib/supabase"
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
 import { syncApplicationToLinear, syncDeadlineToLinear } from "@/lib/linear-sync"
-import { GH_OWNER } from "@/lib/site-config"
+import { getStoredGithubContributions } from "@/lib/github-contributions"
 import { encryptVaultData, decryptVaultRow, vaultEncryptionReady } from "@/lib/vault-crypto"
 import { SOFT_DELETE_TABLES, purgeSoftDeleted } from "@/lib/trash"
 
@@ -1791,58 +1791,19 @@ export type GitHubStats = {
   totals: GitHubContribTotals
 }
 
+// Reads the stored github_contributions_days/_years tables instead of calling GitHub's live
+// GraphQL API - a real per-day history synced daily, not fetched fresh on every dashboard load.
 export async function getGitHubContributions(): Promise<GitHubStats> {
   await requireAuth()
-  const pat = process.env.GH_PAT ?? process.env.GITHUB_PAT
-  const empty: GitHubStats = { days: [], totals: { commits: 0, pullRequests: 0, reviews: 0, issues: 0 } }
-  if (!pat) return empty
-  try {
-    const res = await fetch("https://api.github.com/graphql", {
-      method: "POST",
-      headers: {
-        Authorization: `bearer ${pat}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: `{
-          user(login: "${GH_OWNER}") {
-            contributionsCollection {
-              totalCommitContributions
-              totalPullRequestContributions
-              totalPullRequestReviewContributions
-              totalIssueContributions
-              contributionCalendar {
-                weeks {
-                  contributionDays {
-                    date
-                    contributionCount
-                  }
-                }
-              }
-            }
-          }
-        }`,
-      }),
-      next: { revalidate: 3600 },
-    })
-    if (!res.ok) return empty
-    const json = await res.json()
-    const col = json?.data?.user?.contributionsCollection
-    const weeks = col?.contributionCalendar?.weeks ?? []
-    const days = weeks.flatMap((w: { contributionDays: { date: string; contributionCount: number }[] }) =>
-      w.contributionDays.map((d) => ({ date: d.date, count: d.contributionCount }))
-    )
-    return {
-      days,
-      totals: {
-        commits: col?.totalCommitContributions ?? 0,
-        pullRequests: col?.totalPullRequestContributions ?? 0,
-        reviews: col?.totalPullRequestReviewContributions ?? 0,
-        issues: col?.totalIssueContributions ?? 0,
-      },
-    }
-  } catch {
-    return empty
+  const stored = await getStoredGithubContributions()
+  return {
+    days: stored.days,
+    totals: {
+      commits: stored.currentYear.commits,
+      pullRequests: stored.currentYear.pullRequests,
+      reviews: stored.currentYear.reviews,
+      issues: stored.currentYear.issues,
+    },
   }
 }
 

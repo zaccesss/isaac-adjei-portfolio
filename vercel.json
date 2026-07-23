@@ -11,6 +11,8 @@
     { "path": "/api/dashboard/trash-cleanup?dst=bst", "schedule": "0 2 * * *" },
     { "path": "/api/dashboard/trash-cleanup?dst=gmt", "schedule": "0 3 * * *" },
     { "path": "/api/dashboard/strava-sync?dst=bst", "schedule": "0 3 * * *" },
-    { "path": "/api/dashboard/strava-sync?dst=gmt", "schedule": "0 4 * * *" }
+    { "path": "/api/dashboard/strava-sync?dst=gmt", "schedule": "0 4 * * *" },
+    { "path": "/api/dashboard/github-contributions-sync?dst=bst", "schedule": "0 4 * * *" },
+    { "path": "/api/dashboard/github-contributions-sync?dst=gmt", "schedule": "0 5 * * *" }
   ]
 }
