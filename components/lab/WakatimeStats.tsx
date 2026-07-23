@@ -7,6 +7,7 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from "recharts"
+import { GridHeatmap } from "@/components/analytics"
 import { Code2, Clock, Flame, TrendingUp, Zap } from "lucide-react"
 
 type WakatimeStats = {
@@ -71,90 +72,24 @@ const TOOLTIP_STYLE = {
   boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
 }
 
-function intensityClass(value: number, max: number): string {
-  if (value === 0) return "bg-muted/30"
-  const pct = value / max
-  if (pct <= 0.2) return "bg-primary/20"
-  if (pct <= 0.4) return "bg-primary/40"
-  if (pct <= 0.6) return "bg-primary/60"
-  if (pct <= 0.8) return "bg-primary/80"
-  return "bg-primary"
-}
-
-// 7x24 heatmap - dow (rows) x hour (cols)
+// 7x24 heatmap - dow (rows) x hour (cols). WakaTime's dow is 0=Sunday; GridHeatmap expects
+// 0=Monday, so each row shifts by (dow + 6) % 7.
 function CodingHeatmap({ data }: { data: { dow: number; hour: number; seconds: number }[] }) {
-  const [hovered, setHovered] = useState<{ dow: number; hour: number } | null>(null)
-  const matrix: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0))
-  for (const { dow, hour, seconds } of data) matrix[dow][hour] = seconds
-  const max = Math.max(...data.map((d) => d.seconds), 1)
-
-  // Hourly totals across all days - powers the sparkline below the grid
   const hourTotals = Array.from({ length: 24 }, (_, h) =>
-    matrix.reduce((sum, row) => sum + row[h], 0)
+    data.filter((d) => d.hour === h).reduce((sum, d) => sum + d.seconds, 0)
   )
-  const maxHourTotal = Math.max(...hourTotals, 1)
-  const peakHour = hourTotals.indexOf(maxHourTotal)
-
-  // Reorder to Mon-first (1,2,3,4,5,6,0)
-  const rowOrder = [1, 2, 3, 4, 5, 6, 0]
+  const peakHour = hourTotals.indexOf(Math.max(...hourTotals, 1))
 
   return (
     <div className="space-y-2">
-      <div className="overflow-x-auto">
-        <div className="min-w-max space-y-1">
-          {rowOrder.map((dow) => (
-            <div key={dow} className="flex items-center gap-1">
-              <span className="text-[9px] font-mono text-muted-foreground w-6 shrink-0 text-right pr-1">
-                {DAYS[dow]}
-              </span>
-              <div className="flex gap-[2px]">
-                {Array.from({ length: 24 }, (_, h) => {
-                  const secs = matrix[dow][h]
-                  const isHovered = hovered?.dow === dow && hovered?.hour === h
-                  return (
-                    <div
-                      key={h}
-                      className={`w-3 h-3 rounded-[2px] cursor-default transition-all ${intensityClass(secs, max)} ${isHovered ? "ring-1 ring-primary ring-offset-1 ring-offset-background scale-125" : ""}`}
-                      title={`${DAYS[dow]} ${h}:00 - ${fmt(secs)}`}
-                      onMouseEnter={() => setHovered({ dow, hour: h })}
-                      onMouseLeave={() => setHovered(null)}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-          ))}
-          {/* Hour-of-day axis labels. The per-hour totals are shown by the "by hour of day"
-              chart beside this grid, so no sparkline is repeated under it here. */}
-          <div className="flex items-center gap-1 mt-1">
-            <span className="w-6 shrink-0" />
-            <div className="flex gap-[2px]">
-              {Array.from({ length: 24 }, (_, h) => (
-                <span key={h} className={`w-3 text-[7px] font-mono text-muted-foreground/60 text-center ${h % 6 === 0 ? "opacity-100" : "opacity-0"}`}>
-                  {h}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-      {hovered && (
-        <div className="text-xs text-muted-foreground font-mono">
-          {DAYS[hovered.dow]} {hovered.hour}:00 - {fmt(matrix[hovered.dow][hovered.hour])} coded
-        </div>
-      )}
-      <div className="flex items-center justify-between">
-        <span className="text-[9px] font-mono text-muted-foreground/70">
-          peak <span className="text-primary">{peakHour}:00 UTC</span>
-        </span>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[9px] text-muted-foreground font-mono">Less</span>
-          {["bg-muted/30", "bg-primary/20", "bg-primary/40", "bg-primary/70", "bg-primary"].map((cls, i) => (
-            <div key={i} className={`w-3 h-3 rounded-[2px] ${cls}`} />
-          ))}
-          <span className="text-[9px] text-muted-foreground font-mono">More</span>
-        </div>
-      </div>
+      <GridHeatmap
+        data={data.map((d) => ({ day: (d.dow + 6) % 7, hour: d.hour, value: d.seconds }))}
+        valueFormatter={fmt}
+        height={200}
+      />
+      <p className="text-[9px] font-mono text-muted-foreground/70">
+        peak <span className="text-primary">{peakHour}:00 UTC</span>
+      </p>
     </div>
   )
 }

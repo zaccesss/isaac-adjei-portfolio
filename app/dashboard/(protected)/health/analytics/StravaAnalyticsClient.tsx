@@ -20,6 +20,7 @@ import {
   BarChart,
   LineChart,
   PieChart,
+  CalendarHeatmap,
 } from "@/components/analytics"
 import type { StravaActivity } from "@/lib/strava"
 
@@ -89,53 +90,21 @@ function Heatmap({ activities, now }: { activities: StravaActivity[]; now: numbe
     const key = a.start_date.slice(0, 10)
     byDay.set(key, (byDay.get(key) ?? 0) + km(a.distance_m))
   }
-  const max = Math.max(1, ...byDay.values())
 
   const today = new Date(now)
   today.setHours(0, 0, 0, 0)
-  const endSunday = new Date(today)
-  endSunday.setDate(today.getDate() - today.getDay())
-  const startSunday = new Date(endSunday)
-  startSunday.setDate(endSunday.getDate() - 52 * 7)
+  const start = new Date(today)
+  start.setDate(start.getDate() - 52 * 7)
 
-  const weeks: { date: string; value: number; future: boolean }[][] = []
-  for (let w = 0; w <= 52; w++) {
-    const col: { date: string; value: number; future: boolean }[] = []
-    for (let d = 0; d < 7; d++) {
-      const cur = new Date(startSunday)
-      cur.setDate(startSunday.getDate() + w * 7 + d)
-      const iso = dayISO(cur)
-      col.push({ date: iso, value: byDay.get(iso) ?? 0, future: cur > today })
-    }
-    weeks.push(col)
-  }
-
-  const level = (v: number) => (v <= 0 ? 0 : Math.min(4, Math.ceil((v / max) * 4)))
-  const levelClass = ["bg-muted", "bg-orange-500/30", "bg-orange-500/55", "bg-orange-500/80", "bg-orange-500"]
+  const data = [...byDay.entries()].map(([date, value]) => ({ date, value: Math.round(value * 10) / 10 }))
 
   return (
-    <div className="overflow-x-auto pb-1">
-      <div className="flex gap-[3px] min-w-max">
-        {weeks.map((col, i) => (
-          <div key={i} className="flex flex-col gap-[3px]">
-            {col.map((cell) => (
-              <div
-                key={cell.date}
-                title={cell.future ? "" : `${cell.value.toFixed(1)} km on ${cell.date}`}
-                className={`h-[11px] w-[11px] rounded-[2px] ${cell.future ? "bg-transparent" : levelClass[level(cell.value)]}`}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted-foreground">
-        <span>Less</span>
-        {levelClass.map((c, i) => (
-          <div key={i} className={`h-[11px] w-[11px] rounded-[2px] ${c}`} />
-        ))}
-        <span>More</span>
-      </div>
-    </div>
+    <CalendarHeatmap
+      data={data}
+      range={[dayISO(start), dayISO(today)]}
+      valueLabel="km"
+      valueFormatter={(v) => v.toFixed(1)}
+    />
   )
 }
 
