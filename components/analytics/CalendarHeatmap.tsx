@@ -44,7 +44,10 @@ export function CalendarHeatmap({
   const colours = useEChartsColours()
   const scale = colourScale ?? intensityScale(colours)
   const [start, end] = range ?? defaultRange(data)
-  const max = Math.max(...data.map((d) => d.value), 1)
+  // Defends against NaN/null reaching ECharts (e.g. a sparse upstream array with a missing day) -
+  // an unmappable value renders as a solid, uncoloured block instead of quietly becoming 0.
+  const safe = data.map((d) => ({ ...d, value: Number.isFinite(d.value) ? d.value : 0 }))
+  const max = Math.max(...safe.map((d) => d.value), 1)
 
   const option = {
     tooltip: {
@@ -68,7 +71,7 @@ export function CalendarHeatmap({
       range: [start, end],
       cellSize: [cellSize, cellSize],
       splitLine: { show: false },
-      itemStyle: { borderWidth: 2, borderColor: colours.background, color: colours.muted },
+      itemStyle: { borderWidth: 2, borderColor: colours.card, color: colours.border },
       yearLabel: { show: false },
       monthLabel: { color: colours.mutedForeground, fontSize: 10 },
       dayLabel: { color: colours.mutedForeground, fontSize: 10, firstDay: 1, nameMap: "en" },
@@ -77,7 +80,7 @@ export function CalendarHeatmap({
       {
         type: "heatmap",
         coordinateSystem: "calendar",
-        data: data.map((d) => [d.date, d.value]),
+        data: safe.map((d) => [d.date, d.value]),
       },
     ],
   }

@@ -306,7 +306,7 @@ function CodingInner({
       if (!row.hours || row.hours.length !== 24) continue
       const dow = new Date(row.date + "T00:00:00").getDay()
       const idx = dow === 0 ? 6 : dow - 1
-      for (let h = 0; h < 24; h++) matrix[idx][h] += row.hours[h]
+      for (let h = 0; h < 24; h++) matrix[idx][h] += row.hours[h] ?? 0
     }
     return matrix
   }, [periodRows])

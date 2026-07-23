@@ -61,7 +61,10 @@ export function useEChartsColours(): EChartsColours {
 }
 
 // A primary-tinted low-to-high intensity scale, matching the muted -> primary progression the
-// existing hand-rolled heatmaps used (bg-muted through bg-primary at 5 steps).
+// existing hand-rolled heatmaps used (bg-muted through bg-primary at 5 steps). The zero stop uses
+// `border` rather than `muted`: in dark mode muted (15% lightness) sits too close to the
+// surrounding card (10%) to read as a visible "no activity" cell, where border (18%) stays
+// distinguishable in both themes - the same token every card outline already relies on for that.
 export function intensityScale(colours: EChartsColours): string[] {
-  return [colours.muted, "#93c5fd", "#60a5fa", "#3b82f6", colours.primary]
+  return [colours.border, "#93c5fd", "#60a5fa", "#3b82f6", colours.primary]
 }
