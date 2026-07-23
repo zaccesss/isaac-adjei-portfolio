@@ -5,7 +5,7 @@
 
 // SQL already applied - all new columns are in the applications table.
 
-import { useState, useTransition, useRef } from "react"
+import { useState, useTransition, useRef, useMemo } from "react"
 import Link from "next/link"
 import { createApplication, updateApplication, deleteApplication, archiveApplication, reopenApplication, bulkDeleteApplications } from "../../actions"
 import { savedOk } from "@/lib/save-result"
@@ -938,14 +938,24 @@ export default function ApplicationsClient({ applications: initial }: { applicat
   const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
 
   const isEvent = activeTab === "Events"
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  // Stable for the session rather than recomputed every render - this only needs day granularity,
+  // and a component this data-heavy should not reconstruct + reformat a Date on every keystroke.
+  const today = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
 
-  // Tab-filtered apps - archived view shows only archived, default hides them
-  const tabApps = dedupeApps(apps.filter((a) => appBelongsToTab(a, activeTab) && (showArchived ? a.archived : !a.archived)))
+  // Tab-filtered apps - archived view shows only archived, default hides them. Memoized: with up to
+  // ~9,000 rows across all categories, re-running dedupe and the tab filter on every render (every
+  // keystroke in search, every unrelated state change) was real, wasted CPU work.
+  const tabApps = useMemo(
+    () => dedupeApps(apps.filter((a) => appBelongsToTab(a, activeTab) && (showArchived ? a.archived : !a.archived))),
+    [apps, activeTab, showArchived]
+  )
 
   // Apply filters
-  const filtered = tabApps.filter((a) => {
+  const filtered = useMemo(() => tabApps.filter((a) => {
     const q = search.toLowerCase()
     if (q && !a.company.toLowerCase().includes(q) && !a.role.toLowerCase().includes(q) && !(a.location ?? "").toLowerCase().includes(q)) return false
 
@@ -996,36 +1006,41 @@ export default function ApplicationsClient({ applications: initial }: { applicat
     }
 
     return true
-  })
+  }), [tabApps, search, filterMyStatus, filterOpenStatus, filterCoverLetter, filterLocation, filterKeyword, today])
 
   const { selected: bulkSelected, toggle: bulkToggle, toggleAll: bulkToggleAll, allSelected: bulkAllSelected, someSelected: bulkSomeSelected } = useBulkSelect(filtered)
 
   // Stats (based on filtered)
-  const statsTotal = filtered.length
-  const statsPipeline = filtered.filter((a) => isInPipeline(a.status)).length
-  const statsOffers = filtered.filter((a) => ["Offer Received", "Negotiating", "Accepted"].includes(normaliseStatus(a.status))).length
-  const statsRejected = filtered.filter((a) => ["Rejected", "Ghosted", "Withdrawn"].includes(normaliseStatus(a.status))).length
+  const { statsTotal, statsPipeline, statsOffers, statsRejected } = useMemo(() => ({
+    statsTotal: filtered.length,
+    statsPipeline: filtered.filter((a) => isInPipeline(a.status)).length,
+    statsOffers: filtered.filter((a) => ["Offer Received", "Negotiating", "Accepted"].includes(normaliseStatus(a.status))).length,
+    statsRejected: filtered.filter((a) => ["Rejected", "Ghosted", "Withdrawn"].includes(normaliseStatus(a.status))).length,
+  }), [filtered])
 
   // Group by category then sort: London/Birmingham first, then Manchester, then remote, then other
-  function locPriority(loc: string | null): number {
-    const l = (loc ?? "").toLowerCase()
-    if (l.includes("london")) return 0
-    if (l.includes("birmingham")) return 1
-    if (l.includes("manchester")) return 2
-    if (l.includes("remote") || l.includes("hybrid")) return 3
-    if (!l) return 4
-    return 5
-  }
-  const grouped: Record<string, Application[]> = {}
-  for (const cat of CATEGORIES) grouped[cat] = []
-  for (const app of filtered) {
-    const cat = (app.category && app.category !== "Software Engineering" ? app.category as Category : null) || detectCategory(app.company, app.role)
-    if (cat in grouped) grouped[cat].push(app)
-    else grouped["Miscellaneous"].push(app)
-  }
-  for (const cat of CATEGORIES) {
-    grouped[cat].sort((a, b) => locPriority(a.location) - locPriority(b.location))
-  }
+  const grouped = useMemo(() => {
+    function locPriority(loc: string | null): number {
+      const l = (loc ?? "").toLowerCase()
+      if (l.includes("london")) return 0
+      if (l.includes("birmingham")) return 1
+      if (l.includes("manchester")) return 2
+      if (l.includes("remote") || l.includes("hybrid")) return 3
+      if (!l) return 4
+      return 5
+    }
+    const grouped: Record<string, Application[]> = {}
+    for (const cat of CATEGORIES) grouped[cat] = []
+    for (const app of filtered) {
+      const cat = (app.category && app.category !== "Software Engineering" ? app.category as Category : null) || detectCategory(app.company, app.role)
+      if (cat in grouped) grouped[cat].push(app)
+      else grouped["Miscellaneous"].push(app)
+    }
+    for (const cat of CATEGORIES) {
+      grouped[cat].sort((a, b) => locPriority(a.location) - locPriority(b.location))
+    }
+    return grouped
+  }, [filtered])
 
   // Reset to the first page whenever the tab, view or any filter changes so I never sit on an empty page.
   // I adjust during render (React's supported pattern) rather than in an effect, to avoid a cascading render.

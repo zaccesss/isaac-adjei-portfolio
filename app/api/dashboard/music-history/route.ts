@@ -25,18 +25,21 @@ export async function GET(req: Request) {
   const windowDays = PERIOD_DAYS[new URL(req.url).searchParams.get("period") ?? "all"]
   const cutoff = windowDays ? new Date(Date.now() - windowDays * 86400000).toISOString() : null
 
-  // Page through the plays in the window (PostgREST caps a select at 1000 rows).
-  const rows: Row[] = []
-  for (let from = 0; ; from += 1000) {
-    let query = supabase
-      .from("listening_history")
-      .select("played_at,track_name,artist_name,album_art,url,duration_ms")
-    if (cutoff) query = query.gte("played_at", cutoff)
-    const { data } = await query.order("played_at", { ascending: false }).range(from, from + 999)
-    if (!data || data.length === 0) break
-    rows.push(...(data as Row[]))
-    if (data.length < 1000) break
-  }
+  // Page through the plays in the window (PostgREST caps a select at 1000 rows), fetched in
+  // parallel - a count query then one burst of range() calls - rather than one page at a time.
+  const countQuery = supabase.from("listening_history").select("id", { count: "exact", head: true })
+  const { count } = await (cutoff ? countQuery.gte("played_at", cutoff) : countQuery)
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / 1000))
+  const pages = await Promise.all(
+    Array.from({ length: totalPages }, (_, i) => {
+      let query = supabase
+        .from("listening_history")
+        .select("played_at,track_name,artist_name,album_art,url,duration_ms")
+      if (cutoff) query = query.gte("played_at", cutoff)
+      return query.order("played_at", { ascending: false }).range(i * 1000, i * 1000 + 999)
+    })
+  )
+  const rows: Row[] = pages.flatMap((p) => (p.data as Row[] | null) ?? [])
 
   if (rows.length === 0) {
     return NextResponse.json({ empty: true, totalPlays: 0 }, { headers: { "Cache-Control": "no-store" } })

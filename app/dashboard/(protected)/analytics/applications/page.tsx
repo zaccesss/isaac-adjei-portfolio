@@ -9,20 +9,22 @@ export const metadata = { title: "Applications Analytics", robots: "noindex, nof
 export default async function ApplicationsAnalyticsPage() {
   // PostgREST caps a single select at 1000 rows, so with thousands of scraped roles the analytics
   // only ever saw the first 1000 (that is why "Total" stuck at 1000). I page through in 1000-row
-  // batches and combine them so every application is counted.
+  // batches and combine them so every application is counted. The batches are fetched in parallel -
+  // a count query plus one parallel burst - rather than one at a time, so a growing table (thousands
+  // of scraped roles) adds barely any wall-clock time instead of another sequential round trip.
   const cols = "id, company, role, type, status, applied_date, location, category, created_at"
   const q = () =>
     supabase.from("applications").select(cols).eq("archived", false).order("created_at", { ascending: false })
-  const first = await q().range(0, 999)
-  const data = first.data ?? []
-  if (first.data && first.data.length === 1000) {
-    for (let from = 1000; ; from += 1000) {
-      const { data: page } = await q().range(from, from + 999)
-      if (!page || page.length === 0) break
-      data.push(...page)
-      if (page.length < 1000) break
-    }
-  }
+
+  const { count } = await supabase
+    .from("applications")
+    .select("id", { count: "exact", head: true })
+    .eq("archived", false)
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / 1000))
+  const pages = await Promise.all(
+    Array.from({ length: totalPages }, (_, i) => q().range(i * 1000, i * 1000 + 999))
+  )
+  const data = pages.flatMap((p) => p.data ?? [])
 
   return (
     <div className="flex flex-col h-full min-h-0">
