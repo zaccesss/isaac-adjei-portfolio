@@ -7,10 +7,11 @@
     "dev": "wrangler dev --config wrangler.toml"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260702.1",
+    "@cloudflare/workers-types": "^5.20260723.1",
     "wrangler": "^4.112.0"
   },
   "overrides": {
-    "esbuild": ">=0.25.2"
+    "esbuild": ">=0.25.2",
+    "sharp": ">=0.35.0"
   }
 }
