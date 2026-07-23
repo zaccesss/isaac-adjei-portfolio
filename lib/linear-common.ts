@@ -6,20 +6,37 @@ import { CONTROL_JOBS } from "@/lib/control-jobs"
 
 const LINEAR_GQL = "https://api.linear.app/graphql"
 
-async function gql<T>(apiKey: string, query: string, variables?: Record<string, unknown>): Promise<T | null> {
-  try {
-    const res = await fetch(LINEAR_GQL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: apiKey },
-      body: JSON.stringify({ query, variables }),
-    })
-    const json = (await res.json()) as { data?: T; errors?: { message: string }[] }
-    if (json.errors?.length) console.error(`[linear-common] GraphQL errors: ${json.errors.map((e) => e.message).join("; ")}`)
-    return json.data ?? null
-  } catch (err) {
-    console.error(`[linear-common] request failed: ${err instanceof Error ? err.message : String(err)}`)
-    return null
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function gqlOnce<T>(apiKey: string, query: string, variables?: Record<string, unknown>): Promise<T | null> {
+  const res = await fetch(LINEAR_GQL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: apiKey },
+    body: JSON.stringify({ query, variables }),
+  })
+  const json = (await res.json()) as { data?: T; errors?: { message: string }[] }
+  if (json.errors?.length) throw new Error(json.errors.map((e) => e.message).join("; "))
+  return json.data ?? null
+}
+
+// A burst of near-simultaneous incidents fires this many times at once (one issue creation per
+// failing check), which can trip Linear's own API rate limit - a bare transient failure here used
+// to drop a label forever, since labels are only ever resolved once at issue-creation time and
+// never backfilled later. One retry after a short delay covers a rate limit or a blip without
+// meaningfully slowing down what is already a background webhook, not a page load.
+export async function gql<T>(apiKey: string, query: string, variables?: Record<string, unknown>): Promise<T | null> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      return await gqlOnce<T>(apiKey, query, variables)
+    } catch (err) {
+      const label = attempt === 0 ? "retrying" : "giving up"
+      console.error(`[linear-common] request failed (${label}): ${err instanceof Error ? err.message : String(err)}`)
+      if (attempt === 0) await sleep(400)
+    }
   }
+  return null
 }
 
 // The API key is personal, so its viewer is always me. Resolved once per warm instance rather than
@@ -60,12 +77,28 @@ for (const job of CONTROL_JOBS) {
   if (job.hcSlug) HC_NAME_TO_REPO_LABEL[job.hcSlug.toLowerCase()] = shortRepoName(job.repo)
 }
 
+// Two checks were actually configured in Healthchecks under a name that matches neither
+// CONTROL_JOBS' hcSlug nor its label field - "routine checklist"/"cron-ops scheduler" versus
+// the hcSlugs "routine"/"cron-ops" - so no string transform of the incoming name can derive the
+// right slug. The real fix is renaming these two checks in Healthchecks to match their hcSlug
+// exactly, at which point these aliases become dead weight and can be deleted.
+const HC_NAME_ALIASES: Record<string, string> = {
+  "routine-checklist": "routine",
+  "cron-ops-scheduler": "cron-ops",
+}
+
 // The repo label plus the job's own label (its Healthchecks slug, already a clean dash-case name
 // like job-scraper or medication-reminders), so an incident is filterable by repo AND by exactly
 // which job broke. A fleet repo with one job (mirror-ops, meta-mirror) has the same name for both,
 // which de-dupes to one label. A Better Stack site-down alert has no job, only the portfolio repo.
+//
+// Healthchecks sends the check's real display name, which is spaced/title-case ("Vault expiry
+// check", "Medication reminders"), not the dash-case hcSlug ("vault-expiry-check") CONTROL_JOBS
+// uses - only single-word or already-hyphenated names (reminders, mirror-ops) ever matched before
+// this normalised whitespace to dashes, so every multi-word check permanently lost its label.
 export function labelsForCheckName(checkName: string, source: string): string[] {
-  const slug = checkName.trim().toLowerCase()
+  const rawSlug = checkName.trim().toLowerCase().replace(/\s+/g, "-")
+  const slug = HC_NAME_ALIASES[rawSlug] ?? rawSlug
   const repo = HC_NAME_TO_REPO_LABEL[slug]
   if (repo) return [...new Set([repo, slug])]
   if (source === "better-stack") return [shortRepoName(PORTFOLIO_REPO)]

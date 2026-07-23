@@ -7,25 +7,12 @@
 // check is open I update that one issue, and when the check recovers I move the same issue to Done.
 // The check name in the title is the key that ties a down and its later up together.
 import { getLinearTeams } from "@/lib/linear-sync"
-import { resolveMyLinearId, resolveLabelIds, labelsForCheckName } from "@/lib/linear-common"
+import { resolveMyLinearId, resolveLabelIds, labelsForCheckName, gql } from "@/lib/linear-common"
 
-const LINEAR_GQL = "https://api.linear.app/graphql"
-
-// One thin GraphQL caller so every function shares the same auth, parsing and error swallowing.
-async function linear<T>(query: string, variables: Record<string, unknown>): Promise<T | null> {
-  const apiKey = process.env.LINEAR_API_KEY
-  if (!apiKey) return null
-  try {
-    const res = await fetch(LINEAR_GQL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: apiKey },
-      body: JSON.stringify({ query, variables }),
-    })
-    const json = (await res.json()) as { data?: T }
-    return json.data ?? null
-  } catch {
-    return null
-  }
+// Every call here needs the key; a bare null lets every exported function degrade to a no-op
+// instead of throwing, same as before this shared with linear-common's retried gql().
+function requireApiKey(): string | null {
+  return process.env.LINEAR_API_KEY ?? null
 }
 
 async function resolveOpsTeamId(): Promise<string | null> {
@@ -57,7 +44,8 @@ export async function createIncidentIssue(
     resolveLabelIds(apiKey, teamId, ["health", ...checkLabels]),
   ])
 
-  const data = await linear<{ issueCreate?: { issue?: { id: string } } }>(
+  const data = await gql<{ issueCreate?: { issue?: { id: string } } }>(
+    apiKey,
     `mutation CreateIncident($teamId: String!, $title: String!, $description: String!, $assigneeId: String, $labelIds: [String!]) {
       issueCreate(input: { teamId: $teamId, title: $title, description: $description, priority: 1, assigneeId: $assigneeId, labelIds: $labelIds }) {
         success
@@ -74,11 +62,13 @@ export async function createIncidentIssue(
 // never be a substring of another's ("api" matching "api-backup is down"); "prefix" mode exists
 // for the dead-webhook dedupe, whose stable key starts both of its title variants.
 export async function findOpenIncidentId(title: string, match: "exact" | "prefix" = "exact"): Promise<string | null> {
-  if (!title.trim()) return null
+  const apiKey = requireApiKey()
+  if (!apiKey || !title.trim()) return null
   const teamId = await resolveOpsTeamId()
   if (!teamId) return null
   const titleFilter = match === "exact" ? "{ eqIgnoreCase: $q }" : "{ startsWith: $q }"
-  const data = await linear<{ issues?: { nodes: { id: string }[] } }>(
+  const data = await gql<{ issues?: { nodes: { id: string }[] } }>(
+    apiKey,
     `query FindOpenIncident($teamId: ID!, $q: String!) {
       issues(first: 1, filter: {
         team: { id: { eq: $teamId } },
@@ -93,7 +83,10 @@ export async function findOpenIncidentId(title: string, match: "exact" | "prefix
 
 // Adds a comment to an incident (for example "still down" on a repeat, or "recovered" on an up).
 export async function addIncidentComment(issueId: string, body: string): Promise<boolean> {
-  const data = await linear<{ commentCreate?: { success: boolean } }>(
+  const apiKey = requireApiKey()
+  if (!apiKey) return false
+  const data = await gql<{ commentCreate?: { success: boolean } }>(
+    apiKey,
     `mutation AddIncidentComment($id: String!, $body: String!) {
       commentCreate(input: { issueId: $id, body: $body }) { success }
     }`,
@@ -105,10 +98,13 @@ export async function addIncidentComment(issueId: string, body: string): Promise
 // Moves an incident to the team's first completed state and leaves a recovery comment, so an up event
 // closes the issue the matching down opened.
 export async function resolveIncident(issueId: string, comment: string): Promise<boolean> {
+  const apiKey = requireApiKey()
+  if (!apiKey) return false
   const teamId = await resolveOpsTeamId()
   if (!teamId) return false
   if (comment) await addIncidentComment(issueId, comment)
-  const states = await linear<{ team?: { states: { nodes: { id: string; type: string }[] } } }>(
+  const states = await gql<{ team?: { states: { nodes: { id: string; type: string }[] } } }>(
+    apiKey,
     `query TeamStates($teamId: String!) {
       team(id: $teamId) { states { nodes { id type } } }
     }`,
@@ -116,7 +112,8 @@ export async function resolveIncident(issueId: string, comment: string): Promise
   )
   const doneId = states?.team?.states.nodes.find((s) => s.type === "completed")?.id
   if (!doneId) return false
-  const data = await linear<{ issueUpdate?: { success: boolean } }>(
+  const data = await gql<{ issueUpdate?: { success: boolean } }>(
+    apiKey,
     `mutation ResolveIncident($id: String!, $stateId: String!) {
       issueUpdate(id: $id, input: { stateId: $stateId }) { success }
     }`,
