@@ -15,13 +15,14 @@ import {
   useAnalyticsPeriod,
   periodStartDate,
   type AnalyticsPeriod,
+  CalendarHeatmap,
+  GridHeatmap,
 } from "@/components/analytics"
 import type { WakatimeDayRow, GitHubDay, GitHubContribTotals } from "@/app/dashboard/actions"
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-const HOURS = Array.from({ length: 24 }, (_, i) => `${i}`)
 
 // AI assistant tools/IDEs whose time counts in totals but must never surface as a named
 // editor in the chart - all such time is attributed to the developer, not the AI tool.
@@ -81,23 +82,6 @@ function formatHours(seconds: number) {
   return `${h}h ${m}m`
 }
 
-function intensity(seconds: number): 0 | 1 | 2 | 3 | 4 {
-  if (seconds === 0) return 0
-  if (seconds < 1800) return 1
-  if (seconds < 7200) return 2
-  if (seconds < 14400) return 3
-  return 4
-}
-
-const INTENSITY_CLASS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: "bg-muted",
-  1: "bg-green-200 dark:bg-green-900",
-  2: "bg-green-400 dark:bg-green-700",
-  3: "bg-green-600 dark:bg-green-500",
-  4: "bg-green-800 dark:bg-green-300",
-}
-
-type GridCell = { date: string; seconds: number; level: 0 | 1 | 2 | 3 | 4 }
 type GHCell  = { date: string; count: number;   level: 0 | 1 | 2 | 3 | 4 }
 
 function ghIntensity(count: number): 0 | 1 | 2 | 3 | 4 {
@@ -105,16 +89,6 @@ function ghIntensity(count: number): 0 | 1 | 2 | 3 | 4 {
   if (count < 3)  return 1
   if (count < 6)  return 2
   if (count < 10) return 3
-  return 4
-}
-
-// Relative intensity for the hour×day heatmap (scaled to matrix max)
-function relativeIntensity(seconds: number, max: number): 0 | 1 | 2 | 3 | 4 {
-  if (seconds === 0 || max === 0) return 0
-  const r = seconds / max
-  if (r < 0.15) return 1
-  if (r < 0.35) return 2
-  if (r < 0.65) return 3
   return 4
 }
 
@@ -147,28 +121,7 @@ function buildGHGrid(days: GitHubDay[]): GHCell[][] {
   return weeks
 }
 
-function buildGrid(rows: WakatimeDayRow[]): GridCell[][] {
-  const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
-  const today = new Date()
-  const start = new Date(today)
-  start.setDate(today.getDate() - ((today.getDay() + 6) % 7) + 7 - 52 * 7)
-  start.setHours(0, 0, 0, 0)
-  const weeks: GridCell[][] = []
-  const cursor = new Date(start)
-  for (let w = 0; w < 52; w++) {
-    const week: GridCell[] = []
-    for (let d = 0; d < 7; d++) {
-      const iso = cursor.toISOString().slice(0, 10)
-      const seconds = byDate.get(iso) ?? 0
-      week.push({ date: iso, seconds, level: intensity(seconds) })
-      cursor.setDate(cursor.getDate() + 1)
-    }
-    weeks.push(week)
-  }
-  return weeks
-}
-
-function monthLabel(week: GridCell[]): string | null {
+function monthLabel(week: { date: string }[]): string | null {
   const firstDay = new Date(week[0].date)
   if (firstDay.getDate() <= 7) return MONTHS[firstDay.getMonth()]
   return null
@@ -254,13 +207,15 @@ function CodingInner({
   ghDays?: GitHubDay[]
   ghTotals?: GitHubContribTotals
 }) {
-  const [tooltip, setTooltip]     = useState<{ date: string; seconds: number } | null>(null)
   const [ghTooltip, setGhTooltip] = useState<{ date: string; count: number } | null>(null)
-  const [hdTooltip, setHdTooltip] = useState<{ day: string; hour: number; seconds: number } | null>(null)
   const { period } = useAnalyticsPeriod()
 
-  // Full-year grids for the 52-week heatmaps (calendar views, always unfiltered)
-  const grid   = useMemo(() => buildGrid(rows), [rows])
+  // Full-year data for the calendar heatmap (always unfiltered) - GitHub's own 52-week grid is
+  // untouched for now since it has no historical table to draw a real year from yet.
+  const dailyHeatmapData = useMemo(
+    () => rows.map((r) => ({ date: r.date, value: r.total_seconds })),
+    [rows]
+  )
   const ghGrid = useMemo(() => buildGHGrid(ghDays), [ghDays])
 
   // Period-filtered rows: stats, aggregate charts, and hour×day matrix
@@ -280,8 +235,19 @@ function CodingInner({
 
   // --- Stat cards (period-aware) ---
   const totalSeconds      = periodRows.reduce((acc, r) => acc + r.total_seconds, 0)
-  const lastWeek          = grid[grid.length - 1] ?? []
-  const totalSecondsWeek  = lastWeek.reduce((acc, c) => acc + c.seconds, 0)
+  const totalSecondsWeek  = useMemo(() => {
+    const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
+    const today = new Date()
+    const monday = new Date(today)
+    monday.setDate(today.getDate() - ((today.getDay() + 6) % 7))
+    let total = 0
+    for (let d = 0; d < 7; d++) {
+      const day = new Date(monday)
+      day.setDate(monday.getDate() + d)
+      total += byDate.get(day.toISOString().slice(0, 10)) ?? 0
+    }
+    return total
+  }, [rows])
   const activeDays        = periodRows.filter((r) => r.total_seconds > 0).length
   const avgSeconds        = activeDays > 0 ? Math.floor(totalSeconds / activeDays) : 0
   const mostActiveRow     = periodRows.reduce<WakatimeDayRow | null>(
@@ -451,98 +417,23 @@ function CodingInner({
         <StatCard label="Most active day" value={mostActiveLabel} accentClassName="sm:col-span-1 col-span-2" />
       </div>
 
-      {/* WakaTime 52-week contribution heatmap */}
-      <div className="border border-border rounded-lg p-4 bg-card overflow-x-auto">
-        <div className="flex gap-1 mb-1">
-          <div className="w-6 shrink-0" />
-          {grid.map((week, wi) => (
-            <div key={wi} className="w-3 shrink-0 text-[9px] text-muted-foreground text-center">
-              {monthLabel(week) ?? ""}
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-1">
-          <div className="flex flex-col gap-1 w-6 shrink-0">
-            {DAYS.map((d, i) => (
-              <div key={d} className={`h-3 text-[9px] text-muted-foreground leading-3 ${i % 2 === 0 ? "opacity-0" : ""}`}>{d}</div>
-            ))}
-          </div>
-          {grid.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-1">
-              {week.map((cell) => (
-                <div
-                  key={cell.date}
-                  className={`h-3 w-3 rounded-sm cursor-default transition-opacity hover:opacity-80 ${INTENSITY_CLASS[cell.level]}`}
-                  onMouseEnter={() => setTooltip({ date: cell.date, seconds: cell.seconds })}
-                  onMouseLeave={() => setTooltip(null)}
-                  title={`${cell.date}: ${cell.seconds > 0 ? formatHours(cell.seconds) : "no data"}`}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-        {tooltip && (
-          <div className="mt-2 text-xs text-muted-foreground">
-            {tooltip.date}: {tooltip.seconds > 0 ? formatHours(tooltip.seconds) : "no data"}
-          </div>
-        )}
-        <div className="flex items-center gap-1.5 mt-3">
-          <span className="text-xs text-muted-foreground">Less</span>
-          {([0, 1, 2, 3, 4] as const).map((lvl) => (
-            <div key={lvl} className={`h-3 w-3 rounded-sm ${INTENSITY_CLASS[lvl]}`} />
-          ))}
-          <span className="text-xs text-muted-foreground">More</span>
-        </div>
+      {/* WakaTime contribution heatmap */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <CalendarHeatmap data={dailyHeatmapData} valueLabel="coded" valueFormatter={formatHours} />
       </div>
 
-      {/* Hour × Day-of-week heatmap (7 rows × 24 cols, from /durations data) */}
-      <div className="border border-border rounded-lg p-4 bg-card overflow-x-auto">
+      {/* Hour × Day-of-week heatmap (from /durations data) */}
+      <div className="border border-border rounded-lg p-4 bg-card">
         <div className="flex items-center gap-2 mb-3">
           <h2 className="text-sm font-semibold">When I code</h2>
           <span className="text-xs text-muted-foreground">- hour of day (UTC) × day of week</span>
         </div>
         {hasHourData ? (
-          <>
-            <div className="flex gap-1 mb-1">
-              <div className="w-6 shrink-0" />
-              {HOURS.map((h) => (
-                <div key={h} className={`w-3 shrink-0 text-[8px] text-muted-foreground text-center ${parseInt(h) % 3 !== 0 ? "opacity-0" : ""}`}>
-                  {h}
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-col gap-1">
-              {DAYS.map((day, di) => (
-                <div key={day} className="flex gap-1 items-center">
-                  <div className="w-6 shrink-0 text-[9px] text-muted-foreground">{day}</div>
-                  {weekdayHourMatrix[di].map((secs, hi) => {
-                    const lvl = relativeIntensity(secs, weekdayHourMax)
-                    return (
-                      <div
-                        key={hi}
-                        className={`h-3 w-3 rounded-sm cursor-default transition-opacity hover:opacity-80 ${INTENSITY_CLASS[lvl]}`}
-                        onMouseEnter={() => setHdTooltip({ day, hour: hi, seconds: secs })}
-                        onMouseLeave={() => setHdTooltip(null)}
-                        title={`${day} ${hi}:00 — ${secs > 0 ? formatHours(secs) : "no data"}`}
-                      />
-                    )
-                  })}
-                </div>
-              ))}
-            </div>
-            {hdTooltip && (
-              <div className="mt-2 text-xs text-muted-foreground">
-                {hdTooltip.day} {hdTooltip.hour}:00 — {hdTooltip.seconds > 0 ? formatHours(hdTooltip.seconds) : "no data"}
-              </div>
-            )}
-            <div className="flex items-center gap-1.5 mt-3">
-              <span className="text-xs text-muted-foreground">Less</span>
-              {([0, 1, 2, 3, 4] as const).map((lvl) => (
-                <div key={lvl} className={`h-3 w-3 rounded-sm ${INTENSITY_CLASS[lvl]}`} />
-              ))}
-              <span className="text-xs text-muted-foreground">More</span>
-            </div>
-          </>
+          <GridHeatmap
+            data={weekdayHourMatrix.flatMap((row, day) => row.map((value, hour) => ({ day, hour, value })))}
+            valueLabel="coded"
+            valueFormatter={formatHours}
+          />
         ) : (
           <p className="text-xs text-muted-foreground">
             Hourly data will appear after the next WakaTime sync.
@@ -561,7 +452,7 @@ function CodingInner({
             <div className="w-6 shrink-0" />
             {ghGrid.map((week, wi) => (
               <div key={wi} className="w-3 shrink-0 text-[9px] text-muted-foreground text-center">
-                {monthLabel(week as unknown as GridCell[]) ?? ""}
+                {monthLabel(week) ?? ""}
               </div>
             ))}
           </div>

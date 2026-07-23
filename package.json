@@ -63,6 +63,8 @@
     "clsx": "^2.1.0",
     "cmdk": "^1.0.0",
     "docx": "^9.7.1",
+    "echarts": "^6.1.0",
+    "echarts-for-react": "^3.0.6",
     "framer-motion": "^11.0.0",
     "geist": "^1.7.2",
     "js-yaml": "^4.2.0",

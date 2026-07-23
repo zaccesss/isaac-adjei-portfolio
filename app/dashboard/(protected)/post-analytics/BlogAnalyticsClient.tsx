@@ -14,6 +14,7 @@ import {
   useAnalyticsPeriod,
   filterByPeriod,
   periodStartDate,
+  GridHeatmap,
 } from "@/components/analytics"
 import { Pagination } from "@/components/shared/Pagination"
 
@@ -56,23 +57,6 @@ const FUNNEL_COLOURS = [
   DEFAULT_CHART_COLOURS[0],
 ]
 
-const INTENSITY_CLASS = [
-  "bg-muted",
-  "bg-primary/20",
-  "bg-primary/45",
-  "bg-primary/70",
-  "bg-primary",
-]
-
-function intensityIndex(count: number, max: number) {
-  if (max === 0 || count === 0) return 0
-  const ratio = count / max
-  if (ratio < 0.15) return 1
-  if (ratio < 0.35) return 2
-  if (ratio < 0.65) return 3
-  return 4
-}
-
 function funnelWidth(count: number, base: number) {
   if (base === 0) return "0%"
   return `${Math.round((count / base) * 100)}%`
@@ -91,7 +75,6 @@ function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
   const [typeFilter, setTypeFilter] = useState<"all" | "blog" | "til">("all")
   const [sortKey, setSortKey] = useState<SortKey>("reached_25")
   const [sortDir, setSortDir] = useState<SortDir>("desc")
-  const [hoveredCell, setHoveredCell] = useState<{ day: number; hour: number } | null>(null)
 
   const periodEvents = useMemo(() => filterByPeriod(events, period, (e) => e.created_at), [events, period])
 
@@ -381,43 +364,10 @@ function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
       <div className="border border-border rounded-lg p-4 bg-card">
         <p className="text-xs font-medium text-muted-foreground mb-3">When posts are read</p>
         {hasHeatmapData ? (
-          <div className="overflow-x-auto">
-            <div className="min-w-[480px]">
-              <div className="flex gap-1 mb-1 ml-8">
-                {HOURS.map((h) => (
-                  <div key={h} className="flex-1 text-[9px] text-muted-foreground text-center">
-                    {parseInt(h) % 4 === 0 ? `${h}h` : ""}
-                  </div>
-                ))}
-              </div>
-              {DAYS.map((day, di) => (
-                <div key={day} className="flex items-center gap-1 mb-1">
-                  <span className="text-[10px] text-muted-foreground w-7 shrink-0">{day}</span>
-                  {HOURS.map((_, hi) => {
-                    const count = weekdayHourMatrix[di][hi]
-                    const cls = INTENSITY_CLASS[intensityIndex(count, weekdayHourMax)]
-                    const isHovered = hoveredCell?.day === di && hoveredCell?.hour === hi
-                    return (
-                      <div
-                        key={hi}
-                        className={`flex-1 h-4 rounded-[2px] cursor-default transition-opacity ${cls} ${isHovered ? "ring-1 ring-primary" : ""}`}
-                        onMouseEnter={() => setHoveredCell({ day: di, hour: hi })}
-                        onMouseLeave={() => setHoveredCell(null)}
-                        title={count > 0 ? `${day} ${hi}:00 — ${count} read${count !== 1 ? "s" : ""}` : undefined}
-                      />
-                    )
-                  })}
-                </div>
-              ))}
-              {hoveredCell && (
-                <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                  {DAYS[hoveredCell.day]} {hoveredCell.hour}:00 —{" "}
-                  {weekdayHourMatrix[hoveredCell.day][hoveredCell.hour]} read
-                  {weekdayHourMatrix[hoveredCell.day][hoveredCell.hour] !== 1 ? "s" : ""}
-                </p>
-              )}
-            </div>
-          </div>
+          <GridHeatmap
+            data={weekdayHourMatrix.flatMap((row, day) => row.map((value, hour) => ({ day, hour, value })))}
+            valueLabel="reads"
+          />
         ) : (
           <p className="text-xs text-muted-foreground text-center py-4">
             Heatmap data will appear once read events are recorded.
