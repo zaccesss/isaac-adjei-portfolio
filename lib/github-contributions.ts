@@ -74,9 +74,18 @@ async function fetchYear(pat: string, year: number): Promise<YearContributions |
 }
 
 async function persistYear(y: YearContributions): Promise<void> {
-  if (y.days.length > 0) {
+  // GitHub's contributionCalendar returns one entry per day across the whole requested range,
+  // including days later in the current year that have not happened yet (a real, live-confirmed
+  // bug: the table had zero-count rows through 31 December of the current year). Those future
+  // rows then became the "latest" date CalendarHeatmap's defaultRange() anchors on, shifting the
+  // whole displayed window to the current calendar year instead of a genuine trailing 365 days.
+  // Filtering to real days here stops it happening again; the read-side query below adds the same
+  // guard defensively, since it cannot un-write rows a past sync already stored.
+  const todayIso = new Date().toISOString().slice(0, 10)
+  const realDays = y.days.filter((d) => d.date <= todayIso)
+  if (realDays.length > 0) {
     await supabase.from("github_contributions_days").upsert(
-      y.days.map((d) => ({ date: d.date, count: d.count })),
+      realDays.map((d) => ({ date: d.date, count: d.count })),
       { onConflict: "date" }
     )
   }
@@ -108,9 +117,16 @@ export async function getStoredGithubContributions(): Promise<GithubContribution
   const since = new Date()
   since.setDate(since.getDate() - 365)
   const sinceIso = since.toISOString().slice(0, 10)
+  // A defensive upper bound: a past sync could have stored future zero-count placeholder rows for
+  // the current year (GitHub's contributionCalendar returns one entry per day across the whole
+  // requested range, including days that have not happened yet) before persistYear() started
+  // filtering them out. Without this, CalendarHeatmap's defaultRange() anchors on the data's own
+  // latest date, which a lingering future row would push into next year - live-confirmed as the
+  // exact cause of the calendar rendering the current calendar year instead of a trailing 365 days.
+  const todayIso = new Date().toISOString().slice(0, 10)
 
   const [{ data: days }, { data: years }] = await Promise.all([
-    supabase.from("github_contributions_days").select("date, count").gte("date", sinceIso).order("date"),
+    supabase.from("github_contributions_days").select("date, count").gte("date", sinceIso).lte("date", todayIso).order("date"),
     supabase.from("github_contributions_years").select("year, commits, pull_requests, reviews, issues, total"),
   ])
 

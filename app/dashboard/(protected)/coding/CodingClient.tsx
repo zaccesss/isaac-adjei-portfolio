@@ -373,6 +373,10 @@ function CodingInner({
 
       {/* WakaTime contribution heatmap */}
       <div className="border border-border rounded-lg p-4 bg-card">
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className="text-sm font-semibold">Coding Activity</h2>
+          <span className="text-xs text-muted-foreground">- daily coding time from WakaTime</span>
+        </div>
         <CalendarHeatmap data={dailyHeatmapData} valueLabel="coded" valueFormatter={formatHours} />
       </div>
 

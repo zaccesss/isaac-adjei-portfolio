@@ -168,6 +168,9 @@ export default function GitHubStats() {
 
               {/* A circuit-board-styled isometric read of the same data, for the fun of it -
                   lazy-mounted so it costs nothing until scrolled into view. */}
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+                isometric view
+              </p>
               <LazyIsometricCalendar
                 data={stats.contributions.days.map((d) => ({ date: d.date, value: d.count }))}
               />
