@@ -58,6 +58,7 @@ const releases: ChangeEntry[] = [
       "/lab: the GitHub contributions calendar now shows a genuine year of history from a daily-synced record instead of GitHub's own rolling 52-week graph, matching the same calendar style as the Wakatime coding heatmap and Strava's training calendar",
     ],
     fixed: [
+      "/lab: the GitHub contributions calendar had started rendering the current calendar year instead of a genuine trailing 365 days, since a sync bug stored placeholder rows for days that had not happened yet; it now shows a real rolling year again",
       "/lab and the dashboard: heatmap and calendar colours could silently fall back to solid black instead of the real colour scale, and switching light or dark mode left every chart's colours a step behind until a full reload - both fixed",
       "The whole site runs leaner: the guard that gates maintenance mode and the logged-out dashboard redirect now runs at the edge again rather than as a full server function on every request, after a framework rename had quietly made it the bulk of the site's hosting compute",
       "A sweep of every blog post, TIL entry and consumed-page link caught a dozen that had gone dead since they were written; each now points at the correct current source or an equivalent replacement",
