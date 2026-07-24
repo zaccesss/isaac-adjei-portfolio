@@ -15,6 +15,24 @@ const JUNK_TAGS = new Set([
   "under 2000 listeners", "albums i own", "want to see live",
 ])
 
+// Last.fm's tags mix genuine genres with nationality, so an artist's own #1 tag can come back
+// as a bare country or demonym rather than a genre at all - confirmed live against real listening
+// history, where "Dave" (a UK rapper) topped out at "french" and "Kamal." at "United Kingdom",
+// neither of which describes a genre. Checked as an EXACT match only, never a substring: several
+// real genre names are themselves compound terms that legitimately include a place word - "french
+// house", "UK drill", "UK garage", "k-pop", "j-pop" - and a substring check would wrongly blocklist
+// every one of those alongside the bare place names this is actually meant to catch.
+const PLACE_TAGS = new Set([
+  "uk", "united kingdom", "england", "english", "britain", "british", "scotland", "scottish",
+  "wales", "welsh", "ireland", "irish", "france", "french", "germany", "german", "italy", "italian",
+  "spain", "spanish", "usa", "america", "american", "canada", "canadian", "australia", "australian",
+  "nigeria", "nigerian", "ghana", "ghanaian", "jamaica", "jamaican", "africa", "african", "europe",
+  "european", "asia", "asian", "korea", "korean", "japan", "japanese", "china", "chinese", "brazil",
+  "brazilian", "mexico", "mexican", "russia", "russian", "india", "indian", "sweden", "swedish",
+  "norway", "norwegian", "denmark", "danish", "netherlands", "dutch", "poland", "polish", "portugal",
+  "portuguese", "south africa", "south african",
+])
+
 // Last.fm's tags are free-form and anyone can add one to any artist, so a low-data artist
 // can come back with nothing but junk - e.g. an *arr media-manager label like
 // "funk_add_to_lidarr_batch_5" someone tagged onto an artist by mistake. Real genre tags are
@@ -22,7 +40,7 @@ const JUNK_TAGS = new Set([
 // underscore is a reliable enough signal to drop it rather than trying to blocklist every
 // possible junk string.
 function isJunkTag(name: string): boolean {
-  return JUNK_TAGS.has(name) || name.includes("_")
+  return JUNK_TAGS.has(name) || PLACE_TAGS.has(name) || name.includes("_")
 }
 
 export interface LastfmTag { name: string; count: number }

@@ -88,5 +88,21 @@ export function CalendarHeatmap({
     ],
   }
 
-  return <ReactECharts option={option} style={{ height, width: "100%" }} opts={{ renderer: "svg" }} notMerge />
+  return (
+    <div>
+      <ReactECharts option={option} style={{ height, width: "100%" }} opts={{ renderer: "svg" }} notMerge />
+      {/* ECharts' own visualMap legend is deliberately hidden above (show: false) since its default
+          layout doesn't fit this card style, which left every calendar on the site with no way to
+          tell what a colour actually means. Swatched straight from `scale`, the same array the
+          chart itself colours by, so a custom scale (Strava's orange) never drifts out of sync
+          with what this shows. */}
+      <div className="mt-1.5 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
+        <span>Less</span>
+        {scale.map((c, i) => (
+          <span key={i} className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: c }} />
+        ))}
+        <span>More</span>
+      </div>
+    </div>
+  )
 }
