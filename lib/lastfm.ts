@@ -15,14 +15,40 @@ const JUNK_TAGS = new Set([
   "under 2000 listeners", "albums i own", "want to see live",
 ])
 
+// Last.fm's tags mix genuine genres with nationality, so an artist's own #1 tag can come back
+// as a bare country or demonym rather than a genre at all - confirmed live against real listening
+// history, where "Dave" (a UK rapper) topped out at "french" and "Kamal." at "United Kingdom",
+// neither of which describes a genre. Checked as an EXACT match only, never a substring: several
+// real genre names are themselves compound terms that legitimately include a place word - "french
+// house", "UK drill", "UK garage", "k-pop", "j-pop" - and a substring check would wrongly blocklist
+// every one of those alongside the bare place names this is actually meant to catch.
+const PLACE_TAGS = new Set([
+  "uk", "united kingdom", "england", "english", "britain", "british", "scotland", "scottish",
+  "wales", "welsh", "ireland", "irish", "france", "french", "germany", "german", "italy", "italian",
+  "spain", "spanish", "usa", "america", "american", "canada", "canadian", "australia", "australian",
+  "nigeria", "nigerian", "ghana", "ghanaian", "jamaica", "jamaican", "africa", "african", "europe",
+  "european", "asia", "asian", "korea", "korean", "japan", "japanese", "china", "chinese", "brazil",
+  "brazilian", "mexico", "mexican", "russia", "russian", "india", "indian", "sweden", "swedish",
+  "norway", "norwegian", "denmark", "danish", "netherlands", "dutch", "poland", "polish", "portugal",
+  "portuguese", "south africa", "south african",
+])
+
 // Last.fm's tags are free-form and anyone can add one to any artist, so a low-data artist
 // can come back with nothing but junk - e.g. an *arr media-manager label like
 // "funk_add_to_lidarr_batch_5" someone tagged onto an artist by mistake. Real genre tags are
 // always space or hyphen separated ("hip hop", "drum-and-bass"), never snake_case, so an
 // underscore is a reliable enough signal to drop it rather than trying to blocklist every
 // possible junk string.
-function isJunkTag(name: string): boolean {
-  return JUNK_TAGS.has(name) || name.includes("_")
+//
+// Exported so lib/musicbrainz.ts's genre list goes through the identical check - two sources
+// with two different casing/hyphenation conventions ("UK Drill" vs "uk-drill" vs "uk drill")
+// need one shared, source-agnostic filter rather than each guessing at its own normalisation.
+// Lower-cases and folds hyphens to spaces before matching, so JUNK_TAGS/PLACE_TAGS only ever
+// need to list one canonical spelling each, not every capitalisation or hyphenation a source
+// might use for the same word.
+export function isJunkTag(name: string): boolean {
+  const normalised = name.toLowerCase().trim().replace(/-/g, " ")
+  return JUNK_TAGS.has(normalised) || PLACE_TAGS.has(normalised) || normalised.includes("_")
 }
 
 export interface LastfmTag { name: string; count: number }
@@ -34,6 +60,24 @@ export interface LastfmTag { name: string; count: number }
 export function genreKey(name: string): string {
   const key = name.toLowerCase().replace(/[\s\-_/&]+/g, "")
   return key.length > 3 ? key.replace(/s$/, "") : key
+}
+
+// Merges two tag lists for the same artist from different sources (MusicBrainz's curated genres
+// and Last.fm's community tags), deduplicating by the same normalised key aggregateGenres already
+// uses so "hip hop" from one source and "Hip-Hop" from the other collapse into a single entry
+// rather than double-counting. Keeping only whichever source agrees, or only one source outright,
+// both lost real tags the other source had - Giggs' Last.fm data has "Grime" as its single most
+// confident tag (100/100) that MusicBrainz simply does not carry at all, so a union of both,
+// deduplicated, is the only approach that does not silently drop a correct genre either source
+// happens to be the only one to know about.
+export function mergeGenreTags(...sources: LastfmTag[][]): LastfmTag[] {
+  const merged = new Map<string, LastfmTag>()
+  for (const tag of sources.flat()) {
+    const key = genreKey(tag.name)
+    const existing = merged.get(key)
+    if (!existing || tag.count > existing.count) merged.set(key, tag)
+  }
+  return [...merged.values()].sort((a, b) => b.count - a.count)
 }
 
 export async function getArtistTags(artist: string): Promise<LastfmTag[]> {

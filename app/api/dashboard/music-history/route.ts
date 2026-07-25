@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { supabase } from "@/lib/supabase"
+import { getTagsForArtists } from "@/lib/lastfm"
 
 export const dynamic = "force-dynamic"
 
@@ -76,6 +77,28 @@ export async function GET(req: Request) {
   const topArtists = [...artistCounts.values()].sort((a, b) => b.count - a.count).slice(0, 15)
   const recent = rows.slice(0, 24).map((r) => ({ name: r.track_name, artist: r.artist_name, art: r.album_art, url: r.url, playedAt: r.played_at }))
 
+  // Time-of-day -> genre flow, for the Sankey on the music page. Capped at the 60 most-played
+  // artists (not every unique artist ever played) so a long "all" window can't fan out into
+  // hundreds of parallel Last.fm lookups on a cold cache - play counts follow a power law, so the
+  // top 60 already covers the overwhelming majority of actual plays. Each artist contributes only
+  // its single top tag (Last.fm's own top pick), so one play is never counted into multiple genres.
+  const genreArtistNames = [...artistCounts.values()].sort((a, b) => b.count - a.count).slice(0, 60).map((a) => a.artist)
+  const tagsByArtist = await getTagsForArtists(genreArtistNames)
+  const hourGenreCounts = new Map<string, number>()
+  for (const r of rows) {
+    const genre = tagsByArtist[r.artist_name]?.[0]?.name
+    if (!genre) continue
+    const h = Number(hourFmt.format(new Date(r.played_at))) % 24
+    if (Number.isNaN(h)) continue
+    const bucket = h >= 5 && h < 12 ? "Morning" : h >= 12 && h < 17 ? "Afternoon" : h >= 17 && h < 22 ? "Evening" : "Night"
+    const key = `${bucket}|${genre}`
+    hourGenreCounts.set(key, (hourGenreCounts.get(key) ?? 0) + 1)
+  }
+  const hourGenreFlow = [...hourGenreCounts.entries()].map(([key, count]) => {
+    const [bucket, genre] = key.split("|")
+    return { bucket, genre, count }
+  })
+
   return NextResponse.json(
     {
       empty: false,
@@ -89,6 +112,7 @@ export async function GET(req: Request) {
       weekdays: Object.entries(weekdays).map(([day, count]) => ({ day, count })),
       topTracks,
       topArtists,
+      hourGenreFlow,
       recent,
     },
     { headers: { "Cache-Control": "no-store" } },

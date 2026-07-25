@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { SiSpotify, SiLastdotfm } from "react-icons/si"
 import {
   AnalyticsPeriodProvider,
@@ -8,6 +8,11 @@ import {
   useAnalyticsPeriod,
   BarChart,
   PieChart,
+  Treemap,
+  Sankey,
+  RadialClock,
+  DEFAULT_CHART_COLOURS,
+  type SankeyChartData,
 } from "@/components/analytics"
 
 type Now = { playing?: boolean; track?: string; artist?: string; albumArt?: string | null } | null
@@ -22,10 +27,11 @@ type Hist = {
   weekdays?: { day: string; count: number }[]
   topTracks?: { name: string; artist: string; art: string | null; url: string | null; count: number }[]
   topArtists?: { artist: string; art: string | null; count: number }[]
+  hourGenreFlow?: { bucket: string; genre: string; count: number }[]
   recent?: { name: string; artist: string; art: string | null; url: string | null; playedAt: string }[]
 } | null
 type Top = {
-  tracks?: { rank: number; id: string; name: string; artist: string; albumArt: string | null; url: string | null }[]
+  tracks?: { rank: number; id: string; name: string; artist: string; albumArt: string | null; url: string | null; releaseDate?: string | null }[]
   artists?: { rank: number; name: string; genres: string[]; image: string | null; url: string | null; followers: number }[]
   genres?: { genre: string; value: number }[]
   eras?: { decade: string; count: number }[]
@@ -111,13 +117,95 @@ function ClockWeekday({ hours, weekdays, colour }: { hours?: number[]; weekdays?
   return (
     <div className="grid md:grid-cols-2 gap-4">
       <Section title="listening clock" note="plays by hour - London time">
-        <BarChart data={(hours ?? []).map((c, i) => ({ name: `${String(i).padStart(2, "0")}:00`, value: c }))} dataKey="value" xKey="name" height={150} colour={colour} valueFormatter={(v) => `${v} plays`} />
+        <RadialClock hours={hours ?? []} height={190} valueLabel="plays" colour={colour} />
       </Section>
       <Section title="by day of the week">
         <BarChart data={(weekdays ?? []).map((w) => ({ name: w.day, value: w.count }))} dataKey="value" xKey="name" height={150} colour="#6366f1" valueFormatter={(v) => `${v} plays`} />
       </Section>
     </div>
   )
+}
+
+// Sankey node/link builders - each returns { nodes, links } indexed the way recharts' Sankey
+// requires (a link references its nodes by array position, not by name), built fresh from
+// whatever data is already on the page rather than a new fetch, except the time-of-day flow which
+// reads a field the music-history route now computes server-side (hourGenreFlow).
+
+function sankeyIndexer() {
+  const nodes: { name: string }[] = []
+  const byName = new Map<string, number>()
+  return {
+    nodes,
+    idx(name: string): number {
+      let i = byName.get(name)
+      if (i === undefined) {
+        i = nodes.length
+        nodes.push({ name })
+        byName.set(name, i)
+      }
+      return i
+    },
+  }
+}
+
+// Artist -> genre -> era, built from the current range's top tracks (each carries a release date)
+// matched against the top artists' own genre tags by name - an honest approximation from data
+// already fetched for this page rather than a fabricated per-track genre, since genres here only
+// ever come from Last.fm's per-ARTIST tags, never per-track.
+function buildArtistGenreEraSankey(tracks: NonNullable<Top>["tracks"], artists: NonNullable<Top>["artists"]): SankeyChartData {
+  if (!tracks?.length || !artists?.length) return { nodes: [], links: [] }
+  const genreByArtist = new Map(artists.map((a) => [a.name.toLowerCase(), a.genres[0]]))
+  const { nodes, idx } = sankeyIndexer()
+  const weights = new Map<string, number>()
+  const add = (source: number, target: number, amount = 1) => {
+    const key = `${source}-${target}`
+    weights.set(key, (weights.get(key) ?? 0) + amount)
+  }
+  for (const t of tracks.slice(0, 15)) {
+    const primaryArtist = t.artist.split(",")[0]?.trim()
+    const genre = primaryArtist ? genreByArtist.get(primaryArtist.toLowerCase()) : undefined
+    const year = t.releaseDate ? parseInt(t.releaseDate.slice(0, 4), 10) : NaN
+    if (!primaryArtist || !genre || Number.isNaN(year)) continue
+    const era = `${Math.floor(year / 10) * 10}s`
+    add(idx(primaryArtist), idx(genre))
+    add(idx(genre), idx(era))
+  }
+  const links = [...weights.entries()].map(([key, value]) => {
+    const [source, target] = key.split("-").map(Number)
+    return { source, target, value }
+  })
+  return { nodes, links }
+}
+
+// Platform -> artist, comparing the same top artists as seen through Spotify's own stored play
+// history versus Last.fm's full scrobble history - two independently-tracked sources converging
+// on (mostly) the same people.
+function buildPlatformArtistSankey(spotifyArtists: NonNullable<Hist>["topArtists"], lastfmArtists: NonNullable<Lfm>["topArtists"]): SankeyChartData {
+  const { nodes, idx } = sankeyIndexer()
+  const spotifyIdx = idx("Spotify")
+  const lastfmIdx = idx("Last.fm")
+  const links: { source: number; target: number; value: number }[] = []
+  for (const a of (spotifyArtists ?? []).slice(0, 8)) {
+    links.push({ source: spotifyIdx, target: idx(a.artist), value: a.count })
+  }
+  for (const a of (lastfmArtists ?? []).slice(0, 8)) {
+    links.push({ source: lastfmIdx, target: idx(a.name), value: a.playcount })
+  }
+  return { nodes, links }
+}
+
+// Time of day -> genre, from music-history's own hourGenreFlow (each play's hour bucketed into a
+// part of the day, joined against its artist's primary Last.fm tag server-side, since that join
+// needs the full per-play artist_name list this page never fetches directly).
+function buildHourGenreSankey(flow: NonNullable<Hist>["hourGenreFlow"]): SankeyChartData {
+  if (!flow?.length) return { nodes: [], links: [] }
+  const { nodes, idx } = sankeyIndexer()
+  const links = flow
+    .filter((f) => f.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 20)
+    .map((f) => ({ source: idx(f.bucket), target: idx(f.genre), value: f.count }))
+  return { nodes, links }
 }
 
 function MusicInner() {
@@ -159,6 +247,10 @@ function MusicInner() {
   const lPeak = (lfm?.hours ?? []).length ? (lfm?.hours ?? []).indexOf(Math.max(...(lfm?.hours ?? [0]))) : 0
   const lArtists = lfm?.topArtists ?? []
   const lTracks = lfm?.topTracks ?? []
+
+  const artistGenreEraFlow = useMemo(() => buildArtistGenreEraSankey(top?.tracks, top?.artists), [top])
+  const platformArtistFlow = useMemo(() => buildPlatformArtistSankey(hist?.topArtists, lfm?.topArtists), [hist, lfm])
+  const hourGenreFlow = useMemo(() => buildHourGenreSankey(hist?.hourGenreFlow), [hist])
 
   return (
     <div className="space-y-4 max-w-5xl">
@@ -248,6 +340,12 @@ function MusicInner() {
             )}
           </div>
 
+          {genres.length > 0 && (
+            <Section title="my genres, by size" note="same data as the pie above, read as area instead">
+              <Treemap data={genres.slice(0, 12).map((g) => ({ name: g.genre, value: g.value }))} height={220} colours={C} valueFormatter={(v) => v.toFixed(1)} />
+            </Section>
+          )}
+
           {shows.length > 0 && (
             <Section title="my podcasts" note="Spotify shows">
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
@@ -314,6 +412,32 @@ function MusicInner() {
                   </div>
                 </Section>
               )}
+            </>
+          )}
+
+          {/* ─────────────── LISTENING FLOWS ─────────────── */}
+          {(artistGenreEraFlow.links.length > 0 || platformArtistFlow.links.length > 0 || hourGenreFlow.links.length > 0) && (
+            <>
+              <Divider icon={<span>→</span>} label="Listening flows" colour="#8b5cf6" />
+
+              {artistGenreEraFlow.links.length > 0 && (
+                <Section title="artist -> genre -> era" note="Spotify - top tracks this range, by release decade">
+                  <Sankey data={artistGenreEraFlow} height={260} nodeColours={DEFAULT_CHART_COLOURS} valueFormatter={(v) => `${v} tracks`} />
+                </Section>
+              )}
+
+              <div className="grid md:grid-cols-2 gap-4">
+                {hourGenreFlow.links.length > 0 && (
+                  <Section title="time of day -> genre" note="Spotify history - top 60 artists' primary genre">
+                    <Sankey data={hourGenreFlow} height={240} nodeColours={DEFAULT_CHART_COLOURS} valueFormatter={(v) => `${v} plays`} />
+                  </Section>
+                )}
+                {platformArtistFlow.links.length > 0 && (
+                  <Section title="platform -> artist" note="Spotify history vs Last.fm scrobbles">
+                    <Sankey data={platformArtistFlow} height={240} nodeColours={["#1db954", "#d51007", ...DEFAULT_CHART_COLOURS]} valueFormatter={(v) => `${v} plays`} />
+                  </Section>
+                )}
+              </div>
             </>
           )}
         </>

@@ -10,6 +10,7 @@ import * as React from "react"
 import {
   LineChart as RLineChart, Line, BarChart as RBarChart, Bar,
   PieChart as RPieChart, Pie, Cell, Sector,
+  Treemap as RTreemap, Sankey as RSankey,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts"
 
@@ -227,6 +228,142 @@ export function PieChart({
           formatter={(value) => <span style={{ color: "hsl(var(--muted-foreground))" }}>{value}</span>}
         />
       </RPieChart>
+    </ResponsiveContainer>
+  )
+}
+
+// Recharts renders the Treemap's own wrapping root as depth 0 with no real name/value - only
+// its children (depth 1) are the actual leaf boxes this chart is meant to show, so depth 0 is
+// skipped entirely rather than drawn as an empty outer rectangle.
+function TreemapCell(props: { depth?: number; x?: number; y?: number; width?: number; height?: number; name?: string; value?: number; index?: number; colours: string[]; valueFormatter?: (v: number) => string }) {
+  const { depth, x = 0, y = 0, width = 0, height = 0, name, value, index = 0, colours, valueFormatter } = props
+  if (!depth) return null
+  const fill = colours[index % colours.length]
+  const showLabel = width > 46 && height > 22
+  return (
+    <g>
+      <rect x={x} y={y} width={width} height={height} fill={fill} stroke="hsl(var(--card))" strokeWidth={2} rx={3} />
+      {showLabel && (
+        <>
+          <text x={x + 6} y={y + 15} fontSize={11} fontWeight={600} fill="#fff">
+            {name}
+          </text>
+          {height > 38 && (
+            <text x={x + 6} y={y + 29} fontSize={10} fill="rgba(255,255,255,0.8)">
+              {valueFormatter && typeof value === "number" ? valueFormatter(value) : value}
+            </text>
+          )}
+        </>
+      )}
+    </g>
+  )
+}
+
+export function Treemap({
+  data,
+  height = 240,
+  colours = DEFAULT_CHART_COLOURS,
+  valueFormatter,
+}: {
+  data: { name: string; value: number }[]
+  height?: number
+  colours?: string[]
+  valueFormatter?: (value: number) => string
+}) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <RTreemap
+        data={data}
+        dataKey="value"
+        nameKey="name"
+        aspectRatio={4 / 3}
+        isAnimationActive={false}
+        content={(props) => <TreemapCell {...props} colours={colours} valueFormatter={valueFormatter} />}
+      >
+        <Tooltip
+          content={({ active, payload }) => (
+            <ThemedTooltip
+              active={active}
+              payload={payload?.map((p, i) => ({ name: String(p.payload?.name ?? ""), value: Number(p.value ?? 0), color: colours[i % colours.length] }))}
+              valueFormatter={valueFormatter}
+            />
+          )}
+        />
+      </RTreemap>
+    </ResponsiveContainer>
+  )
+}
+
+// Recharts requires each node/link to reference the other by array index rather than accepting
+// arbitrary keyed data (unlike every other chart here) - the caller builds { nodes, links } once
+// and this just themes and sizes the result.
+export interface SankeyChartData {
+  nodes: { name: string }[]
+  links: { source: number; target: number; value: number }[]
+}
+
+export function Sankey({
+  data,
+  height = 280,
+  nodeColours = DEFAULT_CHART_COLOURS,
+  valueFormatter,
+}: {
+  data: SankeyChartData
+  height?: number
+  nodeColours?: string[]
+  valueFormatter?: (value: number) => string
+}) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <RSankey
+        data={data}
+        nodePadding={14}
+        nodeWidth={10}
+        // Generous left/right margin, since node labels render outside the node rects (source
+        // labels to the left of the chart, terminal labels to the right) rather than inside them -
+        // the nodes themselves are only 10px wide, nowhere near enough to hold a name.
+        margin={{ top: 8, right: 90, bottom: 8, left: 90 }}
+        link={{ stroke: "hsl(var(--muted-foreground))", strokeOpacity: 0.25 }}
+        node={(props) => {
+          const p = props as any
+          // A node with no outgoing links is a terminal (rightmost) node, so its label goes on the
+          // left instead - otherwise every terminal label would run off the right edge of the
+          // chart. sourceLinks/targetLinks come from recharts' own computed Sankey layout, not
+          // something this component builds itself.
+          const isTerminal = (p.payload?.sourceLinks?.length ?? 0) === 0
+          return (
+            <g>
+              <rect x={p.x} y={p.y} width={p.width} height={p.height} fill={nodeColours[p.index % nodeColours.length]} rx={2} />
+              <text
+                x={isTerminal ? p.x - 6 : p.x + p.width + 6}
+                y={p.y + p.height / 2}
+                dy="0.32em"
+                textAnchor={isTerminal ? "end" : "start"}
+                fontSize={11}
+                fill="hsl(var(--foreground))"
+              >
+                {p.payload?.name}
+              </text>
+            </g>
+          )
+        }}
+      >
+        <Tooltip
+          content={({ active, payload }) => {
+            const entry = payload?.[0]?.payload as any
+            if (!active || !entry) return null
+            const isLink = entry.source !== undefined && entry.target !== undefined
+            const label = isLink ? `${entry.source.name} -> ${entry.target.name}` : entry.name
+            const value = isLink ? entry.value : entry.value
+            return (
+              <div className="rounded-md border border-border bg-background px-3 py-2 shadow-md text-xs">
+                <p className="font-medium text-foreground">{label}</p>
+                <p className="text-muted-foreground">{valueFormatter ? valueFormatter(value) : value}</p>
+              </div>
+            )
+          }}
+        />
+      </RSankey>
     </ResponsiveContainer>
   )
 }
