@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { redis } from "@/lib/redis"
 import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
-import { getTagsForArtists, aggregateGenres } from "@/lib/lastfm"
+import { getTagsForArtists, aggregateGenres, mergeGenreTags, type LastfmTag } from "@/lib/lastfm"
+import { getMusicBrainzGenresForArtists } from "@/lib/musicbrainz"
 
 async function getAccessToken(): Promise<string | null> {
   const { SPOTIFY_CLIENT_ID: cid, SPOTIFY_CLIENT_SECRET: sec, SPOTIFY_REFRESH_TOKEN: rt } = process.env
@@ -70,9 +71,26 @@ export async function GET(req: Request) {
         }).catch(() => {})
     }
 
-    // Genres via Last.fm top tags per artist (each cached in Redis for 7 days)
+    // Genres: a merged union of MusicBrainz's own curated genre taxonomy (cross-referenced by the
+    // artist's exact Spotify id, since a plain name search on MusicBrainz cannot reliably
+    // disambiguate a common artist name - confirmed live, "Dave" resolved to a dozen unrelated
+    // musicians on both MusicBrainz and Discogs, never my own top artist, while looking up
+    // MusicBrainz's indexed relationship to that exact Spotify profile URL resolves to the correct
+    // entity every time) and Last.fm's community tags. Neither is used as a fallback for the
+    // other - an artist can have a real, high-confidence genre known to only one of the two
+    // sources (Giggs' Last.fm tags carry "Grime" at its own top confidence, which MusicBrainz does
+    // not have tagged for him at all), so preferring one source outright would silently drop
+    // exactly that kind of tag. mergeGenreTags() de-duplicates the two lists by normalised genre
+    // name instead, keeping every distinct genre either source contributes.
     const artistNames = artistsData.items.map((a: any) => a.name).filter(Boolean)
-    const tagsByName = await getTagsForArtists(artistNames)
+    const [lastfmByName, musicbrainzByName] = await Promise.all([
+      getTagsForArtists(artistNames),
+      getMusicBrainzGenresForArtists(artistsData.items.map((a: any) => ({ id: a.id, name: a.name })).filter((a: { id: string }) => a.id)),
+    ])
+    const tagsByName: Record<string, LastfmTag[]> = {}
+    for (const name of artistNames) {
+      tagsByName[name] = mergeGenreTags(musicbrainzByName[name] ?? [], lastfmByName[name] ?? [])
+    }
 
     const tracks = tracksData.items.map((t: any, i: number) => ({
       rank: i + 1,

@@ -39,8 +39,16 @@ const PLACE_TAGS = new Set([
 // always space or hyphen separated ("hip hop", "drum-and-bass"), never snake_case, so an
 // underscore is a reliable enough signal to drop it rather than trying to blocklist every
 // possible junk string.
-function isJunkTag(name: string): boolean {
-  return JUNK_TAGS.has(name) || PLACE_TAGS.has(name) || name.includes("_")
+//
+// Exported so lib/musicbrainz.ts's genre list goes through the identical check - two sources
+// with two different casing/hyphenation conventions ("UK Drill" vs "uk-drill" vs "uk drill")
+// need one shared, source-agnostic filter rather than each guessing at its own normalisation.
+// Lower-cases and folds hyphens to spaces before matching, so JUNK_TAGS/PLACE_TAGS only ever
+// need to list one canonical spelling each, not every capitalisation or hyphenation a source
+// might use for the same word.
+export function isJunkTag(name: string): boolean {
+  const normalised = name.toLowerCase().trim().replace(/-/g, " ")
+  return JUNK_TAGS.has(normalised) || PLACE_TAGS.has(normalised) || normalised.includes("_")
 }
 
 export interface LastfmTag { name: string; count: number }
@@ -52,6 +60,24 @@ export interface LastfmTag { name: string; count: number }
 export function genreKey(name: string): string {
   const key = name.toLowerCase().replace(/[\s\-_/&]+/g, "")
   return key.length > 3 ? key.replace(/s$/, "") : key
+}
+
+// Merges two tag lists for the same artist from different sources (MusicBrainz's curated genres
+// and Last.fm's community tags), deduplicating by the same normalised key aggregateGenres already
+// uses so "hip hop" from one source and "Hip-Hop" from the other collapse into a single entry
+// rather than double-counting. Keeping only whichever source agrees, or only one source outright,
+// both lost real tags the other source had - Giggs' Last.fm data has "Grime" as its single most
+// confident tag (100/100) that MusicBrainz simply does not carry at all, so a union of both,
+// deduplicated, is the only approach that does not silently drop a correct genre either source
+// happens to be the only one to know about.
+export function mergeGenreTags(...sources: LastfmTag[][]): LastfmTag[] {
+  const merged = new Map<string, LastfmTag>()
+  for (const tag of sources.flat()) {
+    const key = genreKey(tag.name)
+    const existing = merged.get(key)
+    if (!existing || tag.count > existing.count) merged.set(key, tag)
+  }
+  return [...merged.values()].sort((a, b) => b.count - a.count)
 }
 
 export async function getArtistTags(artist: string): Promise<LastfmTag[]> {
