@@ -325,7 +325,6 @@ export function Sankey({
         margin={{ top: 8, right: 90, bottom: 8, left: 90 }}
         link={{ stroke: "hsl(var(--muted-foreground))", strokeOpacity: 0.25 }}
         node={(props) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const p = props as any
           // A node with no outgoing links is a terminal (rightmost) node, so its label goes on the
           // left instead - otherwise every terminal label would run off the right edge of the
@@ -351,7 +350,6 @@ export function Sankey({
       >
         <Tooltip
           content={({ active, payload }) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const entry = payload?.[0]?.payload as any
             if (!active || !entry) return null
             const isLink = entry.source !== undefined && entry.target !== undefined
