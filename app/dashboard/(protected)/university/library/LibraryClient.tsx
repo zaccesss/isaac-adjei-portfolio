@@ -125,10 +125,10 @@ function LibraryClientInner({ books, modules }: { books: Book[]; modules: Module
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="On loan" value={active.length} />
+        <StatCard label="On loan" value={active.length} scope="current" />
         <StatCard label="Due in window" value={dueInWindow} />
-        <StatCard label="Overdue" value={overdueCount} />
-        <StatCard label="Returned" value={returned.length} />
+        <StatCard label="Overdue" value={overdueCount} scope="current" />
+        <StatCard label="Returned" value={returned.length} scope="all-time" />
       </div>
 
       <div className="flex gap-2">

@@ -239,13 +239,20 @@ function FaithClientInner({ entries, today }: { entries: FaithEntry[]; today: st
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Current streak", value: streak, suffix: streak === 1 ? "day" : "days", icon: "🔥" },
+          { label: "Current streak", value: streak, suffix: streak === 1 ? "day" : "days", icon: "🔥", scope: "current" as const },
           { label: "Days active", value: uniqueDays, suffix: "days", icon: "✅" },
           { label: "Total minutes", value: totalMinutes, suffix: "min", icon: "⏱" },
-          { label: "Today", value: todayEntries.length, suffix: todayEntries.length === 1 ? "entry" : "entries", icon: "📖" },
+          { label: "Today", value: todayEntries.length, suffix: todayEntries.length === 1 ? "entry" : "entries", icon: "📖", scope: "current" as const },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-border/60 bg-card p-4 space-y-1">
-            <p className="text-xs text-muted-foreground">{s.label}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-xs text-muted-foreground">{s.label}</p>
+              {s.scope && (
+                <span className="text-[9px] uppercase tracking-wide text-muted-foreground/70 border border-border/50 rounded px-1 leading-tight">
+                  {s.scope}
+                </span>
+              )}
+            </div>
             <p className="text-2xl font-bold">{s.icon} {s.value}</p>
             <p className="text-xs text-muted-foreground">{s.suffix}</p>
           </div>

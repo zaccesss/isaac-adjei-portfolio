@@ -108,7 +108,7 @@ function SubmissionsClientInner({ submissions, modules, deadlines }: {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <StatCard label="In period" value={periodSubs.length} />
-        <StatCard label="Total logged" value={submissions.length} />
+        <StatCard label="Total logged" value={submissions.length} scope="all-time" />
         <StatCard label="Modules" value={new Set(periodSubs.map((s) => s.uni_modules?.code).filter(Boolean)).size} />
       </div>
 

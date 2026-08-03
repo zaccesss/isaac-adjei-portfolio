@@ -4,6 +4,7 @@
 // (GitHub contributions, Wakatime's daily activity calendar, Strava's activity calendar) so each
 // stops hand-rolling its own div grid with its own intensity-class lookup and tooltip state.
 
+import { useRef, useEffect } from "react"
 import ReactECharts from "echarts-for-react"
 import { useEChartsColours, intensityScale, relativeLevel } from "./echarts-theme"
 
@@ -49,6 +50,24 @@ export function CalendarHeatmap({
   const safe = data.map((d) => ({ ...d, value: Number.isFinite(d.value) ? d.value : 0 }))
   const max = Math.max(...safe.map((d) => d.value), 1)
 
+  // A fixed pixel width sized to the real number of weeks in range, not "100%": at cellSize=12 a
+  // full year is ~53 weeks * 13px ≈ 690px, wider than most phones. Squashing that into 100% width
+  // (the old behaviour) shrinks every cell below a tappable, readable size on mobile. GitHub's own
+  // calendar instead stays at its real size and scrolls horizontally, so this does the same - the
+  // wrapping div below carries the scroll, this chart just reports its true content width.
+  const weeks = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (7 * 86400000)) + 1
+  const chartWidth = weeks * (cellSize + 1) + 40
+
+  // A scroll container defaults to its start (oldest day) on mount, but the most recent day is
+  // what actually matters at a glance - GitHub's own mobile calendar opens already scrolled to
+  // today for the same reason. Scrolling to the end covers both a container narrower than the
+  // chart (real scrolling) and one already as wide as the chart (a harmless no-op).
+  const scrollRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el) el.scrollLeft = el.scrollWidth
+  }, [chartWidth])
+
   const option = {
     tooltip: {
       formatter: (p: { data: { value: [string, number]; raw: number } }) => {
@@ -90,12 +109,25 @@ export function CalendarHeatmap({
 
   return (
     <div>
-      <ReactECharts option={option} style={{ height, width: "100%" }} opts={{ renderer: "svg" }} notMerge />
+      {/* Horizontally scrollable at the chart's real content width, not squashed to the card's
+          width - a full year of 12px cells only fits most phones by scrolling, the same way
+          GitHub's own contribution graph behaves on mobile. Stays within whichever padding the
+          caller's own card uses (that varies, p-3 through p-5 across callers) rather than trying
+          to bleed to the card edge, which would misalign against a caller using different padding. */}
+      <div ref={scrollRef} className="overflow-x-auto">
+        <ReactECharts
+          option={option}
+          style={{ height, width: chartWidth }}
+          opts={{ renderer: "svg" }}
+          notMerge
+        />
+      </div>
       {/* ECharts' own visualMap legend is deliberately hidden above (show: false) since its default
           layout doesn't fit this card style, which left every calendar on the site with no way to
           tell what a colour actually means. Swatched straight from `scale`, the same array the
           chart itself colours by, so a custom scale (Strava's orange) never drifts out of sync
-          with what this shows. */}
+          with what this shows. Kept outside the scroll container since it is a static legend, not
+          tied to any specific day cell. */}
       <div className="mt-1.5 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
         <span>Less</span>
         {scale.map((c, i) => (

@@ -306,7 +306,12 @@ function OpenSourceClientInner({
           <p className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">{mergedCount}</p>
         </div>
         <div className="border border-border rounded-lg p-4 bg-card">
-          <p className="text-xs text-muted-foreground">All time</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs text-muted-foreground">All time</p>
+            <span className="text-[9px] uppercase tracking-wide text-muted-foreground/70 border border-border/50 rounded px-1 leading-tight">
+              all-time
+            </span>
+          </div>
           <p className="text-2xl font-bold mt-1">{total}</p>
         </div>
       </div>

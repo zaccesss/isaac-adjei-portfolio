@@ -105,7 +105,7 @@ function Inner({ weights, nutrition, workouts, strava }: { weights: Weight[]; nu
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Current weight" value={latest != null ? `${latest} kg` : "-"} />
+        <StatCard label="Current weight" value={latest != null ? `${latest} kg` : "-"} scope="current" />
         <StatCard
           label="Change in period"
           value={change != null ? `${change > 0 ? "+" : ""}${change} kg` : "-"}

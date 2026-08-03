@@ -300,7 +300,7 @@ function MusicInner() {
 
           <div className="grid md:grid-cols-2 gap-4">
             {sTracks.length > 0 && (
-              <Section title="top tracks" note="Spotify - this range">
+              <Section title="top tracks" note="Spotify: Recent · 6mo · All-time only">
                 <div className="space-y-1.5">
                   {sTracks.slice(0, 10).map((t) => (
                     <a key={t.id} href={t.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 group hover:bg-muted/40 rounded-lg px-1.5 py-1">
@@ -313,7 +313,7 @@ function MusicInner() {
               </Section>
             )}
             {sArtists.length > 0 && (
-              <Section title="top artists" note="Spotify - this range">
+              <Section title="top artists" note="Spotify: Recent · 6mo · All-time only">
                 <div className="space-y-1.5">
                   {sArtists.slice(0, 10).map((a) => (
                     <a key={a.rank} href={a.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 group hover:bg-muted/40 rounded-lg px-1.5 py-1">
@@ -329,7 +329,7 @@ function MusicInner() {
 
           <div className="grid md:grid-cols-2 gap-4">
             {genres.length > 0 && (
-              <Section title="my genres" note="rank-weighted from my top artists">
+              <Section title="my genres" note="rank-weighted, Spotify: Recent · 6mo · All-time only">
                 <PieChart data={genres.slice(0, 8).map((g, i) => ({ name: g.genre, value: g.value, colour: C[i % C.length] }))} height={200} valueFormatter={(v) => `${Math.round(v)}`} />
               </Section>
             )}
@@ -421,7 +421,7 @@ function MusicInner() {
               <Divider icon={<span>→</span>} label="Listening flows" colour="#8b5cf6" />
 
               {artistGenreEraFlow.links.length > 0 && (
-                <Section title="artist -> genre -> era" note="Spotify - top tracks this range, by release decade">
+                <Section title="artist -> genre -> era" note="Spotify: Recent · 6mo · All-time only, by release decade">
                   <Sankey data={artistGenreEraFlow} height={260} nodeColours={DEFAULT_CHART_COLOURS} valueFormatter={(v) => `${v} tracks`} />
                 </Section>
               )}
