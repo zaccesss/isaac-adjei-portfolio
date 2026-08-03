@@ -260,7 +260,15 @@ function BodyMetricsClientInner({ metrics }: { metrics: Metric[] }) {
               if (!latest) return null
               return (
                 <div key={m} className="rounded-xl border border-border/60 bg-card p-4 space-y-1">
-                  <p className="text-xs text-muted-foreground">{metricLabel(m)}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs text-muted-foreground">{metricLabel(m)}</p>
+                    {/* Latest reading regardless of the period selector above - a small badge
+                        distinguishes it from the period-scoped trend chart right above this grid,
+                        matching StatCard's own "current"/"all-time" badge elsewhere on the dashboard. */}
+                    <span className="text-[9px] uppercase tracking-wide text-muted-foreground/70 border border-border/50 rounded px-1 leading-tight">
+                      current
+                    </span>
+                  </div>
                   <p className="text-2xl font-bold" style={{ color: COLOURS[i % COLOURS.length] }}>
                     {latest.value}{latest.unit}
                   </p>

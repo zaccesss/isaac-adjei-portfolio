@@ -90,7 +90,7 @@ function Inner({ reminders, doses }: { reminders: ReminderLite[]; doses: Dose[] 
       <PeriodSelector />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Active reminders" value={activeCount} />
+        <StatCard label="Active reminders" value={activeCount} scope="current" />
         <StatCard label="Sent" value={sent} />
         <StatCard label="Taken" value={taken} />
         <StatCard label="Adherence" value={`${adherence}%`} />

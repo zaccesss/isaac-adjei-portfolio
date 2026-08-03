@@ -17,7 +17,7 @@ import {
 } from "@/app/dashboard/actions"
 import { savedOk } from "@/lib/save-result"
 import DashboardBreadcrumb from "@/app/dashboard/components/DashboardBreadcrumb"
-import { StatCard, BarChart, AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod } from "@/components/analytics"
+import { StatCard, BarChart, AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, allTimeChartDays } from "@/components/analytics"
 import { Pagination } from "@/components/shared/Pagination"
 
 const SUPPLEMENT_PRESETS = ["Creatine", "Whey", "Vitamin D", "Omega-3", "Magnesium"]
@@ -59,7 +59,13 @@ function HabitsClientInner({
   const [page, setPage] = useState(1)
   const { confirm: showConfirm, dialog: confirmDialogNode } = useConfirmDialog()
   const { period } = useAnalyticsPeriod()
-  const numDays = period === "24h" || period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365
+  // "All time" used to silently reuse 1y's 365-day window, looking identical to 1y once there was
+  // more than a year of logs - it now spans back to the earliest log actually recorded instead.
+  const numDays = period === "24h" || period === "7d" ? 7
+    : period === "30d" ? 30
+    : period === "90d" ? 90
+    : period === "1y" ? 365
+    : allTimeChartDays(logs.map((l) => l.date), 365)
 
   // Local optimistic copy of today's check-ins so a tap toggles instantly, without the old
   // window.location.reload that raced the in-flight server action and dropped check-ins. Seeded from
@@ -248,10 +254,10 @@ function HabitsClientInner({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard label="Total habits" value={analytics.totalHabits} />
-            <StatCard label="Checked in today" value={`${analytics.checkedInToday} / ${analytics.totalHabits}`} />
+            <StatCard label="Total habits" value={analytics.totalHabits} scope="all-time" />
+            <StatCard label="Checked in today" value={`${analytics.checkedInToday} / ${analytics.totalHabits}`} scope="current" />
             <StatCard label="Completion" value={`${analytics.completionPct}%`} />
-            <StatCard label="Best streak" value={analytics.bestStreak} />
+            <StatCard label="Best streak" value={analytics.bestStreak} scope="all-time" />
           </div>
 
           <div className="border border-border rounded-xl p-4">

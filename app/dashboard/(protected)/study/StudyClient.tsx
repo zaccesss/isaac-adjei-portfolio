@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Clock, BookOpen, Pencil } from "lucide-react"
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, YAxis } from "recharts"
-import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod } from "@/components/analytics"
+import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod, allTimeChartDays } from "@/components/analytics"
 import { Pagination } from "@/components/shared/Pagination"
 
 type Session = {
@@ -130,8 +130,14 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
     minutes: periodSessions.filter((s) => s.subject === subj).reduce((a, s) => a + s.duration_m, 0),
   })).filter((b) => b.minutes > 0).sort((a, b) => b.minutes - a.minutes)
 
-  // Daily totals across a window that follows the period
-  const numDays = period === "24h" || period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365
+  // Daily totals across a window that follows the period. "All time" used to silently reuse 1y's
+  // 365-day window, looking identical to 1y once there was more than a year of sessions - it now
+  // spans back to the earliest session actually logged instead.
+  const numDays = period === "24h" || period === "7d" ? 7
+    : period === "30d" ? 30
+    : period === "90d" ? 90
+    : period === "1y" ? 365
+    : allTimeChartDays(sessions.map((s) => s.date), 365)
   const dailyData = Array.from({ length: numDays }, (_, i) => {
     const d = new Date(today)
     d.setDate(d.getDate() - (numDays - 1 - i))
@@ -249,12 +255,19 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Total", value: fmtMinutes(totalMinutes), icon: "📚" },
-          { label: "Today", value: fmtMinutes(todayMinutes), icon: "⏱" },
+          { label: "Today", value: fmtMinutes(todayMinutes), icon: "⏱", scope: "current" as const },
           { label: "Avg per study day", value: fmtMinutes(avgPerDay), icon: "📊" },
           { label: "Subjects", value: periodSubjectCount, icon: "🗂" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-border/60 bg-card p-4 space-y-1">
-            <p className="text-xs text-muted-foreground">{s.label}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-xs text-muted-foreground">{s.label}</p>
+              {s.scope && (
+                <span className="text-[9px] uppercase tracking-wide text-muted-foreground/70 border border-border/50 rounded px-1 leading-tight">
+                  {s.scope}
+                </span>
+              )}
+            </div>
             <p className="text-2xl font-bold">{s.icon} {s.value}</p>
           </div>
         ))}

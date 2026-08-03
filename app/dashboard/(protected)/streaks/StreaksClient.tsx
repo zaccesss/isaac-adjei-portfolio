@@ -18,6 +18,7 @@ import {
   PeriodSelector,
   useAnalyticsPeriod,
   periodStartDate,
+  allTimeChartDays,
   StatCard,
   DEFAULT_CHART_COLOURS,
   type AnalyticsPeriod,
@@ -40,9 +41,16 @@ type Log = {
 }
 
 // Maps the selected analytics period to the trailing day window every activity chart draws over,
-// so the heatmap and the analytics charts share one definition of "the period".
-function periodDays(period: AnalyticsPeriod): number {
-  return period === "24h" ? 1 : period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 365
+// so the heatmap and the analytics charts share one definition of "the period". "All time" used to
+// silently reuse 1y's 365-day window, looking identical to 1y once there was more than a year of
+// logs - it now spans back to the earliest log actually recorded instead.
+function periodDays(period: AnalyticsPeriod, logs: Log[]): number {
+  if (period === "24h") return 1
+  if (period === "7d") return 7
+  if (period === "30d") return 30
+  if (period === "90d") return 90
+  if (period === "1y") return 365
+  return allTimeChartDays(logs.map((l) => l.date), 365)
 }
 
 function calcCurrentStreak(logs: Log[], streakId: string, today: string): number {
@@ -108,7 +116,7 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
   const cutoff = periodStartDate(period)
 
   // numDays drives all chart windows
-  const numDays = periodDays(period)
+  const numDays = periodDays(period, logs)
   const numWeeks = Math.max(1, Math.min(52, Math.ceil(numDays / 7)))
 
   // Build day array for the period
@@ -207,8 +215,8 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="Check-ins this period" value={totalCheckIns} />
-        <StatCard label="Checked in today" value={`${checkedInToday} / ${streaks.length}`} />
-        <StatCard label="Best current streak" value={bestCurrent} />
+        <StatCard label="Checked in today" value={`${checkedInToday} / ${streaks.length}`} scope="current" />
+        <StatCard label="Best current streak" value={bestCurrent} scope="current" />
         <StatCard label="Compliance" value={`${compliancePct}%`} />
       </div>
 
@@ -494,7 +502,7 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
   const { period } = useAnalyticsPeriod()
 
   // Per-card heatmaps share the analytics window so they redraw with the period selector.
-  const numDays = periodDays(period)
+  const numDays = periodDays(period, logs)
 
   const checkedInCount = streaks.filter((s) =>
     logs.some((l) => l.streak_id === s.id && l.date === today && l.completed)

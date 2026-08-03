@@ -14,6 +14,7 @@ import {
   PeriodSelector,
   useAnalyticsPeriod,
   periodStartDate,
+  allTimeChartDays,
   type AnalyticsPeriod,
   CalendarHeatmap,
   GridHeatmap,
@@ -52,24 +53,26 @@ const PERIOD_STAT_LABEL: Record<AnalyticsPeriod, string> = {
   all: "All time",
 }
 
-// How many days to show in the daily bar chart per period
-const PERIOD_CHART_DAYS: Record<AnalyticsPeriod, number> = {
-  "24h": 7,
-  "7d": 7,
-  "30d": 30,
-  "90d": 90,
-  "1y": 30,
-  all: 30,
+// How many days to show in the daily bar chart per period. "All time" used to silently reuse 1y's
+// 30-day window, looking identical to 1y - it now spans further back (capped well short of one
+// bar per day for years of history, which a daily bar chart cannot render legibly) so it always
+// differs once there is real history behind it.
+function periodChartDays(period: AnalyticsPeriod, dates: string[]): number {
+  if (period === "24h" || period === "7d") return 7
+  if (period === "30d") return 30
+  if (period === "90d") return 90
+  if (period === "1y") return 30
+  return allTimeChartDays(dates, 30, 120)
 }
 
-// How many weeks to show in the weekly bar charts per period, so they follow the selector too
-const PERIOD_CHART_WEEKS: Record<AnalyticsPeriod, number> = {
-  "24h": 4,
-  "7d": 4,
-  "30d": 6,
-  "90d": 13,
-  "1y": 52,
-  all: 52,
+// How many weeks to show in the weekly bar charts per period, so they follow the selector too.
+// Same "all" fix as periodChartDays, at a weekly grain so a larger cap stays readable.
+function periodChartWeeks(period: AnalyticsPeriod, dates: string[]): number {
+  if (period === "24h" || period === "7d") return 4
+  if (period === "30d") return 6
+  if (period === "90d") return 13
+  if (period === "1y") return 52
+  return Math.ceil(allTimeChartDays(dates, 365, 730) / 7)
 }
 
 function formatHours(seconds: number) {
@@ -274,7 +277,7 @@ function CodingInner({
   const hasHourData = weekdayHourMax > 0
 
   // --- Daily chart (period-aware number of days) ---
-  const numDays = PERIOD_CHART_DAYS[period]
+  const numDays = periodChartDays(period, rows.map((r) => r.date))
 
   const dailyCodings = useMemo(() => {
     const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
@@ -300,7 +303,7 @@ function CodingInner({
   }, [ghDays, numDays])
 
   // --- Weekly charts (number of weeks follows the selected period) ---
-  const numWeeks = PERIOD_CHART_WEEKS[period]
+  const numWeeks = periodChartWeeks(period, rows.map((r) => r.date))
   const weeklyCodings = useMemo(() => {
     const byDate = new Map(rows.map((r) => [r.date, r.total_seconds]))
     const today = new Date()
@@ -365,17 +368,19 @@ function CodingInner({
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <StatCard label={PERIOD_STAT_LABEL[period]} value={formatHours(totalSeconds)} />
-        <StatCard label="This week"    value={formatHours(totalSecondsWeek)} />
+        <StatCard label="This week"    value={formatHours(totalSecondsWeek)} scope="current" />
         <StatCard label="Active days"  value={activeDays} />
         <StatCard label="Daily average" value={formatHours(avgSeconds)} />
         <StatCard label="Most active day" value={mostActiveLabel} accentClassName="sm:col-span-1 col-span-2" />
       </div>
 
-      {/* WakaTime contribution heatmap */}
+      {/* WakaTime contribution heatmap - always the full year regardless of the period selector
+          above, same as Strava's own training heatmap, so the caption discloses that rather than
+          leaving it looking like it should be following the selector like the stat cards do. */}
       <div className="border border-border rounded-lg p-4 bg-card">
         <div className="flex items-center gap-2 mb-3">
           <h2 className="text-sm font-semibold">Coding Activity</h2>
-          <span className="text-xs text-muted-foreground">- daily coding time from WakaTime</span>
+          <span className="text-xs text-muted-foreground">- daily coding time from WakaTime, last 365 days</span>
         </div>
         <CalendarHeatmap data={dailyHeatmapData} valueLabel="coded" valueFormatter={formatHours} />
       </div>
@@ -401,10 +406,10 @@ function CodingInner({
 
       {/* GitHub contributions heatmap */}
       {ghDays.length > 0 && (
-        <div className="border border-border rounded-lg p-4 bg-card overflow-x-auto">
+        <div className="border border-border rounded-lg p-4 bg-card">
           <div className="flex items-center gap-2 mb-3">
             <h2 className="text-sm font-semibold">GitHub Contributions</h2>
-            <span className="text-xs text-muted-foreground">- commits, PRs, issues and reviews</span>
+            <span className="text-xs text-muted-foreground">- commits, PRs, issues and reviews, last 365 days</span>
           </div>
           <CalendarHeatmap data={ghHeatmapData} valueLabel="contributions" />
         </div>
