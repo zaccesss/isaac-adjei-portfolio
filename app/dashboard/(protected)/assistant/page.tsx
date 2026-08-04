@@ -15,7 +15,6 @@ export default async function AssistantPage() {
     google: !!process.env.GOOGLE_AI_API_KEY,
     groq: !!process.env.GROQ_API_KEY,
     openrouter: !!process.env.OPENROUTER_API_KEY,
-    github: !!process.env.GITHUB_MODELS_TOKEN,
     deepseek: !!process.env.DEEPSEEK_API_KEY,
     moonshot: !!process.env.MOONSHOT_API_KEY,
     zai: !!process.env.ZAI_API_KEY,

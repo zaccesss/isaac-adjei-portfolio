@@ -19,25 +19,33 @@ type SavedChat = { id: string; title: string; created_at: string }
 // paid) stays in the label so I know what to expect before I pick one.
 const MODELS = [
   // Free and reliable - no spend, work right now
-  { id: "gemini", label: "Gemini 2.5 Flash (free, fast)", provider: "google" },
+  { id: "gemini", label: "Gemini 3.6 Flash (free, fast)", provider: "google" },
   { id: "groq", label: "Groq Llama 3.3 (free, fastest)", provider: "groq" },
   { id: "groq:openai/gpt-oss-120b", label: "GPT-OSS 120B (free)", provider: "groq" },
-  { id: "github:openai/gpt-4o", label: "GPT-4o via GitHub (free, capped)", provider: "github" },
-  // Free tier but rate-limited - may be busy or slow
-  { id: "openrouter:qwen/qwen3-next-80b-a3b-instruct:free", label: "Qwen3 80B (free, rate-limited)", provider: "openrouter" },
-  { id: "openrouter:qwen/qwen3-coder:free", label: "Qwen3 Coder (free, rate-limited)", provider: "openrouter" },
-  { id: "openrouter:meta-llama/llama-3.3-70b-instruct:free", label: "Llama 3.3 70B (free, rate-limited)", provider: "openrouter" },
-  { id: "openrouter:google/gemma-4-31b-it:free", label: "Gemma 4 31B (free, rate-limited)", provider: "openrouter" },
-  { id: "github:openai/o1", label: "o1 via GitHub (free, capped)", provider: "github" },
+  { id: "groq:openai/gpt-oss-20b", label: "GPT-OSS 20B (free, fastest)", provider: "groq" },
+  // Preview tier on Groq, not production, but still fully callable - confirmed live against
+  // console.groq.com/docs/models. No Llama 4 on Groq at all as of this check, despite it existing
+  // elsewhere - checked twice before ruling it out rather than guessing a plausible-looking id.
+  { id: "groq:qwen/qwen3.6-27b", label: "Qwen3.6 27B (free, preview)", provider: "groq" },
+  // Free tier but rate-limited - may be busy or slow. Every previous pick here (Qwen3, Llama 3.3,
+  // Gemma 4) has since been pulled from OpenRouter's free tier entirely - confirmed live against
+  // openrouter.ai/api/v1/models before swapping to what is actually free there now. GitHub Models
+  // (the free github: provider entries this used to carry) was fully retired 2026-07-30 - removed
+  // outright rather than left pointing at a dead endpoint.
+  { id: "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free", label: "Nemotron 3 Ultra 550B (free, rate-limited)", provider: "openrouter" },
+  { id: "openrouter:inclusionai/ling-3.0-flash:free", label: "Ling 3.0 Flash (free, rate-limited)", provider: "openrouter" },
+  { id: "openrouter:poolside/laguna-s-2.1:free", label: "Laguna S 2.1, coding (free, rate-limited)", provider: "openrouter" },
+  { id: "openrouter:poolside/laguna-xs-2.1:free", label: "Laguna XS 2.1, coding (free, rate-limited)", provider: "openrouter" },
   // Trial signup credits, then paid
   { id: "deepseek:deepseek-v4-flash", label: "DeepSeek V4 Flash (trial credit)", provider: "deepseek" },
   { id: "deepseek:deepseek-v4-pro", label: "DeepSeek V4 Pro (trial credit)", provider: "deepseek" },
   { id: "kimi:kimi-k2.6", label: "Kimi K2.6 (trial credit)", provider: "moonshot" },
-  { id: "glm:glm-4.6", label: "GLM-4.6 (trial credit)", provider: "zai" },
+  { id: "glm:glm-5.2", label: "GLM-5.2 (trial credit)", provider: "zai" },
   // Paid - need a funded plan even once the key is set
+  { id: "google:gemini-3.5-flash", label: "Gemini 3.5 Flash, agentic/coding (paid Google plan)", provider: "google" },
   { id: "google:gemini-2.5-pro", label: "Gemini 2.5 Pro (paid Google plan)", provider: "google" },
-  { id: "anthropic:claude-opus-4-8", label: "Claude Opus 4.8 (paid)", provider: "anthropic" },
-  { id: "anthropic:claude-sonnet-4-6", label: "Claude Sonnet 4.6 (paid)", provider: "anthropic" },
+  { id: "anthropic:claude-opus-5", label: "Claude Opus 5 (paid)", provider: "anthropic" },
+  { id: "anthropic:claude-sonnet-5", label: "Claude Sonnet 5 (paid)", provider: "anthropic" },
   { id: "anthropic:claude-fable-5", label: "Claude Fable 5 (paid)", provider: "anthropic" },
   { id: "anthropic:claude-haiku-4-5-20251001", label: "Claude Haiku 4.5 (paid)", provider: "anthropic" },
   { id: "openai:gpt-5", label: "GPT-5 (paid)", provider: "openai" },
