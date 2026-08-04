@@ -8,10 +8,13 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260731.1",
-    "wrangler": "^4.116.0"
+    "wrangler": "^4.118.0"
   },
   "overrides": {
     "esbuild": ">=0.25.2",
-    "sharp": ">=0.35.0"
+    "sharp": ">=0.35.0",
+    "miniflare": {
+      "undici": ">=7.29.0"
+    }
   }
 }
