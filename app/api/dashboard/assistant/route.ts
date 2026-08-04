@@ -158,12 +158,11 @@ function pickModel(choice: string | undefined, multimodal: boolean) {
   const deepseekKey = process.env.DEEPSEEK_API_KEY
   const moonshotKey = process.env.MOONSHOT_API_KEY
   const zaiKey = process.env.ZAI_API_KEY
-  const githubToken = process.env.GITHUB_MODELS_TOKEN
   const minimaxKey = process.env.MINIMAX_API_KEY
   // Files (images/PDFs) need a multimodal model - Gemini (free) first, then Claude/GPT if their keys exist.
   if (multimodal) {
-    if (googleKey) return createGoogleGenerativeAI({ apiKey: googleKey })("gemini-2.5-flash")
-    if (anthropicKey) return createAnthropic({ apiKey: anthropicKey })("claude-sonnet-4-6")
+    if (googleKey) return createGoogleGenerativeAI({ apiKey: googleKey })("gemini-3.6-flash")
+    if (anthropicKey) return createAnthropic({ apiKey: anthropicKey })("claude-sonnet-5")
     if (openaiKey) return createOpenAI({ apiKey: openaiKey })("gpt-4o")
     return null
   }
@@ -177,15 +176,14 @@ function pickModel(choice: string | undefined, multimodal: boolean) {
   if (c.startsWith("deepseek:") && deepseekKey) return createOpenAICompatible({ name: "deepseek", baseURL: "https://api.deepseek.com/v1", apiKey: deepseekKey })(c.slice(9))
   if (c.startsWith("kimi:") && moonshotKey) return createOpenAICompatible({ name: "moonshot", baseURL: "https://api.moonshot.ai/v1", apiKey: moonshotKey })(c.slice(5))
   if (c.startsWith("glm:") && zaiKey) return createOpenAICompatible({ name: "zai", baseURL: "https://api.z.ai/api/paas/v4", apiKey: zaiKey })(c.slice(4))
-  if (c.startsWith("github:") && githubToken) return createOpenAICompatible({ name: "github", baseURL: "https://models.github.ai/inference", apiKey: githubToken })(c.slice(7))
   if (c.startsWith("minimax:") && minimaxKey) return createOpenAICompatible({ name: "minimax", baseURL: "https://api.minimax.io/v1", apiKey: minimaxKey })(c.slice(8))
   if (c.startsWith("google:") && googleKey) return createGoogleGenerativeAI({ apiKey: googleKey })(c.slice(7))
   if (c === "groq" && groqKey) return createGroq({ apiKey: groqKey })("llama-3.3-70b-versatile")
-  if (c === "gemini" && googleKey) return createGoogleGenerativeAI({ apiKey: googleKey })("gemini-2.5-flash")
+  if (c === "gemini" && googleKey) return createGoogleGenerativeAI({ apiKey: googleKey })("gemini-3.6-flash")
   // Fallback so an unconfigured choice still answers with whatever IS available.
-  if (googleKey) return createGoogleGenerativeAI({ apiKey: googleKey })("gemini-2.5-flash")
+  if (googleKey) return createGoogleGenerativeAI({ apiKey: googleKey })("gemini-3.6-flash")
   if (groqKey) return createGroq({ apiKey: groqKey })("llama-3.3-70b-versatile")
-  if (orKey) return createOpenRouter({ apiKey: orKey })("meta-llama/llama-3.3-70b-instruct:free")
+  if (orKey) return createOpenRouter({ apiKey: orKey })("nvidia/nemotron-3-ultra-550b-a55b:free")
   return null
 }
 
@@ -205,9 +203,9 @@ function pickModelChain(choice: string | undefined, multimodal: boolean): Candid
   const groqKey = process.env.GROQ_API_KEY
   const orKey = process.env.OPENROUTER_API_KEY
   // Gemini is the only free multimodal fallback, so the text-only fallbacks are skipped when files attach.
-  if (googleKey && c !== "gemini" && !c.startsWith("google:")) push("gemini (fallback)", createGoogleGenerativeAI({ apiKey: googleKey })("gemini-2.5-flash"))
+  if (googleKey && c !== "gemini" && !c.startsWith("google:")) push("gemini (fallback)", createGoogleGenerativeAI({ apiKey: googleKey })("gemini-3.6-flash"))
   if (!multimodal && groqKey && c !== "groq" && !c.startsWith("groq:")) push("groq (fallback)", createGroq({ apiKey: groqKey })("llama-3.3-70b-versatile"))
-  if (!multimodal && orKey && !c.startsWith("openrouter:")) push("openrouter (fallback)", createOpenRouter({ apiKey: orKey })("meta-llama/llama-3.3-70b-instruct:free"))
+  if (!multimodal && orKey && !c.startsWith("openrouter:")) push("openrouter (fallback)", createOpenRouter({ apiKey: orKey })("nvidia/nemotron-3-ultra-550b-a55b:free"))
   return chain
 }
 

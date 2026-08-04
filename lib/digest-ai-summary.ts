@@ -1,14 +1,14 @@
 // I write a short, natural-language summary for the digests from the exact figures I already counted.
 // It is a pure enhancement: I try the best free models in turn (Groq, then Gemini, then a free OpenRouter
-// model, then GitHub Models) so if one provider is down or rate-limited the next still answers, and if
-// none has a key or they all fail I return null so the digest falls back to its plain template and never
-// breaks or stalls. I only ever pass the model the numbers I computed and tell it to use them verbatim,
-// so it phrases the data without inventing figures, companies or events.
+// model) so if one provider is down or rate-limited the next still answers, and if none has a key or they
+// all fail I return null so the digest falls back to its plain template and never breaks or stalls. I
+// only ever pass the model the numbers I computed and tell it to use them verbatim, so it phrases the
+// data without inventing figures, companies or events. GitHub Models (a fourth fallback this chain used
+// to carry) was fully retired 2026-07-30 - removed outright rather than left pointing at a dead endpoint.
 import { generateText, type LanguageModel } from "ai"
 import { createGroq } from "@ai-sdk/groq"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { createOpenRouter } from "@openrouter/ai-sdk-provider"
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
 
 export type DigestFacts = {
   period: string
@@ -84,19 +84,9 @@ function summaryCandidates(): LanguageModel[] {
   const groqKey = process.env.GROQ_API_KEY
   const googleKey = process.env.GOOGLE_AI_API_KEY
   const orKey = process.env.OPENROUTER_API_KEY
-  const githubTok = process.env.GITHUB_MODELS_TOKEN
   if (groqKey) out.push(createGroq({ apiKey: groqKey })("llama-3.3-70b-versatile"))
-  if (googleKey) out.push(createGoogleGenerativeAI({ apiKey: googleKey })("gemini-2.5-flash"))
-  if (orKey) out.push(createOpenRouter({ apiKey: orKey })("meta-llama/llama-3.3-70b-instruct:free"))
-  if (githubTok) {
-    out.push(
-      createOpenAICompatible({
-        name: "github",
-        baseURL: "https://models.github.ai/inference",
-        apiKey: githubTok,
-      })("openai/gpt-4o-mini"),
-    )
-  }
+  if (googleKey) out.push(createGoogleGenerativeAI({ apiKey: googleKey })("gemini-3.6-flash"))
+  if (orKey) out.push(createOpenRouter({ apiKey: orKey })("nvidia/nemotron-3-ultra-550b-a55b:free"))
   return out
 }
 
