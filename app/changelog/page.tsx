@@ -56,6 +56,7 @@ const releases: ChangeEntry[] = [
       "Every /consumed item, plus every music artist page, now has prev/next navigation between entries",
       "/tags and /sitemap.xml now cover music artist genres too, alongside every other tagged content type",
       "/lab: the GitHub contributions calendar now shows a genuine year of history from a daily-synced record instead of GitHub's own rolling 52-week graph, matching the same calendar style as the Wakatime coding heatmap and Strava's training calendar",
+      "/about: the Societies & Memberships section now shows month-level dates. A society can list more than one role over time - ESOC now shows both my Member & Student Representative role and my incoming Treasurer role, which stays hidden until its September 2026 start date. Two more societies joined the list too, Aston Computer Science Society (ACSS) and Aston Gaming Society (GS)",
     ],
     fixed: [
       "/lab: the GitHub contributions calendar had quietly lost its horizontal scroll on mobile, squashing a whole year of cells down to fit the screen instead of staying at real, tappable size the way GitHub's own contribution graph does; it now scrolls horizontally again and opens already scrolled to today",
