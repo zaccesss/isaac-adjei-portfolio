@@ -55,6 +55,9 @@ export async function POST(request: Request) {
     if (!email) {
       return json({ error: "Email is required." }, { status: 400 })
     }
+    if (email.length > 254) {
+      return json({ error: "Invalid email address." }, { status: 400 })
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {

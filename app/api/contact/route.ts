@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server"
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
+import { stripHtmlTags } from "@/lib/strip-html-tags"
 
 // I add Cache-Control: no-store to every response so Vercel's edge cache and the browser
 // never cache API responses that carry user-facing error messages or success state.
@@ -34,11 +35,6 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
   } catch (e) {
     console.error("Ratelimit init failed:", e)
   }
-}
-
-// Strip angle-bracket tags so email bodies cannot carry HTML injection into Resend-rendered HTML.
-function stripHtml(str: string): string {
-  return str.replace(/<[^>]*>/g, "").trim()
 }
 
 export async function POST(request: Request) {
@@ -123,7 +119,7 @@ export async function POST(request: Request) {
     if (!name || !email || !subject || !message) {
       return json({ error: "All fields are required." }, { status: 400 })
     }
-    if (name.length > 100 || subject.length > 200 || message.length > 5000) {
+    if (name.length > 100 || subject.length > 200 || message.length > 5000 || email.length > 254) {
       return json({ error: "Input too long." }, { status: 400 })
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -132,10 +128,10 @@ export async function POST(request: Request) {
     }
 
     // Sanitise after length checks so we do not strip then accidentally shorten past limits.
-    const safeName = stripHtml(name)
-    const safeEmail = stripHtml(email)
-    const safeSubject = stripHtml(subject)
-    const safeMessage = stripHtml(message)
+    const safeName = stripHtmlTags(name)
+    const safeEmail = stripHtmlTags(email)
+    const safeSubject = stripHtmlTags(subject)
+    const safeMessage = stripHtmlTags(message)
 
     // Resend is optional in dev: without a key we log the payload and return success so local testing still works.
     const apiKey = process.env.RESEND_API_KEY

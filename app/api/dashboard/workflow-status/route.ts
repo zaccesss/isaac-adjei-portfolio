@@ -32,9 +32,25 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url)
-  const workflow = searchParams.get("workflow")
+  const requested = searchParams.get("workflow")
 
-  if (!workflow || !WORKFLOW_REPOS[workflow]) {
+  // Resolving through a switch (rather than indexing WORKFLOW_REPOS with the raw param) means the
+  // file name reaching the GitHub API URL below is always one of these literals, never the
+  // request's own input, so the URL cannot be steered anywhere off the allowlist.
+  let workflow: string | null = null
+  switch (requested) {
+    case "wakatime-sync.yml":
+    case "job-scraper.yml":
+    case "vault-expiry-check.yml":
+    case "cv-pdf.yml":
+    case "generate-cvs.yml":
+      workflow = requested
+      break
+    default:
+      workflow = null
+  }
+
+  if (!workflow) {
     return NextResponse.json({ error: "Invalid workflow" }, { status: 400 })
   }
 
