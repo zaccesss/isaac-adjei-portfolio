@@ -23,7 +23,7 @@
     "@ai-sdk/google": "^3.0.104",
     "@ai-sdk/groq": "^3.0.55",
     "@ai-sdk/openai": "^3.0.91",
-    "@ai-sdk/openai-compatible": "^2.0.62",
+    "@ai-sdk/openai-compatible": "^2.0.64",
     "@ai-sdk/react": "^3.0.240",
     "@giscus/react": "^3.1.0",
     "@marsidev/react-turnstile": "^1.5.5",
