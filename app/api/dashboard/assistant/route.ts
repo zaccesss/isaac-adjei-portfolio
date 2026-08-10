@@ -13,7 +13,7 @@ import { projects } from "@/data/projects"
 import { experiences } from "@/data/experience"
 import { education } from "@/data/education"
 import { professionalSkillGroups } from "@/data/skills"
-import { societies } from "@/data/societies"
+import { societies, isSocietyRoleVisible } from "@/data/societies"
 import { posts } from "@/data/blog"
 import { tilEntries } from "@/data/til"
 import { publications } from "@/data/respub"
@@ -133,7 +133,9 @@ async function readSection(section: (typeof SECTIONS)[number]): Promise<string> 
       const exp = experiences.map((e) => `${e.role} at ${e.company}${e.startDate ? ` (${e.startDate})` : ""}`).join("; ")
       const edu = education.map((e) => `${e.degree} in ${e.field}, ${e.institution}${e.grade ? ` - ${e.grade}` : ""}`).join("; ")
       const skl = professionalSkillGroups.map((g) => `${g.label}: ${g.skills.slice(0, 8).join(", ")}`).join("; ")
-      const soc = societies.map((s) => `${s.name} (${s.role})`).join("; ")
+      const soc = societies
+        .map((s) => `${s.name} (${s.roles.filter(isSocietyRoleVisible).map((r) => r.role).join(" & ")})`)
+        .join("; ")
       const blg = posts.map((p) => `${p.title}${p.tags?.length ? ` [${p.tags.slice(0, 3).join(", ")}]` : ""}`).join("; ")
       const til = tilEntries.map((t) => t.title).join("; ")
       const pub = publications.map((p) => `${p.title} (${p.venue}, ${p.year})`).join("; ")

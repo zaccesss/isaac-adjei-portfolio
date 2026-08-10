@@ -3,7 +3,7 @@
 
 import type { Metadata } from "next"
 import { education } from "@/data/education"
-import { societies } from "@/data/societies"
+import { societies, isSocietyRoleVisible } from "@/data/societies"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import ApproachAnimation from "@/components/shared/ApproachAnimation"
@@ -18,6 +18,11 @@ import {
   Quote,
   HeartHandshake,
 } from "lucide-react"
+
+// This page is static by default; a visibleFrom-gated society role (see data/societies.ts) needs
+// the real clock re-checked periodically rather than only at build time, or it stays hidden past
+// its date until the next deploy - same reasoning as the Experience page's revalidate.
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: "About",
@@ -191,15 +196,18 @@ export default function AboutPage() {
         <div className="space-y-6">
           {societies.map((soc) => (
             <div key={soc.name} className="space-y-1">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                <div>
-                  <h3 className="font-semibold">{soc.name}</h3>
-                  <p className="text-sm text-primary font-medium">{soc.role}</p>
+              <h3 className="font-semibold">{soc.name}</h3>
+              {soc.roles.filter(isSocietyRoleVisible).map((r) => (
+                <div
+                  key={r.role}
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1"
+                >
+                  <p className="text-sm text-primary font-medium">{r.role}</p>
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">
+                    {r.period}
+                  </span>
                 </div>
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {soc.period}
-                </span>
-              </div>
+              ))}
               <p className="text-sm text-muted-foreground">{soc.description}</p>
             </div>
           ))}
