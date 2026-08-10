@@ -4,6 +4,7 @@
 
 import { NextResponse } from "next/server"
 import { heavyApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
+import { stripHtmlTags } from "@/lib/strip-html-tags"
 
 export const revalidate = 0
 
@@ -22,7 +23,7 @@ export async function GET(req: Request) {
     const { bookname, chapter, verse, text } = data[0]
 
     // Strip any HTML tags the API may include in the verse text
-    const cleanText = (text as string).replace(/<[^>]*>/g, "").trim()
+    const cleanText = stripHtmlTags(text as string)
 
     return NextResponse.json({
       verse: cleanText,

@@ -34,7 +34,9 @@ async function verifySignature(publicKeyHex: string, signatureHex: string, times
 async function followup(token: string, content: string) {
   const appId = process.env.DISCORD_APPLICATION_ID
   if (!appId) return
-  await fetch(`${DISCORD_API}/webhooks/${appId}/${token}/messages/@original`, {
+  // Both segments are URL-encoded so neither can inject extra path/host structure into the
+  // fixed discord.com URL, even though the interaction token below is Discord-supplied input.
+  await fetch(`${DISCORD_API}/webhooks/${encodeURIComponent(appId)}/${encodeURIComponent(token)}/messages/@original`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ content: content.slice(0, 2000) }),

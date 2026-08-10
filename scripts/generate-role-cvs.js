@@ -10,6 +10,33 @@ const {
   TabStopType, TabStopPosition,
 } = require('docx');
 
+// Applies a removal regex repeatedly until the string stops changing, so a single-pass regex
+// cannot leave a reassembled match behind (e.g. an unclosed marker whose closer only appears
+// after an earlier removal). cv.yml is my own authored content, not attacker input, but this
+// keeps every stripping helper below correct regardless.
+function stripUntilStable(str, regex) {
+  let prev;
+  let result = str;
+  do {
+    prev = result;
+    result = result.replace(regex, '');
+  } while (result !== prev);
+  return result;
+}
+
+// Linear-scan tag removal: no regex backtracking, and a single pass cannot leave a
+// reassembled tag behind the way a naive single regex match can on malformed input.
+function stripTags(str) {
+  let out = '';
+  let inTag = false;
+  for (const ch of str) {
+    if (ch === '<') inTag = true;
+    else if (ch === '>') inTag = false;
+    else if (!inTag) out += ch;
+  }
+  return out;
+}
+
 // An .exp-entry can carry data-visible-from="YYYY-MM-DD" (see cv.html) to stay written but hidden
 // until that date, the same idea as the date-gated content on the live site. Applied once here, on
 // the raw HTML before anything else touches it, so every downstream path - the master CV's direct
@@ -149,7 +176,7 @@ function reorderEntryBlock(sectionHtml, entryClass, priority) {
   const marker = `<div class="${entryClass}">`;
   // Strip HTML comments before splitting so commented-out entries (e.g. the PAL Leader
   // placeholder) are not treated as real entries during reordering.
-  const stripped = sectionHtml.replace(/<!--[\s\S]*?-->/g, '');
+  const stripped = stripUntilStable(sectionHtml, /<!--[\s\S]*?-->/g);
   const parts = stripped.split(marker);
   if (parts.length < 2) return sectionHtml;
   const preamble = parts[0];
@@ -303,9 +330,10 @@ function decodeHtmlEntities(html) {
 function cleanForDocx(html) {
   let c = html;
 
-  // Strip scripts, styles, base tag
-  c = c.replace(/<script[\s\S]*?<\/script>/gi, '');
-  c = c.replace(/<style[\s\S]*?<\/style>/gi, '');
+  // Strip scripts, styles, base tag. \s* before the closing '>' so a closer like '</script >'
+  // (whitespace before the angle bracket) still matches instead of surviving the strip.
+  c = stripUntilStable(c, /<script[\s\S]*?<\/script\s*>/gi);
+  c = stripUntilStable(c, /<style[\s\S]*?<\/style\s*>/gi);
   c = c.replace(/<base[^>]*\/?>/gi, '');
 
   // Convert HTML named entities to Unicode so DOCX XML stays valid
@@ -375,8 +403,11 @@ async function generateDOCX(htmlContent, outputPath) {
 // ─── Native docx helpers ──────────────────────────────────────────────────────
 
 function decodeEnt(text) {
+  // &amp; is decoded LAST. Decoding it first would turn a legitimately double-encoded sequence
+  // like '&amp;lt;' (meant to render as the literal text '&lt;') into '&lt;' after this pass and
+  // then '<' on the next .replace() in the chain - an unintended second unescape.
   return text
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#039;/g, "'")
     .replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ').replace(/&middot;/g, '·')
     .replace(/&pound;/g, '£').replace(/&copy;/g, '©').replace(/&reg;/g, '®')
@@ -385,7 +416,8 @@ function decodeEnt(text) {
     .replace(/&ldquo;/g, '“').replace(/&rdquo;/g, '”')
     .replace(/&hellip;/g, '…').replace(/&bull;/g, '•')
     .replace(/&euro;/g, '€').replace(/&#8599;/g, '↗')
-    .replace(/&#[0-9]+;/g, m => String.fromCodePoint(parseInt(m.slice(2, -1), 10)));
+    .replace(/&#[0-9]+;/g, m => String.fromCodePoint(parseInt(m.slice(2, -1), 10)))
+    .replace(/&amp;/g, '&');
 }
 
 function stripHtml(html) {
@@ -421,7 +453,7 @@ function parseRuns(html, font, sizePt) {
 
   while ((m = re.exec(h)) !== null) {
     if (m.index > last) {
-      const t = decodeEnt(h.substring(last, m.index).replace(/<[^>]+>/g, ''));
+      const t = decodeEnt(stripTags(h.substring(last, m.index)));
       if (t) runs.push(new TextRun({ text: t, font, size: hp }));
     }
     if (m[0].startsWith('<span class="placeholder">')) {
@@ -444,7 +476,7 @@ function parseRuns(html, font, sizePt) {
   }
 
   if (last < h.length) {
-    const t = decodeEnt(h.substring(last).replace(/<[^>]+>/g, ''));
+    const t = decodeEnt(stripTags(h.substring(last)));
     if (t) runs.push(new TextRun({ text: t, font, size: hp }));
   }
 

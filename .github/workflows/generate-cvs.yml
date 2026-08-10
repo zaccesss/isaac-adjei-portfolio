@@ -26,6 +26,10 @@ on:
 jobs:
   generate-cvs:
     runs-on: ubuntu-latest
+    # contents:write for the commit-and-push step; actions:read for the claim step's `gh run list`.
+    permissions:
+      contents: write
+      actions: read
 
     steps:
     - name: Checkout repository

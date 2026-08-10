@@ -3,6 +3,7 @@ import { redis } from "@/lib/redis"
 import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
 import { getTagsForArtists, aggregateGenres, mergeGenreTags, type LastfmTag } from "@/lib/lastfm"
 import { getMusicBrainzGenresForArtists } from "@/lib/musicbrainz"
+import { stripHtmlTags } from "@/lib/strip-html-tags"
 
 async function getAccessToken(): Promise<string | null> {
   const { SPOTIFY_CLIENT_ID: cid, SPOTIFY_CLIENT_SECRET: sec, SPOTIFY_REFRESH_TOKEN: rt } = process.env
@@ -143,7 +144,7 @@ export async function GET(req: Request) {
         id: s.id,
         name: s.name,
         publisher: s.publisher ?? null,
-        description: s.description ? s.description.replace(/<[^>]*>/g, "").slice(0, 120) : null,
+        description: s.description ? stripHtmlTags(s.description).slice(0, 120) : null,
         image: s.images?.[0]?.url ?? null,
         totalEpisodes: s.total_episodes ?? 0,
         explicit: s.explicit ?? false,
