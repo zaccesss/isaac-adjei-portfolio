@@ -330,10 +330,12 @@ function decodeHtmlEntities(html) {
 function cleanForDocx(html) {
   let c = html;
 
-  // Strip scripts, styles, base tag. \s* before the closing '>' so a closer like '</script >'
-  // (whitespace before the angle bracket) still matches instead of surviving the strip.
-  c = stripUntilStable(c, /<script[\s\S]*?<\/script\s*>/gi);
-  c = stripUntilStable(c, /<style[\s\S]*?<\/style\s*>/gi);
+  // Strip scripts, styles, base tag. [^>]* (not \s*) before the closing '>' so a closer like
+  // '</script data-x="y">' still matches - real HTML parsers close a script/style tag on the
+  // first '>' after '</script'/'</style' regardless of what appears in between, so a strict
+  // whitespace-only match can miss a genuine closing tag and leave content unstripped.
+  c = stripUntilStable(c, /<script[\s\S]*?<\/script[^>]*>/gi);
+  c = stripUntilStable(c, /<style[\s\S]*?<\/style[^>]*>/gi);
   c = c.replace(/<base[^>]*\/?>/gi, '');
 
   // Convert HTML named entities to Unicode so DOCX XML stays valid
