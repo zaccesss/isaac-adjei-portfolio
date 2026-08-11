@@ -1,6 +1,6 @@
 // Dashboard-triggered weekly digest - requires a live GitHub session rather than
 // CRON_SECRET so only I can fire it manually. I upsert the result timestamp into
-// the config table so the digest-status endpoint can reflect the last manual send.
+// the config table so the ops-status endpoint can reflect the last manual send.
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import { sendWeeklyDigest } from "@/lib/send-weekly-digest"

@@ -84,6 +84,37 @@ export function RunDots({ runs }: { runs: JobRun[] }) {
   )
 }
 
+// The colours every status dot on this page uses, named once so the legend and the charts that
+// colour-code by status (the Overview pie) draw from the same values instead of drifting apart.
+export const STATUS_COLOURS = {
+  up: "#22c55e",
+  grace: "#f59e0b",
+  down: "#ef4444",
+  running: "#3b82f6",
+  paused: "#71717a",
+}
+
+const LEGEND_ITEMS: { dot: string; label: string; hint: string }[] = [
+  { dot: "bg-green-500", label: "Up / success", hint: "pinged on schedule, or the run finished successfully" },
+  { dot: "bg-amber-500", label: "Late", hint: "Healthchecks has not heard from this job in its expected window yet" },
+  { dot: "bg-red-500", label: "Down / failure", hint: "missed its check-in, or the run finished with an error" },
+  { dot: "bg-blue-500 animate-pulse", label: "Running now", hint: "the workflow is currently in progress" },
+  { dot: "bg-muted-foreground/40", label: "Paused / skipped", hint: "the check is paused, or the run was skipped" },
+]
+
+export function StatusLegend() {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+      {LEGEND_ITEMS.map((item) => (
+        <span key={item.label} className="flex items-center gap-1.5" title={item.hint}>
+          <span className={`h-2 w-2 rounded-full shrink-0 ${item.dot}`} />
+          {item.label}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 import { CONTROL_JOBS, type ControlJob } from "@/lib/control-jobs"
 
 export function findCheck(job: ControlJob, checks: HcCheck[]): HcCheck | null {

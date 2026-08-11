@@ -1,11 +1,7 @@
-// A status board for the whole personal OS, fed by the same control-status route as the control
-// page. Force-dynamic so the health is live.
-
-import UptimeClient from "./UptimeClient"
-
-export const dynamic = "force-dynamic"
-export const metadata = { title: "Uptime", robots: "noindex, nofollow" }
+// Uptime merged into /dashboard/ops. Kept as a redirect so old links/bookmarks still land
+// somewhere.
+import { redirect } from "next/navigation"
 
 export default function UptimePage() {
-  return <UptimeClient />
+  redirect("/dashboard/ops")
 }
