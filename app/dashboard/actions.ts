@@ -2359,6 +2359,10 @@ export async function bulkSyncApplicationsToLinear(): Promise<{ synced: number; 
       failed++
     }
   }
+  void supabase.from("config").upsert(
+    { key: "last_linear_app_sync", value: { at: new Date().toISOString(), status: failed > 0 && synced === 0 ? "failure" : "success" } },
+    { onConflict: "key" }
+  )
   return { synced, failed, skipped: apps.length - synced - failed }
 }
 
@@ -2385,6 +2389,10 @@ export async function bulkSyncDeadlinesToLinear(): Promise<{ synced: number; ski
       failed++
     }
   }
+  void supabase.from("config").upsert(
+    { key: "last_linear_uni_sync", value: { at: new Date().toISOString(), status: failed > 0 && synced === 0 ? "failure" : "success" } },
+    { onConflict: "key" }
+  )
   return { synced, failed, skipped: deadlines.length - synced - failed }
 }
 

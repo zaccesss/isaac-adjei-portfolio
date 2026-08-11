@@ -55,6 +55,7 @@ All files use `IF NOT EXISTS`, `CREATE OR REPLACE`, or `DO` blocks so they are s
 | 045 | `045_add_cron_runs.sql` | cron_runs idempotency ledger for the time-pinned scheduled jobs | Both |
 | 046 | `046_revoke_public_grants.sql` | revokes anon/authenticated grants on schema public + default privileges | Both |
 | 047 | `047_github_contributions.sql` | github_contributions_days + github_contributions_years tables (real per-day contribution history) | Both |
+| 048 | `048_control_history.sql` | control_job_runs + control_check_snapshots tables (historical job/check status, fed by automations' control-status-sync) | Both |
 
 ## The 2026-07-12 renumbering
 

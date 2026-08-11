@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { syncStravaActivities, stravaConnected, disconnectStrava } from "@/lib/strava"
+import { supabase } from "@/lib/supabase"
 
 export const dynamic = "force-dynamic"
 
@@ -13,7 +14,17 @@ export async function POST() {
   if (!(await stravaConnected())) return NextResponse.json({ error: "not_connected" }, { status: 400 })
 
   const synced = await syncStravaActivities()
-  if (synced < 0) return NextResponse.json({ error: "strava_unreachable" }, { status: 502 })
+  if (synced < 0) {
+    void supabase.from("config").upsert(
+      { key: "last_strava_sync", value: { at: new Date().toISOString(), status: "failure" } },
+      { onConflict: "key" }
+    )
+    return NextResponse.json({ error: "strava_unreachable" }, { status: 502 })
+  }
+  void supabase.from("config").upsert(
+    { key: "last_strava_sync", value: { at: new Date().toISOString(), status: "success" } },
+    { onConflict: "key" }
+  )
   return NextResponse.json({ ok: true, synced }, { headers: { "Cache-Control": "no-store" } })
 }
 

@@ -3,6 +3,7 @@ import { secretEquals } from "@/lib/secure-compare"
 import { sendWeeklyDigest } from "@/lib/send-weekly-digest"
 import { pingHealthcheck } from "@/lib/healthcheck-ping"
 import { isLondonTime, claimCronRun } from "@/lib/london-time"
+import { supabase } from "@/lib/supabase"
 
 // I verify the Vercel cron secret so this route cannot be triggered by arbitrary HTTP requests.
 // The actual digest logic lives in lib/send-weekly-digest.ts so it can also be called directly

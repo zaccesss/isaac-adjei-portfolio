@@ -1,30 +1,151 @@
 "use client"
 
-// Mission control for the personal OS. One page that can run every allow-listed workflow across my
-// six repos, shows each job's Healthchecks state, recent run history and schedule, and hosts the
-// operational panels that moved out of Settings (digests, Linear and Strava syncs, integrations,
-// maintenance mode). All statuses come from the aggregated control-status route, which caches for
-// a minute server-side, so the page can poll without hammering GitHub or Healthchecks.
+// Mission control for the whole personal OS: run any allow-listed workflow across my six repos,
+// watch every job and check's live health, see a real historical trend, and hold the operational
+// switches that used to live in Settings. Absorbed the old /dashboard/control and /dashboard/uptime
+// pages (both now redirect here) - one page for watching and running, plus an Overview section
+// neither page could show on its own (real history, not just the last ~20 GitHub runs or
+// Healthchecks' current-only status). All statuses come from the aggregated control-status route
+// (60s cache); the Overview charts come from control-history, which reads
+// control_job_runs/control_check_snapshots (migration 048), fed by isaac-adjei-automations'
+// control-status-sync job.
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import Link from "next/link"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
 import { Button } from "@/components/ui/button"
 import {
-  Activity, CheckCircle2, Clock, Cpu, FileText, GraduationCap, Mail, MessageSquare,
-  Play, Plug, RefreshCw, Wrench, XCircle, Briefcase,
+  Activity, Cpu, GraduationCap, Mail, MessageSquare,
+  Play, Plug, RefreshCw, Wrench, Briefcase, BarChart3, ListChecks,
 } from "lucide-react"
 import { SiSpotify, SiStrava } from "react-icons/si"
 import { bulkSyncDeadlinesToLinear, bulkSyncApplicationsToLinear } from "@/app/dashboard/actions"
 import { CONTROL_JOBS, CONTROL_REPO_ORDER, type ControlJob } from "@/lib/control-jobs"
 import MaintenancePanel from "@/app/dashboard/components/MaintenancePanel"
+import { AnalyticsPeriodProvider, useAnalyticsPeriod, PeriodSelector, periodStartDate, PieChart, BarChart } from "@/components/analytics"
 import {
-  HcPill, RunDots, relativeTime, fmtDuration, findCheck,
+  HcPill, RunDots, StatusLegend, STATUS_COLOURS, relativeTime, fmtDuration, findCheck, hcStyle, JOB_HC_SLUGS,
   type JobStatus, type HcCheck, type ControlStatus,
 } from "@/app/dashboard/components/status-ui"
 
 type Message = { text: string; ok: boolean }
+type LastRun = { at: string; status: "success" | "failure" } | null
+
+interface ControlHistory {
+  dailySuccess: { date: string; total: number; success: number }[]
+  perJobSuccess: { jobId: string; label: string; total: number; success: number }[]
+  statusBreakdown: { up: number; grace: number; down: number; paused: number }
+}
+
+interface OpsStatus {
+  weekly: LastRun
+  discord: LastRun
+  linearApps: LastRun
+  linearDeadlines: LastRun
+  strava: LastRun
+}
+
+function CheckCard({ check }: { check: HcCheck }) {
+  const m = hcStyle(check.status)
+  return (
+    <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5">
+      <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${m.dot}`} />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium truncate leading-tight">{check.name}</p>
+        <p className="text-[11px] text-muted-foreground">
+          {m.label}{check.lastPing ? ` · checked in ${relativeTime(check.lastPing)}` : " · no ping yet"}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// The Overview section's 3 charts, fed by control-history. Kept separate from the live job table
+// below it - this is trend/history, the table below is "right now".
+function OverviewSection() {
+  const { period } = useAnalyticsPeriod()
+  const [history, setHistory] = useState<ControlHistory | null>(null)
+
+  useEffect(() => {
+    const start = periodStartDate(period)
+    const since = (start ?? new Date(0)).toISOString()
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch(`/api/dashboard/control-history?since=${encodeURIComponent(since)}`)
+        if (res.ok && !cancelled) setHistory((await res.json()) as ControlHistory)
+      } catch {
+        // Keep the last snapshot; the charts just stay on whatever loaded before.
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [period])
+
+  const statusPie = useMemo(() => {
+    if (!history) return []
+    const b = history.statusBreakdown
+    return [
+      { name: "Up", value: b.up, colour: STATUS_COLOURS.up },
+      { name: "Late", value: b.grace, colour: STATUS_COLOURS.grace },
+      { name: "Down", value: b.down, colour: STATUS_COLOURS.down },
+      { name: "Paused", value: b.paused, colour: STATUS_COLOURS.paused },
+    ].filter((d) => d.value > 0)
+  }, [history])
+
+  const dailyBars = useMemo(
+    () => (history?.dailySuccess ?? []).map((d) => ({
+      name: d.date.slice(5),
+      rate: d.total > 0 ? Math.round((d.success / d.total) * 100) : 0,
+    })),
+    [history],
+  )
+
+  const jobBars = useMemo(
+    () => (history?.perJobSuccess ?? []).map((j) => ({
+      name: j.label,
+      rate: j.total > 0 ? Math.round((j.success / j.total) * 100) : 0,
+    })),
+    [history],
+  )
+
+  const hasHistory = (history?.dailySuccess.length ?? 0) > 0 || (history?.statusBreakdown && Object.values(history.statusBreakdown).some((v) => v > 0))
+
+  return (
+    <section className="flex flex-col gap-4 border border-border rounded-xl p-5 bg-card">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Overview</h2>
+        </div>
+        <PeriodSelector />
+      </div>
+
+      {!hasHistory ? (
+        <p className="text-xs text-muted-foreground">
+          No history recorded yet for this period - the control-status-sync job in isaac-adjei-automations
+          fills these charts in as it runs.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-1">
+            <p className="text-xs text-muted-foreground text-center">Check status, this period</p>
+            <PieChart data={statusPie} height={180} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-xs text-muted-foreground text-center">Daily success rate</p>
+            <BarChart data={dailyBars} dataKey="rate" height={180} valueFormatter={(v) => `${v}%`} colour={STATUS_COLOURS.up} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-xs text-muted-foreground text-center">Success rate by job</p>
+            <BarChart data={jobBars} dataKey="rate" height={180} valueFormatter={(v) => `${v}%`} colour={STATUS_COLOURS.up} interval={0} />
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
 
 function JobRow({
   job, status, check, runState, onRun, hasToken,
@@ -41,7 +162,7 @@ function JobRow({
     <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-4 hover:bg-muted/20 transition-colors">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium leading-tight">{job.label}</p>
-        <p className="text-xs text-muted-foreground truncate" title={job.description}>{job.description}</p>
+        <p className="text-xs text-muted-foreground">{job.description}</p>
       </div>
       <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap">
         <HcPill check={check} />
@@ -49,10 +170,10 @@ function JobRow({
         <span className="text-xs text-muted-foreground tabular-nums w-10 text-right shrink-0">
           {status?.successRate != null ? `${status.successRate}%` : "-"}
         </span>
-        <span className="text-xs text-muted-foreground w-28 shrink-0" title={lastRun ? `${lastRun.conclusion ?? lastRun.status}${lastRun.durationS != null ? `, took ${fmtDuration(lastRun.durationS)}` : ""}` : undefined}>
+        <span className="text-xs text-muted-foreground w-32 shrink-0" title={lastRun ? `${lastRun.conclusion ?? lastRun.status}${lastRun.durationS != null ? `, took ${fmtDuration(lastRun.durationS)}` : ""}` : undefined}>
           {lastRun ? `${relativeTime(lastRun.startedAt)}${lastRun.durationS != null ? ` · ${fmtDuration(lastRun.durationS)}` : ""}` : "no runs"}
         </span>
-        <span className="text-xs text-muted-foreground w-28 shrink-0">{status?.schedule ?? "manual"}</span>
+        <span className="text-xs text-muted-foreground w-32 shrink-0">{status?.schedule ?? "manual"}</span>
         <Button
           size="sm"
           variant="outline"
@@ -74,24 +195,31 @@ function JobRow({
   )
 }
 
-function StatusLine({ status, lastRun }: { status: "success" | "failure" | "unknown"; lastRun: string | null }) {
+// A coloured dot matching the shared legend, not a lucide icon, so every status indicator on this
+// page speaks the same visual language: green = succeeded, red = failed, blue+pulse = in progress
+// right now, grey = never run yet.
+function StatusLine({ last, loading, verb }: { last: LastRun; loading: boolean; verb: string }) {
+  const dot = loading
+    ? "bg-blue-500 animate-pulse"
+    : !last
+    ? "bg-muted-foreground/40"
+    : last.status === "success"
+    ? "bg-green-500"
+    : "bg-red-500"
+  const text = loading
+    ? "Running now..."
+    : !last
+    ? `Not ${verb} yet`
+    : `${last.status === "success" ? `Last ${verb}` : `Failed`} ${relativeTime(last.at)}`
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      {status === "success" ? (
-        <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-      ) : status === "failure" ? (
-        <XCircle className="h-4 w-4 text-destructive shrink-0" />
-      ) : (
-        <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-      )}
-      <span className="text-xs text-muted-foreground">
-        {lastRun ? `Last sent ${relativeTime(lastRun)}` : "Not sent yet"}
-      </span>
+    <div className="flex items-center gap-2">
+      <span className={`h-2 w-2 rounded-full shrink-0 ${dot}`} />
+      <span className="text-xs text-muted-foreground">{text}</span>
     </div>
   )
 }
 
-export default function ControlClient() {
+function OpsClientInner() {
   const [status, setStatus] = useState<ControlStatus | null>(null)
   const [statusLoading, setStatusLoading] = useState(true)
   const [runStates, setRunStates] = useState<Record<string, { busy: boolean; message: Message | null }>>({})
@@ -99,10 +227,7 @@ export default function ControlClient() {
   const [integrations, setIntegrations] = useState<{
     spotify: boolean; wakatime: boolean; linearCareers: boolean; linearUniversity: boolean; strava: boolean
   } | null>(null)
-  const [digests, setDigests] = useState<{
-    weekly: { sentAt: string | null; status: "success" | "failure" | "unknown" }
-    discord: { sentAt: string | null; status: "success" | "failure" | "unknown" }
-  } | null>(null)
+  const [opsStatus, setOpsStatus] = useState<OpsStatus | null>(null)
 
   const [digestLoading, setDigestLoading] = useState(false)
   const [digestMessage, setDigestMessage] = useState<Message | null>(null)
@@ -126,6 +251,15 @@ export default function ControlClient() {
     }
   }, [])
 
+  const loadOpsStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/dashboard/ops-status")
+      if (res.ok) setOpsStatus((await res.json()) as OpsStatus)
+    } catch {
+      // Keep the last snapshot.
+    }
+  }, [])
+
   useEffect(() => {
     // The initial load is deferred a tick so no state update runs synchronously inside the effect.
     const initial = setTimeout(() => void loadStatus(), 0)
@@ -138,18 +272,15 @@ export default function ControlClient() {
 
   useEffect(() => {
     void (async () => {
-      const [integrationRes, digestRes] = await Promise.allSettled([
+      const [integrationRes] = await Promise.allSettled([
         fetch("/api/dashboard/integration-status"),
-        fetch("/api/dashboard/digest-status"),
+        loadOpsStatus(),
       ])
       if (integrationRes.status === "fulfilled" && integrationRes.value.ok) {
         setIntegrations(await integrationRes.value.json())
       }
-      if (digestRes.status === "fulfilled" && digestRes.value.ok) {
-        setDigests(await digestRes.value.json())
-      }
     })()
-  }, [])
+  }, [loadOpsStatus])
 
   const jobStatusById = useMemo(() => new Map((status?.jobs ?? []).map((j) => [j.id, j])), [status])
 
@@ -163,6 +294,12 @@ export default function ControlClient() {
       down: checks.filter((c) => c.status === "down").length,
     }
   }, [status])
+
+  // Checks with no matching job row: site uptime and anything else monitored but not run from here.
+  const extraChecks = useMemo(
+    () => (status?.checks ?? []).filter((c) => !JOB_HC_SLUGS.has(c.slug.toLowerCase()) && !JOB_HC_SLUGS.has(c.name.toLowerCase())),
+    [status],
+  )
 
   async function runJob(id: string) {
     setRunStates((p) => ({ ...p, [id]: { busy: true, message: null } }))
@@ -196,6 +333,7 @@ export default function ControlClient() {
       setMessage({ text: "Something went wrong.", ok: false })
     } finally {
       setLoading(false)
+      void loadOpsStatus()
     }
   }
 
@@ -214,6 +352,7 @@ export default function ControlClient() {
       setStravaMessage({ text: "Sync failed.", ok: false })
     } finally {
       setStravaLoading(false)
+      void loadOpsStatus()
     }
   }
 
@@ -230,32 +369,35 @@ export default function ControlClient() {
       setMessage({ text: "Sync failed. Check the Linear keys in Vercel.", ok: false })
     } finally {
       setLoading(false)
+      void loadOpsStatus()
     }
   }
 
   return (
-    <motion.div variants={dashboardPage} initial="hidden" animate="visible" className="flex flex-col gap-6 max-w-4xl">
+    <motion.div variants={dashboardPage} initial="hidden" animate="visible" className="flex flex-col gap-6 max-w-6xl">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight">Control</h1>
-          <p className="text-muted-foreground text-sm">Run and watch every job across my six repos.</p>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          {checkCounts.total > 0 && (
-            <Link
-              href="/dashboard/uptime"
-              className={`flex items-center gap-2 text-sm font-medium hover:underline underline-offset-2 ${checkCounts.down > 0 ? "text-red-500" : checkCounts.late > 0 ? "text-amber-500" : "text-green-600"}`}
-            >
-              <span className={`h-2.5 w-2.5 rounded-full ${checkCounts.down > 0 ? "bg-red-500" : checkCounts.late > 0 ? "bg-amber-500" : "bg-green-500"}`} />
-              {checkCounts.down > 0
-                ? `${checkCounts.down} of ${checkCounts.total} down`
-                : checkCounts.late > 0
-                ? `${checkCounts.late} late, rest up`
-                : "All systems operational"}
-            </Link>
-          )}
+          <h1 className="text-2xl font-bold tracking-tight">Ops</h1>
+          <p className="text-muted-foreground text-sm">Watch and run every job across my six repos.</p>
         </div>
       </div>
+
+      {/* Headline banner: the one-glance answer. */}
+      {checkCounts.total > 0 && (
+        <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${
+          checkCounts.down > 0 ? "border-red-500/40 bg-red-500/10" : checkCounts.late > 0 ? "border-amber-500/40 bg-amber-500/10" : "border-green-500/40 bg-green-500/10"
+        }`}>
+          <span className={`h-3 w-3 rounded-full ${checkCounts.down > 0 ? "bg-red-500" : checkCounts.late > 0 ? "bg-amber-500" : "bg-green-500"}`} />
+          <div className="flex flex-col">
+            <p className={`text-sm font-semibold ${checkCounts.down > 0 ? "text-red-600" : checkCounts.late > 0 ? "text-amber-600" : "text-green-700"}`}>
+              {checkCounts.down > 0 ? `${checkCounts.down} system${checkCounts.down !== 1 ? "s" : ""} down` : checkCounts.late > 0 ? `${checkCounts.late} late, the rest up` : "All systems operational"}
+            </p>
+            <p className="text-xs text-muted-foreground">{checkCounts.up} up · {checkCounts.late} late · {checkCounts.down} down of {checkCounts.total} checks</p>
+          </div>
+        </div>
+      )}
+
+      <StatusLegend />
 
       {!statusLoading && status && !status.hasToken && (
         <p className="text-xs text-destructive border border-destructive/40 bg-destructive/10 rounded-lg px-3 py-2">
@@ -263,14 +405,36 @@ export default function ControlClient() {
         </p>
       )}
 
+      {status && checkCounts.total === 0 && (
+        <p className="text-xs text-muted-foreground border border-border rounded-lg px-3 py-2">
+          No Healthchecks keys are set in Vercel yet, so there are no live checks to show.
+        </p>
+      )}
+
+      <OverviewSection />
+
+      {/* Site and other checks that are monitored but not run from here. */}
+      {extraChecks.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Site and services</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {extraChecks.map((c) => <CheckCard key={`${c.project}-${c.slug}`} check={c} />)}
+          </div>
+        </section>
+      )}
+
       {/* One group per repo: label + description, health pill, run dots, success rate, last run, schedule, Run. */}
       <section className="flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <ListChecks className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Jobs</h2>
+        </div>
         <div className="hidden sm:flex items-center gap-4 px-4 text-[10px] uppercase tracking-wide text-muted-foreground/60 justify-end">
           <span className="w-14">Check</span>
           <span className="w-24">Recent runs</span>
           <span className="w-10 text-right">Pass</span>
-          <span className="w-28">Last run</span>
-          <span className="w-28">Schedule</span>
+          <span className="w-32">Last run</span>
+          <span className="w-32">Schedule</span>
           <span className="w-[72px]" />
         </div>
         {CONTROL_REPO_ORDER.map(({ repo, label }) => {
@@ -318,7 +482,7 @@ export default function ControlClient() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex flex-col gap-1">
             <span className="text-sm font-medium">Weekly digest email</span>
-            {digests?.weekly && <StatusLine status={digests.weekly.status} lastRun={digests.weekly.sentAt} />}
+            <StatusLine last={opsStatus?.weekly ?? null} loading={digestLoading} verb="sent" />
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <Button variant="outline" size="sm" disabled={digestLoading} className="gap-1.5"
@@ -333,7 +497,7 @@ export default function ControlClient() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex flex-col gap-1">
             <span className="text-sm font-medium flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5 text-muted-foreground" /> Discord digest</span>
-            {digests?.discord && <StatusLine status={digests.discord.status} lastRun={digests.discord.sentAt} />}
+            <StatusLine last={opsStatus?.discord ?? null} loading={discordLoading} verb="sent" />
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <Button variant="outline" size="sm" disabled={discordLoading} className="gap-1.5"
@@ -349,6 +513,7 @@ export default function ControlClient() {
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-medium flex items-center gap-1.5"><Briefcase className="h-3.5 w-3.5 text-muted-foreground" /> Sync applications to Linear</span>
             <p className="text-xs text-muted-foreground">Creates an issue for each application not yet synced</p>
+            <StatusLine last={opsStatus?.linearApps ?? null} loading={linearAppLoading} verb="synced" />
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <Button variant="outline" size="sm" disabled={linearAppLoading || !integrations?.linearCareers} className="gap-1.5"
@@ -365,6 +530,7 @@ export default function ControlClient() {
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-medium flex items-center gap-1.5"><GraduationCap className="h-3.5 w-3.5 text-muted-foreground" /> Sync deadlines to Linear</span>
             <p className="text-xs text-muted-foreground">Creates an issue for each university deadline not yet synced</p>
+            <StatusLine last={opsStatus?.linearDeadlines ?? null} loading={linearUniLoading} verb="synced" />
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <Button variant="outline" size="sm" disabled={linearUniLoading || !integrations?.linearUniversity} className="gap-1.5"
@@ -381,6 +547,7 @@ export default function ControlClient() {
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-medium flex items-center gap-1.5"><SiStrava className="h-3.5 w-3.5 text-muted-foreground" /> Sync Strava activities</span>
             <p className="text-xs text-muted-foreground">Pulls recent runs and rides into the fitness analytics</p>
+            {integrations?.strava && <StatusLine last={opsStatus?.strava ?? null} loading={stravaLoading} verb="synced" />}
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             {integrations?.strava ? (
@@ -438,11 +605,14 @@ export default function ControlClient() {
         </div>
         <MaintenancePanel />
       </section>
-
-      <p className="text-[11px] text-muted-foreground/60 flex items-center gap-1.5">
-        <FileText className="h-3 w-3" />
-        CV and scraper triggers moved here from Settings; the same routes power both.
-      </p>
     </motion.div>
+  )
+}
+
+export default function OpsClient() {
+  return (
+    <AnalyticsPeriodProvider defaultPeriod="30d">
+      <OpsClientInner />
+    </AnalyticsPeriodProvider>
   )
 }

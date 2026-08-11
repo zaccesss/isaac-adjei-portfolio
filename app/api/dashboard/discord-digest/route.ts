@@ -7,6 +7,7 @@ import { secretEquals } from "@/lib/secure-compare"
 import { sendDiscordDigest } from "@/lib/send-discord-digest"
 import { pingHealthcheck } from "@/lib/healthcheck-ping"
 import { isLondonTime, claimCronRun } from "@/lib/london-time"
+import { supabase } from "@/lib/supabase"
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization")
@@ -37,6 +38,13 @@ export async function GET(req: NextRequest) {
 
   const result = await sendDiscordDigest()
   await pingHealthcheck("discord-digest", result.ok ? "success" : "fail")
+  // The manual "Send now" trigger already wrote this key on a manual send; the real scheduled path
+  // needs to write it too, or the dashboard only ever reflects a manual click and never the cron
+  // that actually sends this every day.
+  void supabase.from("config").upsert(
+    { key: "last_discord_digest", value: { sentAt: new Date().toISOString(), status: result.ok ? "success" : "failure" } },
+    { onConflict: "key" }
+  )
   return NextResponse.json(result, {
     status: result.ok ? 200 : 500,
     headers: { "Cache-Control": "no-store" },
