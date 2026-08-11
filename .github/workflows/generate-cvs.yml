@@ -4,6 +4,12 @@
 
 name: Auto-Generate CVs
 
+# I give the reliable-dispatch run a marker in its title, so the claim step below can tell it
+# apart from a genuine manual dispatch without needing to read workflow_dispatch inputs back out
+# of the run list, which the GitHub API does not expose there.
+run-name: >-
+  Auto-Generate CVs${{ (github.event_name == 'workflow_dispatch' && inputs.reliable_dispatch) && ' (reliable-dispatch safety net)' || '' }}
+
 # A weekly safety net: cv.yml can carry a visibleFrom date on an experience entry (see
 # data/cv.yml), and nothing else ever touches cv.html to make that take effect once the date
 # passes - a push-triggered regenerate never fires on its own. This catches that, and any other
@@ -45,6 +51,13 @@ jobs:
     # gap between cron-ops firing and GitHub's own cron landing late, narrower than the 7 day gap
     # between slots so the next slot is never mistaken for this one. A genuine manual run (neither
     # event) is untouched.
+    #
+    # A manual workflow_dispatch run used to satisfy this check too, since gh run list does not
+    # expose the reliable_dispatch input, so I match on the run-name marker set above instead of
+    # the bare event name. Matching on event alone once let an unrelated manual run look like it
+    # had already claimed the window, so the very next scheduled run skipped its regeneration
+    # *and* its heartbeat without failing, and healthchecks only caught the miss after the grace
+    # window ran out.
     - name: Claim this window
       id: claim
       if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.reliable_dispatch == true)
@@ -52,8 +65,8 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         since=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
-        claimed=$(gh run list --workflow generate-cvs.yml --json databaseId,status,conclusion,createdAt,event \
-          --jq "[.[] | select(.createdAt >= \"$since\") | select(.databaseId != $GITHUB_RUN_ID) | select(.event == \"schedule\" or .event == \"workflow_dispatch\") | select(.status == \"in_progress\" or .status == \"queued\" or .conclusion == \"success\")] | length > 0")
+        claimed=$(gh run list --workflow generate-cvs.yml --json databaseId,status,conclusion,createdAt,event,displayTitle \
+          --jq "[.[] | select(.createdAt >= \"$since\") | select(.databaseId != $GITHUB_RUN_ID) | select(.event == \"schedule\" or (.event == \"workflow_dispatch\" and (.displayTitle | contains(\"(reliable-dispatch safety net)\")))) | select(.status == \"in_progress\" or .status == \"queued\" or .conclusion == \"success\")] | length > 0")
         echo "go=$([ "$claimed" = "true" ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
         [ "$claimed" = "true" ] && echo "another regeneration already claimed this window, skipping" || echo "window is mine, regenerating"
 
