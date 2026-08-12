@@ -76,10 +76,15 @@ const HC_NAME_TO_REPO_LABEL: Record<string, string> = {}
 for (const job of CONTROL_JOBS) {
   if (job.hcSlug) HC_NAME_TO_REPO_LABEL[job.hcSlug.toLowerCase()] = shortRepoName(job.repo)
 }
-// Checks that are not a dispatchable workflow at all - repo-ops' own internal Cloudflare Worker
-// cron for its code-scanning/secret-scanning digests, not a GitHub Actions job - so they can never
-// come from CONTROL_JOBS above. Added by hand instead.
+// Checks that are not a dispatchable workflow at all, so they can never come from CONTROL_JOBS
+// above - added by hand instead. repo-ops-digests is repo-ops' own internal Cloudflare Worker
+// cron; the rest are this repo's own Vercel Cron API routes (see lib/healthcheck-ping.ts's
+// callers), which ping Healthchecks directly and were never going to be a dispatchable GitHub
+// Actions workflow in the first place.
 HC_NAME_TO_REPO_LABEL["repo-ops-digests"] = shortRepoName("repo-ops")
+for (const slug of ["vault-expiry", "github-contributions-daily-sync", "discord-digest", "trash-cleanup", "strava-sync", "weekly-digest"]) {
+  HC_NAME_TO_REPO_LABEL[slug] = shortRepoName(PORTFOLIO_REPO)
+}
 
 // Two checks were actually configured in Healthchecks under a name that matches neither
 // CONTROL_JOBS' hcSlug nor its label field - "routine checklist"/"cron-ops scheduler" versus
