@@ -2359,7 +2359,9 @@ export async function bulkSyncApplicationsToLinear(): Promise<{ synced: number; 
       failed++
     }
   }
-  void supabase.from("config").upsert(
+  // Awaited, not fire-and-forget: an unawaited write here can get cut off once this action
+  // returns on a serverless runtime, before it ever reaches the database.
+  await supabase.from("config").upsert(
     { key: "last_linear_app_sync", value: { at: new Date().toISOString(), status: failed > 0 && synced === 0 ? "failure" : "success" } },
     { onConflict: "key" }
   )
@@ -2389,7 +2391,7 @@ export async function bulkSyncDeadlinesToLinear(): Promise<{ synced: number; ski
       failed++
     }
   }
-  void supabase.from("config").upsert(
+  await supabase.from("config").upsert(
     { key: "last_linear_uni_sync", value: { at: new Date().toISOString(), status: failed > 0 && synced === 0 ? "failure" : "success" } },
     { onConflict: "key" }
   )

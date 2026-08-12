@@ -30,13 +30,13 @@ export interface HcCheck {
   slug: string
   status: string
   lastPing: string | null
-  project: "automations" | "fleet"
+  project: "automations" | "fleet" | "portfolio"
 }
 
 interface ControlStatusBody {
   generatedAt: string
   hasToken: boolean
-  hcConfigured: { automations: boolean; fleet: boolean }
+  hcConfigured: { automations: boolean; fleet: boolean; portfolio: boolean }
   scheduleLive: boolean
   jobs: JobStatus[]
   checks: HcCheck[]
@@ -78,7 +78,7 @@ async function fetchRuns(token: string, repo: string, workflow: string): Promise
   }
 }
 
-async function fetchChecks(key: string, project: "automations" | "fleet"): Promise<HcCheck[]> {
+async function fetchChecks(key: string, project: "automations" | "fleet" | "portfolio"): Promise<HcCheck[]> {
   try {
     const res = await fetch("https://healthchecks.io/api/v3/checks/", {
       headers: { "X-Api-Key": key },
@@ -141,13 +141,15 @@ export async function GET(request: Request) {
   const token = process.env.GH_PAT ?? process.env.GITHUB_PAT ?? null
   const hcAutomationsKey = process.env.HEALTHCHECKS_API_KEY ?? null
   const hcFleetKey = process.env.HEALTHCHECKS_FLEET_API_KEY ?? null
+  const hcPortfolioKey = process.env.HEALTHCHECKS_PORTFOLIO_API_KEY ?? null
 
-  const [runsPerJob, autoChecks, fleetChecks, schedule] = await Promise.all([
+  const [runsPerJob, autoChecks, fleetChecks, portfolioChecks, schedule] = await Promise.all([
     token
       ? Promise.all(CONTROL_JOBS.map((j) => fetchRuns(token, j.repo, j.workflow)))
       : Promise.resolve(CONTROL_JOBS.map(() => [] as JobRun[])),
     hcAutomationsKey ? fetchChecks(hcAutomationsKey, "automations") : Promise.resolve([]),
     hcFleetKey ? fetchChecks(hcFleetKey, "fleet") : Promise.resolve([]),
+    hcPortfolioKey ? fetchChecks(hcPortfolioKey, "portfolio") : Promise.resolve([]),
     fetchSchedule(),
   ])
 
@@ -168,10 +170,10 @@ export async function GET(request: Request) {
   const body: ControlStatusBody = {
     generatedAt: new Date().toISOString(),
     hasToken: Boolean(token),
-    hcConfigured: { automations: Boolean(hcAutomationsKey), fleet: Boolean(hcFleetKey) },
+    hcConfigured: { automations: Boolean(hcAutomationsKey), fleet: Boolean(hcFleetKey), portfolio: Boolean(hcPortfolioKey) },
     scheduleLive: schedule !== null,
     jobs,
-    checks: [...autoChecks, ...fleetChecks],
+    checks: [...autoChecks, ...fleetChecks, ...portfolioChecks],
   }
 
   cache = { at: Date.now(), body }

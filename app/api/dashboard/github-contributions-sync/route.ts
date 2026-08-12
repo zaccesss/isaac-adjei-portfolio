@@ -20,6 +20,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ skipped: "not 05:00 UK" }, { headers: { "Cache-Control": "no-store" } })
   }
   const synced = await syncGithubContributions()
-  await pingHealthcheck("github-contributions-sync", synced >= 0 ? "success" : "fail")
+  // Not "github-contributions-sync" - isaac-adjei-automations pings that exact slug every 3 hours
+  // for its own (different) top-up job, and Healthchecks checks are named globally, not scoped
+  // per repo, so two jobs sharing a slug would be indistinguishable to the Linear label lookup.
+  await pingHealthcheck("github-contributions-daily-sync", synced >= 0 ? "success" : "fail")
   return NextResponse.json({ ok: synced >= 0, yearsSynced: synced }, { headers: { "Cache-Control": "no-store" } })
 }
