@@ -15,13 +15,15 @@ export async function POST() {
 
   const synced = await syncStravaActivities()
   if (synced < 0) {
-    void supabase.from("config").upsert(
+    // Awaited, not fire-and-forget: an unawaited write here can get cut off once this response
+    // returns on a serverless runtime, before it ever reaches the database.
+    await supabase.from("config").upsert(
       { key: "last_strava_sync", value: { at: new Date().toISOString(), status: "failure" } },
       { onConflict: "key" }
     )
     return NextResponse.json({ error: "strava_unreachable" }, { status: 502 })
   }
-  void supabase.from("config").upsert(
+  await supabase.from("config").upsert(
     { key: "last_strava_sync", value: { at: new Date().toISOString(), status: "success" } },
     { onConflict: "key" }
   )
