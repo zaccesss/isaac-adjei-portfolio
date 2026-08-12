@@ -39,7 +39,10 @@ export const CONTROL_JOBS: ControlJob[] = [
   job(AUTOMATIONS, "Automations", "medication-reminders.yml", {
     label: "Medication reminders",
     description: "Sends due medication doses over Discord, email and SMS",
-    hcSlug: "medication-reminders",
+    // Shares the "reminders" check with reminders.yml below - the free Healthchecks plan's check
+    // cap meant this could not keep its own, and both run on the same 15-minute cadence and post a
+    // user-visible message on success, so a silent failure of either is obvious anyway.
+    hcSlug: "reminders",
     schedule: "every 15 min",
   }),
   job(AUTOMATIONS, "Automations", "reminders.yml", {
@@ -105,6 +108,18 @@ export const CONTROL_JOBS: ControlJob[] = [
   job(AUTOMATIONS, "Automations", "fix-scraped-types.yml", {
     label: "Fix scraped types",
     description: "One-off type cleanup for scraped rows; manual only",
+  }),
+  job(AUTOMATIONS, "Automations", "github-contributions-sync.yml", {
+    label: "GitHub contributions sync",
+    description: "Tops up the current year's GitHub contribution count between the portfolio's own once-daily sync",
+    hcSlug: "github-contributions-sync",
+    schedule: "every 3 hours",
+  }),
+  job(AUTOMATIONS, "Automations", "control-status-sync.yml", {
+    label: "Control status sync",
+    description: "Snapshots job runs and check status into this dashboard's own Ops page history",
+    hcSlug: "control-status-sync",
+    schedule: "every 15 min",
   }),
 
   // Portfolio - the site's own workflows.
