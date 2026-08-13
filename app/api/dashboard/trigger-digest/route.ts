@@ -14,7 +14,7 @@ export async function POST() {
   const result = await sendWeeklyDigest()
   void logActivity("workflow.digest", result.ok ? "sent" : "failed")
 
-  void supabase.from("config").upsert(
+  await supabase.from("config").upsert(
     { key: "last_weekly_digest", value: { sentAt: new Date().toISOString(), status: result.ok ? "success" : "failure" } },
     { onConflict: "key" }
   )
