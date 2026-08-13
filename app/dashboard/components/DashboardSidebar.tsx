@@ -8,7 +8,7 @@ import { signOut } from "next-auth/react"
 import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
-  Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users, SlidersHorizontal,
+  Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users, SlidersHorizontal, Gauge,
   Brain, Church, School, CheckSquare, CalendarDays, ChevronDown, FolderOpen, Sparkles, CalendarClock, Music
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -73,6 +73,7 @@ const nav: (NavItem | NavGroup)[] = [
       { href: "/dashboard/analytics/applications", label: "Applications", icon: Briefcase },
       { href: "/dashboard/analytics/music", label: "Music", icon: Music },
       { href: "/dashboard/health/analytics", label: "Fitness", icon: Dumbbell },
+      { href: "/dashboard/ops/analytics", label: "Ops", icon: Gauge },
     ],
   },
   {
