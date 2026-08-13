@@ -1,5 +1,5 @@
 // I start the Strava OAuth flow here: this redirects me to Strava to authorise read access to my
-// activities. It is behind the dashboard auth guard so only I can begin a connection, and it guards on
+// activities. It is behind the dashboard auth guard so only I can begin a connection and it guards on
 // the Strava keys so a missing key returns to the page with a clean message instead of a broken redirect.
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"

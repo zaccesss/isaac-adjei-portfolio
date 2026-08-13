@@ -1,5 +1,5 @@
 // I publish my code of conduct, the standard I hold for taking part anywhere I build, across every
-// project, software or hardware, public or private, and on this website. It is the Contributor
+// project, software or hardware, public or private and on this website. It is the Contributor
 // Covenant 2.1, adopted in full, with a short personal note on how to reach me.
 
 import type { Metadata } from "next"
@@ -95,15 +95,15 @@ export default function CodeOfConductPage() {
           <h2 className="text-2xl font-bold">Our Pledge</h2>
         </div>
         <p className="text-muted-foreground leading-relaxed">
-          We as members, contributors, and leaders pledge to make participation in our community a
+          We as members, contributors and leaders pledge to make participation in our community a
           harassment-free experience for everyone, regardless of age, body size, visible or invisible
           disability, ethnicity, sex characteristics, gender identity and expression, level of
           experience, education, socio-economic status, nationality, personal appearance, race,
-          religion, or sexual identity and orientation.
+          religion or sexual identity and orientation.
         </p>
         <p className="text-muted-foreground leading-relaxed">
           We pledge to act and interact in ways that contribute to an open, welcoming, diverse,
-          inclusive, and healthy community.
+          inclusive and healthy community.
         </p>
       </section>
 
@@ -119,17 +119,17 @@ export default function CodeOfConductPage() {
         </p>
         <ul className="list-disc list-inside space-y-2 text-muted-foreground">
           <li>Demonstrating empathy and kindness toward other people</li>
-          <li>Being respectful of differing opinions, viewpoints, and experiences</li>
+          <li>Being respectful of differing opinions, viewpoints and experiences</li>
           <li>Giving and gracefully accepting constructive feedback</li>
-          <li>Accepting responsibility and apologizing to those affected by our mistakes, and learning from the experience</li>
+          <li>Accepting responsibility and apologizing to those affected by our mistakes and learning from the experience</li>
           <li>Focusing on what is best not just for us as individuals, but for the overall community</li>
         </ul>
         <p className="text-muted-foreground leading-relaxed">
           Examples of unacceptable behavior include:
         </p>
         <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-          <li>The use of sexualized language or imagery, and sexual attention or advances of any kind</li>
-          <li>Trolling, insulting or derogatory comments, and personal or political attacks</li>
+          <li>The use of sexualized language or imagery and sexual attention or advances of any kind</li>
+          <li>Trolling, insulting or derogatory comments and personal or political attacks</li>
           <li>Public or private harassment</li>
           <li>Publishing others&apos; private information, such as a physical or email address, without their explicit permission</li>
           <li>Other conduct which could reasonably be considered inappropriate in a professional setting</li>
@@ -146,12 +146,12 @@ export default function CodeOfConductPage() {
         <p className="text-muted-foreground leading-relaxed">
           Community leaders are responsible for clarifying and enforcing our standards of acceptable
           behavior and will take appropriate and fair corrective action in response to any behavior
-          that they deem inappropriate, threatening, offensive, or harmful.
+          that they deem inappropriate, threatening, offensive or harmful.
         </p>
         <p className="text-muted-foreground leading-relaxed">
-          Community leaders have the right and responsibility to remove, edit, or reject comments,
-          commits, code, wiki edits, issues, and other contributions that are not aligned to this Code
-          of Conduct, and will communicate reasons for moderation decisions when appropriate.
+          Community leaders have the right and responsibility to remove, edit or reject comments,
+          commits, code, wiki edits, issues and other contributions that are not aligned to this Code
+          of Conduct and will communicate reasons for moderation decisions when appropriate.
         </p>
       </section>
 
@@ -163,10 +163,10 @@ export default function CodeOfConductPage() {
           <h2 className="text-2xl font-bold">Scope</h2>
         </div>
         <p className="text-muted-foreground leading-relaxed">
-          This Code of Conduct applies within all community spaces, and also applies when an individual
+          This Code of Conduct applies within all community spaces and also applies when an individual
           is officially representing the community in public spaces. Examples of representing our
           community include using an official e-mail address, posting via an official social media
-          account, or acting as an appointed representative at an online or offline event.
+          account or acting as an appointed representative at an online or offline event.
         </p>
       </section>
 
@@ -178,7 +178,7 @@ export default function CodeOfConductPage() {
           <h2 className="text-2xl font-bold">Enforcement</h2>
         </div>
         <p className="text-muted-foreground leading-relaxed">
-          Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the
+          Instances of abusive, harassing or otherwise unacceptable behavior may be reported to the
           community leaders responsible for enforcement at{" "}
           <a
             href="mailto:contact@isaacadjei.me"
@@ -257,7 +257,7 @@ export default function CodeOfConductPage() {
             <p className="text-muted-foreground leading-relaxed">
               <span className="font-medium text-foreground">Community Impact:</span> Demonstrating a
               pattern of violation of community standards, including sustained inappropriate behavior,
-              harassment of an individual, or aggression toward or disparagement of classes of
+              harassment of an individual or aggression toward or disparagement of classes of
               individuals.
             </p>
             <p className="text-muted-foreground leading-relaxed">

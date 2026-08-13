@@ -17,7 +17,7 @@ create table if not exists reminders (
   channels text[] not null default '{discord}', -- any of 'discord', 'email', 'sms'
   email text,                                   -- recipient for the email channel
   phone text,                                   -- recipient (E.164) for the SMS channel
-  reminded_at timestamptz,                       -- stamped once every lead time has fired, or the event passed
+  reminded_at timestamptz,                       -- stamped once every lead time has fired or the event passed
   active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

@@ -1,7 +1,7 @@
 "use client"
 
 // Mission control for the whole personal OS: run any allow-listed workflow across my six repos,
-// watch every job and check's live health, see a real historical trend, and hold the operational
+// watch every job and check's live health, see a real historical trend and hold the operational
 // switches that used to live in Settings. Absorbed the old /dashboard/control and /dashboard/uptime
 // pages (both now redirect here) - one page for watching and running, plus an Overview section
 // neither page could show on its own (real history, not just the last ~20 GitHub runs or

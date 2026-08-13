@@ -87,7 +87,7 @@ export function intensityScale(colours: EChartsColours): string[] {
 // Buckets a raw value into a 0-4 intensity level relative to the data's own max, exactly matching
 // the percentage thresholds the old hand-rolled heatmaps used (relativeIntensity/intensityIndex).
 // This is deliberately NOT a plain linear min-max scale: heatmap activity is typically dominated by
-// a handful of outlier hours/days (one marathon coding session, one viral post), and interpolating
+// a handful of outlier hours/days (one marathon coding session, one viral post) and interpolating
 // colour linearly between 0 and that single outlier compresses almost every other real value into
 // the bottom sliver of the range - everything reads as "basically zero" except the one peak cell.
 // Bucketing by percentage-of-max keeps genuinely active cells visually distinct from empty ones

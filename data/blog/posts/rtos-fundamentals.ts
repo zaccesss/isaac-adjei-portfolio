@@ -118,7 +118,7 @@ int main(void) {
       },
       {
         type: "p",
-        text: "Dynamic allocation inside tasks (malloc, new) is risky in RTOS systems for two reasons: it is not thread-safe by default, and heap fragmentation can cause allocation failures at unpredictable times. The safest approach for production embedded code is to allocate all memory statically at startup using static task creation (xTaskCreateStatic) and static queue buffers, and use heap_1 which never fragments. This trades flexibility for determinism - a good trade in safety-critical applications.",
+        text: "Dynamic allocation inside tasks (malloc, new) is risky in RTOS systems for two reasons: it is not thread-safe by default and heap fragmentation can cause allocation failures at unpredictable times. The safest approach for production embedded code is to allocate all memory statically at startup using static task creation (xTaskCreateStatic) and static queue buffers and use heap_1 which never fragments. This trades flexibility for determinism - a good trade in safety-critical applications.",
       },
       {
         type: "h2",
@@ -172,7 +172,7 @@ void sensor_task(void *pvParameters) {
       },
       {
         type: "p",
-        text: "The decision rule I use: if the system has three or more concurrent concerns with different timing requirements, if blocking one operation should not block unrelated operations, or if any operation involves waiting for external events (network, sensor, user input) while other work continues - an RTOS is worth the overhead. If the system does one thing repeatedly with a predictable cycle, bare-metal is simpler and will always be simpler.",
+        text: "The decision rule I use: if the system has three or more concurrent concerns with different timing requirements, if blocking one operation should not block unrelated operations or if any operation involves waiting for external events (network, sensor, user input) while other work continues - an RTOS is worth the overhead. If the system does one thing repeatedly with a predictable cycle, bare-metal is simpler and will always be simpler.",
       },
       {
         type: "quote",

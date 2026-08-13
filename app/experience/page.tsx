@@ -10,7 +10,7 @@ import ExperienceTimeline from "@/components/sections/ExperienceTimeline"
 import { Button } from "@/components/ui/button"
 
 // This page is static by default; a visibleFrom-gated entry (see data/experience.ts) needs the
-// real clock re-checked periodically rather than only at build time, or it stays hidden past its
+// real clock re-checked periodically rather than only at build time or it stays hidden past its
 // date until the next deploy. An hourly revalidate is the cheap way to get that self-correcting
 // without making every visit a full dynamic render, matching how live-status caching already
 // balances freshness against Vercel Fluid Compute cost on this site.

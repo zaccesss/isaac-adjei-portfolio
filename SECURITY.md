@@ -17,10 +17,10 @@ You can expect a response within 72 hours.
 
 ## Scope
 
-- `isaacadjei.me` — the live site and all public API routes
+- `isaacadjei.me` - the live site and all public API routes
 - This repository and its workflows
 
 ## Out of Scope
 
-- Third-party services (Supabase, Vercel, GitHub) — report those directly to the respective provider
-- Issues in `node_modules` dependencies — open a Dependabot alert instead
+- Third-party services (Supabase, Vercel, GitHub) - report those directly to the respective provider
+- Issues in `node_modules` dependencies - open a Dependabot alert instead

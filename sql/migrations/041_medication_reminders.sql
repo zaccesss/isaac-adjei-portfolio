@@ -25,7 +25,7 @@ alter table medication_reminders enable row level security;
 create index if not exists medication_reminders_active_idx on medication_reminders (active);
 
 -- A log of every reminder actually sent, so the analytics page can chart sends over time, by
--- medication and by person, and (later) adherence once a dose can be marked taken.
+-- medication and by person and (later) adherence once a dose can be marked taken.
 create table if not exists medication_doses (
   id uuid primary key default gen_random_uuid(),
   reminder_id uuid references medication_reminders (id) on delete cascade,

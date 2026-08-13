@@ -55,7 +55,7 @@ The `.githooks/commit-msg` hook rejects commits that violate these:
 
 - Use conventional prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`
 - No em dashes (`-`) or en dashes (`-`): use a hyphen `-` instead
-- No Oxford comma (`x, y, and z`): write `x, y and z`
+- No Oxford comma (`x, y and z`): write `x, y and z`
 - No AI co-author credits or AI attribution in any commit message
 - UK English only throughout all files and commit messages
 
@@ -90,7 +90,7 @@ At the end of every session:
 
 - UK English only (colour not color, behaviour not behavior, etc.)
 - No em dashes (`-`), no en dashes (`-`): use a hyphen `-` instead
-- No Oxford commas: write `x, y and z` not `x, y, and z`
+- No Oxford commas: write `x, y and z` not `x, y and z`
 - No AI co-author credits anywhere
 - All inline code comments must be first-person: "I use..." or "I check..." not "This function..." or "The component..."
 - PR descriptions, LOG.md entries and WORKFLOW.md must all use first-person where applicable ("I'll run this in Supabase...", "I changed X because...")

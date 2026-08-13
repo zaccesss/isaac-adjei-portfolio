@@ -162,7 +162,7 @@ export default function ContributePage() {
             <p>
               <span className="font-medium text-foreground">Improve the writing or a course.</span>{" "}
               Notes, guides and lessons benefit from a second pair of eyes. Point out anything unclear,
-              wrong or out of date, or suggest an example that would explain it better.
+              wrong or out of date or suggest an example that would explain it better.
             </p>
           </div>
           <div className="flex gap-3">

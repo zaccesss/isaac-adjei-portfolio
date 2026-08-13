@@ -96,7 +96,7 @@ const _building_my_portfolio: BlogPost = {
       },
       {
         type: "p",
-        text: "The trade-off is that class lists get long on complex components. I use cn() (from clsx and tailwind-merge) to conditionally apply classes without duplicates or conflicts, and break components into smaller pieces when the class list becomes unreadable.",
+        text: "The trade-off is that class lists get long on complex components. I use cn() (from clsx and tailwind-merge) to conditionally apply classes without duplicates or conflicts and break components into smaller pieces when the class list becomes unreadable.",
       },
       {
         type: "h2",
@@ -244,7 +244,7 @@ const _building_my_portfolio: BlogPost = {
       },
       {
         type: "p",
-        text: "The /colophon page documents how the site is built: every tool, API, service and data source with a short explanation of what it does and why I chose it. It is useful for me as a reference when I have forgotten which Redis key stores what, and useful for anyone who wants to understand the architecture without reading the source code. It is updated whenever a new integration is added.",
+        text: "The /colophon page documents how the site is built: every tool, API, service and data source with a short explanation of what it does and why I chose it. It is useful for me as a reference when I have forgotten which Redis key stores what and useful for anyone who wants to understand the architecture without reading the source code. It is updated whenever a new integration is added.",
       },
       {
         type: "h2",

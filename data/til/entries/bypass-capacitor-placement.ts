@@ -10,7 +10,7 @@ const _bypass_capacitor_placement: TILEntry = {
     detail: [
       {
         type: "p",
-        text: "The general rule: a 100 nF ceramic capacitor as close as possible to each VCC pin, and a 10 µF bulk capacitor somewhere on the power rail to handle lower-frequency transients. For high-speed ICs (clock above 100 MHz), a second smaller cap (10 nF) placed even closer can handle the very fast edges. The return path matters as much as the cap placement: a ground pour under the IC with a short trace to the cap's ground pin completes the loop. A long ground trace adds inductance that undoes the benefit of placing the cap close.",
+        text: "The general rule: a 100 nF ceramic capacitor as close as possible to each VCC pin and a 10 µF bulk capacitor somewhere on the power rail to handle lower-frequency transients. For high-speed ICs (clock above 100 MHz), a second smaller cap (10 nF) placed even closer can handle the very fast edges. The return path matters as much as the cap placement: a ground pour under the IC with a short trace to the cap's ground pin completes the loop. A long ground trace adds inductance that undoes the benefit of placing the cap close.",
       },
       {
         type: "note",

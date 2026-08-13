@@ -1,5 +1,5 @@
 // Copper mark (concept 11): the IA glyph routed as PCB traces with vias at the pads.
-// The traces power up, current runs the net and branches at the junction, and the
+// The traces power up, current runs the net and branches at the junction and the
 // output via glows as each pulse lands. Pure CSS, reduced-motion safe. Used as the
 // /lab loading mark, where "powering up" fits the terminal boot.
 

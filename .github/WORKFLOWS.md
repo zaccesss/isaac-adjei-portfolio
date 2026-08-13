@@ -1,12 +1,12 @@
 # .github/
 
-GitHub Actions workflows. All run on `ubuntu-latest` with least-privilege `permissions:` blocks, and pin third-party actions to a full commit SHA (supply-chain attack prevention).
+GitHub Actions workflows. All run on `ubuntu-latest` with least-privilege `permissions:` blocks and pin third-party actions to a full commit SHA (supply-chain attack prevention).
 
 ## Workflows
 
 | File | Trigger | Description |
 | --- | --- | --- |
-| `ci.yml` | push to main, PR to main | Lint, build, and `check-image-sizes` (fails if any image in `public/images` exceeds 50 megapixels - added 2026-06-18 after a 140-megapixel image crashed mobile browsers) |
+| `ci.yml` | push to main, PR to main | Lint, build and `check-image-sizes` (fails if any image in `public/images` exceeds 50 megapixels - added 2026-06-18 after a 140-megapixel image crashed mobile browsers) |
 | `deploy-ps5-presence.yml` | push touching `workers/ps5-presence/**`, manual | Deploys the PS5 presence Cloudflare Worker. Added 2026-06-18 after a fix to this worker sat undeployed for 3 weeks because deployment was a manual, easily-forgotten `wrangler deploy` step |
 | `gitleaks-scan.yml` | push, PR | Scans for credential leaks |
 | `cv-pdf.yml` | manual/on CV source change | Generates CV PDFs |

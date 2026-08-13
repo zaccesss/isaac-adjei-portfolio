@@ -1,6 +1,6 @@
 // I build and send a weekly summary email covering my whole week: applications, coding, study, fitness,
 // goals, streaks, habits, faith, diary, plus what is coming up (deadlines, follow-ups, expiring items).
-// The figures come from the shared gatherer so this and the daily Discord digest stay consistent, and an
+// The figures come from the shared gatherer so this and the daily Discord digest stay consistent and an
 // AI-written intro (best free model, falling back through several) phrases it all when a key is set.
 import { gatherDigestData, type DigestData } from "@/lib/digest-facts"
 import { digestAiSummary, type DigestFacts } from "@/lib/digest-ai-summary"

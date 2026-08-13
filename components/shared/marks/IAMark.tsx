@@ -1,6 +1,6 @@
 // The static IA mark (concept 12 "standby"): a lowercase "ia" with the i-dot as a blue
 // accent. No animation here so it is safe as a persistent brand mark. Used as the
-// dashboard sidebar home link, and reused with a pulse as the shared page loader.
+// dashboard sidebar home link and reused with a pulse as the shared page loader.
 
 import { cn } from "@/lib/utils"
 

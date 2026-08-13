@@ -148,7 +148,7 @@ export async function getStoredGithubContributions(): Promise<GithubContribution
   }
 }
 
-// Returns the number of years synced, or -1 if no PAT is configured.
+// Returns the number of years synced or -1 if no PAT is configured.
 export async function syncGithubContributions(): Promise<number> {
   const pat = process.env.GH_PAT ?? process.env.GITHUB_PAT
   if (!pat) return -1

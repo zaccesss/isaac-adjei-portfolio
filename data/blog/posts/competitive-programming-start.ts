@@ -37,7 +37,7 @@ const _competitive_programming_start: BlogPost = {
       },
       {
         type: "p",
-        text: "The mistake I made in week one was reading solutions immediately after failing. This is tempting - you are stuck, the solution is one click away, you read it and you think you understood it. But reading a solution and writing a solution from a blank page are different cognitive tasks. Read the editorial only after you have spent at least 30 minutes genuinely stuck, and then close the editorial and write the solution yourself without looking at it again.",
+        text: "The mistake I made in week one was reading solutions immediately after failing. This is tempting - you are stuck, the solution is one click away, you read it and you think you understood it. But reading a solution and writing a solution from a blank page are different cognitive tasks. Read the editorial only after you have spent at least 30 minutes genuinely stuck and then close the editorial and write the solution yourself without looking at it again.",
       },
       {
         type: "h2",

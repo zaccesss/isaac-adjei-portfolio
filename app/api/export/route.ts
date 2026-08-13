@@ -63,7 +63,7 @@ export async function GET(req: Request) {
   if (gate) return NextResponse.json({ error: gate.error }, { status: gate.status })
 
   // Deliberate decrypt-on-export for migrating into a password manager. It is gated by the session
-  // and the PIN like every export, plus a typed confirmation on the client, and it is kept apart
+  // and the PIN like every export, plus a typed confirmation on the client and it is kept apart
   // from the normal backup: a vault-only bundle marked vault_decrypted, its own filename, secrets in
   // the clear. Never the default export path, so a routine backup always stays encrypted at rest.
   if (new URL(req.url).searchParams.get("vault") === "decrypt") {

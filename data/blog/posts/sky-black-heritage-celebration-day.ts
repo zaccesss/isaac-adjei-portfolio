@@ -7,7 +7,7 @@ const _sky_black_heritage_celebration_day: BlogPost = {
     type: "journal",
     cover_image: "/images/blog/covers/sky-black-heritage-celebration-day.webp",
     description:
-      "Reflections on being invited to Sky Campus, Osterley, as a finalist for the Black Heritage Undergraduate of the Year award. What the day taught me about Sky, about career, and about the importance of representation.",
+      "Reflections on being invited to Sky Campus, Osterley, as a finalist for the Black Heritage Undergraduate of the Year award. What the day taught me about Sky, about career and about the importance of representation.",
     tags: ["Sky", "Career", "Award", "Black Heritage", "Networking", "Personal"],
     published: true,
     content: [
@@ -24,7 +24,7 @@ const _sky_black_heritage_celebration_day: BlogPost = {
       },
       {
         type: "p",
-        text: "On 24 June 2026 I was invited to the [Black Heritage Undergraduate of the Year](https://www.undergraduateoftheyear.com/awards/black-heritage) Celebration Day, originally planned in person at [Sky](https://www.sky.com)'s campus in Osterley, West London. A red weather warning forced a last-minute move to a fully virtual day. Being part of it still meant a great deal, and I wanted to write about it properly.",
+        text: "On 24 June 2026 I was invited to the [Black Heritage Undergraduate of the Year](https://www.undergraduateoftheyear.com/awards/black-heritage) Celebration Day, originally planned in person at [Sky](https://www.sky.com)'s campus in Osterley, West London. A red weather warning forced a last-minute move to a fully virtual day. Being part of it still meant a great deal and I wanted to write about it properly.",
       },
       {
         type: "h2",
@@ -64,7 +64,7 @@ const _sky_black_heritage_celebration_day: BlogPost = {
       },
       {
         type: "p",
-        text: "The fireside chat was the centrepiece. Hearing directly from both winners, about their journeys, their motivation and what the Sky experience had meant for them, was more valuable than any general careers talk. These are people who had turned their own experience of being underrepresented into something that helped others, and who had been recognised for it.",
+        text: "The fireside chat was the centrepiece. Hearing directly from both winners, about their journeys, their motivation and what the Sky experience had meant for them, was more valuable than any general careers talk. These are people who had turned their own experience of being underrepresented into something that helped others and who had been recognised for it.",
       },
       {
         type: "h2",
@@ -84,7 +84,7 @@ const _sky_black_heritage_celebration_day: BlogPost = {
       },
       {
         type: "p",
-        text: "A virtual day was not the day anyone planned, but it did not water down what mattered about it. I met people I would not otherwise have crossed paths with, from other universities and other stages of the same journey, and the breakout conversations turned out to be just as candid as an in-person lunch would have been. I learned things about how Sky's technology teams actually work, not just what the recruitment slides say, and about what the two winners wished they had known earlier.",
+        text: "A virtual day was not the day anyone planned, but it did not water down what mattered about it. I met people I would not otherwise have crossed paths with, from other universities and other stages of the same journey and the breakout conversations turned out to be just as candid as an in-person lunch would have been. I learned things about how Sky's technology teams actually work, not just what the recruitment slides say and about what the two winners wished they had known earlier.",
       },
       {
         type: "p",

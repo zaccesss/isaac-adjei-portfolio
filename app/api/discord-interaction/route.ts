@@ -96,7 +96,7 @@ function streakLengths(dates: Iterable<string>, today: string): { current: numbe
   const toMs = (d: string) => new Date(`${d}T00:00:00Z`).getTime()
   const toDay = (ms: number) => new Date(ms).toISOString().slice(0, 10)
 
-  // Current run counts back from today, or from yesterday if today is not done yet (streak still alive).
+  // Current run counts back from today or from yesterday if today is not done yet (streak still alive).
   let current = 0
   let cursor = toMs(today)
   if (!days.has(today)) cursor -= oneDay

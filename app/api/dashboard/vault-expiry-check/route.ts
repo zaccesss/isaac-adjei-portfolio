@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  // Two crons (a GMT and a BST branch) hit this route; act only at 09:00 UK, and only once, so a
+  // Two crons (a GMT and a BST branch) hit this route; act only at 09:00 UK and only once, so a
   // delayed run can never send the expiry email twice.
   if (!isLondonTime(9)) {
     return NextResponse.json({ skipped: "not 09:00 UK" }, { headers: { "Cache-Control": "no-store" } })

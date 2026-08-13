@@ -37,7 +37,7 @@ export default function SecurityPolicyPage() {
           >
             projects
           </Link>
-          , each repository&apos;s own security policy applies where it has one, and the shared
+          , each repository&apos;s own security policy applies where it has one and the shared
           general policy lives alongside this page in the repository below.
         </p>
         <p className="text-sm text-muted-foreground">

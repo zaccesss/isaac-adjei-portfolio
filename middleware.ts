@@ -9,13 +9,13 @@
 //
 // I deliberately do NOT wrap this in NextAuth's auth(), so it never needs AUTH_SECRET on public pages and
 // never runs the session machinery for every public request. That is safe because the protected dashboard
-// layout re-verifies the real session server-side (its own auth() + redirect), and maintenance is not a
+// layout re-verifies the real session server-side (its own auth() + redirect) and maintenance is not a
 // security boundary - it just hides the public site - so a session-cookie presence check is enough here.
 
 import { NextResponse, type NextRequest } from "next/server"
 
 // Edge-side read of the maintenance flag from Upstash (mirrored by lib/maintenance.setMaintenance). I cache
-// it briefly per edge instance to avoid a Redis call on every request, and FAIL OPEN (never block) on any
+// it briefly per edge instance to avoid a Redis call on every request and FAIL OPEN (never block) on any
 // error or missing config, so a flag-read problem can never take the public site down by mistake.
 let cached: { on: boolean; at: number } | null = null
 async function maintenanceOn(): Promise<boolean> {

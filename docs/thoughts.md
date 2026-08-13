@@ -6,11 +6,11 @@ A personal scratchpad for things I want to build, explore or revisit. Written as
 
 ## Public stats page (/stats)
 
-I decided not to build a dedicated /stats page right now. The lab already has GitHub stats and the WakaTime coding dashboard, and a stats page works best when there is an audience to appreciate it. When real people are reading my blog posts, finding me through search or following my newsletter, a /stats page becomes something worth pointing at. Until then it would just be a vanity page talking to nobody.
+I decided not to build a dedicated /stats page right now. The lab already has GitHub stats and the WakaTime coding dashboard and a stats page works best when there is an audience to appreciate it. When real people are reading my blog posts, finding me through search or following my newsletter, a /stats page becomes something worth pointing at. Until then it would just be a vanity page talking to nobody.
 
-When traffic grows and people start discovering the site, I want to revisit this. The data is already there - WakaTime coding hours, blog read events, GitHub contributions, newsletter subscribers. The aggregation layer exists. It would be fast to wire up a public /stats page at that point. Keep it simple: total coding time, current streak, most read posts, GitHub commits, newsletter subs, and maybe a "now playing" moment. No personal data, only aggregate counts.
+When traffic grows and people start discovering the site, I want to revisit this. The data is already there - WakaTime coding hours, blog read events, GitHub contributions, newsletter subscribers. The aggregation layer exists. It would be fast to wire up a public /stats page at that point. Keep it simple: total coding time, current streak, most read posts, GitHub commits, newsletter subs and maybe a "now playing" moment. No personal data, only aggregate counts.
 
-Think about whether to move GitHub stats off the lab page onto /stats at that point, or keep both.
+Think about whether to move GitHub stats off the lab page onto /stats at that point or keep both.
 
 ---
 
@@ -18,7 +18,7 @@ Think about whether to move GitHub stats off the lab page onto /stats at that po
 
 I thought about gating the lab terminal so visitors have to type their email to get a code before they can use it. The friction kills the magic though - the terminal's whole appeal is that you just start typing and things happen. Nobody wants to verify their email to play with a command line.
 
-Better version: an `unlock` command that is entirely opt-in. You type `unlock`, the terminal asks for your email, you get a welcome email, and a hidden `secret` command unlocks. You capture the email voluntarily, they feel clever for finding it. No hard gate, no friction, just a fun discovery moment. This would work well once the site has more traffic and people are actually browsing the lab.
+Better version: an `unlock` command that is entirely opt-in. You type `unlock`, the terminal asks for your email, you get a welcome email and a hidden `secret` command unlocks. You capture the email voluntarily, they feel clever for finding it. No hard gate, no friction, just a fun discovery moment. This would work well once the site has more traffic and people are actually browsing the lab.
 
 ---
 
@@ -64,7 +64,7 @@ A Chrome/Firefox extension that adds a "Save to dashboard" button on job posting
 
 ## Reminders (/dashboard/reminders) - shipped July 2026, Discord command still to come
 
-Built as one combined page rather than separate appointment and meeting pages, so any one-off reminder fits: each entry is typed appointment, meeting or other, and the type is just a field, so new kinds cost nothing. The medication reminder feature supplied the whole delivery spine (Discord webhook, Resend email, Twilio SMS, the 30-minute automations job pattern); this reuses it with a one-off event_at timestamp and one or more lead times per event (any of 1 hour up to 1 week before, ticked as a set) instead of recurring daily times. Each reminder can go to any of Discord, email and SMS, with its own email address and phone number. A sent_leads array plus a reminded_at stamp mean each lead fires exactly once, and editing a reminder (including moving the date) resets both so the new schedule is honoured. The reminders table is migration 043; the page clones the medication CRUD (co-located actions.ts, same form and list, soonest first) and delivery is scripts/reminders.mjs plus reminders.yml in the automations repo, running every 30 minutes.
+Built as one combined page rather than separate appointment and meeting pages, so any one-off reminder fits: each entry is typed appointment, meeting or other and the type is just a field, so new kinds cost nothing. The medication reminder feature supplied the whole delivery spine (Discord webhook, Resend email, Twilio SMS, the 30-minute automations job pattern); this reuses it with a one-off event_at timestamp and one or more lead times per event (any of 1 hour up to 1 week before, ticked as a set) instead of recurring daily times. Each reminder can go to any of Discord, email and SMS, with its own email address and phone number. A sent_leads array plus a reminded_at stamp mean each lead fires exactly once and editing a reminder (including moving the date) resets both so the new schedule is honoured. The reminders table is migration 043; the page clones the medication CRUD (co-located actions.ts, same form and list, soonest first) and delivery is scripts/reminders.mjs plus reminders.yml in the automations repo, running every 30 minutes.
 
 Still to do when the Phase 5 central bot lands - a #reminders-upcoming (or reuse #reminders) channel and a slash command group:
 
@@ -135,7 +135,7 @@ All bot messages: UK English, no em dashes or en dashes (hyphens only), no Oxfor
 
 ## Free site-down alert to Linear (GitHub Action fallback)
 
-Better Stack's outgoing incident webhook (site down -> /api/incident -> Linear) turned out to be a paid feature, and a status page on a custom domain may be too. I am not paying for that. If I ever want site-down incidents mirrored into Linear without upgrading, I can add a free scheduled GitHub Action that curls https://isaacadjei.me/api/health every few minutes and, when it returns a non-200, POSTs to /api/incident?secret=... to open the Linear issue itself. Scheduled GitHub Actions are free, so this is the same outcome at zero cost. Better Stack's free email alert already covers telling me it is down, so this is a nice-to-have, not urgent. It would fit naturally in the automations repo once that exists.
+Better Stack's outgoing incident webhook (site down -> /api/incident -> Linear) turned out to be a paid feature and a status page on a custom domain may be too. I am not paying for that. If I ever want site-down incidents mirrored into Linear without upgrading, I can add a free scheduled GitHub Action that curls https://isaacadjei.me/api/health every few minutes and, when it returns a non-200, POSTs to /api/incident?secret=... to open the Linear issue itself. Scheduled GitHub Actions are free, so this is the same outcome at zero cost. Better Stack's free email alert already covers telling me it is down, so this is a nice-to-have, not urgent. It would fit naturally in the automations repo once that exists.
 
 ---
 

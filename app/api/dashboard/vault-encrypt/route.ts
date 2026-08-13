@@ -6,7 +6,7 @@ import { encryptVaultData, needsEncryption, vaultEncryptionReady } from "@/lib/v
 export const dynamic = "force-dynamic"
 
 // One-off migration that encrypts every legacy plaintext vault row in place. Idempotent: rows that are
-// already encrypted are skipped, so it is safe to run more than once. Owner-only, and it never returns
+// already encrypted are skipped, so it is safe to run more than once. Owner-only and it never returns
 // any secret. Trigger it once, after deploy, from the dashboard (logged in):
 //   fetch("/api/dashboard/vault-encrypt", { method: "POST" }).then(r => r.json()).then(console.log)
 export async function POST() {

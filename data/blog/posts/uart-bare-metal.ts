@@ -187,7 +187,7 @@ uint8_t uart_rx_read(void) {
       },
       {
         type: "p",
-        text: "A logic analyser is even more useful because it can decode UART frames automatically. Most sub-£20 logic analysers support UART decoding in [PulseView](https://sigrok.org/wiki/PulseView) or similar software. Set the baud rate, capture the TX line during transmission and the decoded bytes appear in the interface. This makes it immediately obvious if you are sending the right bytes but with a baud rate mismatch, or if the data itself is wrong.",
+        text: "A logic analyser is even more useful because it can decode UART frames automatically. Most sub-£20 logic analysers support UART decoding in [PulseView](https://sigrok.org/wiki/PulseView) or similar software. Set the baud rate, capture the TX line during transmission and the decoded bytes appear in the interface. This makes it immediately obvious if you are sending the right bytes but with a baud rate mismatch or if the data itself is wrong.",
       },
       {
         type: "h2",

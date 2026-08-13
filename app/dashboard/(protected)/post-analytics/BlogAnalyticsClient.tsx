@@ -360,7 +360,7 @@ function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
         )}
       </div>
 
-      {/* When posts are read — hour × day heatmap */}
+      {/* When posts are read - hour × day heatmap */}
       <div className="border border-border rounded-lg p-4 bg-card">
         <p className="text-xs font-medium text-muted-foreground mb-3">When posts are read</p>
         {hasHeatmapData ? (

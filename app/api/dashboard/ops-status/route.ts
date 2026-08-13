@@ -1,5 +1,5 @@
 // I read last-run timestamps from the config table so the Ops page can show when each digest
-// last sent and each sync last ran, and whether it succeeded. One query for every key to keep the
+// last sent and each sync last ran and whether it succeeded. One query for every key to keep the
 // round-trip count low.
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"

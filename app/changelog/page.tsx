@@ -35,7 +35,7 @@ const releases: ChangeEntry[] = [
     ],
     added: [
       "/lab: the GitHub contributions calendar now has a second, circuit-board-styled isometric view underneath the usual flat one - one extruded block per day lit up like an LED on the busiest days, defaulting to a fixed isometric angle but now with drag to rotate, scroll to zoom and a flat top-down view too",
-      "/contribute: a full contributing guide covering the range of what I build - software, hardware, images and design, writing and courses, and this site; sections on ways to help, pull requests, using AI, patience and getting in touch, each cross-linked to its GitHub repo",
+      "/contribute: a full contributing guide covering the range of what I build - software, hardware, images and design, writing and courses and this site; sections on ways to help, pull requests, using AI, patience and getting in touch, each cross-linked to its GitHub repo",
       "/code-of-conduct: a short personal intro followed by the Contributor Covenant 2.1 in full",
       "/support: where to get help - discussions, an issue, my support email and my contact page",
     ],
@@ -52,7 +52,7 @@ const releases: ChangeEntry[] = [
       "/all-pages reorganised to match the header navigation, with the old flat list split into clearer groups",
       "/tags now covers notes and consumed resources too, alongside blog, TIL, projects, publications and the rest of consumed",
       "/links: EWskills joined the Competitive section alongside LeetCode, Codeforces and AtCoder",
-      "/consumed rebuilt: every item now sorts by its real year and month instead of a fixed 2026, search works across the whole page and every category, books and podcasts got proper cards with working links to their own pages, and the category tabs stay visible when switching category instead of disappearing",
+      "/consumed rebuilt: every item now sorts by its real year and month instead of a fixed 2026, search works across the whole page and every category, books and podcasts got proper cards with working links to their own pages and the category tabs stay visible when switching category instead of disappearing",
       "Every /consumed item, plus every music artist page, now has prev/next navigation between entries",
       "/tags and /sitemap.xml now cover music artist genres too, alongside every other tagged content type",
       "/lab: the GitHub contributions calendar now shows a genuine year of history from a daily-synced record instead of GitHub's own rolling 52-week graph, matching the same calendar style as the Wakatime coding heatmap and Strava's training calendar",
@@ -61,7 +61,7 @@ const releases: ChangeEntry[] = [
     fixed: [
       "/lab: the GitHub contributions calendar had quietly lost its horizontal scroll on mobile, squashing a whole year of cells down to fit the screen instead of staying at real, tappable size the way GitHub's own contribution graph does; it now scrolls horizontally again and opens already scrolled to today",
       "/lab: the GitHub contributions calendar had started rendering the current calendar year instead of a genuine trailing 365 days, since a sync bug stored placeholder rows for days that had not happened yet; it now shows a real rolling year again",
-      "/lab and the dashboard: heatmap and calendar colours could silently fall back to solid black instead of the real colour scale, and switching light or dark mode left every chart's colours a step behind until a full reload - both fixed",
+      "/lab and the dashboard: heatmap and calendar colours could silently fall back to solid black instead of the real colour scale and switching light or dark mode left every chart's colours a step behind until a full reload - both fixed",
       "The whole site runs leaner: the guard that gates maintenance mode and the logged-out dashboard redirect now runs at the edge again rather than as a full server function on every request, after a framework rename had quietly made it the bulk of the site's hosting compute",
       "A sweep of every blog post, TIL entry and consumed-page link caught a dozen that had gone dead since they were written; each now points at the correct current source or an equivalent replacement",
       "The Sky Celebration Day post and TIL are live again, reworded to reflect that a red weather warning moved the day to fully virtual on the day itself",
@@ -114,10 +114,10 @@ const releases: ChangeEntry[] = [
     date: "2026-06-22",
     added: [
       "/now: the MacBook and Lenovo cards now show a proper battery gauge that fills to the real level and shifts from blue to amber to red as it drains, with a bolt while charging",
-      "/now: the Gaming PC card was rebuilt to match the PS5 one - CPU and GPU now show as small live graphs, the game I am playing shows underneath while I play, and the last game I played shows once the PC is off",
+      "/now: the Gaming PC card was rebuilt to match the PS5 one - CPU and GPU now show as small live graphs, the game I am playing shows underneath while I play and the last game I played shows once the PC is off",
     ],
     fixed: [
-      "/now, homepage and /lab: the device cards no longer get stuck on an old 'last seen' time while a device is actually online - they stay live now, and the clock follows my exact timezone from GPS when I travel",
+      "/now, homepage and /lab: the device cards no longer get stuck on an old 'last seen' time while a device is actually online - they stay live now and the clock follows my exact timezone from GPS when I travel",
     ],
   },
   {
@@ -135,10 +135,10 @@ const releases: ChangeEntry[] = [
     version: "v2.15.0",
     date: "2026-06-21",
     changed: [
-      "/now: Spotify visualiser rebuilt - it extracts the dominant colours from the current album art and renders a sine wave above a bouncy equaliser, both tinted from the cover; bar peaks darken as they rise like a real meter and the wave swings wider and darkens in step with the bar beneath each point; drawn on a device-pixel-ratio canvas so it stays crisp and identically proportioned on every screen, animated on delta-time, and tuned for light and dark mode; it no longer pretends to react to audio (Spotify retired the audio analysis API) so the motion is honest album-colour ambience",
-      "/now: Spotify song changes now appear in near-realtime, and the live status stream pauses while the browser tab is hidden so a backgrounded page no longer polls",
-      "/lab: Spotify Top Picks genres are back, sourced from Last.fm (Spotify retired its artist genre data) - the genres tab shows a rank-weighted donut and breakdown with duplicate tags merged, and each top artist lists its genre tags again",
-      "/lab: Spotify Top Picks artists tab gains an underground-to-mainstream spectrum of my top artists by audience size, and the tracks tab a listening-era chart from my all-time tracks by release decade",
+      "/now: Spotify visualiser rebuilt - it extracts the dominant colours from the current album art and renders a sine wave above a bouncy equaliser, both tinted from the cover; bar peaks darken as they rise like a real meter and the wave swings wider and darkens in step with the bar beneath each point; drawn on a device-pixel-ratio canvas so it stays crisp and identically proportioned on every screen, animated on delta-time and tuned for light and dark mode; it no longer pretends to react to audio (Spotify retired the audio analysis API) so the motion is honest album-colour ambience",
+      "/now: Spotify song changes now appear in near-realtime and the live status stream pauses while the browser tab is hidden so a backgrounded page no longer polls",
+      "/lab: Spotify Top Picks genres are back, sourced from Last.fm (Spotify retired its artist genre data) - the genres tab shows a rank-weighted donut and breakdown with duplicate tags merged and each top artist lists its genre tags again",
+      "/lab: Spotify Top Picks artists tab gains an underground-to-mainstream spectrum of my top artists by audience size and the tracks tab a listening-era chart from my all-time tracks by release decade",
     ],
   },
   {

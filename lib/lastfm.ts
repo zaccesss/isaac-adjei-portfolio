@@ -65,7 +65,7 @@ export function genreKey(name: string): string {
 // Merges two tag lists for the same artist from different sources (MusicBrainz's curated genres
 // and Last.fm's community tags), deduplicating by the same normalised key aggregateGenres already
 // uses so "hip hop" from one source and "Hip-Hop" from the other collapse into a single entry
-// rather than double-counting. Keeping only whichever source agrees, or only one source outright,
+// rather than double-counting. Keeping only whichever source agrees or only one source outright,
 // both lost real tags the other source had - Giggs' Last.fm data has "Grime" as its single most
 // confident tag (100/100) that MusicBrainz simply does not carry at all, so a union of both,
 // deduplicated, is the only approach that does not silently drop a correct genre either source
@@ -127,7 +127,7 @@ export async function getTagsForArtists(names: string[]): Promise<Record<string,
   return out
 }
 
-// Aggregate genres across a ranked artist list: higher-ranked artists weigh more, and each
+// Aggregate genres across a ranked artist list: higher-ranked artists weigh more and each
 // artist's tags weigh by their Last.fm strength. De-duplicates by normalised key (so
 // "hip-hop" and "hip hop" merge), keeping the most popular spelling for display.
 export function aggregateGenres(

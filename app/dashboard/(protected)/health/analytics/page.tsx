@@ -8,7 +8,7 @@ export const metadata = { title: "Activity Analytics", robots: "noindex, nofollo
 
 export default async function HealthAnalyticsPage() {
   // All charts render from stored rows so the page never calls Strava on load - I sync on demand. The
-  // query degrades to an empty list if nothing is synced yet, and the client shows a connect/sync state.
+  // query degrades to an empty list if nothing is synced yet and the client shows a connect/sync state.
   const [{ data: activities }, connected] = await Promise.all([
     supabase.from("strava_activities").select("*").order("start_date", { ascending: false }),
     stravaConnected(),

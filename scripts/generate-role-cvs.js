@@ -24,7 +24,7 @@ function stripUntilStable(str, regex) {
   return result;
 }
 
-// Linear-scan tag removal: no regex backtracking, and a single pass cannot leave a
+// Linear-scan tag removal: no regex backtracking and a single pass cannot leave a
 // reassembled tag behind the way a naive single regex match can on malformed input.
 function stripTags(str) {
   let out = '';
@@ -312,7 +312,7 @@ async function generatePDF(htmlContent, outputPath) {
 // HTML named entities that are invalid XML - DOCX is XML so these corrupt the file.
 const HTML_ENTITY_MAP = {
   middot: '·', pound: '£', nbsp: ' ', copy: '©', reg: '®',
-  trade: '™', mdash: '—', ndash: '–', lsquo: '‘', rsquo: '’',
+  trade: '™', mdash: ' - ', ndash: '-', lsquo: '‘', rsquo: '’',
   ldquo: '“', rdquo: '”', hellip: '…', bull: '•', euro: '€',
   deg: '°', times: '×', divide: '÷', rarr: '→', larr: '←',
   infin: '∞', plusmn: '±', frac12: '½', frac14: '¼', frac34: '¾',
@@ -413,7 +413,7 @@ function decodeEnt(text) {
     .replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#039;/g, "'")
     .replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ').replace(/&middot;/g, '·')
     .replace(/&pound;/g, '£').replace(/&copy;/g, '©').replace(/&reg;/g, '®')
-    .replace(/&trade;/g, '™').replace(/&mdash;/g, '—').replace(/&ndash;/g, '–')
+    .replace(/&trade;/g, '™').replace(/&mdash;/g, ' - ').replace(/&ndash;/g, '-')
     .replace(/&lsquo;/g, '‘').replace(/&rsquo;/g, '’')
     .replace(/&ldquo;/g, '“').replace(/&rdquo;/g, '”')
     .replace(/&hellip;/g, '…').replace(/&bull;/g, '•')

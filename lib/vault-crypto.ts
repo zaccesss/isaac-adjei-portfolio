@@ -63,7 +63,7 @@ export function encryptValue(plain: string): string {
 }
 
 export function decryptValue(stored: string): string {
-  if (!isEncrypted(stored)) return stored // legacy plaintext, or not a string
+  if (!isEncrypted(stored)) return stored // legacy plaintext or not a string
   const raw = Buffer.from(stored.slice(PREFIX.length), "base64")
   const iv = raw.subarray(0, 12)
   const tag = raw.subarray(12, 28)

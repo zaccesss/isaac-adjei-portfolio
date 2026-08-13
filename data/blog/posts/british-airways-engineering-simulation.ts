@@ -13,7 +13,7 @@ const _british_airways_engineering_simulation: BlogPost = {
     content: [
       {
         type: "p",
-        text: "In October 2025 I completed the [British Airways](https://www.britishairways.com) Engineering Virtual Experience on [Forage](https://www.theforage.com). It was a structured simulation of real maintenance and supply-chain operations, and it gave me a genuinely different perspective on what engineering looks like at scale.",
+        text: "In October 2025 I completed the [British Airways](https://www.britishairways.com) Engineering Virtual Experience on [Forage](https://www.theforage.com). It was a structured simulation of real maintenance and supply-chain operations and it gave me a genuinely different perspective on what engineering looks like at scale.",
       },
       {
         type: "h2",

@@ -1,4 +1,4 @@
-// Registers the personal OS slash commands with Discord. Run once, and again whenever the command list
+// Registers the personal OS slash commands with Discord. Run once and again whenever the command list
 // changes. Guild-scoped (instant) when DISCORD_GUILD_ID is set, otherwise global (can take ~1 hour).
 //
 //   DISCORD_BOT_TOKEN=... DISCORD_APPLICATION_ID=... DISCORD_GUILD_ID=... node scripts/register-discord-commands.mjs

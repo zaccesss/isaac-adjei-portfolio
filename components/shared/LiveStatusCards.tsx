@@ -208,7 +208,7 @@ function formatMs(ms: number): string {
   return `${m}:${String(sec).padStart(2, "0")}`
 }
 
-// onlineThresholdMins must comfortably exceed the WORST-CASE display lag, or this shows "last
+// onlineThresholdMins must comfortably exceed the WORST-CASE display lag or this shows "last
 // seen Xm ago" for a device that is actually online. That lag stacks up: the write interval
 // (laptops 120s, gaming PC 60s, PS5 2-min cron) + the 15s edge cache + the 20s client poll - up
 // to ~2.6 min for the laptops. So each call site passes a generous 4-5 min window: the card stays
@@ -564,7 +564,7 @@ export default function LiveStatusCards({ alwaysShowDiscord = false }: { alwaysS
                 <span>{formatMs(spotify.durationMs ?? 0)}</span>
               </div>
             </div>
-            {/* Visualiser bars + sine wave — album art tint ONLY on this section */}
+            {/* Visualiser bars + sine wave - album art tint ONLY on this section */}
             <div className="relative overflow-hidden rounded-lg">
               {spotify.albumArt && (() => {
                 const ld = spotify.audioFeatures?.loudness

@@ -30,7 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     // I record sign-ins and sign-outs in the activity log. I use a dynamic import so the Supabase
-    // client is never bundled into the edge middleware (which imports this module), and I
+    // client is never bundled into the edge middleware (which imports this module) and I
     // fire-and-forget inside a try/catch so a logging failure can never block authentication.
     async signIn({ profile }) {
       try {

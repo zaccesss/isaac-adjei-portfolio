@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase"
 
 // Tables that "delete" by flipping is_deleted=true (the row stays) rather than removing it.
 // Trash restore and purge treat them specially: re-inserting their original id would hit a
-// PK conflict, and purging their trash entry must also remove the hidden row (and blob).
+// PK conflict and purging their trash entry must also remove the hidden row (and blob).
 export const SOFT_DELETE_TABLES = new Set(["calendar_events", "user_files"])
 
 export type TrashChildSpec = { table: string; fk: string }
@@ -58,7 +58,7 @@ export async function trashAndDelete(
 
 // Hard-deletes the hidden row behind a soft-deleted trash item, plus the Storage blob for
 // files. Shared by permanentlyDelete, emptyTrash and the trash-cleanup cron so all three
-// purge paths behave identically. Returns an error message, or null on success.
+// purge paths behave identically. Returns an error message or null on success.
 export async function purgeSoftDeleted(item: {
   table_name: string
   original_id: string

@@ -2,7 +2,7 @@
 
 Incremental migration files for the Supabase PostgreSQL database. There is no `schema.sql` any more - a fresh install runs every file here in numeric order (036 baselines the core tables that predate the series).
 
-All files use `IF NOT EXISTS`, `CREATE OR REPLACE`, or `DO` blocks so they are safe to re-run without side effects.
+All files use `IF NOT EXISTS`, `CREATE OR REPLACE` or `DO` blocks so they are safe to re-run without side effects.
 
 ## Migrations
 
@@ -61,4 +61,4 @@ All files use `IF NOT EXISTS`, `CREATE OR REPLACE`, or `DO` blocks so they are s
 
 The sequence originally had two duplicate numbers: two files were numbered 008 (`008_add_inventory_url` and `008_add_wakatime_os`) and, briefly, two were numbered 042. On 2026-07-12 every file was renumbered into the unique 001-046 sequence above. All of them had already been applied to the live database under their old names, so the renumber is purely cosmetic and every file is unchanged and safe to re-run.
 
-The rule, if you are decoding an older commit, PR or note: `008_add_inventory_url` keeps 008, `008_add_wakatime_os` became 009, and every file that was 009 or higher moved up by one. So a migration number cited before this date is one lower than its current filename from the old 009 onward (for example the old `036_lock_down_rls` is now 037, and the cron_runs ledger once called 043 is now 045).
+The rule, if you are decoding an older commit, PR or note: `008_add_inventory_url` keeps 008, `008_add_wakatime_os` became 009 and every file that was 009 or higher moved up by one. So a migration number cited before this date is one lower than its current filename from the old 009 onward (for example the old `036_lock_down_rls` is now 037 and the cron_runs ledger once called 043 is now 045).

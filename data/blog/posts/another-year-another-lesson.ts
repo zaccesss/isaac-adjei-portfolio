@@ -32,7 +32,7 @@ const _another_year_another_lesson: BlogPost = {
       },
       {
         type: "p",
-        text: "I think about this every year on this day: where the journey began, and how unlikely it looked from there. I grew up in Ghana, lost the sight in my right eye at two years old after surgery for suspected retinoblastoma, missed the first years of school because of it, attended [Adisadel College](https://en.wikipedia.org/wiki/Adisadel_College) in Cape Coast where the motto is Vel Primus, Vel Cum Primis (either the first, or with the first), lost my father in 2021, moved to the UK in April 2022 with no formal technical education behind me, enrolled at Stanmore College on a business course and switched to engineering two months in by sitting the entrance exams and catching up while working part-time.",
+        text: "I think about this every year on this day: where the journey began and how unlikely it looked from there. I grew up in Ghana, lost the sight in my right eye at two years old after surgery for suspected retinoblastoma, missed the first years of school because of it, attended [Adisadel College](https://en.wikipedia.org/wiki/Adisadel_College) in Cape Coast where the motto is Vel Primus, Vel Cum Primis (either the first or with the first), lost my father in 2021, moved to the UK in April 2022 with no formal technical education behind me, enrolled at Stanmore College on a business course and switched to engineering two months in by sitting the entrance exams and catching up while working part-time.",
       },
       {
         type: "p",
@@ -40,7 +40,7 @@ const _another_year_another_lesson: BlogPost = {
       },
       {
         type: "p",
-        text: "I write this not to perform the backstory but because I genuinely need to look back at it from where I am standing now. The distance between those two points is not small. And the distance is not really mine: it is God's, and my mum's, and my father's, carried forward through me.",
+        text: "I write this not to perform the backstory but because I genuinely need to look back at it from where I am standing now. The distance between those two points is not small. And the distance is not really mine: it is God's and my mum's and my father's, carried forward through me.",
       },
       {
         type: "h2",
@@ -52,7 +52,7 @@ const _another_year_another_lesson: BlogPost = {
       },
       {
         type: "p",
-        text: "[Phaemos](https://phaemos.com) is further along than it has ever been. It is a predictive maintenance platform using IoT sensor data and machine learning, and it is a real thing now, not a side project in the abstract. avr-zac is bare-metal C running on an ATmega644P: no HAL, no abstraction layer, just registers and timing and understanding exactly what the hardware is doing. The audio amplifier is a TL071 active filter and OPA551 unity-gain output buffer, designed, simulated, fabricated and tested by hand. I built a World Cup 2026 AI predictor. I have been doing competitive programming consistently for the first time since I started. I ran over 50 kilometres for [Cancer Research UK](https://www.cancerresearchuk.org) during the 10 Days of 5K Challenge.",
+        text: "[Phaemos](https://phaemos.com) is further along than it has ever been. It is a predictive maintenance platform using IoT sensor data and machine learning and it is a real thing now, not a side project in the abstract. avr-zac is bare-metal C running on an ATmega644P: no HAL, no abstraction layer, just registers and timing and understanding exactly what the hardware is doing. The audio amplifier is a TL071 active filter and OPA551 unity-gain output buffer, designed, simulated, fabricated and tested by hand. I built a World Cup 2026 AI predictor. I have been doing competitive programming consistently for the first time since I started. I ran over 50 kilometres for [Cancer Research UK](https://www.cancerresearchuk.org) during the 10 Days of 5K Challenge.",
       },
       {
         type: "p",
@@ -76,7 +76,7 @@ const _another_year_another_lesson: BlogPost = {
       },
       {
         type: "p",
-        text: "He used to say: always strive to make things better. I understood that phrase differently when I was young. I thought it meant improvement, iteration, fixing what was broken. I think now it means something larger: that the posture of an engineer, and really the posture of a person, should be one of active contribution. Not passive consumption. Not waiting for someone else to fix things. Building.",
+        text: "He used to say: always strive to make things better. I understood that phrase differently when I was young. I thought it meant improvement, iteration, fixing what was broken. I think now it means something larger: that the posture of an engineer and really the posture of a person, should be one of active contribution. Not passive consumption. Not waiting for someone else to fix things. Building.",
       },
       {
         type: "p",
@@ -116,7 +116,7 @@ const _another_year_another_lesson: BlogPost = {
       },
       {
         type: "p",
-        text: "I am a Christian and that is not a footnote. It runs through everything I have described above. There were moments this year, and in every year, where things could have gone differently. The Zenodo record being the first of its kind from me. The Sky invitation arriving. The Aston work holding up. There is too much specificity in the provision for me to attribute it to effort alone. Effort was there. So was something else.",
+        text: "I am a Christian and that is not a footnote. It runs through everything I have described above. There were moments this year and in every year, where things could have gone differently. The Zenodo record being the first of its kind from me. The Sky invitation arriving. The Aston work holding up. There is too much specificity in the provision for me to attribute it to effort alone. Effort was there. So was something else.",
       },
       {
         type: "p",
@@ -128,7 +128,7 @@ const _another_year_another_lesson: BlogPost = {
       },
       {
         type: "p",
-        text: "The lesson this year reinforced most clearly: start before you are ready, document as you go and finish what you start. git-unlocked was not finished when I first thought it might be finished. Phaemos is still not finished. avr-zac is not finished. But they all exist, and existing is worth more than planning to exist.",
+        text: "The lesson this year reinforced most clearly: start before you are ready, document as you go and finish what you start. git-unlocked was not finished when I first thought it might be finished. Phaemos is still not finished. avr-zac is not finished. But they all exist and existing is worth more than planning to exist.",
       },
       {
         type: "p",

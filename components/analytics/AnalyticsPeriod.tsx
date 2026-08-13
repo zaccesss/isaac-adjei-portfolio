@@ -1,7 +1,7 @@
 "use client"
 
 // Shared date-range state for analytics sections. Every section that migrates onto this
-// framework (Applications, Coding, Blog, Modules, and new Study/Faith/Stats sections) reads
+// framework (Applications, Coding, Blog, Modules and new Study/Faith/Stats sections) reads
 // the active period from this context instead of hand-rolling its own date math, so a single
 // PeriodSelector can drive every chart on a page at once.
 
@@ -28,7 +28,7 @@ const PERIOD_DAYS: Record<AnalyticsPeriod, number | null> = {
   all: null,
 }
 
-// Returns the cutoff Date for a period, or null for "all" (no lower bound).
+// Returns the cutoff Date for a period or null for "all" (no lower bound).
 export function periodStartDate(period: AnalyticsPeriod, now: Date = new Date()): Date | null {
   const days = PERIOD_DAYS[period]
   if (days === null) return null

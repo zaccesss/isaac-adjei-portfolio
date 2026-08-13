@@ -8,7 +8,7 @@ All rules that apply to every session. No exceptions.
 
 - Short and direct. No padding, no summaries of what you just did.
 - No em dashes (-) or en dashes (-). Use a hyphen (-) instead.
-- No Oxford comma. Write "x, y and z" not "x, y, and z".
+- No Oxford comma. Write "x, y and z" not "x, y and z".
 - No emojis unless Isaac explicitly asks.
 - When referencing files use markdown links.
 - One or two sentence updates while working. Never silent.

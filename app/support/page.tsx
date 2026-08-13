@@ -37,7 +37,7 @@ export default function SupportPage() {
         </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
           Need help or have a question? Whether it is one of my software or hardware projects, a
-          course, or something on this website, here is how to reach me.
+          course or something on this website, here is how to reach me.
         </p>
         <p className="text-sm text-muted-foreground">
           <a

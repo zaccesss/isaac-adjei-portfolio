@@ -15,7 +15,7 @@ const _branch_prediction_sorted_arrays: TILEntry = {
       },
       {
         type: "p",
-        text: "For embedded systems: if you have a performance-critical loop with a branch, consider whether sorting the input first is feasible, or whether a branchless version (using bitwise arithmetic to avoid the conditional entirely) is cleaner. On microcontrollers without branch prediction, branchless code is often more predictable in execution time, which also matters for real-time guarantees.",
+        text: "For embedded systems: if you have a performance-critical loop with a branch, consider whether sorting the input first is feasible or whether a branchless version (using bitwise arithmetic to avoid the conditional entirely) is cleaner. On microcontrollers without branch prediction, branchless code is often more predictable in execution time, which also matters for real-time guarantees.",
       },
       {
         type: "link",

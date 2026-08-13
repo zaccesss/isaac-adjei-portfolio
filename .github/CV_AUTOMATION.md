@@ -15,7 +15,7 @@ Before this system, I had:
 - `cv-quant.html` - Quantitative Developer focus
 - `cv-security.html` - Cybersecurity focus
 
-Every time I updated my skills, projects, or experience, I had to manually edit all 7 files. This was tedious and error-prone. I'd often forget to update one, or they'd get out of sync.
+Every time I updated my skills, projects or experience, I had to manually edit all 7 files. This was tedious and error-prone. I'd often forget to update one or they'd get out of sync.
 
 ## My Solution
 
@@ -59,7 +59,7 @@ I also set up a GitHub Actions workflow (`.github/workflows/generate-cvs.yml`) t
 2. Runs the generator script
 3. Commits the updated CV HTML files back to the repo
 
-This means I can edit `cv.yml` directly on GitHub's web interface, and the CVs will auto-update without me touching my local machine.
+This means I can edit `cv.yml` directly on GitHub's web interface and the CVs will auto-update without me touching my local machine.
 
 ## The Role-Specific Magic
 
@@ -137,7 +137,7 @@ When I push changes to `cv.yml` on GitHub, the Actions workflow automatically re
 
 ## My Workflow
 
-1. **Edit** `data/cv.yml` with new experience, skills, or projects
+1. **Edit** `data/cv.yml` with new experience, skills or projects
 2. **Save** - If in watch mode, CVs auto-regenerate
 3. **Preview** - Open `http://localhost:3000/cv` to see changes
 4. **Commit** - Push to GitHub triggers CI/CD which updates the rest

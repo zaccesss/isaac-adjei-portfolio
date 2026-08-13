@@ -1,6 +1,6 @@
 -- 003_add_blog_reactions.sql
 -- Adds updated_at to goals, creates the activity_log/habits/habit_logs tables
--- with RLS, and seeds the theme_preference config key.
+-- with RLS and seeds the theme_preference config key.
 -- Safe to run on existing databases - CREATE TABLE IF NOT EXISTS throughout,
 -- and the DO blocks make the RLS policies idempotent.
 -- Run: paste into Supabase SQL Editor and execute.

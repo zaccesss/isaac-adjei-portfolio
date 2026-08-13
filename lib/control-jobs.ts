@@ -1,6 +1,6 @@
 // The single source of truth for every action the control page can run and watch: one entry per
 // dispatchable GitHub Actions workflow across my six repos. The run route refuses anything not in
-// this table, so the dashboard can never be talked into dispatching an arbitrary workflow, and the
+// this table, so the dashboard can never be talked into dispatching an arbitrary workflow and the
 // status route drives its whole aggregation from the same list.
 //
 // hcSlug ties a job to its Healthchecks check (the slugs come from the automations STATUS.md badge
@@ -40,7 +40,7 @@ export const CONTROL_JOBS: ControlJob[] = [
     label: "Medication reminders",
     description: "Sends due medication doses over Discord, email and SMS",
     // Shares the "reminders" check with reminders.yml below - the free Healthchecks plan's check
-    // cap meant this could not keep its own, and both run on the same 15-minute cadence and post a
+    // cap meant this could not keep its own and both run on the same 15-minute cadence and post a
     // user-visible message on success, so a silent failure of either is obvious anyway.
     hcSlug: "reminders",
     schedule: "every 15 min",

@@ -1,5 +1,5 @@
 # I configure Dependabot to open weekly dependency update PRs for npm packages
-# in both the main app and the PS5 presence Cloudflare Worker, and for GitHub Actions.
+# in both the main app and the PS5 presence Cloudflare Worker and for GitHub Actions.
 # Major version bumps are ignored across all ecosystems to avoid breaking changes landing
 # automatically. The automerge-dependabot workflow picks these up and squash-merges them
 # once CI passes.

@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Two crons (a GMT and a BST branch) hit this route; act only at 00:30 UK on Monday so the digest
-  // always covers the full previous Mon-Sun, and only once even if a run is delayed into the window.
+  // always covers the full previous Mon-Sun and only once even if a run is delayed into the window.
   if (!isLondonTime(0, "Mon")) {
     return NextResponse.json({ skipped: "not 00:30 UK Monday" }, { headers: { "Cache-Control": "no-store" } })
   }

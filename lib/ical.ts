@@ -1,6 +1,6 @@
 // One shared iCal parser for the dashboard calendar and the university timetable. There used to be
 // two hand-rolled copies that disagreed (different all-day handling, the timetable one did not even
-// unfold lines), and both mis-parsed timezone-qualified stamps.
+// unfold lines) and both mis-parsed timezone-qualified stamps.
 //
 // The important fix: a DATE-TIME with no trailing Z and a TZID (or no zone at all) is a WALL-CLOCK
 // time in that zone, NOT UTC. The old code built `new Date("2026-06-22T04:15:00")`, which the server
@@ -67,7 +67,7 @@ export function parseICalDate(raw: string, tzid?: string): { date: Date; allDay:
   const v = raw.trim()
 
   // All-day DATE value: YYYYMMDD. Anchor to local noon so the calendar day is unambiguous whatever
-  // the viewer's timezone, and flag it so callers do not have to infer all-day from a 00:00 clock.
+  // the viewer's timezone and flag it so callers do not have to infer all-day from a 00:00 clock.
   if (/^\d{8}$/.test(v)) {
     return { date: new Date(+v.slice(0, 4), +v.slice(4, 6) - 1, +v.slice(6, 8), 12, 0, 0), allDay: true }
   }

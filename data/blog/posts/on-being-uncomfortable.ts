@@ -13,7 +13,7 @@ const _on_being_uncomfortable: BlogPost = {
     content: [
       {
         type: "p",
-        text: "I have been uncomfortable for most of the past four years. Not in the abstract motivational-poster sense - I mean the specific feeling of being in a situation I am not equipped for yet, where I do not have the vocabulary or the skills or the context, and where the gap between where I am and where I need to be is visible and embarrassing. I have made a habit of choosing these situations deliberately. I think it is the right decision. I am still not sure.",
+        text: "I have been uncomfortable for most of the past four years. Not in the abstract motivational-poster sense - I mean the specific feeling of being in a situation I am not equipped for yet, where I do not have the vocabulary or the skills or the context and where the gap between where I am and where I need to be is visible and embarrassing. I have made a habit of choosing these situations deliberately. I think it is the right decision. I am still not sure.",
       },
       {
         type: "h2",
@@ -73,7 +73,7 @@ const _on_being_uncomfortable: BlogPost = {
       },
       {
         type: "p",
-        text: "I do not think this is about resilience as a personality trait, or some particular capacity for tolerating pain. I think it is about having a very clear picture of where you want to be and being willing to be embarrassed in the service of getting there. The discomfort is not the point. The destination is.",
+        text: "I do not think this is about resilience as a personality trait or some particular capacity for tolerating pain. I think it is about having a very clear picture of where you want to be and being willing to be embarrassed in the service of getting there. The discomfort is not the point. The destination is.",
       },
       {
         type: "divider",

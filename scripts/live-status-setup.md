@@ -80,7 +80,7 @@ are deterministic - they only ever report a real game - and tier 5 is opt-in:
 Tier 5 is the only tier that *guesses*: it cleans up **any** running exe name - and Windows runs
 hundreds of background processes I never opened - and asks IGDB if it looks like a game. That
 backfired twice: the Windows 11 widget board (`Widgets.exe`) matched the indie game "Widget
-Satchel", and the Codex CLI (`codex.exe`) matched an obscure game literally called "Codex". No
+Satchel" and the Codex CLI (`codex.exe`) matched an obscure game literally called "Codex". No
 heuristic can be a hard guarantee, so the daemon **does not run tier 5 unless I opt in** by
 setting `ENABLE_FUZZY_DETECTION=1`. With it off (the default), only the four deterministic tiers
 run, so a non-game can never show up as a game I am playing. The startup banner prints the
@@ -172,7 +172,7 @@ lines like `[hh:mm:ss] cpu=44% gpu=38% game=Fortnite [known] -> 200`.
 | `STEAM_ID` | no (Steam detection) | Steam64 ID - if your profile is `/profiles/7656119...` that number is it, otherwise convert your `/id/<name>` URL at `steamid.io` |
 | `ENABLE_FUZZY_DETECTION` | no (off by default) | Set to `1` only to turn the best-effort fuzzy tier back on. Leave unset for the safe, real-games-only default - see the tier 5 section above |
 
-> **Steam profiles:** set Steam -> Edit Profile -> Privacy -> "Game details" to **Public**, or the
+> **Steam profiles:** set Steam -> Edit Profile -> Privacy -> "Game details" to **Public** or the
 > Steam API never reports the current game.
 
 ### Adding a game
@@ -317,6 +317,6 @@ plain restart only picks up new code after the file itself is updated:
 | Agent | Logs |
 | --- | --- |
 | Gaming PC | `C:\gpc-daemon.log` / `C:\gpc-daemon-err.log` (set via `nssm set GpcDaemon AppStdout/AppStderr`) |
-| Lenovo | set `AppStdout` / `AppStderr` the same way, or view in Event Viewer |
+| Lenovo | set `AppStdout` / `AppStderr` the same way or view in Event Viewer |
 | MacBook | `/tmp/macdaemon.log` (the plist `StandardOutPath`) |
-| PS5 worker | `npx wrangler tail` from `workers/ps5-presence`, or the Cloudflare dashboard |
+| PS5 worker | `npx wrangler tail` from `workers/ps5-presence` or the Cloudflare dashboard |

@@ -6,7 +6,7 @@ This is a personal portfolio repository. Interactions (issues, discussions, comm
 
 - Respectful and constructive
 - On-topic and relevant to the project
-- Free of spam, harassment, or hate speech
+- Free of spam, harassment or hate speech
 
 ## Enforcement
 

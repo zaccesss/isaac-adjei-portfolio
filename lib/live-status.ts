@@ -6,7 +6,7 @@
 // Redis discipline (this is what keeps Upstash well under its monthly command budget):
 //   - Spotify uses ZERO Redis on the hot path: the access token is cached in-memory, the
 //     now-playing result is NOT cached in Redis (the CDN cache in front of /api/spotify is the
-//     dedup layer instead), and spotify:last_played is written only when the track changes.
+//     dedup layer instead) and spotify:last_played is written only when the track changes.
 //   - Device presence is the only thing that genuinely lives in Redis. getLiveSnapshot() reads
 //     every presence key in a SINGLE mget, so one origin request costs one Redis command.
 //   - Every getter that has its own upstream API (Spotify, GitHub) isolates its Redis read in

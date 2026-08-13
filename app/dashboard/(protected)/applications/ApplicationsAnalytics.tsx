@@ -101,7 +101,7 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
   }
   const locBar = Object.entries(locCounts).filter(([, v]) => v > 0).map(([name, value]) => ({ name, value }))
 
-  // Weekly trend — number of weeks driven by period
+  // Weekly trend - number of weeks driven by period
   const today = new Date()
   const numWeeks = period === "7d" ? 4 : period === "30d" ? 8 : period === "90d" ? 13 : period === "1y" ? 26 : period === "24h" ? 1 : 52
   const weeklyBar: { name: string; value: number }[] = []
@@ -173,7 +173,7 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
           <div>
             <h2 className="text-base font-semibold leading-tight">Applications Analytics</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {filtered.length} application{filtered.length !== 1 ? "s" : ""} in view — {periodLabel}
+              {filtered.length} application{filtered.length !== 1 ? "s" : ""} in view - {periodLabel}
             </p>
           </div>
         </div>

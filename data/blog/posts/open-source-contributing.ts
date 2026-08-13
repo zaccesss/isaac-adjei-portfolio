@@ -38,7 +38,7 @@ const _open_source_contributing: BlogPost = {
       },
       {
         type: "p",
-        text: "There are four honest reasons to contribute to open source, and they are all valid.",
+        text: "There are four honest reasons to contribute to open source and they are all valid.",
       },
       {
         type: "ul",
@@ -75,7 +75,7 @@ const _open_source_contributing: BlogPost = {
       },
       {
         type: "p",
-        text: "The single biggest mistake first-time contributors make is jumping straight to code before understanding the project. A pull request to a project you do not understand will either be wrong, duplicate existing work or conflict with the maintainer's direction. None of these is obvious until the review, and fixing them is demoralising for everyone.",
+        text: "The single biggest mistake first-time contributors make is jumping straight to code before understanding the project. A pull request to a project you do not understand will either be wrong, duplicate existing work or conflict with the maintainer's direction. None of these is obvious until the review and fixing them is demoralising for everyone.",
       },
       {
         type: "p",
@@ -91,7 +91,7 @@ const _open_source_contributing: BlogPost = {
       },
       {
         type: "p",
-        text: "Code is not the only way to contribute, and for many projects it is not even the most needed contribution. The types of contribution that maintainers consistently value include:",
+        text: "Code is not the only way to contribute and for many projects it is not even the most needed contribution. The types of contribution that maintainers consistently value include:",
       },
       {
         type: "ul",

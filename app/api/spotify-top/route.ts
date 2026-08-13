@@ -59,7 +59,7 @@ export async function GET(req: Request) {
     const artistIds = artistsData.items.map((a: any) => a.id).filter(Boolean).join(",")
 
     // Spotify deprecated audio-features (Nov 2024) and artist genres (Mar 2025). I no longer
-    // fetch audio-features at all (they 403 + burned CPU), and genres now come from Last.fm
+    // fetch audio-features at all (they 403 + burned CPU) and genres now come from Last.fm
     // below. I still fetch artist details for accurate follower counts.
     const artistFollowers: Record<string, number> = {}
     if (artistIds) {

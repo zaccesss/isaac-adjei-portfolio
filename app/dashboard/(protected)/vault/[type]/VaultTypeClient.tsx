@@ -121,7 +121,7 @@ function EntryCard({ entry, onEdit, onDelete, onToggle }: {
   // I fall back to Globe if the type is unknown (e.g. imported from an older schema version)
   const Icon = typeInfo?.icon ?? Globe
   // I use Google's favicon service as a quick way to show brand icons without self-hosting them
-  // - I only attempt this when there is a URL, and onError hides the img if it fails to load
+  // - I only attempt this when there is a URL and onError hides the img if it fails to load
   const favicon = entry.url ? `https://www.google.com/s2/favicons?domain=${new URL(entry.url.startsWith("http") ? entry.url : `https://${entry.url}`).hostname}&sz=32` : null
 
   return (

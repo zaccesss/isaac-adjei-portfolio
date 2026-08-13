@@ -80,7 +80,7 @@ void usart1_dma_rx_init(uint8_t *buf, uint16_t len) {
       },
       {
         type: "p",
-        text: "Circular DMA with a single buffer creates a race: if the main loop processes bytes too slowly, the DMA controller will overwrite the start of the buffer before the main loop has finished reading it. The solution is double buffering with the half-transfer interrupt. Set up DMA in circular mode with a buffer twice the size you actually need. DMA fires two interrupts: half-transfer complete (HT) when it reaches the midpoint, and transfer complete (TC) when it wraps around. While DMA is writing the second half, your ISR or main loop processes the first half. When DMA writes the first half again, you process the second half. The two halves never conflict.",
+        text: "Circular DMA with a single buffer creates a race: if the main loop processes bytes too slowly, the DMA controller will overwrite the start of the buffer before the main loop has finished reading it. The solution is double buffering with the half-transfer interrupt. Set up DMA in circular mode with a buffer twice the size you actually need. DMA fires two interrupts: half-transfer complete (HT) when it reaches the midpoint and transfer complete (TC) when it wraps around. While DMA is writing the second half, your ISR or main loop processes the first half. When DMA writes the first half again, you process the second half. The two halves never conflict.",
       },
       {
         type: "code",

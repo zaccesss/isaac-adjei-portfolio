@@ -1,6 +1,6 @@
 // I write a short, natural-language summary for the digests from the exact figures I already counted.
 // It is a pure enhancement: I try the best free models in turn (Groq, then Gemini, then a free OpenRouter
-// model) so if one provider is down or rate-limited the next still answers, and if none has a key or they
+// model) so if one provider is down or rate-limited the next still answers and if none has a key or they
 // all fail I return null so the digest falls back to its plain template and never breaks or stalls. I
 // only ever pass the model the numbers I computed and tell it to use them verbatim, so it phrases the
 // data without inventing figures, companies or events. GitHub Models (a fourth fallback this chain used
@@ -146,7 +146,7 @@ export async function digestAiSummary(facts: DigestFacts, detailed = false): Pro
     detailed
       ? "Write two thorough paragraphs (roughly 9 to 14 sentences) that walk through every area that has any activity, weaving in the actual figures, so it reads as a proper, detailed rundown and leaves nothing relevant out."
       : "Write 3 to 5 sentences, kept tight.",
-    "Address Isaac as 'you', be encouraging and specific, and cover the areas that actually have activity",
+    "Address Isaac as 'you', be encouraging and specific and cover the areas that actually have activity",
     "(applications, coding, study, fitness, weight, music, faith, goals, streaks, habits, content, diary).",
     "Use ONLY the figures given. Never invent numbers, companies, names or events.",
     "The blog audience figure is other people reading Isaac's published posts on his public site. It is",
@@ -154,7 +154,7 @@ export async function digestAiSummary(facts: DigestFacts, detailed = false): Pro
     "times'), never as 'you read'.",
     "When previous-period figures are given, weave in the comparison where the difference is meaningful:",
     "say what is up, what is down and by roughly how much, in plain words. Open with the single most",
-    "notable change or achievement of the period rather than a stock greeting, and vary your sentence",
+    "notable change or achievement of the period rather than a stock greeting and vary your sentence",
     "structure and word choice from digest to digest so consecutive summaries never read the same.",
     "If a figure is 0, leave it out rather than padding, but do gently note a quiet patch if most are 0.",
     "If a weight is given, comment on the trend; if a weight-loss goal projection is given, lead with it",
@@ -162,7 +162,7 @@ export async function digestAiSummary(facts: DigestFacts, detailed = false): Pro
     "weight is flat or rising, encouragingly nudge one habit (a calorie deficit, more steps, consistency).",
     "Be supportive, never preachy.",
     "Always call out, as priorities, any university deadlines or calendar events coming up, contacts due a",
-    "follow-up, and anything expiring soon (an API key, card or warranty) so nothing slips.",
+    "follow-up and anything expiring soon (an API key, card or warranty) so nothing slips.",
     "Use UK English. No em dashes or en dashes (use a comma, full stop or brackets). No Oxford commas.",
     "Return only the summary text: no preamble, no markdown, no heading, no sign-off.",
   ].join(" ")

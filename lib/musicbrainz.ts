@@ -21,7 +21,7 @@ export interface MusicBrainzGenre { name: string; count: number }
 // endpoint at all). A single shared queue serialises every call this module makes, so a batch of
 // several cold-cache artists in one request never bursts past that limit and gets silently
 // rate-limited instead. Each artist needs up to two calls (the URL lookup, then the artist genres
-// lookup), and results are cached for a week, so this queue is only ever a cost on a cold cache.
+// lookup) and results are cached for a week, so this queue is only ever a cost on a cold cache.
 let queue: Promise<unknown> = Promise.resolve()
 function throttled<T>(fn: () => Promise<T>): Promise<T> {
   const result = queue.then(fn, fn)

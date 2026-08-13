@@ -6,7 +6,7 @@ const _strace_system_calls: TILEntry = {
     date: "2026-08-08",
     category: "Linux",
     published: true,
-    body: "Running `strace ./myprogram` prints every [syscall](https://man7.org/linux/man-pages/man1/strace.1.html) the program makes: file opens, network calls, mmap allocations, signals received. This works even for programs you have no source for. Useful patterns: `strace -e trace=file` to see only file-related calls, `strace -p <pid>` to attach to a running process, and `strace -c` to get a summary of call counts and time. On a recent project I used it to find that a tool was trying to open a config file in the wrong directory: the error message was misleading but `strace` showed the exact path being probed.",
+    body: "Running `strace ./myprogram` prints every [syscall](https://man7.org/linux/man-pages/man1/strace.1.html) the program makes: file opens, network calls, mmap allocations, signals received. This works even for programs you have no source for. Useful patterns: `strace -e trace=file` to see only file-related calls, `strace -p <pid>` to attach to a running process and `strace -c` to get a summary of call counts and time. On a recent project I used it to find that a tool was trying to open a config file in the wrong directory: the error message was misleading but `strace` showed the exact path being probed.",
     detail: [
       {
         type: "code",

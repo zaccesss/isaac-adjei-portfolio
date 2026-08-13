@@ -45,7 +45,7 @@ const _my_development_setup_2026: BlogPost = {
   },
   {
     type: "p",
-    text: "The dotfiles repository covers 59 numbered topic files loaded in order - from git aliases and navigation shortcuts through to Docker, Kubernetes, cloud platforms and 30+ language toolchains. Every alias has the same name on all three platforms. The colour scheme was chosen deliberately: I lost sight in my right eye at age two, and colour does the depth-cue job that binocular vision usually handles. Cyan, magenta, green and yellow were chosen for contrast and tested under deuteranopia and protanopia simulations.",
+    text: "The dotfiles repository covers 59 numbered topic files loaded in order - from git aliases and navigation shortcuts through to Docker, Kubernetes, cloud platforms and 30+ language toolchains. Every alias has the same name on all three platforms. The colour scheme was chosen deliberately: I lost sight in my right eye at age two and colour does the depth-cue job that binocular vision usually handles. Cyan, magenta, green and yellow were chosen for contrast and tested under deuteranopia and protanopia simulations.",
   },
   {
     type: "h2",
@@ -53,7 +53,7 @@ const _my_development_setup_2026: BlogPost = {
   },
   {
     type: "p",
-    text: "VS Code is my primary editor for web and TypeScript work. The TypeScript language server integration is significantly better than what I had in Vim, and the debug adapter protocol means the same debugger interface works for TypeScript, Python and C without switching tools. Key extensions: ESLint, Prettier, Tailwind IntelliSense, GitLens, Error Lens and the Cortex-Debug extension for STM32 work.",
+    text: "VS Code is my primary editor for web and TypeScript work. The TypeScript language server integration is significantly better than what I had in Vim and the debug adapter protocol means the same debugger interface works for TypeScript, Python and C without switching tools. Key extensions: ESLint, Prettier, Tailwind IntelliSense, GitLens, Error Lens and the Cortex-Debug extension for STM32 work.",
   },
   {
     type: "p",
@@ -103,7 +103,7 @@ const _my_development_setup_2026: BlogPost = {
   {
     type: "ul",
     items: [
-      "Windows for development: WSL2 is good, not great; the file system performance across the boundary is noticeable, and half of the hardware tools I use do not work in WSL anyway",
+      "Windows for development: WSL2 is good, not great; the file system performance across the boundary is noticeable and half of the hardware tools I use do not work in WSL anyway",
       "Tabs vs spaces: spaces everywhere; the tab-width ambiguity across editors and terminals caused too many display inconsistencies",
       "Linters as blockers: running ESLint on pre-commit was frustrating at first; now I would not work on a codebase that does not do this",
       "Branch-per-feature: I was too conservative with branching early on; I branch for everything including small fixes now, the PR history is the documentation",
