@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   }
 
   // A salted one-way hash (Web Crypto, so this stays edge-safe): the stored value only needs
-  // to be stable per visitor for dedupe, and the old base64 form was reversible back to the IP.
+  // to be stable per visitor for dedupe and the old base64 form was reversible back to the IP.
   // Salting with the auth secret keeps the hash unlinkable without server access.
   let ipHash = "unknown"
   if (ip !== "unknown") {

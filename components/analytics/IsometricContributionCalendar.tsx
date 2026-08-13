@@ -203,7 +203,7 @@ function Scene({
   const depth = 7 * STEP
   const center: [number, number, number] = [width / 2 - STEP / 2, 0, depth / 2 - STEP / 2]
   // Grid's fade is measured from the scene origin in world units - fadeDistance needs to scale
-  // with the actual board size, not a fixed guess, or a small board fades to invisible near its own
+  // with the actual board size, not a fixed guess or a small board fades to invisible near its own
   // centre while a large one never fades at all.
   const boardSpan = Math.max(width, depth)
 
@@ -237,7 +237,7 @@ function Scene({
           `observe` on, that DOM-portal mount/unmount was read as a scene change and triggered a
           mid-hover refit, blanking the whole canvas for a frame while the camera bounds recomputed.
           maxDuration shortened from Bounds' 1s default: its own mount-time fit/reset animation runs
-          for the full duration regardless of user input, and a drag that started before it settled
+          for the full duration regardless of user input and a drag that started before it settled
           fought the animation for camera.position/zoom every frame - confirmed live, reproducing as
           a reliably blank canvas. OrbitControls itself stays disabled (controlsReady below) until
           safely past this window, so the two can no longer race even with the shorter duration. */}
@@ -328,7 +328,7 @@ function CameraView({ pos, up = [0, 1, 0], trigger }: { pos: [number, number, nu
 }
 
 // Presets explicitly re-fit the camera after moving it, which is what makes them work; a plain
-// mouse drag never did, and reproduced live as the exact same blank/degenerate view free rotation
+// mouse drag never did and reproduced live as the exact same blank/degenerate view free rotation
 // hit before the angle clamp was even added - the clamp wasn't the actual fix, this is. Re-fitting
 // on every drag/zoom RELEASE (not continuously - fit() is a discrete jump, not something to run on
 // every frame of a drag) keeps zoom/clip valid for whatever angle the user actually lands on.
@@ -356,7 +356,7 @@ function hasWebGL(): boolean {
 
 // The same Less-to-More reading as GitHub's own legend, swatched from the active theme's own
 // block ramp so it never drifts out of sync with the board (kept as a plain DOM row rather than
-// a 3D element - legends don't need an isometric read, and it's far simpler to style with Tailwind).
+// a 3D element - legends don't need an isometric read and it's far simpler to style with Tailwind).
 function Legend({ palette }: { palette: IsometricPalette }) {
   return (
     <div className="mt-1.5 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">

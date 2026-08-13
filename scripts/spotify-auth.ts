@@ -1,6 +1,6 @@
 // I perform the one-time Spotify OAuth flow to obtain a long-lived refresh token that the /api/spotify route can use on every request without re-prompting.
 // Run: npx tsx scripts/spotify-auth.ts
-// Then open the printed URL in your browser, authorise, and paste the full
+// Then open the printed URL in your browser, authorise and paste the full
 // redirect URL (it will look like https://isaacadjei.me?code=AQC...) back here.
 
 import * as readline from "readline"

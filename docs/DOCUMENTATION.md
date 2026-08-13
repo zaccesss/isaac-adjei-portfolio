@@ -261,7 +261,7 @@ Adzuna provides a `redirect_url` tracking link instead of the direct company ATS
 
 `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `REED_API_KEY`, `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, `JOOBLE_API_KEY`, `DISCORD_WEBHOOK_URL`, `GH_PAT`
 
-`WAKATIME_API_KEY` — GitHub Actions secret only. Do not add to Vercel. The `wakatime-sync.yml` workflow writes to Supabase directly; the dashboard reads from Supabase, so the key never touches the Next.js runtime.
+`WAKATIME_API_KEY` - GitHub Actions secret only. Do not add to Vercel. The `wakatime-sync.yml` workflow writes to Supabase directly; the dashboard reads from Supabase, so the key never touches the Next.js runtime.
 
 ---
 
@@ -486,7 +486,7 @@ Create `.env.local` in the project root for local development. All variables are
 
 - **UK English** throughout - colour not color, organised not organized, favourite not favorite.
 - **No em dashes or en dashes** - use a hyphen or rephrase.
-- **No Oxford commas** - write "x, y and z" not "x, y, and z".
+- **No Oxford commas** - write "x, y and z" not "x, y and z".
 - **First-person comments** in code - "I use..." not "Uses...", "I fetch..." not "Fetches...". One short line max, never multi-line comment blocks.
 - **No AI attribution** in commit messages or code comments.
 - **Weather card shows country only** - never the city name.
@@ -508,7 +508,7 @@ Hosted on **Vercel**. DNS via **Cloudflare**. Every push to `main` triggers an a
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| `ci.yml` | Every PR and push to main | Lint, build, and `check-image-sizes` (fails if any image in `public/images` exceeds 50 megapixels) |
+| `ci.yml` | Every PR and push to main | Lint, build and `check-image-sizes` (fails if any image in `public/images` exceeds 50 megapixels) |
 | `gitleaks-scan.yml` | Every push | Credential leak scanning |
 | `deploy-ps5-presence.yml` | Push touching `workers/ps5-presence/**`, manual dispatch | Deploys the PS5 presence Cloudflare Worker |
 | `cv-pdf.yml` | Push to `public/resume/cv.html` on main | Regenerate all CV PDFs and DOCX, create auto-merge PR |

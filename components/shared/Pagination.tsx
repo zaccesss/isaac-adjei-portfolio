@@ -1,7 +1,7 @@
 "use client"
 // A reusable page-number pager: first / prev / a small window of numbers / next / last, with an optional
 // "Showing X-Y of Z" line. It works two ways so every list can share it - pass `onChange` for in-memory
-// client lists (applications, blog analytics), or `baseHref` to render `?page=` links for server-paginated
+// client lists (applications, blog analytics) or `baseHref` to render `?page=` links for server-paginated
 // pages (the activity log). `baseHref` is a plain string, NOT a function, so it is safe to pass from a
 // Server Component to this Client Component. Same visual language as the public blog pager.
 import Link from "next/link"

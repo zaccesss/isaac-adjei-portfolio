@@ -65,7 +65,7 @@
 @keyframes script-tittle-blink { 0%, 62%, 100% { opacity: 1; } 80% { opacity: 0.28; } }
 
 /* Section marks (concepts 03, 11, 13, 17) placed across the site. Each is scoped by a
-   root class, reads currentColor with blue only on the accent, and is reduced-motion safe. */
+   root class, reads currentColor with blue only on the accent and is reduced-motion safe. */
 
 /* 03 constellation - the 404 mark */
 .ia-constellation circle { transform-box: fill-box; transform-origin: center; }

@@ -25,7 +25,7 @@ const _javascript_event_loop: BlogPost = {
       },
       {
         type: "p",
-        text: "Stack overflow errors happen when recursion is too deep - each recursive call pushes a new frame, and eventually the engine runs out of stack space. The error message 'Maximum call stack size exceeded' is the runtime telling you the call stack is full.",
+        text: "Stack overflow errors happen when recursion is too deep - each recursive call pushes a new frame and eventually the engine runs out of stack space. The error message 'Maximum call stack size exceeded' is the runtime telling you the call stack is full.",
       },
       {
         type: "h2",

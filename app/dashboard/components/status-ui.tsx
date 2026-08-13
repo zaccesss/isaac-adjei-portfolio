@@ -95,11 +95,11 @@ export const STATUS_COLOURS = {
 }
 
 const LEGEND_ITEMS: { dot: string; label: string; hint: string }[] = [
-  { dot: "bg-green-500", label: "Up / success", hint: "pinged on schedule, or the run finished successfully" },
+  { dot: "bg-green-500", label: "Up / success", hint: "pinged on schedule or the run finished successfully" },
   { dot: "bg-amber-500", label: "Late", hint: "Healthchecks has not heard from this job in its expected window yet" },
-  { dot: "bg-red-500", label: "Down / failure", hint: "missed its check-in, or the run finished with an error" },
+  { dot: "bg-red-500", label: "Down / failure", hint: "missed its check-in or the run finished with an error" },
   { dot: "bg-blue-500 animate-pulse", label: "Running now", hint: "the workflow is currently in progress" },
-  { dot: "bg-muted-foreground/40", label: "Paused / skipped", hint: "the check is paused, or the run was skipped" },
+  { dot: "bg-muted-foreground/40", label: "Paused / skipped", hint: "the check is paused or the run was skipped" },
 ]
 
 export function StatusLegend() {

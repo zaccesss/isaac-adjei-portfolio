@@ -11,8 +11,8 @@ run-name: >-
   Auto-Generate CVs${{ (github.event_name == 'workflow_dispatch' && inputs.reliable_dispatch) && ' (reliable-dispatch safety net)' || '' }}
 
 # A weekly safety net: cv.yml can carry a visibleFrom date on an experience entry (see
-# data/cv.yml), and nothing else ever touches cv.html to make that take effect once the date
-# passes - a push-triggered regenerate never fires on its own. This catches that, and any other
+# data/cv.yml). Nothing else ever touches cv.html to make that take effect once the date
+# passes - a push-triggered regenerate never fires on its own. This catches that plus any other
 # drift between cv.yml and the committed artefacts, on a quiet Sunday slot.
 # cron-ops (my reliable Cloudflare clock, github.com/zaccesss/cron-ops) is the primary path,
 # firing this at the true 02:00 London moment every Sunday; the schedule below is GitHub's own
@@ -32,16 +32,24 @@ on:
 jobs:
   generate-cvs:
     runs-on: ubuntu-latest
-    # contents:write for the commit-and-push step; actions:read for the claim step's `gh run list`.
+    # contents:write and pull-requests:write for the branch-and-PR step; actions:read for the claim
+    # step's `gh run list`.
     permissions:
       contents: write
+      pull-requests: write
       actions: read
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        # main requires a PR for every change (see the ruleset), so the default GITHUB_TOKEN cannot
+        # push here even with contents:write - it can only open the PR below. GH_PAT is what
+        # cv-pdf.yml already uses for the exact same reason. This also makes sure the PR's own CI
+        # actually runs: workflow events triggered by GITHUB_TOKEN do not trigger other workflows,
+        # which would otherwise leave the required "Lint and Build" check stuck forever and the PR
+        # never auto-merges.
+        token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
 
     # The safety-net path is either GitHub's own schedule trigger or cron-ops standing in for it
     # (reliable_dispatch=true). I claim the window before regenerating, so if the other path
@@ -56,7 +64,7 @@ jobs:
     # expose the reliable_dispatch input, so I match on the run-name marker set above instead of
     # the bare event name. Matching on event alone once let an unrelated manual run look like it
     # had already claimed the window, so the very next scheduled run skipped its regeneration
-    # *and* its heartbeat without failing, and healthchecks only caught the miss after the grace
+    # *and* its heartbeat without failing. Healthchecks only caught the miss after the grace
     # window ran out.
     - name: Claim this window
       id: claim
@@ -116,9 +124,12 @@ jobs:
           echo "changed=true" >> $GITHUB_OUTPUT
         fi
 
-    - name: Commit and push updated CVs
+    # main requires a PR for every change, so this opens one and auto-merges it instead of pushing
+    # directly - same pattern cv-pdf.yml already uses for the same reason.
+    - name: Open an auto-merging PR with the updated CVs
       if: steps.claim.outputs.go != 'false' && steps.check-changes.outputs.changed == 'true'
       env:
+        GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
         SIGNING_KEY: ${{ secrets.CI_SIGNING_KEY }}
       run: |
         if [ -n "$SIGNING_KEY" ]; then
@@ -133,9 +144,17 @@ jobs:
         git add public/resume/cv.html public/resume/cv-*.html public/resume/cv-*.pdf public/resume/cv-*.docx
         git add public/resume/cover-letter-*.html public/resume/cover-letter-*.pdf public/resume/cover-letter-*.docx
         git add public/resume/Isaac_Adjei_CV.pdf public/resume/Isaac_Adjei_CV.docx
-        # [skip ci] prevents this commit from triggering another CI run
-        git commit -m "Auto-regenerate CVs and cover letters [skip ci]"
-        git push
+
+        branch="automation/regenerate-cvs-${GITHUB_RUN_ID}"
+        git switch -c "$branch"
+        git commit -m "Auto-regenerate CVs and cover letters"
+        git push -u origin "$branch"
+        gh pr create \
+          --base main \
+          --head "$branch" \
+          --title "chore: regenerate CVs and cover letters" \
+          --body "Weekly safety-net regeneration - catches drift between cv.yml and the committed artefacts, including any visibleFrom date that has now passed."
+        gh pr merge "$branch" --squash --delete-branch --auto
 
     # Dead-man's-switch, part 2: on a successful safety-net run I ping the base URL (up); on a
     # failed one I ping /fail so Healthchecks alerts me immediately rather than waiting for the

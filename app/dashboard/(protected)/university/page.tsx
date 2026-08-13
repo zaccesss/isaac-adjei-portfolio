@@ -89,7 +89,7 @@ export default async function UniversityOverviewPage() {
                     <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: (d as any).uni_modules?.color ?? "#6366f1" }} />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium truncate">{d.title}</p>
-                      <p className="text-[10px] text-muted-foreground">{(d as any).uni_modules?.code ?? "—"}</p>
+                      <p className="text-[10px] text-muted-foreground">{(d as any).uni_modules?.code ?? "-"}</p>
                     </div>
                     <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded shrink-0 ${days <= 3 ? "bg-red-500/10 text-red-500" : days <= 7 ? "bg-yellow-500/10 text-yellow-600" : "bg-muted text-muted-foreground"}`}>
                       {days === 0 ? "today" : `${days}d`}

@@ -1,5 +1,5 @@
 // Generalises the current/longest streak math that used to live only in StreaksClient.tsx
-// (calcCurrentStreak/calcLongestStreak) so habits, and future Study/Faith sections, compute
+// (calcCurrentStreak/calcLongestStreak) so habits and future Study/Faith sections, compute
 // streaks the same way instead of re-deriving the date-walking logic per feature.
 
 export type StreakLog = {

@@ -24,7 +24,7 @@ import { LinkCard } from "@/components/consumed/LinkCard"
 import { BookCard } from "@/components/consumed/BookCard"
 import { PodcastCard } from "@/components/consumed/PodcastCard"
 
-// A search hit if the query matches the title, or any of the other text fields an item happens
+// A search hit if the query matches the title or any of the other text fields an item happens
 // to carry (author, channel, show, genre, tags) - kept generic since every category shapes this
 // data slightly differently.
 function matchesSearch(item: Record<string, unknown>, query: string): boolean {

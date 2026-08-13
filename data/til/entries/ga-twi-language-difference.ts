@@ -6,7 +6,7 @@ const _ga_twi_language_difference: TILEntry = {
     date: "2026-08-27",
     category: "Culture",
     published: true,
-    body: "Ga is the language of the Ga-Dangme people, indigenous to the Greater Accra region of Ghana. Twi (Asante Twi and Akuapem Twi) is the most widely spoken language in Ghana and a lingua franca, part of the Akan language family. Ga and Twi are not dialects of each other: they belong to different language families within the Niger-Congo phylum. I am Ga, and I understand some Twi from growing up in Accra where it is everywhere, but they are genuinely separate languages.",
+    body: "Ga is the language of the Ga-Dangme people, indigenous to the Greater Accra region of Ghana. Twi (Asante Twi and Akuapem Twi) is the most widely spoken language in Ghana and a lingua franca, part of the Akan language family. Ga and Twi are not dialects of each other: they belong to different language families within the Niger-Congo phylum. I am Ga and I understand some Twi from growing up in Accra where it is everywhere, but they are genuinely separate languages.",
     detail: [
       {
         type: "p",

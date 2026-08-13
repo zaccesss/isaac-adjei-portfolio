@@ -1,7 +1,7 @@
 "use server"
 
 // CRUD for one-off reminders (appointments, meetings and anything else with a date and time). Co-located
-// with the page like the medication reminder actions, and every action gates on the dashboard session
+// with the page like the medication reminder actions and every action gates on the dashboard session
 // first so these publicly callable POST endpoints cannot be invoked unauthenticated.
 import { auth } from "@/auth"
 import { supabase } from "@/lib/supabase"
@@ -39,7 +39,7 @@ function clean(input: ReminderInput) {
     location: input.location?.trim() || null,
     notes: input.notes?.trim() || null,
     event_at: input.event_at,
-    // De-duplicate, keep only sane positive lead times, and sort longest-first so a week reads before a day.
+    // De-duplicate, keep only sane positive lead times and sort longest-first so a week reads before a day.
     lead_minutes: [...new Set((input.lead_minutes ?? []).map((m) => Math.round(Number(m))).filter((m) => Number.isFinite(m) && m > 0))].sort(
       (a, b) => b - a,
     ),

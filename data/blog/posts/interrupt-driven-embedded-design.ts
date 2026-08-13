@@ -25,7 +25,7 @@ const _interrupt_driven_embedded_design: BlogPost = {
       },
       {
         type: "p",
-        text: "An interrupt is a hardware signal that pauses the current execution context and jumps to a predefined function called an Interrupt Service Routine, or ISR. When the ISR returns, execution resumes exactly where it left off. The CPU saves and restores the relevant registers automatically. From the perspective of the main loop, the interrupt happened between two instructions.",
+        text: "An interrupt is a hardware signal that pauses the current execution context and jumps to a predefined function called an Interrupt Service Routine or ISR. When the ISR returns, execution resumes exactly where it left off. The CPU saves and restores the relevant registers automatically. From the perspective of the main loop, the interrupt happened between two instructions.",
       },
       {
         type: "p",

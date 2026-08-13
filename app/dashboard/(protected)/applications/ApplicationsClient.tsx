@@ -110,7 +110,7 @@ function _appPref(a: Application): number {
 }
 
 // The same role often lands in the table from several sources (the Trackr plus a
-// direct ATS, or the daily re-scrape before the URL heal caught up), so it shows
+// direct ATS or the daily re-scrape before the URL heal caught up), so it shows
 // as duplicate rows - one with the real posting link, one with only the company
 // careers page or none. I collapse those to the single best row FOR DISPLAY ONLY,
 // keyed on company + role + location. Nothing is deleted: every row stays in the

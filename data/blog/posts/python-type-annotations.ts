@@ -13,7 +13,7 @@ const _python_type_annotations: BlogPost = {
     content: [
       {
         type: "p",
-        text: "Python's type annotation syntax was introduced in PEP 484 (Python 3.5) and has been expanded significantly in each subsequent release. In 2026 the ecosystem is mature enough that type annotations are worth using on any Python project that more than one person will touch, or that you will return to after more than a few weeks. These are the patterns I use day-to-day in the [Phaemos](/projects/phaemos) backend ([FastAPI](https://fastapi.tiangolo.com)) and in the system daemons that power the portfolio live status features.",
+        text: "Python's type annotation syntax was introduced in PEP 484 (Python 3.5) and has been expanded significantly in each subsequent release. In 2026 the ecosystem is mature enough that type annotations are worth using on any Python project that more than one person will touch or that you will return to after more than a few weeks. These are the patterns I use day-to-day in the [Phaemos](/projects/phaemos) backend ([FastAPI](https://fastapi.tiangolo.com)) and in the system daemons that power the portfolio live status features.",
       },
       {
         type: "h2",

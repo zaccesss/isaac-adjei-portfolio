@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, action: "no-open-incident" }, { status: 200, headers: NO_STORE })
   }
 
-  // Otherwise it is a down (or an unlabelled alert): open an incident, or update the open one if this
+  // Otherwise it is a down (or an unlabelled alert): open an incident or update the open one if this
   // check is already down, so a flap does not stack duplicates.
   const title = name ? `${name} is down` : "Incident reported"
   const description = [

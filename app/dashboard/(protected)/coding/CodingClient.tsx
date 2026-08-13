@@ -175,7 +175,7 @@ function CodingInner({
     [ghDays]
   )
 
-  // Period-filtered rows: stats, aggregate charts, and hour×day matrix
+  // Period-filtered rows: stats, aggregate charts and hour×day matrix
   const periodRows = useMemo(() => {
     const start = periodStartDate(period)
     if (!start) return rows

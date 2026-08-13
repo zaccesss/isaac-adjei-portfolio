@@ -131,7 +131,7 @@ source.onerror = () => console.log("reconnecting...")`,
       },
       {
         type: "p",
-        text: "WebSocket connections can silently die. A load balancer or NAT gateway may drop an idle connection without sending a close frame. The browser and server both believe the connection is alive; neither side gets an error until they try to send something. The standard mitigation is a ping-pong heartbeat: the server sends a ping frame every 30 seconds, and the client responds with a pong. If three consecutive pings go unanswered, the server closes the connection and the client reconnects.",
+        text: "WebSocket connections can silently die. A load balancer or NAT gateway may drop an idle connection without sending a close frame. The browser and server both believe the connection is alive; neither side gets an error until they try to send something. The standard mitigation is a ping-pong heartbeat: the server sends a ping frame every 30 seconds and the client responds with a pong. If three consecutive pings go unanswered, the server closes the connection and the client reconnects.",
       },
       {
         type: "p",

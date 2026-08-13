@@ -55,7 +55,7 @@ export default function GamingPanel() {
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wide">PS5</span>
               <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full ${ps5?.online ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                {ps5?.online ? "online" : ps5 ? `${timeSince(ps5.lastSeen)}` : "—"}
+                {ps5?.online ? "online" : ps5 ? `${timeSince(ps5.lastSeen)}` : "-"}
               </span>
             </div>
             {ps5Game ? (
@@ -81,7 +81,7 @@ export default function GamingPanel() {
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wide">PC</span>
               <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full ${gpc?.online ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                {gpc?.online ? "online" : gpc ? `offline` : "—"}
+                {gpc?.online ? "online" : gpc ? `offline` : "-"}
               </span>
             </div>
             {gpcGame ? (

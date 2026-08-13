@@ -1,6 +1,6 @@
 "use client"
 // I use this component anywhere user-authored or AI text should render markdown - links always open in a
-// new tab, and fenced code blocks render in a styled box with a one-click Copy button.
+// new tab and fenced code blocks render in a styled box with a one-click Copy button.
 // The compact prop switches between prose-sm (default) and prose-xs for tighter dashboard cards.
 
 import ReactMarkdown from "react-markdown"

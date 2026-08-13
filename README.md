@@ -5,7 +5,7 @@
 [![Live](https://img.shields.io/badge/live-isaacadjei.me-000000?style=flat&logo=googlechrome&logoColor=white)](https://isaacadjei.me)
 [![License: PolyForm NC](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue.svg)](LICENSE)
 
-Personal portfolio at [isaacadjei.me](https://isaacadjei.me). Built with Next.js 16 App Router, TypeScript and Tailwind CSS. Server-rendered where possible, client components only where interactivity requires it. Includes a private dashboard with 20+ live integrations, a job scraper pipeline, blog analytics, WakaTime heatmap, and a full CV system with automated PDF/DOCX generation. Deployed on Vercel with Cloudflare DNS.
+Personal portfolio at [isaacadjei.me](https://isaacadjei.me). Built with Next.js 16 App Router, TypeScript and Tailwind CSS. Server-rendered where possible, client components only where interactivity requires it. Includes a private dashboard with 20+ live integrations, a job scraper pipeline, blog analytics, WakaTime heatmap and a full CV system with automated PDF/DOCX generation. Deployed on Vercel with Cloudflare DNS.
 
 > For full technical reference - API routes, environment variables, deployment notes - see [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md).
 > For dashboard routes and Supabase schema see [docs/DASHBOARD.md](docs/DASHBOARD.md).

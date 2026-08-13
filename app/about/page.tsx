@@ -20,7 +20,7 @@ import {
 } from "lucide-react"
 
 // This page is static by default; a visibleFrom-gated society role (see data/societies.ts) needs
-// the real clock re-checked periodically rather than only at build time, or it stays hidden past
+// the real clock re-checked periodically rather than only at build time or it stays hidden past
 // its date until the next deploy - same reasoning as the Experience page's revalidate.
 export const revalidate = 3600
 
@@ -86,7 +86,7 @@ export default function AboutPage() {
           </p>
           <p>
             I grew up in Ghana, attending Adisadel College in Cape Coast, a school guided by the
-            motto &ldquo;Vel Primus, Vel Cum Primis&rdquo; (Either the first, or with the first).
+            motto &ldquo;Vel Primus, Vel Cum Primis&rdquo; (Either the first or with the first).
             It instilled in me resilience, discipline and a standard of excellence that still shape
             everything I do. I was an active member of the Robotics Club, Scripture Union, PENSA
             and the Debate Society. I lost sight in my right eye at age two due to retinoblastoma
@@ -99,7 +99,7 @@ export default function AboutPage() {
             accompanied him on site and watched engineering come to life in his hands. He always
             said: &ldquo;Always strive to make things better.&rdquo; Between 2019 and 2021 I
             worked as a Junior Apprentice HVAC Technician in Accra, servicing and installing over
-            50 air conditioning units in the field. In 2022 I relocated to the UK, and after two
+            50 air conditioning units in the field. In 2022 I relocated to the UK and after two
             months on a business course at Stanmore College I knew engineering was where I belonged.
             I approached the college, sat the necessary entry exams and transferred onto the
             engineering programme, graduating with D*DD in the Pearson BTEC Level 3 National
@@ -114,7 +114,7 @@ export default function AboutPage() {
             high-achieving undergraduates across the UK. Beyond university I have gained experience
             in different sectors: internships at the Ghana High Commission London as a Consular
             Intern and an Admin and Estates Intern, virtual engineering programmes with British
-            Airways and Yunex Traffic, and between 2022 and 2025, while studying full-time, working
+            Airways and Yunex Traffic and between 2022 and 2025, while studying full-time, working
             as a Waiter and Food Runner at Casa do Frango Piccadilly.
           </p>
           <p>
@@ -361,7 +361,7 @@ export default function AboutPage() {
           <p className="text-muted-foreground leading-relaxed italic">
             &ldquo;Isaac recently completed a set of student judging for us at targetjobs for the
             prestigious National Graduate Recruitment Awards. He completed this task in a timely
-            manner and to a high quality, and we are very thankful that Isaac volunteered his time.
+            manner and to a high quality and we are very thankful that Isaac volunteered his time.
             Isaac proved to be efficient and self-motivated, with a thorough approach to the
             assigned work. I would highly recommend Isaac for any future roles and
             opportunities.&rdquo;

@@ -35,7 +35,7 @@ const codeforcesAutoPush: NoteEntry = {
     { type: "h3", text: "TryHackMe" },
     {
       type: "p",
-      text: "TryHackMe has no equivalent tooling. There is no API for programmatically fetching room completion data or writeup content, and no extension or script that auto-pushes writeups to GitHub. People maintain their THM repos manually. This is the biggest gap in the space. The closest workflow anyone uses is writing notes in Obsidian or a local folder during a room and then pushing manually. A browser extension that detected room completion and triggered a structured commit (with a templated README per room: category, difficulty, tags, notes) would be genuinely useful.",
+      text: "TryHackMe has no equivalent tooling. There is no API for programmatically fetching room completion data or writeup content and no extension or script that auto-pushes writeups to GitHub. People maintain their THM repos manually. This is the biggest gap in the space. The closest workflow anyone uses is writing notes in Obsidian or a local folder during a room and then pushing manually. A browser extension that detected room completion and triggered a structured commit (with a templated README per room: category, difficulty, tags, notes) would be genuinely useful.",
     },
     { type: "h2", text: "What I want to build" },
     {

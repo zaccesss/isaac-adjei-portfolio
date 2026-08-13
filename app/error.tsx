@@ -28,7 +28,7 @@ export default function GlobalError({
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight">Something went wrong</h1>
           <p className="text-muted-foreground leading-relaxed">
-            This page ran into an unexpected error. Try again, or head back home.
+            This page ran into an unexpected error. Try again or head back home.
           </p>
           {error.digest && (
             <p className="text-xs font-mono text-muted-foreground/60 pt-1">

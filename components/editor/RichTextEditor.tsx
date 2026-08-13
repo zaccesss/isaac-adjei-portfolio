@@ -1,6 +1,6 @@
 "use client"
 // I provide one shared TipTap rich text editor for notes and diary. It reads and writes markdown
-// (via tiptap-markdown) so existing markdown content needs no migration, and the markdown viewer
+// (via tiptap-markdown) so existing markdown content needs no migration and the markdown viewer
 // (MarkdownContent) and the .md export keep working unchanged. The content classes mirror
 // MarkdownContent's prose styling so the editor and the rendered note look the same.
 

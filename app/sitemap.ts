@@ -45,7 +45,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/changelog`,                     lastModified: new Date("2026-05-29"), changeFrequency: "weekly",  priority: 0.5  },
     { url: `${SITE_URL}/colophon`,                      lastModified: new Date("2026-05-29"), changeFrequency: "yearly",  priority: 0.4  },
     { url: `${SITE_URL}/all-pages`,                     lastModified: new Date("2026-05-15"), changeFrequency: "monthly", priority: 0.4  },
-    // /privacy is deliberately absent: the page is noindex, and listing it here sent Google
+    // /privacy is deliberately absent: the page is noindex and listing it here sent Google
     // conflicting signals (GSC "excluded by noindex" validation failures).
     { url: `${SITE_URL}/security-policy`,               lastModified: new Date("2026-04-01"), changeFrequency: "yearly",  priority: 0.3  },
     { url: `${SITE_URL}/contribute`,                    lastModified: new Date("2026-07-11"), changeFrequency: "yearly",  priority: 0.4  },

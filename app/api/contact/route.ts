@@ -170,7 +170,7 @@ export async function POST(request: Request) {
 
     return json({ success: true })
   } catch (err) {
-    // Malformed JSON, AbortSignal timeout on fetch, or unexpected runtime errors.
+    // Malformed JSON, AbortSignal timeout on fetch or unexpected runtime errors.
     console.error("Contact route error:", err)
     return json({ error: "Something went wrong." }, { status: 500 })
   }

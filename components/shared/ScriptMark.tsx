@@ -1,5 +1,5 @@
 // The IA signature mark (concept 14 "script"): one continuous cursive stroke that
-// signs itself, an accent swash underlining it, and the i-dot popping in as an accent
+// signs itself, an accent swash underlining it and the i-dot popping in as an accent
 // tittle. The stroke reads as currentColor so it inherits the header text colour; the
 // swash and tittle use the site --primary token. Bumping `signKey` remounts the drawn
 // group, which restarts the sign animation, so the header can re-sign on navigation.

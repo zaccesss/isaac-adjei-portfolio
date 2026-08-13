@@ -19,7 +19,7 @@ const _freertos_stack_overflow_detection: TILEntry = {
 #define configCHECK_FOR_STACK_OVERFLOW 2  // 1 = pointer check only, 2 = pattern check
 
 // The hook must be implemented in your application code.
-// It must NOT return. Typical actions: halt, log, or trigger a watchdog reset.
+// It must NOT return. Typical actions: halt, log or trigger a watchdog reset.
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
     (void)xTask;
     (void)pcTaskName;

@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  // Two crons (a GMT and a BST branch) hit this route; act only at 09:00 UK on Monday, and only once,
+  // Two crons (a GMT and a BST branch) hit this route; act only at 09:00 UK on Monday and only once,
   // so a delayed run can never send the renewal email twice.
   if (!isLondonTime(9, "Mon")) {
     return NextResponse.json({ skipped: "not 09:00 UK Monday" }, { headers: { "Cache-Control": "no-store" } })

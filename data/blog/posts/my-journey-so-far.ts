@@ -40,7 +40,7 @@ const _my_journey_so_far: BlogPost = {
       },
       {
         type: "p",
-        text: "Growing up with monocular vision, I faced assumptions about what I could and could not do. For a long time, I dreamed of becoming a pilot. That dream was taken from me when I was told that monocular vision made it an impossible career path. I was young when I heard that, and it stung. But looking back, it was the first moment I had to redirect a dream rather than abandon it. It would not be the last.",
+        text: "Growing up with monocular vision, I faced assumptions about what I could and could not do. For a long time, I dreamed of becoming a pilot. That dream was taken from me when I was told that monocular vision made it an impossible career path. I was young when I heard that and it stung. But looking back, it was the first moment I had to redirect a dream rather than abandon it. It would not be the last.",
       },
       {
         type: "p",
@@ -52,7 +52,7 @@ const _my_journey_so_far: BlogPost = {
       },
       {
         type: "p",
-        text: "My father was a mechanical and refrigeration engineer. During school holidays I would go to work with him and watch engineering happen in real time. He moved parts, diagnosed faults and fixed things that other people had given up on. I absorbed all of it without knowing that was what I was doing. He had a way of approaching problems that was calm and methodical, and it left a deep impression on me.",
+        text: "My father was a mechanical and refrigeration engineer. During school holidays I would go to work with him and watch engineering happen in real time. He moved parts, diagnosed faults and fixed things that other people had given up on. I absorbed all of it without knowing that was what I was doing. He had a way of approaching problems that was calm and methodical and it left a deep impression on me.",
       },
       {
         type: "p",
@@ -68,7 +68,7 @@ const _my_journey_so_far: BlogPost = {
       },
       {
         type: "p",
-        text: "I spent my senior high school years at Adisadel College in Cape Coast, one of the most prestigious boys' schools in Ghana, founded in 1910. The motto is Vel Primus, Vel Cum Primis: either the first, or with the first. That motto is not decorative. It is a standard the school actually holds you to.",
+        text: "I spent my senior high school years at Adisadel College in Cape Coast, one of the most prestigious boys' schools in Ghana, founded in 1910. The motto is Vel Primus, Vel Cum Primis: either the first or with the first. That motto is not decorative. It is a standard the school actually holds you to.",
       },
       {
         type: "p",
@@ -108,7 +108,7 @@ const _my_journey_so_far: BlogPost = {
       },
       {
         type: "p",
-        text: "The project is called Zaccess. It takes photos of lecture slides or textbook pages, uses OCR to extract the text and converts it into high-contrast large-text notes with text-to-speech support. It was built to help me study more comfortably. But something more interesting happened: I shared it with another visually impaired student, and he told me it saved him hours every week.",
+        text: "The project is called Zaccess. It takes photos of lecture slides or textbook pages, uses OCR to extract the text and converts it into high-contrast large-text notes with text-to-speech support. It was built to help me study more comfortably. But something more interesting happened: I shared it with another visually impaired student and he told me it saved him hours every week.",
       },
       {
         type: "p",
@@ -120,7 +120,7 @@ const _my_journey_so_far: BlogPost = {
       },
       {
         type: "p",
-        text: "Faith has been a constant throughout all of this. I am a Christian, and that is not a footnote to my story. It runs through it. There were moments where things could have gone very differently. Doors that opened when they logically should not have. The engineering transfer. The results. The university offers. The scholarship. Clearing working out. Surviving situations that could have ended differently.",
+        text: "Faith has been a constant throughout all of this. I am a Christian and that is not a footnote to my story. It runs through it. There were moments where things could have gone very differently. Doors that opened when they logically should not have. The engineering transfer. The results. The university offers. The scholarship. Clearing working out. Surviving situations that could have ended differently.",
       },
       {
         type: "h2",
@@ -140,7 +140,7 @@ const _my_journey_so_far: BlogPost = {
       },
       {
         type: "p",
-        text: "I have worked as a Consular Intern and Administrative and Estates Intern at the Ghana High Commission in London. I have completed virtual engineering programmes with British Airways, analysing A320 maintenance schedules and producing material forecast reports, and with Yunex Traffic, exploring intelligent transport systems and air quality sensor networks. Between 2022 and 2025 I worked at Casa do Frango Piccadilly, developing communication and composure under pressure alongside my studies.",
+        text: "I have worked as a Consular Intern and Administrative and Estates Intern at the Ghana High Commission in London. I have completed virtual engineering programmes with British Airways, analysing A320 maintenance schedules and producing material forecast reports and with Yunex Traffic, exploring intelligent transport systems and air quality sensor networks. Between 2022 and 2025 I worked at Casa do Frango Piccadilly, developing communication and composure under pressure alongside my studies.",
       },
       {
         type: "p",

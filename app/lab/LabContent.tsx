@@ -328,7 +328,7 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "output", text: "  Adisadel College, Cape Coast  " },
     { type: "blank", text: "" },
     { type: "output", text: "  Vel Primus, Vel Cum Primis" },
-    { type: "output", text: "  Either the first, or with the first." },
+    { type: "output", text: "  Either the first or with the first." },
     { type: "blank", text: "" },
     { type: "output", text: "  HVAC Technician · 2019-2021" },
     { type: "output", text: "  The place that shaped everything." },
@@ -448,7 +448,7 @@ const COMMANDS: Record<string, () => Line[]> = {
     { type: "kv", text: "  trajectory    on track" },
     { type: "blank", text: "" },
     { type: "output", text: '  "Vel Primus, Vel Cum Primis"' },
-    { type: "output", text: "   either the first, or with the first." },
+    { type: "output", text: "   either the first or with the first." },
   ],
 
   uptime: () => {

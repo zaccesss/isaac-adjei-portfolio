@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Two crons (a GMT and a BST branch) hit this route; act only at 00:30 UK so the rolling-24h digest
-  // reads as "yesterday in full", and only once even if a run is delayed into the window.
+  // reads as "yesterday in full" and only once even if a run is delayed into the window.
   if (!isLondonTime(0)) {
     return NextResponse.json({ skipped: "not 00:30 UK" }, { headers: { "Cache-Control": "no-store" } })
   }
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
   const result = await sendDiscordDigest()
   await pingHealthcheck("discord-digest", result.ok ? "success" : "fail")
   // The manual "Send now" trigger already wrote this key on a manual send; the real scheduled path
-  // needs to write it too, or the dashboard only ever reflects a manual click and never the cron
+  // needs to write it too or the dashboard only ever reflects a manual click and never the cron
   // that actually sends this every day.
   void supabase.from("config").upsert(
     { key: "last_discord_digest", value: { sentAt: new Date().toISOString(), status: result.ok ? "success" : "failure" } },

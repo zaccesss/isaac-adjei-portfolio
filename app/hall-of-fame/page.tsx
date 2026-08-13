@@ -9,7 +9,7 @@ import { Trophy, Heart, Shield, Users } from "lucide-react"
 export const metadata: Metadata = {
   title: "Hall of Fame",
   description:
-    "The people I am most grateful for, and security researchers who have responsibly disclosed vulnerabilities on isaacadjei.me.",
+    "The people I am most grateful for and security researchers who have responsibly disclosed vulnerabilities on isaacadjei.me.",
   alternates: {
     canonical: "https://www.isaacadjei.me/hall-of-fame",
   },
@@ -30,7 +30,7 @@ export default function HallOfFamePage() {
           <h1 className="text-4xl font-bold tracking-tight">Hall of Fame</h1>
         </div>
         <p className="text-lg text-muted-foreground leading-relaxed">
-          The people without whom none of this would exist, and those who have helped keep
+          The people without whom none of this would exist and those who have helped keep
           this site safe.
         </p>
       </section>

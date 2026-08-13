@@ -2,7 +2,7 @@
 // The chat UI for my read-only dashboard assistant. I manage the input myself (AI SDK v6 no longer
 // owns it) and send the chosen model with each message. The assistant reads an allow-list of my data
 // and only ever returns text - it cannot change anything. Chats are ephemeral by default; saving is
-// opt-in (the Save button), and saved chats can be reloaded or deleted individually.
+// opt-in (the Save button) and saved chats can be reloaded or deleted individually.
 
 import { useRef, useState } from "react"
 import { useChat } from "@ai-sdk/react"
@@ -64,7 +64,7 @@ const SUGGESTIONS = [
 
 // Vercel caps a serverless request body at 4.5MB and base64 inflates a file by ~1.37x, so a phone photo
 // blows past it. I downscale images to <=1568px (what vision models use internally anyway) and re-encode
-// as JPEG before sending, and reject any non-image file that is still too large rather than let Vercel
+// as JPEG before sending and reject any non-image file that is still too large rather than let Vercel
 // bounce it with an opaque error.
 const MAX_DIM = 1568
 const MAX_BYTES = 3_000_000
@@ -255,7 +255,7 @@ export default function AssistantClient({ configured, initialChats, providers }:
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={configured ? "Ask anything, or attach an image/PDF..." : "Add GROQ_API_KEY or GOOGLE_AI_API_KEY in Vercel to enable"}
+            placeholder={configured ? "Ask anything or attach an image/PDF..." : "Add GROQ_API_KEY or GOOGLE_AI_API_KEY in Vercel to enable"}
             className="flex-1 border border-border rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
           />
           {busy ? (

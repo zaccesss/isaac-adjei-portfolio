@@ -1,6 +1,6 @@
 // I integrate Strava so my health analytics page can chart my runs and rides. The flow is the standard
 // OAuth code grant: /api/strava/auth sends me to Strava, /api/strava/callback exchanges the code for
-// tokens, and the tokens live in the service-role `config` table (never in the repo, never exposed to the
+// tokens and the tokens live in the service-role `config` table (never in the repo, never exposed to the
 // client). syncStravaActivities pulls my recent activities into strava_activities, refreshing the access
 // token first if it is close to expiry. Everything guards on STRAVA_CLIENT_ID/SECRET so a missing key
 // degrades to a clean "not configured" state instead of throwing.
@@ -117,10 +117,10 @@ async function getAccessToken(): Promise<string | null> {
 }
 
 // Pull my recent activities into strava_activities, upserting by strava_id so re-syncs never duplicate.
-// Returns how many activities were written, or -1 if Strava could not be reached.
+// Returns how many activities were written or -1 if Strava could not be reached.
 // When activities sync, I auto-tick a "Fitness" habit for each day that has an activity, so my training
 // shows up in Habits automatically. I can still tick or untick it by hand (and via the Discord bot later).
-// The habit is created on first sync if it does not exist, and I only insert days that have no log yet so
+// The habit is created on first sync if it does not exist and I only insert days that have no log yet so
 // a manual change is never overwritten.
 async function markFitnessHabit(dates: string[]): Promise<void> {
   if (dates.length === 0) return

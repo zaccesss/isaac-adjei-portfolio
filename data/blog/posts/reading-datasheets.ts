@@ -81,7 +81,7 @@ const _reading_datasheets: BlogPost = {
       },
       {
         type: "p",
-        text: "A specific example: the STM32F103 has an errata noting that USART baud rate registers must be written in a specific order, and that certain DMA configurations on the USB peripheral require a software workaround. If you are debugging a peripheral that should work according to the datasheet but does not, the errata is the second place to look after re-reading the register description.",
+        text: "A specific example: the STM32F103 has an errata noting that USART baud rate registers must be written in a specific order and that certain DMA configurations on the USB peripheral require a software workaround. If you are debugging a peripheral that should work according to the datasheet but does not, the errata is the second place to look after re-reading the register description.",
       },
       {
         type: "h2",

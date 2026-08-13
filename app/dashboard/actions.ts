@@ -465,7 +465,7 @@ export async function updateApplication(id: string, data: Partial<{
   await requireAuth()
   if (!validId(id)) return INVALID
   // An edit resubmits the whole form, so empty date pickers arrive as "" - coerce to null so
-  // Postgres accepts the update, and surface the error so the client's revert path can fire.
+  // Postgres accepts the update and surface the error so the client's revert path can fire.
   for (const k of ["applied_date", "deadline", "opening_date", "last_year_opening"] as const)
     if (data[k] === "") (data as Record<string, unknown>)[k] = null
   // Moving to Applied or Submitted stamps applied_date (today, London) when it was not set by
@@ -819,7 +819,7 @@ export async function resetStreak(id: string) {
   await requireAuth()
   if (!validId(id)) return INVALID
   // A reset wipes every check-in, so snapshot them first: the streak row plus its logs go to the
-  // trash, and restoring that entry undoes the reset (the row upserts over itself, the logs
+  // trash and restoring that entry undoes the reset (the row upserts over itself, the logs
   // re-insert). Without this a reset was the only destructive action with no recovery copy at all.
   await moveToTrash("streaks", id, undefined, [{ table: "streak_logs", fk: "streak_id" }])
   // I clear every check-in for this streak so the current and longest streak both fall back to zero.
@@ -1437,7 +1437,7 @@ export async function searchDashboard(q: string) {
   }
   // I strip PostgREST filter metacharacters (commas, parens, backslashes) AND the LIKE wildcards
   // (% and _) from the query before building the ilike pattern. Without this they could break out of
-  // the .or() filter strings below, or a lone "%" would match every row.
+  // the .or() filter strings below or a lone "%" would match every row.
   const safeQ = q.trim().replace(/[,()\\%_]/g, " ")
   const pat = `%${safeQ}%`
   const [goals, notes, diary, applications, contacts, habits, streaks] = await Promise.all([
@@ -1816,7 +1816,7 @@ export async function clearAllJobs() {
   // thousands of rows every time I declutter (the old trash backup also silently capped at 1000 rows
   // while the delete removed every row, so most were never really recoverable). Crucially, ONLY
   // status='scraped' is touched: anything I have applied to, interviewed for, been offered or rejected
-  // from, or saved (any other status) keeps its row, so my real pipeline and its analytics survive
+  // from or saved (any other status) keeps its row, so my real pipeline and its analytics survive
   // every clear, however many times I run it.
   const { count } = await supabase
     .from("applications")
@@ -2856,7 +2856,7 @@ export async function createDownloadSignedUrl(path: string) {
 
 // ─── AI assistant saved chats ─────────────────────────────────
 // Opt-in only: nothing is stored unless I press "Save this chat". I keep the full message array as
-// jsonb so a saved chat reloads exactly as it was, and I can delete any chat individually.
+// jsonb so a saved chat reloads exactly as it was and I can delete any chat individually.
 
 export async function saveAiChat(title: string, messages: unknown) {
   await requireAuth()

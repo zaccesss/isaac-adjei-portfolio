@@ -6,7 +6,7 @@
 //
 // The bot must already be in the server with the Manage Channels and Manage Webhooks permissions. It prints
 // a webhook URL per channel at the end: paste the ops ones (uptime, errors) into Better Stack / Healthchecks
-// / Sentry, and keep the rest for the scheduled sends.
+// / Sentry and keep the rest for the scheduled sends.
 
 import { writeFileSync } from "node:fs"
 

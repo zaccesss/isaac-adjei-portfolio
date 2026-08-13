@@ -86,7 +86,7 @@ export default function AllPagesPage() {
         <p className="text-lg text-muted-foreground leading-relaxed">
           Every public page on this site. Use{" "}
           <CommandShortcut />{" "}
-          to search them instantly from anywhere, or type{" "}
+          to search them instantly from anywhere or type{" "}
           <Link href="/lab" className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-mono text-primary hover:bg-primary/20 transition-colors">pages</Link>{" "}
           in the lab terminal.
         </p>

@@ -10,12 +10,12 @@ const multiSportAiPredictor: NoteEntry = {
     "Generalising%20a%20World%20Cup%20predictor%20into%20an%20open-ended%20multi-sport%20platform.",
   tags: ["Python", "ML", "Sports Analytics", "Data Science", "Web App", "Football", "Basketball", "Tennis", "Cricket", "Motorsport", "Rugby", "Athletics", "Volleyball"],
   lead:
-    "What started as a single-tournament World Cup predictor never shipped in time for the 2026 tournament - Spain won it in the end, and I was still building the pipeline when the group stage kicked off on 11 June. Rather than treat one missed deadline as the end of the idea, I'm generalising it into an open-ended platform: football, basketball, tennis, cricket, motorsport, rugby, athletics and volleyball, with the list growing over time rather than fixed at launch.",
+    "What started as a single-tournament World Cup predictor never shipped in time for the 2026 tournament - Spain won it in the end and I was still building the pipeline when the group stage kicked off on 11 June. Rather than treat one missed deadline as the end of the idea, I'm generalising it into an open-ended platform: football, basketball, tennis, cricket, motorsport, rugby, athletics and volleyball, with the list growing over time rather than fixed at launch.",
   body: [
     { type: "h2", text: "What actually happened" },
     {
       type: "p",
-      text: "The original plan was a calibrated Poisson baseline followed by an XGBoost model on the full feature set, with Monte Carlo simulation running the full World Cup bracket 100,000 times to produce proper win probabilities rather than a single predicted winner. I got as far as the data collection and baseline model work, but the web app and the live-updating prediction layer weren't ready by 11 June 2026, so the project quietly missed its own deadline. The tournament played out without it, and Spain lifted the trophy.",
+      text: "The original plan was a calibrated Poisson baseline followed by an XGBoost model on the full feature set, with Monte Carlo simulation running the full World Cup bracket 100,000 times to produce proper win probabilities rather than a single predicted winner. I got as far as the data collection and baseline model work, but the web app and the live-updating prediction layer weren't ready by 11 June 2026, so the project quietly missed its own deadline. The tournament played out without it and Spain lifted the trophy.",
     },
     {
       type: "p",
@@ -24,13 +24,13 @@ const multiSportAiPredictor: NoteEntry = {
     { type: "h2", text: "The sports" },
     {
       type: "p",
-      text: "The plan covers eight sports at launch, each added incrementally rather than all at once, and the list is deliberately open-ended: any sport with a large enough public results dataset is a candidate for a future addition, not a fixed roster decided up front.",
+      text: "The plan covers eight sports at launch, each added incrementally rather than all at once and the list is deliberately open-ended: any sport with a large enough public results dataset is a candidate for a future addition, not a fixed roster decided up front.",
     },
     {
       type: "list",
       items: [
         "Football: the top European leagues (Premier League, La Liga, Serie A, Bundesliga), the Champions League, the Euros, Copa America and the World Cup itself for the next cycle. This is where the original model work already exists, so it's the starting point.",
-        "Basketball: the NBA to start with, since box-score data is the most complete and standardised of any sport here. High-scoring, frequent fixtures (82 games a season plus playoffs) means far more training data per team per season than football, and back-to-back game fatigue is a real, modellable feature that football doesn't have an equivalent of.",
+        "Basketball: the NBA to start with, since box-score data is the most complete and standardised of any sport here. High-scoring, frequent fixtures (82 games a season plus playoffs) means far more training data per team per season than football and back-to-back game fatigue is a real, modellable feature that football doesn't have an equivalent of.",
         "Tennis: individual rather than team matchups across the ATP and WTA tours, so the model is closer to a head-to-head Elo system than a team-strength regression. Surface matters enormously (clay, grass, hard court), so ratings need to be surface-specific rather than one global number per player.",
         "Cricket: format-dependent in a way none of the other sports are - T20, ODI and Test are close to different sports statistically (run rate dynamics, match length, the toss, follow-on rules), so each format likely needs its own model rather than one shared cricket model. Covers both international cricket and the major domestic T20 leagues.",
         "Motorsport (Formula 1): split into a qualifying model and a race model, with separate constructor and driver components, plus weather and tyre-strategy features that don't map onto anything in the other sports here.",
@@ -42,7 +42,7 @@ const multiSportAiPredictor: NoteEntry = {
     { type: "h2", text: "Shared architecture, sport-specific adapters" },
     {
       type: "p",
-      text: "The core stays the same across every sport: a data ingestion layer, a ratings/Elo engine, a gradient-boosting layer (XGBoost/LightGBM) trained on sport-specific features, Monte Carlo simulation for the uncertainty layer, and one web app that lets you pick a sport and competition and see live probabilities rather than a single predicted outcome. What changes per sport is the feature engineering and the specific rules layered on top: football's Poisson goal model, basketball's pace-adjusted scoring model, tennis and volleyball's surface- or format-adjusted Elo, cricket's per-format split, motorsport's qualifying-plus-race two-stage model, rugby's points-type breakdown, and athletics' switch from a win-probability model to a time/placement regression. Adding a new sport to the platform later should mean writing one new adapter against the shared core, not rebuilding the whole pipeline again.",
+      text: "The core stays the same across every sport: a data ingestion layer, a ratings/Elo engine, a gradient-boosting layer (XGBoost/LightGBM) trained on sport-specific features, Monte Carlo simulation for the uncertainty layer and one web app that lets you pick a sport and competition and see live probabilities rather than a single predicted outcome. What changes per sport is the feature engineering and the specific rules layered on top: football's Poisson goal model, basketball's pace-adjusted scoring model, tennis and volleyball's surface- or format-adjusted Elo, cricket's per-format split, motorsport's qualifying-plus-race two-stage model, rugby's points-type breakdown and athletics' switch from a win-probability model to a time/placement regression. Adding a new sport to the platform later should mean writing one new adapter against the shared core, not rebuilding the whole pipeline again.",
     },
     { type: "h2", text: "Data sources" },
     {
@@ -61,13 +61,13 @@ const multiSportAiPredictor: NoteEntry = {
     { type: "h2", text: "Why generalise rather than start a new single-sport project" },
     {
       type: "p",
-      text: "It would have been easy to just pick a different single tournament and repeat the exact same mistake with a new deadline. The actual lesson from missing the World Cup deadline wasn't 'football is too hard to predict in time', it was 'a one-shot project tied to a single tournament date has no room for slippage, and slippage is normal in any real project'. An ongoing, open-ended multi-sport platform doesn't have that failure mode: each sport ships when it's ready, there's always another season, meet or tournament for it to be useful for, and treating the sport list as something that keeps growing rather than fixed at eight is a much better return on the modelling work already done than a single rebuilt World Cup predictor would have been.",
+      text: "It would have been easy to just pick a different single tournament and repeat the exact same mistake with a new deadline. The actual lesson from missing the World Cup deadline wasn't 'football is too hard to predict in time', it was 'a one-shot project tied to a single tournament date has no room for slippage and slippage is normal in any real project'. An ongoing, open-ended multi-sport platform doesn't have that failure mode: each sport ships when it's ready, there's always another season, meet or tournament for it to be useful for and treating the sport list as something that keeps growing rather than fixed at eight is a much better return on the modelling work already done than a single rebuilt World Cup predictor would have been.",
     },
     { type: "h2", text: "Order of work" },
     {
       type: "list",
       items: [
-        "Finish football properly first, since the model groundwork already exists: extend the existing Poisson/XGBoost pipeline to the four league competitions plus the Champions League, Euros and Copa America, and actually ship the web app this time rather than leaving it as the unfinished piece again",
+        "Finish football properly first, since the model groundwork already exists: extend the existing Poisson/XGBoost pipeline to the four league competitions plus the Champions League, Euros and Copa America and actually ship the web app this time rather than leaving it as the unfinished piece again",
         "Basketball next, since box-score data is the most complete and standardised of the remaining sports",
         "Tennis, volleyball and cricket after that - tennis and volleyball share enough structure (individual or team matchups within a set-based format) to build close together, cricket likely in parallel since its modelling logic doesn't overlap much with either",
         "Rugby and athletics after the data-richer sports are proven out, since both have less standardised public data to build against and will need more groundwork on the ingestion side before the shared architecture can be reused",

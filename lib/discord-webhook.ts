@@ -1,7 +1,7 @@
 // One place every scheduled Discord webhook send goes through, so a dead or rotated webhook fails LOUDLY
 // instead of silently. When a POST does not succeed I capture the FULL failure - HTTP status + statusText,
-// Discord's own error code + message from the body, and the raw body - then log it AND open a Linear
-// incident, so I find out even if the Healthchecks key is not set, and can tell a deleted webhook from a
+// Discord's own error code + message from the body and the raw body - then log it AND open a Linear
+// incident, so I find out even if the Healthchecks key is not set and can tell a deleted webhook from a
 // rate limit or a bad payload at a glance. A bare "403" is useless; the body (e.g. code 10015 "Unknown
 // Webhook") is what actually tells me what broke. The caller still owns the Healthchecks ping.
 import { createIncidentIssue, findOpenIncidentId, addIncidentComment } from "@/lib/incident"

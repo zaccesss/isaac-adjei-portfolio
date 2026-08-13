@@ -66,7 +66,7 @@ export async function syncApplicationToLinear(app: {
   const description = app.url ? `[View posting](${app.url})\n\nType: ${app.type}` : `Type: ${app.type}`
 
   // Existing issue: move it to the mapped state and refresh the title and description too, so a renamed
-  // company or role, or a posting URL added later, propagates to Linear instead of going stale.
+  // company or role or a posting URL added later, propagates to Linear instead of going stale.
   if (app.linear_issue_id) {
     await gql(apiKey, `
       mutation UpdateIssue($id: String!, $stateId: String!, $title: String!, $description: String!) {

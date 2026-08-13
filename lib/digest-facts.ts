@@ -1,7 +1,7 @@
 // I gather every tracked area for a window of COMPLETED London days and reduce it to the figures the
 // digest summary and templates need. One shared gatherer so the weekly email and the daily Discord digest
 // stay consistent and comprehensive. Both senders label the digest with the period that just ended (the
-// day, or the Mon-Sun week), so the window covers exactly those calendar days in Europe/London - never
+// day or the Mon-Sun week), so the window covers exactly those calendar days in Europe/London - never
 // today's partial rows, which used to nearly double the coding hours when the digest was triggered
 // manually in the afternoon. The bot's /today and /week are the exception: they pass includeToday and
 // get a window ending on the current day. The deadlines, calendar events and expiring items still look
@@ -58,7 +58,7 @@ const INTERVIEW_STATUSES = new Set([
 
 const round1 = (n: number): number => Math.round(n * 10) / 10
 
-// PRIVACY: I only ever describe an expiring vault item to the AI by its TYPE, never its name, and never
+// PRIVACY: I only ever describe an expiring vault item to the AI by its TYPE, never its name and never
 // its secret value (the value column is not read anywhere in this flow). So the summary can nudge "an API
 // key expires soon" without any of my vault contents leaving the database for an external model. The full
 // item names stay in the email and Discord below, which only I see.
@@ -274,14 +274,14 @@ export async function gatherDigestData(hoursBack: number, period: string, opts?:
     ? `${nextEv.title} (${Math.max(0, Math.ceil((new Date(nextEv.start_at).getTime() - now.getTime()) / 86_400_000))}d)`
     : null
 
-  // Weight: latest logged value, and the change across the window (current minus the oldest log in it).
+  // Weight: latest logged value and the change across the window (current minus the oldest log in it).
   const weightLogs = (weightR.data ?? []) as { value: number; date: string }[]
   const currentWeight = weightLogs[0]?.value ?? null
   const windowWeights = weightLogs.filter((w) => w.date >= dateStart)
   const weightChange =
     currentWeight != null && windowWeights.length >= 2 ? round1(currentWeight - windowWeights[windowWeights.length - 1].value) : null
 
-  // Weight-loss goal projection: how far to target, and a date estimated from the last 28 days' rate.
+  // Weight-loss goal projection: how far to target and a date estimated from the last 28 days' rate.
   const goal = (weightGoalR.data?.value as { startWeight: number; targetWeight: number; targetDate: string } | undefined) ?? null
   let weightGoal: string | null = null
   if (goal && currentWeight != null) {

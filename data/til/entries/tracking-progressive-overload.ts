@@ -10,7 +10,7 @@ const _tracking_progressive_overload: TILEntry = {
     detail: [
       {
         type: "p",
-        text: "The simplest tracking system: a notes app entry per session with the format 'exercise: sets x reps x weight'. After a month you have a table of data. The goal is to see at least one number increase per session per exercise: more reps at the same weight, the same reps at more weight, or an extra set. Any of those counts as overload.",
+        text: "The simplest tracking system: a notes app entry per session with the format 'exercise: sets x reps x weight'. After a month you have a table of data. The goal is to see at least one number increase per session per exercise: more reps at the same weight, the same reps at more weight or an extra set. Any of those counts as overload.",
       },
       {
         type: "note",

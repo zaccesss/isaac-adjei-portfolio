@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   }
 
   // Expired entries are processed like permanentlyDelete, not just dropped: a soft-deleted row
-  // (calendar events, files) must be hard-deleted with its Storage blob, or it lingers hidden
+  // (calendar events, files) must be hard-deleted with its Storage blob or it lingers hidden
   // forever once its trash handle is gone. Batched reads because PostgREST caps at 1000 rows;
   // an entry whose purge fails is kept (its trash row is the only handle) and retried tomorrow.
   let deleted = 0

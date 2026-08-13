@@ -85,7 +85,7 @@ const _iot_security_gaps: BlogPost = {
       },
       {
         type: "p",
-        text: "The teardown community has documented this extensively. Cheap IP cameras from Aliexpress commonly expose a UART console on unpopulated pads that gives immediate root access. The Ubiquiti EdgeRouter in 2019 was found to have an accessible UART shell that required no authentication. Physical access attacks are not theoretical: they are how most IoT firmware gets dumped for vulnerability research, and they are how attackers gain a persistent foothold on devices they can physically reach.",
+        text: "The teardown community has documented this extensively. Cheap IP cameras from Aliexpress commonly expose a UART console on unpopulated pads that gives immediate root access. The Ubiquiti EdgeRouter in 2019 was found to have an accessible UART shell that required no authentication. Physical access attacks are not theoretical: they are how most IoT firmware gets dumped for vulnerability research and they are how attackers gain a persistent foothold on devices they can physically reach.",
       },
       {
         type: "h2",

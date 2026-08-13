@@ -6,7 +6,7 @@ const _cooking_ghanaian_spice_depth: TILEntry = {
     date: "2026-09-10",
     category: "Cooking",
     published: true,
-    body: "Ghanaian cooking typically starts with onion and tomato base cooked down in oil, and spices (anise, cloves, coriander) go in during that frying stage. The oil carries fat-soluble aroma compounds that water cannot dissolve, so frying spices rather than adding them to water releases a different, deeper range of flavour. The same principle underlies the Ghanaian technique of cooking the tomato base long enough to drive off the raw tomato acidity before adding anything else.",
+    body: "Ghanaian cooking typically starts with onion and tomato base cooked down in oil and spices (anise, cloves, coriander) go in during that frying stage. The oil carries fat-soluble aroma compounds that water cannot dissolve, so frying spices rather than adding them to water releases a different, deeper range of flavour. The same principle underlies the Ghanaian technique of cooking the tomato base long enough to drive off the raw tomato acidity before adding anything else.",
     detail: [
       {
         type: "p",

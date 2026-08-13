@@ -79,7 +79,7 @@ const _writing_for_engineers: BlogPost = {
       },
       {
         type: "p",
-        text: "Technical documentation often has two readers: the expert who knows the domain but not your specific system, and the newcomer who knows neither. Write for both by defining terms on first use and providing references for background knowledge rather than explaining it inline. 'The system uses I2C (a two-wire serial protocol; see the NXP UM10204 specification for protocol details)' gives the newcomer a path and does not waste the expert's time.",
+        text: "Technical documentation often has two readers: the expert who knows the domain but not your specific system and the newcomer who knows neither. Write for both by defining terms on first use and providing references for background knowledge rather than explaining it inline. 'The system uses I2C (a two-wire serial protocol; see the NXP UM10204 specification for protocol details)' gives the newcomer a path and does not waste the expert's time.",
       },
       {
         type: "h2",

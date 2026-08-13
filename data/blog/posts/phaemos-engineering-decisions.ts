@@ -33,7 +33,7 @@ const _phaemos_engineering_decisions: BlogPost = {
       },
       {
         type: "p",
-        text: "The Raspberry Pi Pico 2W is the newest addition. The RP2350's dual-core architecture with one ARM Cortex-M33 core and one RISC-V Hazard3 core is interesting for workloads that benefit from parallelism: one core handles sensor sampling, the other handles WiFi communication, and because they are on separate cores (not using a scheduler), there is no preemption latency between them. MicroPython makes it fast to iterate.",
+        text: "The Raspberry Pi Pico 2W is the newest addition. The RP2350's dual-core architecture with one ARM Cortex-M33 core and one RISC-V Hazard3 core is interesting for workloads that benefit from parallelism: one core handles sensor sampling, the other handles WiFi communication and because they are on separate cores (not using a scheduler), there is no preemption latency between them. MicroPython makes it fast to iterate.",
       },
       {
         type: "h2",
@@ -41,7 +41,7 @@ const _phaemos_engineering_decisions: BlogPost = {
       },
       {
         type: "p",
-        text: "The backend is [FastAPI](https://fastapi.tiangolo.com) with PostgreSQL (via [Supabase](https://supabase.com)) and Redis for caching. I chose FastAPI over Express or a Go HTTP server because the team (at the time, me and one other person) was more productive in Python, and FastAPI's automatic OpenAPI documentation meant the API spec was always up to date. The async nature of FastAPI means sensor data ingestion endpoints can handle concurrent posts from multiple nodes without thread-blocking.",
+        text: "The backend is [FastAPI](https://fastapi.tiangolo.com) with PostgreSQL (via [Supabase](https://supabase.com)) and Redis for caching. I chose FastAPI over Express or a Go HTTP server because the team (at the time, me and one other person) was more productive in Python and FastAPI's automatic OpenAPI documentation meant the API spec was always up to date. The async nature of FastAPI means sensor data ingestion endpoints can handle concurrent posts from multiple nodes without thread-blocking.",
       },
       {
         type: "p",

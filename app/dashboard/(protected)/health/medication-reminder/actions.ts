@@ -35,7 +35,7 @@ function clean(input: MedicationReminderInput) {
     name: input.name.trim(),
     dose: input.dose?.trim() || null,
     notes: input.notes?.trim() || null,
-    // De-duplicate, keep only valid HH:MM, and sort so the day reads in order.
+    // De-duplicate, keep only valid HH:MM and sort so the day reads in order.
     times: [...new Set((input.times ?? []).map((t) => t.trim()).filter((t) => TIME_RE.test(t)))].sort(),
     start_date: input.start_date || null,
     end_date: input.end_date || null,

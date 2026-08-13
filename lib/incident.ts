@@ -1,10 +1,10 @@
 // I open (and resolve) a Linear issue when an external monitor reports an incident - a dead cron from
-// Healthchecks, or the site down from Better Stack. It reuses LINEAR_API_KEY and files into my existing
+// Healthchecks or the site down from Better Stack. It reuses LINEAR_API_KEY and files into my existing
 // Linear team (LINEAR_UNI_TEAM_ID, falling back to LINEAR_TEAM_ID, then the first team). Guarded: with
 // no API key every function is a no-op so /api/incident degrades cleanly instead of throwing.
 //
 // A monitor that flaps must not file a new issue on each dip, so I dedupe: while an incident for a
-// check is open I update that one issue, and when the check recovers I move the same issue to Done.
+// check is open I update that one issue and when the check recovers I move the same issue to Done.
 // The check name in the title is the key that ties a down and its later up together.
 import { getLinearTeams } from "@/lib/linear-sync"
 import { resolveMyLinearId, resolveLabelIds, labelsForCheckName, gql } from "@/lib/linear-common"
@@ -23,9 +23,9 @@ async function resolveOpsTeamId(): Promise<string | null> {
   return teams[0]?.id ?? null
 }
 
-// Creates an urgent (priority 1) Linear issue and returns its id, or null if it could not. Always
+// Creates an urgent (priority 1) Linear issue and returns its id or null if it could not. Always
 // assigns to me and tags "health" plus the repo and the specific job the failing check belongs to
-// (resolved from its name across all six repos, or just "portfolio" for a Better Stack site-down
+// (resolved from its name across all six repos or just "portfolio" for a Better Stack site-down
 // alert with no job of its own), so every incident lands where I will actually see it instead of
 // sitting unassigned and unlabelled in the team backlog.
 export async function createIncidentIssue(
@@ -81,7 +81,7 @@ export async function findOpenIncidentId(title: string, match: "exact" | "prefix
   return data?.issues?.nodes[0]?.id ?? null
 }
 
-// Adds a comment to an incident (for example "still down" on a repeat, or "recovered" on an up).
+// Adds a comment to an incident (for example "still down" on a repeat or "recovered" on an up).
 export async function addIncidentComment(issueId: string, body: string): Promise<boolean> {
   const apiKey = requireApiKey()
   if (!apiKey) return false

@@ -1,7 +1,7 @@
 // I build and post a Discord embed digest covering the last 24 hours across everything I track:
 // applications, coding, study, fitness, goals, streaks, habits, faith, diary, plus what is coming up
 // (deadlines, contacts to follow up, expiring items). Figures come from the shared gatherer so this and
-// the weekly email stay consistent, and an AI-written line (best free model with fallbacks) leads it when
+// the weekly email stay consistent and an AI-written line (best free model with fallbacks) leads it when
 // a key is set. The same function is called by both the daily cron and the manual dashboard trigger.
 import { gatherDigestData, type DigestData } from "@/lib/digest-facts"
 import { digestAiSummary } from "@/lib/digest-ai-summary"

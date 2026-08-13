@@ -591,7 +591,7 @@ def _detect_fuzzy(running: set[str]) -> str | None:
             ratings = results[0].get("total_rating_count") or 0
             sim = difflib.SequenceMatcher(None, cleaned.lower(), igdb_name.lower()).ratio()
             # I require BOTH a close name and an established game: the name match alone let
-            # exact collisions like "Codex" through, and the rating gate catches those.
+            # exact collisions like "Codex" through and the rating gate catches those.
             if sim >= _FUZZY_THRESHOLD and ratings >= _FUZZY_MIN_RATINGS:
                 print(f"[fuzzy] '{exe}' -> '{igdb_name}' (sim={sim:.2f}, ratings={ratings})", flush=True)
                 _fuzzy_hits[cleaned] = igdb_name

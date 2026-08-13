@@ -172,7 +172,7 @@ Isaac Adjei (Zac) - Electronic Engineering and Computer Science student at Aston
 - **WakaTime coding heatmap** (`scripts/wakatime-sync.py`, `.github/workflows/wakatime-sync.yml`, `app/dashboard/(protected)/coding/`): daily sync of WakaTime API to `wakatime_daily` table; GitHub heatmap-style chart in dashboard
 - **CV pdf.yml fixes**: added `npm install --no-save html-to-docx`; replaced broken automerge label step with `gh pr merge --squash --auto --delete-branch`
 
-### New Supabase tables (run migrations 004-007 on existing DB, or schema.sql on fresh install)
+### New Supabase tables (run migrations 004-007 on existing DB or schema.sql on fresh install)
 
 - `opensource_contributions` - open source PR tracking
 - `blog_read_events` - scroll depth events with unique index on (slug, depth, ip_hash)

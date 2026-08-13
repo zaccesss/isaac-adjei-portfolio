@@ -1,7 +1,7 @@
 // My complete Last.fm listening record. Because I scrobble from everywhere (Spotify, my phone,
 // sometimes Apple Music), Last.fm is a fuller picture than Spotify alone. Returns period-aware top
 // artists, tracks and albums, plus a real listening clock and weekday pattern computed from up to
-// 1000 recent scrobbles in the window, and my all-time total. Reads LASTFM_USER + LASTFM_API_KEY.
+// 1000 recent scrobbles in the window and my all-time total. Reads LASTFM_USER + LASTFM_API_KEY.
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 

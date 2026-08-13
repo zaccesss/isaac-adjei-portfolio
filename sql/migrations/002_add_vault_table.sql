@@ -40,7 +40,7 @@ alter table vault add column if not exists locked boolean default false;
 -- re-running this migration can NEVER wipe data again: the original `delete from applications where
 -- status = 'scraped'` here deleted every scraped row on replay - that was the "disappearing rows".
 -- The blanket scraped-delete is removed entirely (scraped rows with a null url do not block a unique
--- index, and real url duplicates are handled below), and the duplicate cleanup only runs on a genuine
+-- index and real url duplicates are handled below) and the duplicate cleanup only runs on a genuine
 -- first run (when the index does not yet exist).
 do $$
 begin

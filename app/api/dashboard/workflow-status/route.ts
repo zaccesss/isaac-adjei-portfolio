@@ -35,7 +35,7 @@ export async function GET(request: Request) {
   const requested = searchParams.get("workflow")
 
   // Resolving through a switch that returns a fresh literal per case (rather than assigning the
-  // matched `requested` value back, or indexing WORKFLOW_REPOS with the raw param) means the file
+  // matched `requested` value back or indexing WORKFLOW_REPOS with the raw param) means the file
   // name reaching the GitHub API URL below is always one of these literals, never the request's
   // own input, so the URL cannot be steered anywhere off the allowlist.
   const workflow: string | null = (() => {

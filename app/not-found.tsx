@@ -122,7 +122,7 @@ export default function NotFound() {
       ...h,
       echo,
       { text: `command not found: ${cmd}`, error: true },
-      { text: "try 'help' to see available commands, or click one of the shortcuts above", tip: true },
+      { text: "try 'help' to see available commands or click one of the shortcuts above", tip: true },
     ])
   }
 

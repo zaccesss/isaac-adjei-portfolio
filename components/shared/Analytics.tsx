@@ -1,6 +1,6 @@
 "use client"
 // Google Analytics + the Cloudflare beacon load on the public site only. The dashboard is my
-// own traffic, so counting it skews the visitor stats, and the beacons were the source of the
+// own traffic, so counting it skews the visitor stats and the beacons were the source of the
 // CSP violations in the dashboard console.
 import Script from "next/script"
 import { usePathname } from "next/navigation"

@@ -92,7 +92,7 @@ const _international_student_engineering_uk: BlogPost = {
       },
       {
         type: "p",
-        text: "If you are an international student studying engineering in the UK right now, I want to say this directly: the difficulty is real and it is not a sign that you do not belong here. The system was not designed with you in mind. That creates real friction that your domestic classmates do not face. It is also survivable, and the combination of skills you build navigating it - adaptability, self-direction, cultural translation - is genuinely valuable in engineering careers.",
+        text: "If you are an international student studying engineering in the UK right now, I want to say this directly: the difficulty is real and it is not a sign that you do not belong here. The system was not designed with you in mind. That creates real friction that your domestic classmates do not face. It is also survivable and the combination of skills you build navigating it - adaptability, self-direction, cultural translation - is genuinely valuable in engineering careers.",
       },
       {
         type: "p",

@@ -215,7 +215,7 @@ export default function NowPage() {
           </p>
           <p>
             Visited Sky&apos;s campus recently for being shortlisted for the Black Heritage
-            Undergraduate of the Year award, the day before my birthday. It meant a lot, and it was a
+            Undergraduate of the Year award, the day before my birthday. It meant a lot and it was a
             good reminder that the work is being noticed outside of just shipping code.
           </p>
         </div>

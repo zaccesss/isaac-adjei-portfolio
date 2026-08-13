@@ -13,8 +13,8 @@ Spans the portfolio repo (Vercel Cron) and the automations repo (GitHub Actions)
 ### The core problem
 
 - Neither Vercel Cron nor GitHub Actions observes British Summer Time (both are UTC only), so a job on a fixed UTC cron drifts an hour in local terms between GMT and BST
-- Fix pattern (already used by `scripts/routine.mjs`): fire from two crons, a GMT branch and a BST branch one hour apart, and act only when it is genuinely the target hour in `Europe/London`, exiting quietly otherwise
-- User's decision: pin every time-of-day job (including drift-tolerant background syncs) for consistency, leave the every-30-min and 2-hourly interval jobs alone, and leave the job scraper on its single UTC midnight cron (its every-2-days parity cannot be cleanly bracketed and a scraper's start hour is immaterial)
+- Fix pattern (already used by `scripts/routine.mjs`): fire from two crons, a GMT branch and a BST branch one hour apart and act only when it is genuinely the target hour in `Europe/London`, exiting quietly otherwise
+- User's decision: pin every time-of-day job (including drift-tolerant background syncs) for consistency, leave the every-30-min and 2-hourly interval jobs alone and leave the job scraper on its single UTC midnight cron (its every-2-days parity cannot be cleanly bracketed and a scraper's start hour is immaterial)
 
 ### Two reusable mechanisms
 
@@ -40,8 +40,8 @@ Spans the portfolio repo (Vercel Cron) and the automations repo (GitHub Actions)
 
 ### Two correctness fixes the audit found
 
-- Strava Fitness-habit day (`lib/strava.ts`): the tick used the activity's UTC `start_date`, so a late-BST-evening workout ticked the next day. Now uses `start_date_local ?? start_date` (added to the `StravaApiActivity` type, read from the API only, no stored column, no schema change). Stored rows and the analytics charts still read UTC `start_date`, so nothing visual moved; only the `habit_logs` day changed, and the never-overwrite safety is intact
-- Digest labels (`lib/send-discord-digest.ts`, `lib/send-weekly-digest.ts`): moved to just after midnight, the digests were headed with the new day's date. The daily digest now labels the day that just ended (period string "the past day"), and the weekly's `endDate` is the day that just ended so the range reads Monday to Sunday. Guard logic is in the cron routes, so the manual "Trigger now" buttons (which call the libs directly) are unaffected
+- Strava Fitness-habit day (`lib/strava.ts`): the tick used the activity's UTC `start_date`, so a late-BST-evening workout ticked the next day. Now uses `start_date_local ?? start_date` (added to the `StravaApiActivity` type, read from the API only, no stored column, no schema change). Stored rows and the analytics charts still read UTC `start_date`, so nothing visual moved; only the `habit_logs` day changed and the never-overwrite safety is intact
+- Digest labels (`lib/send-discord-digest.ts`, `lib/send-weekly-digest.ts`): moved to just after midnight, the digests were headed with the new day's date. The daily digest now labels the day that just ended (period string "the past day") and the weekly's `endDate` is the day that just ended so the range reads Monday to Sunday. Guard logic is in the cron routes, so the manual "Trigger now" buttons (which call the libs directly) are unaffected
 
 ### Verification (all green)
 
@@ -65,7 +65,7 @@ Spans the portfolio repo (Vercel Cron) and the automations repo (GitHub Actions)
 - Multiple lead times per event via checkboxes (1h, 2h, 3h, 1 day, 2 days, 1 week before), each firing its own reminder; per-reminder channel choice (Discord, email, SMS) with a per-reminder email address and phone number; datetime-local input converts local to UTC, list and delivery both display Europe/London
 - Full edit and delete; editing (including moving the date) resets `sent_leads` and `reminded_at` so the reminders re-arm cleanly for the new schedule; pausing keeps its state (updateReminder never writes `active`)
 - Sidebar: Reminders added to the Daily group (CalendarClock icon)
-- Delivery lives in the automations repo: `scripts/reminders.mjs` + `.github/workflows/reminders.yml`, every 30 minutes like medication reminders; for each reminder it fires the most imminent due-and-unfired lead to the chosen channels, adds it to `sent_leads`, and stamps `reminded_at` once all leads have fired or the event has passed; larger leads that come due at the same time (late add or downtime) are marked without sending to avoid a burst; the message says the real time until the event (`humanUntil`), not the configured lead; `workflow_dispatch` with `test_email` or `test_to` sends one test message
+- Delivery lives in the automations repo: `scripts/reminders.mjs` + `.github/workflows/reminders.yml`, every 30 minutes like medication reminders; for each reminder it fires the most imminent due-and-unfired lead to the chosen channels, adds it to `sent_leads` and stamps `reminded_at` once all leads have fired or the event has passed; larger leads that come due at the same time (late add or downtime) are marked without sending to avoid a burst; the message says the real time until the event (`humanUntil`), not the configured lead; `workflow_dispatch` with `test_email` or `test_to` sends one test message
 - SMS reuses the medication feature's Twilio path; needs TWILIO_ACCOUNT_SID/AUTH_TOKEN/FROM_NUMBER in the automations repo; Discord/email reuse the existing DISCORD_WEBHOOK_REMINDERS, RESEND_API_KEY, REMINDER_FROM_EMAIL, SUPABASE_URL/SERVICE_ROLE_KEY (no new secrets for those)
 
 ### Digest summary improvements
@@ -73,7 +73,7 @@ Spans the portfolio repo (Vercel Cron) and the automations repo (GitHub Actions)
 - `blog_read_events` counts visitors reading my published posts, but the digest labelled it "Post reads" and the AI narrated it as posts I had read; the figure line now reads "Blog audience: visitors read Isaac's published posts N times" and the system prompt pins the meaning so it is always phrased as readership
 - Weekly email template label: "Post reads" -> "Visitor reads (public site)"; Discord embed: "Reads" -> "Visitor reads"
 - `gatherDigestData` now also gathers the previous window's headline figures (applications, coding hours, study hours, workouts and km, visitor reads, habit and streak check-ins) as `facts.prev` - seven cheap count/sum queries over the window before this one
-- `digestAiSummary` passes the previous period as comparison-only context and instructs the model to open with the most notable change (not a stock greeting), say what is up or down and by roughly how much, and vary structure between digests; temperature 0.5 -> 0.85
+- `digestAiSummary` passes the previous period as comparison-only context and instructs the model to open with the most notable change (not a stock greeting), say what is up or down and by roughly how much and vary structure between digests; temperature 0.5 -> 0.85
 
 ### Small fixes
 
@@ -479,7 +479,7 @@ Fix: added `"Content-Type": "text/plain"` header to the IGDB `/v4/games` request
 
 **Problem 5: Discord activity icons wrong**
 
-`mp:external/` prefix maps to Discord's media CDN, `spotify:` to Spotify's CDN, and `application_id` + asset key to Discord's app-assets CDN. Fixed icon URL construction in `LiveStatusCards.tsx`.
+`mp:external/` prefix maps to Discord's media CDN, `spotify:` to Spotify's CDN and `application_id` + asset key to Discord's app-assets CDN. Fixed icon URL construction in `LiveStatusCards.tsx`.
 
 **Problem 6: Discord timestamps showing hours without seconds**
 

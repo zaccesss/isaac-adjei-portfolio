@@ -6,7 +6,7 @@ const _ghanaian_naming_conventions: TILEntry = {
     date: "2026-09-18",
     category: "Culture",
     published: true,
-    body: "In Ghanaian tradition, a child receives a soul name based on the day of the week they were born: different for boys and girls. In Ga: a boy born on Monday is Adwo, a girl is Adwoa. In Twi/Akan: a Friday-born boy is Kofi, a girl is Afia. These names carry meaning beyond identity: they are a record of your arrival and are used by family even when the given name changes. I am Ga, and in Ga the naming system runs parallel to but distinct from the Twi one most people in Ghana recognise.",
+    body: "In Ghanaian tradition, a child receives a soul name based on the day of the week they were born: different for boys and girls. In Ga: a boy born on Monday is Adwo, a girl is Adwoa. In Twi/Akan: a Friday-born boy is Kofi, a girl is Afia. These names carry meaning beyond identity: they are a record of your arrival and are used by family even when the given name changes. I am Ga and in Ga the naming system runs parallel to but distinct from the Twi one most people in Ghana recognise.",
     detail: [
       {
         type: "p",
