@@ -108,6 +108,7 @@ export function BarChart({
   interval = "preserveStartEnd",
   legend = false,
   name,
+  hideXAxisTicks = false,
 }: {
   data: ChartDatum[]
   dataKey: string
@@ -125,13 +126,16 @@ export function BarChart({
   legend?: boolean
   // Series label shown in the tooltip (falls back to the data key).
   name?: string
+  // Hides the permanent X-axis category labels entirely, for charts with too many bars for any
+  // label strategy to fit legibly. The tooltip still names each bar on hover, so nothing is lost.
+  hideXAxisTicks?: boolean
 }) {
   return (
     <>
       <ResponsiveContainer width="100%" height={height}>
         <RBarChart data={data} barSize={legend ? undefined : 6} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-          <XAxis dataKey={xKey} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} interval={interval} />
+          <XAxis dataKey={xKey} tick={hideXAxisTicks ? false : { fontSize: 10 }} tickLine={false} axisLine={false} interval={interval} />
           <YAxis hide />
           <Tooltip
             content={({ active, payload, label }) => (

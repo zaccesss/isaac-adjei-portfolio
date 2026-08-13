@@ -147,12 +147,13 @@ jobs:
 
         branch="automation/regenerate-cvs-${GITHUB_RUN_ID}"
         git switch -c "$branch"
-        git commit -m "Auto-regenerate CVs and cover letters"
+        git commit -m "chore: regenerate CVs and cover letters"
         git push -u origin "$branch"
         gh pr create \
           --base main \
           --head "$branch" \
           --title "chore: regenerate CVs and cover letters" \
+          --label automerge --label automated \
           --body "Weekly safety-net regeneration - catches drift between cv.yml and the committed artefacts, including any visibleFrom date that has now passed."
         gh pr merge "$branch" --squash --delete-branch --auto
 

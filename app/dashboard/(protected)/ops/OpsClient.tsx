@@ -139,7 +139,7 @@ function OverviewSection() {
           </div>
           <div className="flex flex-col gap-1">
             <p className="text-xs text-muted-foreground text-center">Success rate by job</p>
-            <BarChart data={jobBars} dataKey="rate" height={180} valueFormatter={(v) => `${v}%`} colour={STATUS_COLOURS.up} interval={0} />
+            <BarChart data={jobBars} dataKey="rate" height={180} valueFormatter={(v) => `${v}%`} colour={STATUS_COLOURS.up} hideXAxisTicks />
           </div>
         </div>
       )}
@@ -160,11 +160,11 @@ function JobRow({
   const lastRun = status?.runs[0]
   return (
     <div className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-4 hover:bg-muted/20 transition-colors">
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-[180px] sm:max-w-[420px]">
         <p className="text-sm font-medium leading-tight">{job.label}</p>
         <p className="text-xs text-muted-foreground">{job.description}</p>
       </div>
-      <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap">
+      <div className="flex items-center gap-4 flex-wrap">
         <HcPill check={check} />
         <span className="w-24 shrink-0"><RunDots runs={status?.runs ?? []} /></span>
         <span className="text-xs text-muted-foreground tabular-nums w-10 text-right shrink-0">

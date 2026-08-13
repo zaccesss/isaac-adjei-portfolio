@@ -77,11 +77,14 @@ for (const job of CONTROL_JOBS) {
   if (job.hcSlug) HC_NAME_TO_REPO_LABEL[job.hcSlug.toLowerCase()] = shortRepoName(job.repo)
 }
 // Checks that are not a dispatchable workflow at all, so they can never come from CONTROL_JOBS
-// above - added by hand instead. repo-ops-digests is repo-ops' own internal Cloudflare Worker
-// cron; the rest are this repo's own Vercel Cron API routes (see lib/healthcheck-ping.ts's
-// callers), which ping Healthchecks directly and were never going to be a dispatchable GitHub
-// Actions workflow in the first place.
+// above - added by hand instead. repo-ops-digests and mirror-ops-worker are each repo's own
+// internal Cloudflare Worker cron, distinct from the dispatchable jobs they sit alongside
+// (mirror-ops' sweep.yml already has its own hcSlug above). The rest are this repo's own Vercel
+// Cron API routes (see lib/healthcheck-ping.ts's callers), which ping Healthchecks directly and
+// were never going to be a dispatchable GitHub Actions workflow in the first place.
 HC_NAME_TO_REPO_LABEL["repo-ops-digests"] = shortRepoName("repo-ops")
+HC_NAME_TO_REPO_LABEL["mirror-ops-worker"] = shortRepoName("mirror-ops")
+HC_NAME_TO_REPO_LABEL["portfolio-site-up"] = shortRepoName(PORTFOLIO_REPO)
 for (const slug of ["vault-expiry", "github-contributions-daily-sync", "discord-digest", "trash-cleanup", "strava-sync", "weekly-digest"]) {
   HC_NAME_TO_REPO_LABEL[slug] = shortRepoName(PORTFOLIO_REPO)
 }
