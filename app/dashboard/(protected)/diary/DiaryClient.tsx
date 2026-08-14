@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, BarChart2, MoreVertical, EyeOff, Eye, Pin, PinOff, Lock, Unlock } from "lucide-react"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
+import { CalendarHeatmap } from "@/components/analytics"
 
 type Entry = {
   id: string
@@ -113,6 +114,38 @@ function MoodChart({ entries }: { entries: { mood: string | null; created_at: st
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EntryHeatmap({ entries }: { entries: { created_at: string }[] }) {
+  const [open, setOpen] = useState(false)
+  const byDay = new Map<string, number>()
+  for (const e of entries) {
+    const day = e.created_at.slice(0, 10)
+    byDay.set(day, (byDay.get(day) ?? 0) + 1)
+  }
+  const data = [...byDay.entries()].map(([date, value]) => ({ date, value }))
+  if (data.length === 0) return null
+
+  return (
+    <div className="border border-border rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors text-left"
+      >
+        <span className="flex items-center gap-2 text-sm font-medium">
+          <BarChart2 className="h-4 w-4 text-muted-foreground" />
+          Entries over the last year
+        </span>
+        {open ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+      </button>
+      {open && (
+        <div className="px-4 pb-4">
+          <CalendarHeatmap data={data} valueLabel="entries" />
         </div>
       )}
     </div>
@@ -322,7 +355,7 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
   const visibleEntries = showHidden ? entries : entries.filter((e) => !e.hidden)
 
   return (
-    <div className="flex flex-col gap-6 max-w-2xl">
+    <div className="flex flex-col gap-6 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">My diary</h1>
@@ -355,6 +388,7 @@ export default function DiaryClient({ entries: initial }: { entries: Entry[] }) 
       </div>
 
       <MoodChart entries={entries} />
+      <EntryHeatmap entries={entries} />
 
       {entries.length === 0 ? (
         <div className="border border-dashed border-border rounded-xl p-10 text-center">

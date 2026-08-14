@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Edit2, Trash2, Target, TrendingUp, BookOpen, Heart, DollarSign, Sparkles, BarChart3 } from "lucide-react"
 import MarkdownContent from "@/components/shared/MarkdownContent"
-import { StatCard, BarChart } from "@/components/analytics"
+import { StatCard, BarChart, Gauge } from "@/components/analytics"
 
 type Goal = {
   id: string
@@ -240,7 +240,7 @@ export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-3xl">
+    <div className="flex flex-col gap-6 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">My goals</h1>
@@ -273,12 +273,18 @@ export default function GoalsClient({ goals: initial }: { goals: Goal[] }) {
             <StatCard label="Average progress" value={`${stats.avgProgress}%`} />
           </div>
 
-          {stats.byCategory.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {stats.byCategory.length > 0 && (
+              <div className="border border-border rounded-xl p-4">
+                <p className="text-sm font-medium mb-3">Average progress by category</p>
+                <BarChart data={stats.byCategory} dataKey="progress" xKey="name" valueFormatter={(v) => `${v}%`} />
+              </div>
+            )}
             <div className="border border-border rounded-xl p-4">
-              <p className="text-sm font-medium mb-3">Average progress by category</p>
-              <BarChart data={stats.byCategory} dataKey="progress" xKey="name" valueFormatter={(v) => `${v}%`} />
+              <p className="text-sm font-medium mb-1 text-center">Overall completion</p>
+              <Gauge value={stats.avgProgress} height={160} />
             </div>
-          )}
+          </div>
         </div>
       )}
 

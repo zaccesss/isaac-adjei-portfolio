@@ -11,6 +11,7 @@ import {
   Treemap,
   Sankey,
   RadialClock,
+  WordCloud,
   DEFAULT_CHART_COLOURS,
   type SankeyChartData,
 } from "@/components/analytics"
@@ -343,6 +344,12 @@ function MusicInner() {
           {genres.length > 0 && (
             <Section title="my genres, by size" note="same data as the pie above, read as area instead">
               <Treemap data={genres.slice(0, 12).map((g) => ({ name: g.genre, value: g.value }))} height={220} colours={C} valueFormatter={(v) => v.toFixed(1)} />
+            </Section>
+          )}
+
+          {(hist?.topArtists?.length ?? 0) > 0 && (
+            <Section title="my top artists" note="sized by plays this period, Spotify listening history">
+              <WordCloud words={(hist?.topArtists ?? []).slice(0, 40).map((a) => ({ text: a.artist, value: a.count }))} height={220} />
             </Section>
           )}
 

@@ -15,6 +15,7 @@ import {
   filterByPeriod,
   periodStartDate,
   GridHeatmap,
+  Funnel,
 } from "@/components/analytics"
 import { Pagination } from "@/components/shared/Pagination"
 
@@ -298,12 +299,8 @@ function BlogAnalyticsClientInner({ events }: { events: BlogReadEvent[] }) {
         <div className="border border-border rounded-lg p-4 bg-card col-span-1 sm:col-span-2">
           <p className="text-xs font-medium text-muted-foreground mb-3">Aggregate scroll-depth funnel</p>
           {totalReads > 0 ? (
-            <BarChart
-              data={funnelChartData}
-              dataKey="readers"
-              xKey="name"
-              height={160}
-              colour={DEFAULT_CHART_COLOURS[0]}
+            <Funnel
+              stages={funnelChartData.map((d) => ({ name: d.name, value: d.readers }))}
               valueFormatter={(v) => `${v} readers`}
             />
           ) : (

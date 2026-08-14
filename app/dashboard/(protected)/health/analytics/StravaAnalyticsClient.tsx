@@ -22,6 +22,8 @@ import {
   PieChart,
   CalendarHeatmap,
   useEChartsColours,
+  Bubble,
+  BoxPlot,
 } from "@/components/analytics"
 import type { StravaActivity } from "@/lib/strava"
 
@@ -279,6 +281,30 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
     .reverse()
     .map((a) => ({ name: (a.start_date ?? "").slice(5, 10), pace: Math.round((a.moving_time_s as number) / ((a.distance_m as number) / 1000)) }))
 
+  // Bubble: distance vs pace for runs, sized by duration - every run already carries all three
+  // fields, so this reads real training-load shape without collecting anything new.
+  const paceBubbles = filtered
+    .filter((a) => (a.sport_type ?? "").toLowerCase().includes("run") && (a.distance_m ?? 0) >= 1000 && (a.moving_time_s ?? 0) > 0)
+    .map((a) => ({
+      distanceKm: Math.round(km(a.distance_m) * 10) / 10,
+      pace: Math.round((a.moving_time_s as number) / (km(a.distance_m))),
+      durationMin: Math.round((a.moving_time_s as number) / 60),
+    }))
+
+  // Pace by month - box plot of the same runs, grouped into calendar months so a longer period
+  // (6mo/1y) reads as a real distribution trend rather than one noisy per-run line.
+  const paceByMonthMap = new Map<string, number[]>()
+  for (const a of filtered) {
+    if (!(a.sport_type ?? "").toLowerCase().includes("run")) continue
+    if ((a.distance_m ?? 0) < 1000 || (a.moving_time_s ?? 0) <= 0) continue
+    const d = new Date(a.start_date ?? "")
+    if (Number.isNaN(d.getTime())) continue
+    const key = `${d.toLocaleString("en-GB", { month: "short" })} '${String(d.getFullYear()).slice(2)}`
+    const pace = (a.moving_time_s as number) / km(a.distance_m)
+    paceByMonthMap.set(key, [...(paceByMonthMap.get(key) ?? []), pace])
+  }
+  const paceByMonth = [...paceByMonthMap.entries()].map(([name, values]) => ({ name, values }))
+
   // Cumulative distance - running total across the period's buckets (built functionally so it stays pure).
   const cumulativeDistance = distanceBuckets.reduce<{ name: string; total: number }[]>((acc, b) => {
     const total = (acc.length > 0 ? acc[acc.length - 1].total : 0) + b.distance
@@ -349,7 +375,7 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
           {/* Stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <StatCard label="Activities" value={filtered.length} trend={countTrend !== null ? { delta: countTrend } : undefined} />
-            <StatCard label="Distance" value={fmtKm(totalDistance)} trend={distTrend !== null ? { delta: distTrend } : undefined} />
+            <StatCard label="Distance" value={fmtKm(totalDistance)} trend={distTrend !== null ? { delta: distTrend } : undefined} sparkline={distanceBuckets.map((b) => b.distance)} />
             <StatCard label="Moving time" value={fmtDuration(totalMoving)} />
             <StatCard label="Elevation" value={`${Math.round(totalElevation).toLocaleString()} m`} />
           </div>
@@ -433,6 +459,43 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
               </div>
               {paceSeries.length > 1 ? (
                 <LineChart data={paceSeries} dataKey="pace" colour="#FC4C02" valueFormatter={fmtPaceSec} dots />
+              ) : (
+                <p className="text-xs text-muted-foreground py-12 text-center">Not enough runs in this period.</p>
+              )}
+            </section>
+
+            <section className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Route className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Distance vs pace</h2>
+                <span className="text-xs text-muted-foreground">runs, bubble size = duration</span>
+              </div>
+              {paceBubbles.length > 1 ? (
+                <Bubble
+                  data={paceBubbles}
+                  xKey="distanceKm"
+                  yKey="pace"
+                  zKey="durationMin"
+                  xLabel="Distance (km)"
+                  yLabel="Pace"
+                  xFormatter={(v) => `${v} km`}
+                  yFormatter={fmtPaceSec}
+                  zFormatter={(v) => `${v} min`}
+                  colour="#FC4C02"
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground py-12 text-center">Not enough runs in this period.</p>
+              )}
+            </section>
+
+            <section className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Gauge className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Pace distribution by month</h2>
+                <span className="text-xs text-muted-foreground">runs, min/km (lower is faster)</span>
+              </div>
+              {paceByMonth.length > 0 ? (
+                <BoxPlot groups={paceByMonth} valueFormatter={(v) => fmtPaceSec(v)} colour="#FC4C02" />
               ) : (
                 <p className="text-xs text-muted-foreground py-12 text-center">Not enough runs in this period.</p>
               )}
