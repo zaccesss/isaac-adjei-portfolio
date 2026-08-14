@@ -226,7 +226,7 @@ function HabitsClientInner({
       variants={dashboardPage}
       initial="hidden"
       animate="visible"
-      className="flex flex-col gap-6 max-w-2xl"
+      className="flex flex-col gap-6 max-w-5xl"
     >
       <DashboardBreadcrumb crumbs={[{ label: "Habits" }]} />
 

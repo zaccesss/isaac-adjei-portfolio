@@ -95,7 +95,7 @@ export default function HealthClient({ sections, workouts, nutrition }: {
 
   return (
     <motion.div
-      className="flex flex-col gap-6 max-w-3xl"
+      className="flex flex-col gap-6 max-w-5xl"
       variants={dashboardPage}
       initial="hidden"
       animate="visible"

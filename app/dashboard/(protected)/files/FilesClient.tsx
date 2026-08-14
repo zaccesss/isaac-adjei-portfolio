@@ -523,7 +523,7 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
   }
 
   return (
-    <motion.div variants={dashboardPage} initial="hidden" animate="visible" className="flex flex-col gap-4 max-w-4xl"
+    <motion.div variants={dashboardPage} initial="hidden" animate="visible" className="flex flex-col gap-4 max-w-5xl"
       onClick={() => { if (openMenuPath) setOpenMenuPath(null) }}>
       {dialog}
       <DashboardBreadcrumb crumbs={[{ label: "File Manager" }]} />

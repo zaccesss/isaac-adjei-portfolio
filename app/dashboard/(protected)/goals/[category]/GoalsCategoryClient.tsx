@@ -105,7 +105,7 @@ export default function GoalsCategoryClient({ goals: initial, category }: { goal
       variants={dashboardPage}
       initial="hidden"
       animate="visible"
-      className="flex flex-col gap-6 max-w-3xl"
+      className="flex flex-col gap-6 max-w-5xl"
     >
       <DashboardBreadcrumb
         crumbs={[
