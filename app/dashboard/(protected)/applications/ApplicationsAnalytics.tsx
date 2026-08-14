@@ -12,8 +12,11 @@ import {
   PeriodSelector,
   useAnalyticsPeriod,
   periodStartDate,
+  Funnel,
+  Composed,
 } from "@/components/analytics"
 import { normaliseStatus as normalise, STATUS_COLOURS, computeFunnelCounts } from "@/lib/application-status"
+import { ApplicationsMap } from "@/components/analytics/ApplicationsMap"
 import { BarChart2 } from "lucide-react"
 
 type Application = {
@@ -27,6 +30,8 @@ type Application = {
   location: string | null
   category: string | null
 }
+
+type Geocode = { location: string; lat: number | null; lng: number | null }
 
 // Fallback for the rare row with no stored category. Returns the same full names the scraper and the
 // re-categorise backfill use, so the breakdown never fragments into short synonyms.
@@ -60,7 +65,7 @@ function ThemedTooltip({ active, payload, label }: { active?: boolean; payload?:
   )
 }
 
-function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
+function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; geocodes: Geocode[] }) {
   const { period } = useAnalyticsPeriod()
 
   // applied_date is unset on almost every row, so I fall back to created_at as the date basis -
@@ -164,6 +169,22 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
 
   const periodLabel = period === "24h" ? "Today" : period === "7d" ? "Last 7 days" : period === "30d" ? "Last 30 days" : period === "90d" ? "Last 90 days" : period === "1y" ? "This year" : "All time"
 
+  // Pareto of rejections by company - which companies account for most of my rejections, read as
+  // cumulative share so the "handful of companies driving most of it" pattern is visible at a glance.
+  const rejectionsByCompany = new Map<string, number>()
+  for (const a of filtered) {
+    if (normalise(a.status) !== "Rejected") continue
+    rejectionsByCompany.set(a.company, (rejectionsByCompany.get(a.company) ?? 0) + 1)
+  }
+  const rejectionRows = [...rejectionsByCompany.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)
+  const rejectionTotal = rejectionRows.reduce((s, [, c]) => s + c, 0)
+  const rejectionRunningTotals = rejectionRows.reduce<number[]>((acc, [, count]) => [...acc, (acc[acc.length - 1] ?? 0) + count], [])
+  const rejectionPareto = rejectionRows.map(([company, count], i) => ({
+    name: company,
+    rejections: count,
+    cumulativePct: rejectionTotal > 0 ? Math.round((rejectionRunningTotals[i] / rejectionTotal) * 100) : 0,
+  }))
+
   return (
     <div className="flex-1 overflow-auto min-h-0 p-4 space-y-4">
       {/* Header */}
@@ -182,7 +203,7 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard label="Total" value={total} trend={totalDelta !== null ? { delta: totalDelta } : undefined} />
+        <StatCard label="Total" value={total} trend={totalDelta !== null ? { delta: totalDelta } : undefined} sparkline={weeklyBar.map((w) => w.value)} />
         <StatCard label="Applied" value={applied} trend={appliedDelta !== null ? { delta: appliedDelta } : undefined} />
         <StatCard label="Rejected" value={rejected} />
         <StatCard label="Offers" value={offers} />
@@ -257,44 +278,40 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
       {/* Funnel */}
       <div className="border border-border rounded-lg p-4 bg-card">
         <p className="text-sm font-semibold mb-3">Application funnel</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={funnelData} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={72} />
-              <Tooltip content={({ active, payload, label }) => {
-                if (!active || !payload?.length) return null
-                return (
-                  <div className="rounded-md border border-border bg-background px-3 py-2 shadow-md text-xs">
-                    <p className="font-medium">{String(label)}</p>
-                    <p className="text-muted-foreground">{payload[0].value}</p>
-                  </div>
-                )
-              }} cursor={{ fill: "hsl(var(--muted))" }} />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                {funnelData.map((entry, i) => <Cell key={i} fill={entry.colour} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <div className="flex flex-col gap-1.5">
-            {funnelData.map((entry) => (
-              <div key={entry.name} className="flex items-center justify-between text-xs gap-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full shrink-0" style={{ background: entry.colour }} />
-                  <span className="text-muted-foreground">{entry.name}</span>
-                </div>
-                <div className="flex items-center gap-1.5 tabular-nums">
-                  <span className="font-medium">{entry.value}</span>
-                  {applied > 0 && entry.name !== "Applied" && (
-                    <span className="text-muted-foreground">{Math.round((entry.value / applied) * 100)}%</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Funnel
+          stages={funnelData.filter((d) => d.name !== "Rejected").map((d) => ({ name: d.name, value: d.value }))}
+          colours={funnelData.map((d) => d.colour)}
+        />
+        {rejected > 0 && (
+          <p className="text-xs text-muted-foreground mt-3">
+            {rejected} rejected this period{applied > 0 ? ` (${Math.round((rejected / applied) * 100)}% of applied)` : ""} - not shown above, since rejection can happen at any stage rather than being the funnel&apos;s next step.
+          </p>
+        )}
       </div>
+
+      {/* Map */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <p className="text-sm font-semibold mb-3">Application locations</p>
+        <ApplicationsMap
+          apps={filtered.map((a) => ({ id: a.id, company: a.company, role: a.role, status: a.status, location: a.location, created_at: a.created_at }))}
+          geocodes={geocodes}
+        />
+      </div>
+
+      {rejectionPareto.length > 0 && (
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <p className="text-sm font-semibold mb-3">Rejections by company - Pareto</p>
+          <Composed
+            data={rejectionPareto}
+            barKey="rejections"
+            lineKey="cumulativePct"
+            barName="Rejections"
+            lineName="Cumulative %"
+            barColour="#64748b"
+            lineValueFormatter={(v) => `${v}%`}
+          />
+        </div>
+      )}
 
       {/* Weekly trend */}
       <div className="border border-border rounded-lg p-4 bg-card">
@@ -373,10 +390,10 @@ function ApplicationsAnalyticsInner({ apps }: { apps: Application[] }) {
   )
 }
 
-export default function ApplicationsAnalytics({ apps }: { apps: Application[] }) {
+export default function ApplicationsAnalytics({ apps, geocodes }: { apps: Application[]; geocodes: Geocode[] }) {
   return (
     <AnalyticsPeriodProvider defaultPeriod="all">
-      <ApplicationsAnalyticsInner apps={apps} />
+      <ApplicationsAnalyticsInner apps={apps} geocodes={geocodes} />
     </AnalyticsPeriodProvider>
   )
 }

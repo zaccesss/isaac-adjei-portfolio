@@ -20,10 +20,11 @@ export default async function ApplicationsPage() {
 
   const { count } = await supabase.from("applications").select("id", { count: "exact", head: true })
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / 1000))
-  const pages = await Promise.all(
-    Array.from({ length: totalPages }, (_, i) => q().range(i * 1000, i * 1000 + 999))
-  )
+  const [pages, { data: geocodes }] = await Promise.all([
+    Promise.all(Array.from({ length: totalPages }, (_, i) => q().range(i * 1000, i * 1000 + 999))),
+    supabase.from("location_geocodes").select("location, lat, lng"),
+  ])
   const data = pages.flatMap((p) => p.data ?? [])
 
-  return <ApplicationsClient applications={data} />
+  return <ApplicationsClient applications={data} geocodes={geocodes ?? []} />
 }

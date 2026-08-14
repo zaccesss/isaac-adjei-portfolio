@@ -918,7 +918,9 @@ function ApplicationsFunnel({ apps }: { apps: Application[] }) {
 
 // ─── Main client ──────────────────────────────────────────────────────────────
 
-export default function ApplicationsClient({ applications: initial }: { applications: Application[] }) {
+type Geocode = { location: string; lat: number | null; lng: number | null }
+
+export default function ApplicationsClient({ applications: initial, geocodes }: { applications: Application[]; geocodes: Geocode[] }) {
   const [apps, setApps] = useState<Application[]>(initial)
   const [activeTab, setActiveTab] = useState<Tab>("Internships")
   const [page, setPage] = useState(1)
@@ -1566,6 +1568,7 @@ export default function ApplicationsClient({ applications: initial }: { applicat
         <div className="flex-1 overflow-auto min-h-0 px-4 pb-4 pt-3">
           <ApplicationsAnalytics
             apps={apps.filter((a) => appBelongsToTab(a, activeTab) && !a.archived)}
+            geocodes={geocodes}
           />
         </div>
       )}
