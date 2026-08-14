@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ChevronLeft, ChevronDown, Plus, Trash2, Edit2, AlertTriangle } from "lucide-react"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import { AssessmentBarChart, ProgressLineChart, ModuleGradePieChart } from "../ModuleCharts"
+import { Radar, BoxPlot } from "@/components/analytics"
 import { calcMark, classLabel, markColour, classBadge, StatsBar, type Assessment, type Module } from "../ModulesClient"
 
 // I map year slugs to integer values so the AddModuleForm can write the correct year to the DB
@@ -319,7 +320,7 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
   }
 
   return (
-    <div className="flex flex-col gap-5 max-w-3xl">
+    <div className="flex flex-col gap-5 max-w-5xl">
       <div className="flex items-center gap-2">
         <button type="button" onClick={onBack} aria-label="Back to modules" title="Back to modules" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><ChevronLeft className="h-4 w-4" /></button>
         <div className="flex flex-col gap-0.5 min-w-0">
@@ -604,7 +605,7 @@ export default function ModulesYearClient({
   }
 
   return (
-    <motion.div variants={dashboardPage} initial="hidden" animate="visible" className="flex flex-col gap-6 max-w-3xl">
+    <motion.div variants={dashboardPage} initial="hidden" animate="visible" className="flex flex-col gap-6 max-w-5xl">
       <DashboardBreadcrumb crumbs={[
         { label: "Modules", href: "/dashboard/modules" },
         { label: yearLabel },
@@ -647,6 +648,26 @@ export default function ModulesYearClient({
             <div>
               <p className="text-xs text-muted-foreground mb-1">Assessment progress trend</p>
               <ProgressLineChart data={allMarks} />
+            </div>
+          )}
+          {moduleMarks.length >= 3 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Marks by module</p>
+                <Radar
+                  data={moduleMarks.filter((m) => m.mark != null).map((m) => ({ name: m.name, mark: m.mark as number }))}
+                  dataKey="mark"
+                  max={100}
+                  valueFormatter={(v) => `${v}%`}
+                />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Mark distribution</p>
+                <BoxPlot
+                  groups={[{ name: yearLabel, values: moduleMarks.filter((m): m is typeof m & { mark: number } => m.mark != null).map((m) => m.mark) }]}
+                  valueFormatter={(v) => `${Math.round(v)}%`}
+                />
+              </div>
             </div>
           )}
         </div>
