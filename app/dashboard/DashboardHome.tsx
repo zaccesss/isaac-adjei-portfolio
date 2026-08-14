@@ -11,6 +11,8 @@ import {
 } from "lucide-react"
 import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
 import SegmentClock from "@/components/shared/marks/SegmentClock"
+import { StackedArea, Gauge } from "@/components/analytics"
+import type { TimeAllocationDay } from "./actions"
 
 type Summary = {
   goals: { total: number; done: number; inProgress: number }
@@ -24,6 +26,7 @@ type Summary = {
   study: { sessionsThisWeek: number; minutesThisWeek: number }
   faith: { lastEntry: string | null }
   university: { upcomingDeadlines: number; activeModules: number }
+  timeAllocation: TimeAllocationDay[]
 }
 
 function getGreeting(hour: number): string {
@@ -60,6 +63,15 @@ const getServerNow = () => null
 export default function DashboardHome({ summary }: { summary: Summary }) {
   const now = useSyncExternalStore(subscribeNever, getClientNow, getServerNow)
   const greeting = now === null ? "Hello" : getGreeting(new Date(now).getHours())
+
+  const goalsCompletionPct = summary.goals.total > 0 ? Math.round((summary.goals.done / summary.goals.total) * 100) : 0
+  const timeAllocationData = summary.timeAllocation.map((d) => ({
+    name: new Date(d.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+    study: d.studyMinutes,
+    coding: d.codingMinutes,
+    strava: d.stravaMinutes,
+  }))
+  const hasTimeAllocation = summary.timeAllocation.some((d) => d.studyMinutes + d.codingMinutes + d.stravaMinutes > 0)
 
   const cards = [
     {
@@ -217,6 +229,35 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
           Open Dashboard
           <ArrowRight className="h-4 w-4" />
         </Link>
+      </div>
+
+      {/* Cross-domain summary: where the last 14 days went, and how goals are tracking overall -
+          the one place on the dashboard that reads across topics rather than per-topic. */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link
+          href="/dashboard/analytics/time-allocation"
+          className="sm:col-span-2 border border-border rounded-xl p-4 bg-card hover:shadow-md transition-all"
+        >
+          <p className="text-xs font-medium text-muted-foreground mb-2">Where the time went - last 14 days</p>
+          {hasTimeAllocation ? (
+            <StackedArea
+              data={timeAllocationData}
+              series={[
+                { key: "study", name: "Study" },
+                { key: "coding", name: "Coding" },
+                { key: "strava", name: "Strava" },
+              ]}
+              height={140}
+              valueFormatter={(v) => `${Math.round((v / 60) * 10) / 10}h`}
+            />
+          ) : (
+            <p className="text-xs text-muted-foreground py-10 text-center">No study, coding or Strava activity in the last 14 days yet.</p>
+          )}
+        </Link>
+        <div className="border border-border rounded-xl p-4 bg-card">
+          <p className="text-xs font-medium text-muted-foreground mb-1 text-center">Goals completed</p>
+          <Gauge value={goalsCompletionPct} height={140} />
+        </div>
       </div>
 
       <motion.div

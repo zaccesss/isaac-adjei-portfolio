@@ -16,15 +16,16 @@ import { clearAllJobs, clearAllApplications } from "@/app/dashboard/actions"
 // Friendly sections mapped to the real table names, so I can export just one part (e.g. Applications)
 // instead of the whole database. Table names must match the export route's EXPORT_TABLES.
 const EXPORT_SECTIONS: { label: string; tables: string[] }[] = [
-  { label: "Applications", tables: ["applications"] },
+  { label: "Applications", tables: ["applications", "location_geocodes"] },
   { label: "Goals", tables: ["goals"] },
   { label: "Streaks", tables: ["streaks", "streak_logs"] },
   { label: "Habits", tables: ["habits", "habit_logs"] },
-  { label: "Health", tables: ["health_sections", "health_workouts", "health_nutrition", "body_metrics"] },
+  { label: "Health", tables: ["health_sections", "health_workouts", "health_nutrition", "body_metrics", "strava_activities", "medication_reminders", "medication_doses"] },
   { label: "Faith", tables: ["faith_entries"] },
   { label: "Study", tables: ["study_sessions"] },
-  { label: "University", tables: ["uni_modules", "uni_deadlines", "uni_submissions", "uni_notes", "uni_resources", "uni_library_books", "modules", "assessments"] },
+  { label: "University", tables: ["uni_modules", "uni_deadlines", "uni_submissions", "uni_notes", "uni_resources", "uni_library_books", "modules", "assessments", "course_modules"] },
   { label: "Calendar", tables: ["calendar_events"] },
+  { label: "Reminders", tables: ["reminders"] },
   { label: "Notes", tables: ["notes"] },
   { label: "Diary", tables: ["diary"] },
   { label: "Vault", tables: ["vault"] },
@@ -33,7 +34,9 @@ const EXPORT_SECTIONS: { label: string; tables: string[] }[] = [
   { label: "Inventory", tables: ["inventory_items"] },
   { label: "Open Source", tables: ["opensource_contributions"] },
   { label: "Files", tables: ["user_files"] },
-  { label: "Coding", tables: ["wakatime_daily"] },
+  { label: "Coding", tables: ["wakatime_daily", "github_contributions_days", "github_contributions_years"] },
+  { label: "Music", tables: ["listening_history"] },
+  { label: "Lab measurements", tables: ["lab_measurements"] },
   { label: "Activity log", tables: ["activity_log"] },
 ]
 
@@ -298,7 +301,7 @@ export default function SettingsClient() {
       variants={dashboardPage}
       initial="hidden"
       animate="visible"
-      className="flex flex-col gap-8 max-w-2xl"
+      className="flex flex-col gap-8 max-w-5xl"
     >
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight">Settings</h1>

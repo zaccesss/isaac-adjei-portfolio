@@ -1,12 +1,13 @@
-// I show every dashboard action here so I can audit what changed and when. Paginated server-side so I can
-// page through the whole history while only one page of rows is ever fetched and rendered.
-import { getActivityLogPage } from "../../actions"
-import { Pagination } from "@/components/shared/Pagination"
+// I show the most recent dashboard actions here so I can audit what changed and when. Every action
+// is still logged and kept in the database in full - this page just loads the latest slice rather
+// than paginating through the whole history, which got slow once the table grew into the
+// thousands of rows for what is, day to day, only ever a "what happened recently" check.
+import { getRecentActivityLog } from "../../actions"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Activity Log", robots: "noindex, nofollow" }
 
-const PAGE_SIZE = 50
+const RECENT_LIMIT = 200
 
 function formatAction(action: string): string {
   // I handle dynamic restore actions here since the prefix varies by table name
@@ -147,50 +148,35 @@ function absoluteTime(iso: string): string {
   })
 }
 
-export default async function ActivityPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
-  const sp = await searchParams
-  const requestedPage = Math.max(1, parseInt(sp.page ?? "1", 10) || 1)
-  const { rows: logs, total } = await getActivityLogPage(requestedPage, PAGE_SIZE)
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const page = Math.min(requestedPage, totalPages)
+export default async function ActivityPage() {
+  const logs = await getRecentActivityLog(RECENT_LIMIT)
 
   return (
-    <div className="p-6 max-w-2xl">
+    <div className="p-6 max-w-5xl">
       <h1 className="text-xl font-semibold mb-1">Activity log</h1>
       <p className="text-sm text-muted-foreground mb-6">
-        Every action taken on the dashboard{total > 0 ? ` - ${total.toLocaleString()} in total` : ""}.
+        The last {RECENT_LIMIT} actions taken on the dashboard. Everything is still recorded in full - this is just the recent slice.
       </p>
 
       {logs.length === 0 ? (
         <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
       ) : (
-        <>
-          <ol className="space-y-1">
-            {logs.map((log) => (
-              <li key={log.id} className="flex items-start gap-3 text-sm py-2.5 border-b border-border/50 last:border-0">
-                <div className="flex flex-col items-end shrink-0 w-28">
-                  <span className="text-muted-foreground text-xs tabular-nums">{relativeTime(log.created_at)}</span>
-                  <span className="text-muted-foreground/60 text-[10px] tabular-nums">{absoluteTime(log.created_at)}</span>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="font-medium">{formatAction(log.action)}</span>
-                  {log.detail && (
-                    <span className="text-muted-foreground text-xs truncate">{log.detail}</span>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ol>
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            baseHref="/dashboard/activity"
-            totalItems={total}
-            pageSize={PAGE_SIZE}
-            itemLabel="actions"
-            className="pt-6"
-          />
-        </>
+        <ol className="space-y-1">
+          {logs.map((log) => (
+            <li key={log.id} className="flex items-start gap-3 text-sm py-2.5 border-b border-border/50 last:border-0">
+              <div className="flex flex-col items-end shrink-0 w-28">
+                <span className="text-muted-foreground text-xs tabular-nums">{relativeTime(log.created_at)}</span>
+                <span className="text-muted-foreground/60 text-[10px] tabular-nums">{absoluteTime(log.created_at)}</span>
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="font-medium">{formatAction(log.action)}</span>
+                {log.detail && (
+                  <span className="text-muted-foreground text-xs truncate">{log.detail}</span>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
       )}
     </div>
   )
