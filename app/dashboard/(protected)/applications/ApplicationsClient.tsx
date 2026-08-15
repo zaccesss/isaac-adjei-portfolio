@@ -7,6 +7,7 @@
 
 import { useState, useTransition, useRef, useMemo } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { createApplication, updateApplication, deleteApplication, archiveApplication, reopenApplication, bulkDeleteApplications } from "../../actions"
 import { savedOk } from "@/lib/save-result"
 import { toast } from "sonner"
@@ -925,7 +926,10 @@ export default function ApplicationsClient({ applications: initial, geocodes }: 
   const [activeTab, setActiveTab] = useState<Tab>("Internships")
   const [page, setPage] = useState(1)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [search, setSearch] = useState("")
+  // Reads ?q= once on mount so a deep link (the applications map's popup, for one) can land
+  // straight on a filtered view rather than the full unfiltered list.
+  const searchParams = useSearchParams()
+  const [search, setSearch] = useState(() => searchParams.get("q") ?? "")
   const [filterOpenStatus, setFilterOpenStatus] = useState("All")
   const [filterCoverLetter, setFilterCoverLetter] = useState("All")
   const [filterMyStatus, setFilterMyStatus] = useState("All")

@@ -9,15 +9,17 @@ import type { TimeAllocationDay } from "@/app/dashboard/actions"
 const fmtHours = (mins: number) => `${Math.round((mins / 60) * 10) / 10}h`
 
 // One fixed colour per domain, used consistently across the legend, the stacked area and the
-// share charts below - Coding blue, Strava/fitness orange (its own brand colour), Study teal,
-// Music pink, Faith indigo, Applications violet (kept distinct even though it is not part of the
-// stacked area, since its own bar chart sits on the same page).
+// share charts below. Chosen from the Okabe-Ito colourblind-safe palette (Coding blue and
+// Strava/fitness orange are kept as their own real brand colours, everything else picked to stay
+// genuinely distinct from both under deuteranopia/protanopia, not just by hue name): Study
+// yellow, Music reddish-purple, Faith bluish-green. Applications violet stays distinct even
+// though it is not part of the stacked area, since its own bar chart sits on the same page.
 const DOMAIN_COLOURS = {
-  study: "#14b8a6",
+  study: "#F0E442",
   coding: "#3b82f6",
   strava: "#FC4C02",
-  music: "#ec4899",
-  faith: "#6366f1",
+  music: "#CC79A7",
+  faith: "#009E73",
   applications: "#8b5cf6",
 }
 

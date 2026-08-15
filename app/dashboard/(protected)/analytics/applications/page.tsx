@@ -12,7 +12,7 @@ export default async function ApplicationsAnalyticsPage() {
   // batches and combine them so every application is counted. The batches are fetched in parallel -
   // a count query plus one parallel burst - rather than one at a time, so a growing table (thousands
   // of scraped roles) adds barely any wall-clock time instead of another sequential round trip.
-  const cols = "id, company, role, type, status, applied_date, location, category, created_at"
+  const cols = "id, company, role, type, status, applied_date, location, category, created_at, url"
   const q = () =>
     supabase.from("applications").select(cols).eq("archived", false).order("created_at", { ascending: false })
 
