@@ -153,7 +153,7 @@ export default function MeClient({ profile: initial }: { profile: Profile }) {
     : null
 
   return (
-    <div className="flex flex-col gap-8 max-w-5xl">
+    <div className="flex flex-col gap-8 max-w-6xl">
       {/* Header */}
       <div className="flex items-start gap-4">
         <div className="flex flex-col gap-1">

@@ -62,7 +62,7 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
   const filtered = moduleFilter === "all" ? notes : notes.filter((n) => n.uni_modules?.code === moduleFilter)
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl">
+    <div className="p-6 space-y-6 max-w-6xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Notes</h1>
@@ -72,7 +72,7 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" />New note</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-5xl">
+          <DialogContent className="max-w-6xl">
             <DialogHeader><DialogTitle>{editNote ? "Edit note" : "New note"}</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 mt-2">
               <div className="grid grid-cols-2 gap-3">
@@ -164,7 +164,7 @@ export default function UniNotesClient({ notes, modules }: { notes: UniNote[]; m
       {/* Full note view dialog */}
       {viewNote && (
         <Dialog open={!!viewNote} onOpenChange={(v) => !v && setViewNote(null)}>
-          <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{viewNote.title}</DialogTitle>
             </DialogHeader>

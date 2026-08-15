@@ -12,9 +12,15 @@ import {
   Sankey,
   RadialClock,
   WordCloud,
+  Gauge,
   DEFAULT_CHART_COLOURS,
   type SankeyChartData,
+  type AnalyticsPeriod,
 } from "@/components/analytics"
+
+// Days in the active period, for a "days with a play, out of days in period" consistency gauge.
+// "All" has no fixed length, so the gauge is simply not shown for that period.
+const PERIOD_DAY_COUNT: Partial<Record<AnalyticsPeriod, number>> = { "7d": 7, "30d": 30, "90d": 90, "1y": 365 }
 
 type Now = { playing?: boolean; track?: string; artist?: string; albumArt?: string | null } | null
 type Hist = {
@@ -249,12 +255,17 @@ function MusicInner() {
   const lArtists = lfm?.topArtists ?? []
   const lTracks = lfm?.topTracks ?? []
 
+  // "Consistency" = days with at least one play, out of days actually in the selected period -
+  // "all" has no fixed day count to divide by, so the gauge only renders for the 4 fixed periods.
+  const periodDays = PERIOD_DAY_COUNT[period]
+  const listeningConsistency = periodDays ? Math.round(((hist?.activeDays ?? 0) / periodDays) * 100) : null
+
   const artistGenreEraFlow = useMemo(() => buildArtistGenreEraSankey(top?.tracks, top?.artists), [top])
   const platformArtistFlow = useMemo(() => buildPlatformArtistSankey(hist?.topArtists, lfm?.topArtists), [hist, lfm])
   const hourGenreFlow = useMemo(() => buildHourGenreSankey(hist?.hourGenreFlow), [hist])
 
   return (
-    <div className="space-y-4 max-w-5xl">
+    <div className="space-y-4 max-w-6xl">
       {/* Now playing + period selector */}
       <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-[#1db954]/10 to-transparent p-4 sm:p-5 flex items-center gap-4">
         <SiSpotify className="h-8 w-8 text-[#1db954] shrink-0" />
@@ -294,6 +305,13 @@ function MusicInner() {
                 <Stat label="Peak hour" value={`${String(sPeak).padStart(2, "0")}:00`} sub="most plays" />
               </div>
               <ClockWeekday hours={hist?.hours} weekdays={hist?.weekdays} colour="#1db954" />
+              {listeningConsistency !== null && (
+                <div className="border border-border rounded-xl p-4 max-w-xs mx-auto w-full">
+                  <p className="text-sm font-medium mb-1 text-center">Listening consistency</p>
+                  <p className="text-[10px] text-muted-foreground text-center mb-1">days with a play, out of {periodDays} days this period</p>
+                  <Gauge value={listeningConsistency} height={160} valueFormatter={(v) => `${v}%`} />
+                </div>
+              )}
             </>
           ) : (
             <p className="text-center text-xs text-muted-foreground">My Spotify play history is still building - the collector records every 30 minutes.</p>

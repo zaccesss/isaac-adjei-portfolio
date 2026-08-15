@@ -21,7 +21,7 @@ const EXPORT_TABLES = [
   "wakatime_daily", "activity_log", "course_modules", "medication_reminders",
   "medication_doses", "reminders", "strava_activities", "listening_history",
   "github_contributions_days", "github_contributions_years", "location_geocodes",
-  "lab_measurements",
+  "lab_measurements", "projects", "project_tasks", "finance_transactions",
 ] as const
 
 // user_files holds only storage metadata (the files live in Supabase Storage, not here);

@@ -201,6 +201,15 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
         <PeriodSelector />
       </div>
 
+      {/* Map */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <p className="text-sm font-semibold mb-3">Application locations</p>
+        <ApplicationsMap
+          apps={filtered.map((a) => ({ id: a.id, company: a.company, role: a.role, status: a.status, location: a.location, created_at: a.created_at }))}
+          geocodes={geocodes}
+        />
+      </div>
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatCard label="Total" value={total} trend={totalDelta !== null ? { delta: totalDelta } : undefined} sparkline={weeklyBar.map((w) => w.value)} />
@@ -289,15 +298,6 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
         )}
       </div>
 
-      {/* Map */}
-      <div className="border border-border rounded-lg p-4 bg-card">
-        <p className="text-sm font-semibold mb-3">Application locations</p>
-        <ApplicationsMap
-          apps={filtered.map((a) => ({ id: a.id, company: a.company, role: a.role, status: a.status, location: a.location, created_at: a.created_at }))}
-          geocodes={geocodes}
-        />
-      </div>
-
       {rejectionPareto.length > 0 && (
         <div className="border border-border rounded-lg p-4 bg-card">
           <p className="text-sm font-semibold mb-3">Rejections by company - Pareto</p>
@@ -380,7 +380,11 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
                     </div>
                   )
                 }} cursor={{ fill: "hsl(var(--muted))" }} />
-                <Bar dataKey="value" fill={DEFAULT_CHART_COLOURS[1]} radius={[3, 3, 0, 0]} />
+                <Bar dataKey="value" radius={[3, 3, 0, 0]}>
+                  {locBar.map((entry, i) => (
+                    <Cell key={entry.name} fill={DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>

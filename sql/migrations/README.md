@@ -59,6 +59,8 @@ All files use `IF NOT EXISTS`, `CREATE OR REPLACE` or `DO` blocks so they are sa
 | 049 | `049_location_geocodes.sql` | location_geocodes cache table (lat/lng per applications.location string, fed by automations' geocode-locations job, feeds the Applications map) | Both |
 | 050 | `050_study_sessions_module_link.sql` | nullable study_sessions.module_id FK to modules, backing the study-hours-vs-module-mark scatter | Both |
 | 051 | `051_lab_measurements.sql` | lab_measurements table (hand-logged EECS frequency-response readings, backing the Bode plot on the new Lab Measurements analytics page) | Both |
+| 052 | `052_projects.sql` | projects table (hardware, software and coursework projects, distinct from University/Study/Modules) + project_tasks table (start/end-dated tasks per project, backing a Gantt chart per project) | Both |
+| 053 | `053_finance.sql` | finance_transactions table (income/expense transactions with category, backing the Finance page's savings/spending mini-analytics) | Both |
 
 ## The 2026-07-12 renumbering
 

@@ -7,7 +7,9 @@ export const dynamic = "force-dynamic"
 export const metadata = { title: "Time Allocation", robots: "noindex, nofollow" }
 
 export default async function TimeAllocationPage() {
-  const days = await getTimeAllocation(30)
+  // Fetches a generous fixed window once; the client filters down by the active period selector,
+  // same pattern as every other analytics page that fetches broad then filters client-side.
+  const days = await getTimeAllocation(365)
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -22,7 +24,7 @@ export default async function TimeAllocationPage() {
         </Link>
         <span className="text-xs text-muted-foreground">/</span>
         <span className="text-xs font-medium">Time Allocation</span>
-        <span className="ml-auto text-[10px] font-mono text-muted-foreground/60">study + coding + Strava, last 30 days</span>
+        <span className="ml-auto text-[10px] font-mono text-muted-foreground/60">study, coding, Strava, music, faith</span>
       </div>
       <div className="flex-1 overflow-auto px-4 pb-4">
         <TimeAllocationClient days={days} />

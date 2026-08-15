@@ -9,7 +9,7 @@ import Link from "next/link"
 import { ArrowLeft, Gauge } from "lucide-react"
 import { motion } from "framer-motion"
 import { dashboardPage } from "@/lib/animations"
-import { AnalyticsPeriodProvider, useAnalyticsPeriod, PeriodSelector, periodStartDate, LineChart, BarChart, Treemap, Sankey } from "@/components/analytics"
+import { AnalyticsPeriodProvider, useAnalyticsPeriod, PeriodSelector, periodStartDate, LineChart, BarChart, Treemap, Sankey, Bullet } from "@/components/analytics"
 import { UptimeGrid } from "@/components/analytics/UptimeGrid"
 import { STATUS_COLOURS } from "@/app/dashboard/components/status-ui"
 import { OverviewSection } from "../OverviewSection"
@@ -51,6 +51,17 @@ function OpsAnalyticsInner() {
 
   const repoTreemap = useMemo(
     () => (history?.repoBreakdown ?? []).map((r) => ({ name: r.repoLabel, value: r.total })),
+    [history],
+  )
+
+  // Reframes perJobSuccess (already fetched for the Overview's own bar chart) as bullet charts
+  // against a 100% target, so a job that is genuinely below target is visible at a glance rather
+  // than needing to read bar heights against each other.
+  const jobBullets = useMemo(
+    () => (history?.perJobSuccess ?? []).filter((j) => j.total > 0).map((j) => ({
+      label: j.label,
+      rate: Math.round((j.success / j.total) * 100),
+    })),
     [history],
   )
 
@@ -100,6 +111,19 @@ function OpsAnalyticsInner() {
         <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Run volume by repo</h2>
         {repoTreemap.length > 0 ? (
           <Treemap data={repoTreemap} height={260} />
+        ) : (
+          <p className="text-xs text-muted-foreground">No run data recorded yet for this period.</p>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3 border border-border rounded-xl p-5 bg-card">
+        <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Per-job success rate vs 100% target</h2>
+        {jobBullets.length > 0 ? (
+          <div className="flex flex-col gap-2.5">
+            {jobBullets.map((j) => (
+              <Bullet key={j.label} label={j.label} value={j.rate} target={100} max={100} valueFormatter={(v) => `${v}%`} />
+            ))}
+          </div>
         ) : (
           <p className="text-xs text-muted-foreground">No run data recorded yet for this period.</p>
         )}

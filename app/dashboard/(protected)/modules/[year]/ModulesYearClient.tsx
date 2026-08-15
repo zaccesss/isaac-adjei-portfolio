@@ -320,7 +320,7 @@ function ModuleDetail({ mod: initial, onBack }: { mod: Module; onBack: () => voi
   }
 
   return (
-    <div className="flex flex-col gap-5 max-w-5xl">
+    <div className="flex flex-col gap-5 max-w-6xl">
       <div className="flex items-center gap-2">
         <button type="button" onClick={onBack} aria-label="Back to modules" title="Back to modules" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"><ChevronLeft className="h-4 w-4" /></button>
         <div className="flex flex-col gap-0.5 min-w-0">
@@ -605,7 +605,7 @@ export default function ModulesYearClient({
   }
 
   return (
-    <motion.div variants={dashboardPage} initial="hidden" animate="visible" className="flex flex-col gap-6 max-w-5xl">
+    <motion.div variants={dashboardPage} initial="hidden" animate="visible" className="flex flex-col gap-6 max-w-6xl">
       <DashboardBreadcrumb crumbs={[
         { label: "Modules", href: "/dashboard/modules" },
         { label: yearLabel },

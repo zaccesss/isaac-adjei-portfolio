@@ -70,6 +70,8 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
     study: d.studyMinutes,
     coding: d.codingMinutes,
     strava: d.stravaMinutes,
+    music: d.musicMinutes,
+    faith: d.faithMinutes,
   }))
   const hasTimeAllocation = summary.timeAllocation.some((d) => d.studyMinutes + d.codingMinutes + d.stravaMinutes > 0)
 
@@ -246,7 +248,10 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
                 { key: "study", name: "Study" },
                 { key: "coding", name: "Coding" },
                 { key: "strava", name: "Strava" },
+                { key: "music", name: "Music" },
+                { key: "faith", name: "Faith" },
               ]}
+              colours={["#14b8a6", "#3b82f6", "#FC4C02", "#ec4899", "#6366f1"]}
               height={140}
               valueFormatter={(v) => `${Math.round((v / 60) * 10) / 10}h`}
             />

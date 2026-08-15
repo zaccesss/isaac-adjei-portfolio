@@ -6,7 +6,9 @@ const isDev = process.env.NODE_ENV === "development"
 // frame and the pusher websocket) is the Vercel Toolbar, which Vercel injects for me as a
 // logged-in team member - visitors never load it, but blocking it spams my own console.
 const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com", "https://www.googletagmanager.com", "https://static.cloudflareinsights.com", "https://vercel.live"]
-const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io", "https://*.google-analytics.com", "https://analytics.google.com", "https://api.lanyard.rest", "https://cloudflareinsights.com", "https://vercel.live", "wss://ws-us3.pusher.com"]
+// tiles.openfreemap.org serves the Applications map's vector tiles, sprite, glyphs and style JSON -
+// all fetched by MapLibre GL JS via connect-src, not img-src (they are not plain <img> requests).
+const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io", "https://*.google-analytics.com", "https://analytics.google.com", "https://api.lanyard.rest", "https://cloudflareinsights.com", "https://vercel.live", "wss://ws-us3.pusher.com", "https://tiles.openfreemap.org"]
 
 if (isDev) {
   scriptSrc.push("'unsafe-eval'")
@@ -72,6 +74,10 @@ const nextConfig = {
               "font-src 'self' data:",
               "img-src 'self' data: blob: https:",
               `connect-src ${connectSrc.join(" ")}`,
+              // MapLibre GL JS (the Applications map) parses vector tiles in a Web Worker created
+              // from a blob: URL - worker-src falls back to script-src, not default-src, per the
+              // CSP spec, and 'self' alone does not implicitly cover a blob: worker.
+              "worker-src 'self' blob:",
               // I include 'self' so the /cv page can embed /resume/cv.html in an iframe
               // giscus.app is required for the blog comments iframe
               "frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://open.spotify.com https://giscus.app https://vercel.live",
