@@ -13,9 +13,28 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Trash2, Waves } from "lucide-react"
+import { Plus, Trash2, Waves, Download } from "lucide-react"
 
 const emptyForm = { project_label: "", measurement_set: "", frequency_hz: "", magnitude_db: "", phase_deg: "" }
+
+// A plain CSV, not the JSON format Settings' full-backup export uses - this is for opening
+// straight in Excel/a spreadsheet for further analysis, not for round-tripping through import.
+function downloadCsv(rows: LabMeasurement[], filename: string) {
+  const header = "project_label,measurement_set,frequency_hz,magnitude_db,phase_deg,created_at"
+  const escape = (v: string) => (v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v)
+  const lines = rows.map((m) =>
+    [escape(m.project_label), escape(m.measurement_set), m.frequency_hz, m.magnitude_db ?? "", m.phase_deg ?? "", m.created_at].join(","),
+  )
+  const blob = new Blob([[header, ...lines].join("\n")], { type: "text/csv" })
+  const href = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = href
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(href)
+}
 
 export default function LabMeasurementsClient({ measurements }: { measurements: LabMeasurement[] }) {
   const [open, setOpen] = useState(false)
@@ -81,7 +100,7 @@ export default function LabMeasurementsClient({ measurements }: { measurements: 
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl">
+    <div className="flex flex-col gap-6 max-w-6xl">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
@@ -92,6 +111,16 @@ export default function LabMeasurementsClient({ measurements }: { measurements: 
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {visible.length > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => downloadCsv(visible, `lab-measurements${projectFilter !== "all" ? `-${projectFilter}` : ""}.csv`)}
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </Button>
+          )}
           {projectLabels.length > 1 && (
             <Select value={projectFilter} onValueChange={setProjectFilter}>
               <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
