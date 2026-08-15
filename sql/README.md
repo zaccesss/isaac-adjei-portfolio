@@ -8,7 +8,7 @@ There is no `schema.sql` any more - it embedded real seed data, so it was remove
 
 | File | Description |
 |---|---|
-| `migrations/` | Incremental migration files numbered 001-051. Safe to run on a live database; each is idempotent. |
+| `migrations/` | Incremental migration files numbered 001-053. Safe to run on a live database; each is idempotent. |
 
 ## Fresh-install guide
 
