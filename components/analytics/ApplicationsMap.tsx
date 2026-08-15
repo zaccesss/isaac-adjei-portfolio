@@ -8,6 +8,7 @@
 // component never geocodes anything itself.
 import { useMemo, useRef, useState } from "react"
 import Link from "next/link"
+import { useTheme } from "next-themes"
 import MapGL, { Marker, NavigationControl, Popup, type MapRef } from "react-map-gl/maplibre"
 import "maplibre-gl/dist/maplibre-gl.css"
 import { STATUS_COLOURS, normaliseStatus } from "@/lib/application-status"
@@ -33,6 +34,7 @@ const STYLES = {
   bright: { label: "Bright", url: "https://tiles.openfreemap.org/styles/bright" },
   streets: { label: "Streets", url: "https://tiles.openfreemap.org/styles/liberty" },
   light: { label: "Light", url: "https://tiles.openfreemap.org/styles/positron" },
+  dark: { label: "Dark", url: "https://tiles.openfreemap.org/styles/dark" },
   satellite: { label: "Satellite", url: SATELLITE_STYLE },
 } as const
 
@@ -59,7 +61,14 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
   // "bright" is the default: unlike "streets" (liberty) it has no 3D building extrusion layer
   // (genuinely GPU-heavy with many pins on screen), and unlike "light" (positron) it colours
   // country/land-use areas and shows place labels clearly rather than a near-monochrome base.
-  const [style, setStyle] = useState<keyof typeof STYLES>("bright")
+  // Auto-switches to "dark" if the site is in dark mode - none of the light styles play well
+  // against a dark dashboard - but only until the user picks a style themselves, same "site
+  // theme sets the default, manual choice always wins" pattern the isometric calendar uses.
+  const { resolvedTheme } = useTheme()
+  // null means "no manual choice yet" - the theme-derived default is computed in render rather
+  // than synced via an effect, so a style pick never fights a subsequent theme-driven re-render.
+  const [userStyle, setUserStyle] = useState<keyof typeof STYLES | null>(null)
+  const style = userStyle ?? (resolvedTheme === "dark" ? "dark" : "bright")
   const [globe, setGlobe] = useState(false)
   const [is3D, setIs3D] = useState(false)
   const mapRef = useRef<MapRef>(null)
@@ -118,7 +127,7 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
           <button
             key={key}
             type="button"
-            onClick={() => setStyle(key)}
+            onClick={() => setUserStyle(key)}
             className={`text-[10px] px-2 py-1 rounded border transition-colors ${style === key ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
           >
             {s.label}
