@@ -47,6 +47,7 @@ export interface MapApplication {
   status: string
   location: string | null
   created_at: string
+  url: string | null
 }
 
 interface Geocode {
@@ -71,6 +72,7 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
   const style = userStyle ?? (resolvedTheme === "dark" ? "dark" : "bright")
   const [globe, setGlobe] = useState(false)
   const [is3D, setIs3D] = useState(false)
+  const [zoom, setZoom] = useState(3.5)
   const mapRef = useRef<MapRef>(null)
 
   function toggle3D() {
@@ -105,6 +107,27 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
       })
       .filter((p): p is NonNullable<typeof p> => p !== null)
   }, [apps, geocodeByLocation, nowMs])
+
+  // Grid-based clustering: many pins as individual DOM Marker overlays is the real perf cost with
+  // a growing applications list, not the WebGL tile rendering itself - grouping nearby pins into
+  // one badge until zoomed in keeps the DOM marker count low regardless of how many applications
+  // exist. Cell size shrinks as zoom increases, so clusters split apart naturally on zoom-in
+  // rather than needing a second clustering pass.
+  const clusters = useMemo(() => {
+    const cellDegrees = 50 / 2 ** zoom
+    const cells = new Map<string, typeof pins>()
+    for (const p of pins) {
+      const key = `${Math.round(p.lat / cellDegrees)}:${Math.round(p.lng / cellDegrees)}`
+      const group = cells.get(key)
+      if (group) group.push(p)
+      else cells.set(key, [p])
+    }
+    return Array.from(cells.values()).map((items) => ({
+      lat: items.reduce((s, p) => s + p.lat, 0) / items.length,
+      lng: items.reduce((s, p) => s + p.lng, 0) / items.length,
+      items,
+    }))
+  }, [pins, zoom])
 
   const ungeocodedCount = apps.filter((a) => a.location && !geocodeByLocation.has(a.location)).length
 
@@ -159,36 +182,56 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
           mapStyle={STYLES[style].url}
           projection={globe ? "globe" : "mercator"}
           style={{ width: "100%", height: "100%" }}
+          onMove={(e) => setZoom(e.viewState.zoom)}
         >
           <NavigationControl position="top-right" />
-          {pins.map((pin) => {
-            const colour = STATUS_COLOURS[normaliseStatus(pin.status)] ?? "hsl(var(--primary))"
-            return (
-              <Marker
-                key={pin.id}
-                latitude={pin.lat}
-                longitude={pin.lng}
-                onClick={(e) => {
-                  e.originalEvent.stopPropagation()
-                  setSelected(pin.id)
-                }}
-              >
-                <div
-                  className="relative cursor-pointer"
-                  onMouseEnter={() => setHovered(pin.id)}
-                  onMouseLeave={() => setHovered((h) => (h === pin.id ? null : h))}
+          {clusters.map((cluster) => {
+            if (cluster.items.length === 1) {
+              const pin = cluster.items[0]
+              const colour = STATUS_COLOURS[normaliseStatus(pin.status)] ?? "hsl(var(--primary))"
+              return (
+                <Marker
+                  key={pin.id}
+                  latitude={pin.lat}
+                  longitude={pin.lng}
+                  onClick={(e) => {
+                    e.originalEvent.stopPropagation()
+                    setSelected(pin.id)
+                  }}
                 >
-                  {pin.isRecent && (
+                  <div
+                    className="relative cursor-pointer"
+                    onMouseEnter={() => setHovered(pin.id)}
+                    onMouseLeave={() => setHovered((h) => (h === pin.id ? null : h))}
+                  >
+                    {pin.isRecent && (
+                      <span
+                        className="absolute inset-0 rounded-full animate-ping"
+                        style={{ background: colour, opacity: 0.5 }}
+                      />
+                    )}
                     <span
-                      className="absolute inset-0 rounded-full animate-ping"
-                      style={{ background: colour, opacity: 0.5 }}
+                      className="relative block h-3 w-3 rounded-full border-2 border-white shadow"
+                      style={{ background: colour }}
                     />
-                  )}
-                  <span
-                    className="relative block h-3 w-3 rounded-full border-2 border-white shadow"
-                    style={{ background: colour }}
-                  />
-                </div>
+                  </div>
+                </Marker>
+              )
+            }
+            const clusterKey = `${cluster.lat}:${cluster.lng}:${cluster.items.length}`
+            return (
+              <Marker key={clusterKey} latitude={cluster.lat} longitude={cluster.lng}>
+                <button
+                  type="button"
+                  title={`${cluster.items.length} applications - click to zoom in`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    mapRef.current?.easeTo({ center: [cluster.lng, cluster.lat], zoom: zoom + 2.5, duration: 500 })
+                  }}
+                  className="flex items-center justify-center h-7 w-7 rounded-full border-2 border-white shadow bg-primary text-primary-foreground text-[11px] font-semibold cursor-pointer"
+                >
+                  {cluster.items.length}
+                </button>
               </Marker>
             )
           })}
@@ -210,12 +253,23 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
                 </p>
                 <p className="text-muted-foreground">{activePin.location}</p>
                 {selected === activePin.id && (
-                  <Link
-                    href="/dashboard/applications"
-                    className="flex items-center gap-1 text-primary hover:underline pt-1"
-                  >
-                    Open in Applications <ExternalLink className="h-3 w-3" />
-                  </Link>
+                  activePin.url ? (
+                    <a
+                      href={activePin.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-primary hover:underline pt-1"
+                    >
+                      Open job listing <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : (
+                    <Link
+                      href={`/dashboard/applications?q=${encodeURIComponent(activePin.company)}`}
+                      className="flex items-center gap-1 text-primary hover:underline pt-1"
+                    >
+                      Open {activePin.company} in Applications <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  )
                 )}
               </div>
             </Popup>
@@ -226,7 +280,8 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
         {pins.length} geocoded application{pins.length !== 1 ? "s" : ""} shown
         {ungeocodedCount > 0 ? ` - ${ungeocodedCount} more waiting on the next geocoding run` : ""}.
         Pulsing pins mark applications from the last {RECENT_DAYS} days. Hover a pin for a quick
-        preview, click it to open the full popup with a link back to the application.
+        preview, click it to open the full popup with a link back to the application. Numbered
+        badges are clusters of nearby applications - click one to zoom in.
       </p>
     </div>
   )

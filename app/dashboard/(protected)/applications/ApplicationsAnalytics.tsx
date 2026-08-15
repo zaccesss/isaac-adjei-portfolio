@@ -29,6 +29,7 @@ type Application = {
   created_at: string
   location: string | null
   category: string | null
+  url: string | null
 }
 
 type Geocode = { location: string; lat: number | null; lng: number | null }
@@ -205,7 +206,7 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
       <div className="border border-border rounded-lg p-4 bg-card">
         <p className="text-sm font-semibold mb-3">Application locations</p>
         <ApplicationsMap
-          apps={filtered.map((a) => ({ id: a.id, company: a.company, role: a.role, status: a.status, location: a.location, created_at: a.created_at }))}
+          apps={filtered.map((a) => ({ id: a.id, company: a.company, role: a.role, status: a.status, location: a.location, created_at: a.created_at, url: a.url }))}
           geocodes={geocodes}
         />
       </div>
