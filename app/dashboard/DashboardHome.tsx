@@ -251,7 +251,7 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
                 { key: "music", name: "Music" },
                 { key: "faith", name: "Faith" },
               ]}
-              colours={["#14b8a6", "#3b82f6", "#FC4C02", "#ec4899", "#6366f1"]}
+              colours={["#F0E442", "#3b82f6", "#FC4C02", "#CC79A7", "#009E73"]}
               height={140}
               valueFormatter={(v) => `${Math.round((v / 60) * 10) / 10}h`}
             />
