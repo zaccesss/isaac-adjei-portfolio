@@ -2,8 +2,9 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Plus, ShoppingBag } from "lucide-react"
+import { Plus, ShoppingBag, BarChart3 } from "lucide-react"
 import { dashboardPage, dashboardGrid, dashboardCard } from "@/lib/animations"
+import { StatCard, PieChart, BarChart, DEFAULT_CHART_COLOURS } from "@/components/analytics"
 
 type Item = {
   id: string
@@ -39,6 +40,12 @@ export default function WishlistClient({ items }: { items: Item[] }) {
     return { cat, catItems, gotCount, highCount, mediumCount, lowCount, progress }
   })
 
+  const byCategory = categoryStats.map(({ cat, catItems }) => ({ name: cat, value: catItems.length })).filter((d) => d.value > 0)
+  const byPriority = ["high", "medium", "low"]
+    .map((p) => ({ name: p, count: items.filter((i) => i.priority === p).length }))
+    .filter((d) => d.count > 0)
+  const highPriorityOpen = items.filter((i) => i.priority === "high" && i.status !== "got_it").length
+
   return (
     <motion.div
       className="flex flex-col gap-6 max-w-6xl"
@@ -61,6 +68,35 @@ export default function WishlistClient({ items }: { items: Item[] }) {
           <Plus className="h-3.5 w-3.5" />Add item
         </Link>
       </div>
+
+      {items.length > 0 && (
+        <div className="flex flex-col gap-4 border-t border-border pt-6">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm font-semibold">Wishlist analytics</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard label="Total items" value={items.length} />
+            <StatCard label="Obtained" value={totalGot} />
+            <StatCard label="High priority open" value={highPriorityOpen} />
+            <StatCard label="Categories" value={categories.length} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {byCategory.length > 0 && (
+              <div className="border border-border rounded-xl p-4">
+                <p className="text-sm font-medium mb-3 text-center">By category</p>
+                <PieChart data={byCategory} colours={DEFAULT_CHART_COLOURS} height={180} />
+              </div>
+            )}
+            {byPriority.length > 0 && (
+              <div className="border border-border rounded-xl p-4">
+                <p className="text-sm font-medium mb-3">By priority</p>
+                <BarChart data={byPriority} dataKey="count" xKey="name" colours={DEFAULT_CHART_COLOURS} />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className="border border-dashed border-border rounded-xl p-10 text-center">
