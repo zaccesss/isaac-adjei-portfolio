@@ -18,6 +18,8 @@ import { clearAllJobs, clearAllApplications } from "@/app/dashboard/actions"
 const EXPORT_SECTIONS: { label: string; tables: string[] }[] = [
   { label: "Applications", tables: ["applications", "location_geocodes"] },
   { label: "Goals", tables: ["goals"] },
+  { label: "Projects", tables: ["projects", "project_tasks"] },
+  { label: "Finance", tables: ["finance_transactions"] },
   { label: "Streaks", tables: ["streaks", "streak_logs"] },
   { label: "Habits", tables: ["habits", "habit_logs"] },
   { label: "Health", tables: ["health_sections", "health_workouts", "health_nutrition", "body_metrics", "strava_activities", "medication_reminders", "medication_doses"] },
@@ -301,7 +303,7 @@ export default function SettingsClient() {
       variants={dashboardPage}
       initial="hidden"
       animate="visible"
-      className="flex flex-col gap-8 max-w-5xl"
+      className="flex flex-col gap-8 max-w-6xl"
     >
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
