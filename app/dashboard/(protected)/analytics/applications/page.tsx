@@ -26,6 +26,10 @@ export default async function ApplicationsAnalyticsPage() {
   )
   const data = pages.flatMap((p) => p.data ?? [])
 
+  // Geocode cache lookup for the Applications map - only ever reads what geocode-locations.mjs
+  // (isaac-adjei-automations) has already resolved, never calls a geocoder from the website itself.
+  const { data: geocodes } = await supabase.from("location_geocodes").select("location, lat, lng")
+
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex items-center gap-2 px-4 pt-4 pb-2 shrink-0">
@@ -42,7 +46,7 @@ export default async function ApplicationsAnalyticsPage() {
         <span className="ml-auto text-[10px] font-mono text-muted-foreground/60">all types combined</span>
       </div>
       <div className="flex-1 overflow-auto px-4 pb-4">
-        <ApplicationsAnalytics apps={data} />
+        <ApplicationsAnalytics apps={data} geocodes={geocodes ?? []} />
       </div>
     </div>
   )

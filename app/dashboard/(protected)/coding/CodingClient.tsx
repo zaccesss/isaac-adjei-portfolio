@@ -18,6 +18,7 @@ import {
   type AnalyticsPeriod,
   CalendarHeatmap,
   GridHeatmap,
+  Composed,
 } from "@/components/analytics"
 import type { WakatimeDayRow, GitHubDay, GitHubContribTotals } from "@/app/dashboard/actions"
 
@@ -290,6 +291,13 @@ function CodingInner({
     })
   }, [rows, numDays])
 
+  // Cumulative coding hours across the same daily series - reads the running total alongside the
+  // day-by-day bars in one chart instead of two.
+  const dailyCodingsCumulative = useMemo(() => {
+    const runningTotals = dailyCodings.reduce<number[]>((acc, d) => [...acc, (acc[acc.length - 1] ?? 0) + d.seconds], [])
+    return dailyCodings.map((d, i) => ({ ...d, cumulativeHours: Math.round((runningTotals[i] / 3600) * 10) / 10 }))
+  }, [dailyCodings])
+
   const dailyGH = useMemo(() => {
     if (!ghDays.length) return []
     const byDate = new Map(ghDays.map((d) => [d.date, d.count]))
@@ -367,7 +375,7 @@ function CodingInner({
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <StatCard label={PERIOD_STAT_LABEL[period]} value={formatHours(totalSeconds)} />
+        <StatCard label={PERIOD_STAT_LABEL[period]} value={formatHours(totalSeconds)} sparkline={dailyCodings.map((d) => d.seconds)} />
         <StatCard label="This week"    value={formatHours(totalSecondsWeek)} scope="current" />
         <StatCard label="Active days"  value={activeDays} />
         <StatCard label="Daily average" value={formatHours(avgSeconds)} />
@@ -443,6 +451,20 @@ function CodingInner({
             </ResponsiveContainer>
           </div>
         )}
+      </div>
+
+      {/* Daily coding hours with cumulative total overlaid */}
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <h2 className="text-sm font-semibold mb-3">Coding: daily hours with running total</h2>
+        <Composed
+          data={dailyCodingsCumulative}
+          barKey="seconds"
+          lineKey="cumulativeHours"
+          barName="Daily time"
+          lineName="Cumulative"
+          barValueFormatter={formatHours}
+          lineValueFormatter={(v) => `${v}h total`}
+        />
       </div>
 
       {/* Weekly bar charts */}

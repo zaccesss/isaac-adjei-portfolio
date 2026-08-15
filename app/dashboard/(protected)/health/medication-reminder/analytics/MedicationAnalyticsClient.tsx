@@ -10,6 +10,7 @@ import {
   StatCard,
   LineChart,
   BarChart,
+  Gauge,
 } from "@/components/analytics"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Pill } from "lucide-react"
@@ -94,6 +95,11 @@ function Inner({ reminders, doses }: { reminders: ReminderLite[]; doses: Dose[] 
         <StatCard label="Sent" value={sent} />
         <StatCard label="Taken" value={taken} />
         <StatCard label="Adherence" value={`${adherence}%`} />
+      </div>
+
+      <div className="border border-border rounded-lg p-4 bg-card">
+        <p className="text-sm font-medium mb-1 text-center">Adherence</p>
+        {sent > 0 ? <Gauge value={adherence} height={140} /> : <p className="text-sm text-muted-foreground py-8 text-center">No reminders sent in this period yet.</p>}
       </div>
 
       <div className="border border-border rounded-lg p-4 bg-card">

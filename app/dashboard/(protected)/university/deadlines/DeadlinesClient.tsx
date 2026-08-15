@@ -120,7 +120,7 @@ function DeadlinesClientInner({ deadlines, modules }: { deadlines: Deadline[]; m
   const statSubmitted = inWindow.filter((d) => d.status === "submitted" || d.status === "graded").length
 
   return (
-    <div className="p-6 space-y-6 max-w-3xl">
+    <div className="p-6 space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Deadlines</h1>

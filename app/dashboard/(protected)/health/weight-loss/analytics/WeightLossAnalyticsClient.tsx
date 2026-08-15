@@ -12,7 +12,18 @@ import {
   LineChart,
   BarChart,
   PieChart,
+  Waterfall,
+  type WaterfallStep,
 } from "@/components/analytics"
+
+// Monday of the ISO week containing this date, used to bucket weight entries into weekly
+// checkpoints for the waterfall below (weight is often logged more than once a week).
+function weekStart(dateStr: string): string {
+  const d = new Date(dateStr)
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+  return d.toISOString().slice(0, 10)
+}
 
 type Weight = { value: number; date: string }
 type Nutrition = { date: string; calories: number; protein_g: number | null; carbs_g: number | null; fat_g: number | null }
@@ -56,6 +67,22 @@ function Inner({ weights, nutrition, workouts, strava }: { weights: Weight[]; nu
   const totalWorkouts = wo.length + sv.length
 
   const weightSeries = w.map((x) => ({ name: fmtDay(x.date), value: x.value }))
+
+  // Weekly-delta waterfall: last logged weight per ISO week, starting weight as an absolute bar,
+  // each week's change as a floating delta, current weight as a final absolute bar.
+  const weeklyLast = new Map<string, Weight>()
+  for (const x of w) weeklyLast.set(weekStart(x.date), x)
+  const weeklyPoints = [...weeklyLast.values()].sort((a, b) => a.date.localeCompare(b.date))
+  const weightWaterfall: WaterfallStep[] = []
+  if (weeklyPoints.length > 0) {
+    weightWaterfall.push({ name: `Start (${fmtDay(weeklyPoints[0].date)})`, delta: weeklyPoints[0].value, isTotal: true })
+    for (let i = 1; i < weeklyPoints.length; i++) {
+      weightWaterfall.push({ name: fmtDay(weeklyPoints[i].date), delta: round1(weeklyPoints[i].value - weeklyPoints[i - 1].value) })
+    }
+    if (weeklyPoints.length > 1) {
+      weightWaterfall.push({ name: "Current", delta: weeklyPoints[weeklyPoints.length - 1].value, isTotal: true })
+    }
+  }
   const calSeries = calDays.map((d) => ({ name: fmtDay(d), value: calByDay[d] }))
 
   const typeAgg: Record<string, number> = {}
@@ -88,7 +115,7 @@ function Inner({ weights, nutrition, workouts, strava }: { weights: Weight[]; nu
       : []
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl">
+    <div className="p-6 space-y-6 max-w-5xl">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <Link href="/dashboard/health/weight-loss" className="text-muted-foreground hover:text-foreground">
@@ -105,7 +132,7 @@ function Inner({ weights, nutrition, workouts, strava }: { weights: Weight[]; nu
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Current weight" value={latest != null ? `${latest} kg` : "-"} scope="current" />
+        <StatCard label="Current weight" value={latest != null ? `${latest} kg` : "-"} scope="current" sparkline={weightSeries.map((w) => w.value)} />
         <StatCard
           label="Change in period"
           value={change != null ? `${change > 0 ? "+" : ""}${change} kg` : "-"}
@@ -129,6 +156,10 @@ function Inner({ weights, nutrition, workouts, strava }: { weights: Weight[]; nu
         <ChartCard title="Workouts by type">{workoutPie.length > 0 ? <PieChart data={workoutPie} /> : <Empty />}</ChartCard>
         <ChartCard title="Average macros (g/day)">{macroPie.length > 0 ? <PieChart data={macroPie} /> : <Empty />}</ChartCard>
       </div>
+
+      <ChartCard title="Weekly weight change">
+        {weightWaterfall.length > 1 ? <Waterfall steps={weightWaterfall} valueFormatter={(v) => `${v} kg`} /> : <Empty />}
+      </ChartCard>
     </div>
   )
 }

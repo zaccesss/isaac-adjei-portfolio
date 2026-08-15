@@ -8,7 +8,7 @@ There is no `schema.sql` any more - it embedded real seed data, so it was remove
 
 | File | Description |
 |---|---|
-| `migrations/` | Incremental migration files numbered 001-046. Safe to run on a live database; each is idempotent. |
+| `migrations/` | Incremental migration files numbered 001-051. Safe to run on a live database; each is idempotent. |
 
 ## Fresh-install guide
 
@@ -18,6 +18,6 @@ Run every file in `migrations/` in numeric order in the Supabase **SQL Editor**.
 
 Run only the migrations that have not yet been applied, in numeric order. The full list with what each one adds is in [`migrations/README.md`](migrations/README.md).
 
-The files are a clean unique sequence 001-046. They were renumbered once, on 2026-07-12, to remove two historical duplicate numbers - the mapping and the decode rule are documented in [`migrations/README.md`](migrations/README.md), so a number cited in an older commit or note may be one lower than its current filename.
+The files are a clean unique sequence 001-051. They were renumbered once, on 2026-07-12, to remove two historical duplicate numbers - the mapping and the decode rule are documented in [`migrations/README.md`](migrations/README.md), so a number cited in an older commit or note may be one lower than its current filename.
 
 All migration files use `IF NOT EXISTS` / `CREATE OR REPLACE` so they are safe to re-run.

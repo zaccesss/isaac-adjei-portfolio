@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Clock, BookOpen, Pencil } from "lucide-react"
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, YAxis } from "recharts"
-import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod, allTimeChartDays } from "@/components/analytics"
+import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod, allTimeChartDays, Composed, Bubble } from "@/components/analytics"
 import { Pagination } from "@/components/shared/Pagination"
+import { calcMark } from "../modules/ModulesClient"
 
 type Session = {
   id: string
@@ -24,7 +25,11 @@ type Session = {
   technique: string | null
   productive: boolean
   created_at: string
+  module_id: string | null
 }
+
+type ModuleLite = { id: string; name: string; code: string | null }
+type AssessmentLite = { module_id: string; weight_percent: number | null; mark_achieved: number | null; mark_max: number | null; is_pass_fail: boolean }
 
 const STUDY_PAGE_SIZE = 24
 
@@ -46,7 +51,7 @@ function fmtMinutes(m: number): string {
   return rem === 0 ? `${h}h` : `${h}h ${rem}m`
 }
 
-function StudyClientInner({ sessions, today }: { sessions: Session[]; today: string }) {
+function StudyClientInner({ sessions, today, modules, assessments }: { sessions: Session[]; today: string; modules: ModuleLite[]; assessments: AssessmentLite[] }) {
   const [open, setOpen] = useState(false)
   const [editSession, setEditSession] = useState<Session | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -60,10 +65,11 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
     notes: "",
     technique: "",
     productive: true,
+    module_id: "",
   })
 
   function resetForm() {
-    setForm({ date: today, subject: "", duration_m: "", notes: "", technique: "", productive: true })
+    setForm({ date: today, subject: "", duration_m: "", notes: "", technique: "", productive: true, module_id: "" })
     setEditSession(null)
   }
 
@@ -76,6 +82,7 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
       notes: s.notes ?? "",
       technique: s.technique ?? "",
       productive: s.productive,
+      module_id: s.module_id ?? "",
     })
     setOpen(true)
   }
@@ -91,6 +98,7 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
       notes: form.notes.trim() || undefined,
       technique: form.technique || undefined,
       productive: form.productive,
+      module_id: form.module_id || undefined,
     }
     startTransition(async () => {
       const res = editSession ? await updateStudySession(editSession.id, payload) : await createStudySession(payload)
@@ -130,6 +138,38 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
     minutes: periodSessions.filter((s) => s.subject === subj).reduce((a, s) => a + s.duration_m, 0),
   })).filter((b) => b.minutes > 0).sort((a, b) => b.minutes - a.minutes)
 
+  // Study hours vs module mark - total duration_m across ALL logged sessions carrying a
+  // module_id (not just this period, since a module's mark reflects the whole course, not a
+  // recent slice), summed per module, plotted against that module's own computed mark. Degrades
+  // to an explanatory empty state until enough sessions carry a module_id to plot anything.
+  const assessmentsByModule = new Map<string, AssessmentLite[]>()
+  for (const a of assessments) {
+    if (!assessmentsByModule.has(a.module_id)) assessmentsByModule.set(a.module_id, [])
+    assessmentsByModule.get(a.module_id)!.push(a)
+  }
+  const minutesByModule = new Map<string, number>()
+  for (const s of sessions) {
+    if (!s.module_id) continue
+    minutesByModule.set(s.module_id, (minutesByModule.get(s.module_id) ?? 0) + s.duration_m)
+  }
+  const studyVsMark = modules
+    .map((m) => {
+      const minutes = minutesByModule.get(m.id) ?? 0
+      const mark = calcMark(assessmentsByModule.get(m.id) ?? [])
+      return { name: m.code ?? m.name, hours: Math.round((minutes / 60) * 10) / 10, mark }
+    })
+    .filter((d): d is { name: string; hours: number; mark: number } => d.hours > 0 && d.mark != null)
+
+  // Pareto of time by subject - which subjects account for most of my study time, read as
+  // cumulative share rather than absolute minutes (the bar chart above already covers that).
+  const subjectTotal = bySubject.reduce((a, b) => a + b.minutes, 0)
+  const subjectRunningTotals = bySubject.reduce<number[]>((acc, b) => [...acc, (acc[acc.length - 1] ?? 0) + b.minutes], [])
+  const subjectPareto = bySubject.map((b, i) => ({
+    name: b.subject,
+    minutes: b.minutes,
+    cumulativePct: subjectTotal > 0 ? Math.round((subjectRunningTotals[i] / subjectTotal) * 100) : 0,
+  }))
+
   // Daily totals across a window that follows the period. "All time" used to silently reuse 1y's
   // 365-day window, looking identical to 1y once there was more than a year of sessions - it now
   // spans back to the earliest session actually logged instead.
@@ -152,7 +192,7 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
   ]
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl">
+    <div className="p-6 space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Study</h1>
@@ -206,6 +246,20 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
                   {subjects.map((s) => <option key={s} value={s} />)}
                 </datalist>
               </div>
+              {modules.length > 0 && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">Module (optional, for the study-vs-mark chart)</label>
+                  <Select value={form.module_id || "none"} onValueChange={(v) => setForm((f) => ({ ...f, module_id: v === "none" ? "" : v }))}>
+                    <SelectTrigger><SelectValue placeholder="Not linked to a module..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Not linked</SelectItem>
+                      {modules.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>{m.code ? `${m.code} - ${m.name}` : m.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Technique (optional)</label>
                 <Select value={form.technique} onValueChange={(v) => setForm((f) => ({ ...f, technique: v }))}>
@@ -320,6 +374,45 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
             </ResponsiveContainer>
           )}
         </div>
+
+        {/* Pareto of time by subject */}
+        <div className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
+          <p className="text-sm font-medium">Time by subject - Pareto</p>
+          {subjectPareto.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No sessions yet</p>
+          ) : (
+            <Composed
+              data={subjectPareto}
+              barKey="minutes"
+              lineKey="cumulativePct"
+              barName="Minutes"
+              lineName="Cumulative %"
+              barValueFormatter={fmtMinutes}
+              lineValueFormatter={(v) => `${v}%`}
+            />
+          )}
+        </div>
+
+        {/* Study hours vs module mark */}
+        <div className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
+          <p className="text-sm font-medium">Study hours vs module mark</p>
+          {studyVsMark.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Link a study session to a module (using the picker in the form above) and once that module has a mark, this chart plots total hours studied against how it turned out.
+            </p>
+          ) : (
+            <Bubble
+              data={studyVsMark}
+              xKey="hours"
+              yKey="mark"
+              xLabel="Hours"
+              yLabel="Mark"
+              xFormatter={(v) => `${v}h`}
+              yFormatter={(v) => `${v}%`}
+              colour="#8b5cf6"
+            />
+          )}
+        </div>
       </div>
 
       {/* Filter + session list */}
@@ -398,7 +491,7 @@ function StudyClientInner({ sessions, today }: { sessions: Session[]; today: str
   )
 }
 
-export default function StudyClient(props: { sessions: Session[]; today: string }) {
+export default function StudyClient(props: { sessions: Session[]; today: string; modules: ModuleLite[]; assessments: AssessmentLite[] }) {
   return (
     <AnalyticsPeriodProvider defaultPeriod="30d">
       <StudyClientInner {...props} />

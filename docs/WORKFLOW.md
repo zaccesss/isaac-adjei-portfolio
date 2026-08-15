@@ -13,9 +13,9 @@ for the correct flow.
 git checkout main && git pull
 git checkout -b fix/your-description
 
-# 2. Update CHANGELOG.md for public changes OR LOG.md for private dashboard changes
+# 2. Update CHANGELOG.md for every change, public or dashboard
 #    Add entries under the relevant heading in [Unreleased] (Added / Changed / Fixed / Removed)
-#    NEVER add private dashboard details to CHANGELOG.md - use LOG.md only
+#    docs/LOG.md is archived, no longer where anything new goes
 # Then stage and commit (conventional format, no em/en dashes, no Oxford commas)
 git add .
 git commit -m "fix: short description of what changed"
@@ -63,18 +63,16 @@ The `.githooks/commit-msg` hook rejects commits that violate these:
 
 ## Changelog rules
 
-- `CHANGELOG.md` is public-facing. Never include private dashboard changes in it.
-- All private dashboard changes go in `LOG.md` at the repo root.
-- Update `LOG.md` in the same commit as any private dashboard change.
+- `CHANGELOG.md` now covers every change, public or dashboard. The old public-only split with `docs/LOG.md` stopped being followed a while back - `docs/LOG.md` is archived, kept for its historical entries, no longer where anything new goes.
 
 | Change type | Where to document |
 | --- | --- |
 | New public page or feature | `CHANGELOG.md` [Unreleased] |
 | Bug fix visible to public | `CHANGELOG.md` [Unreleased] |
-| Dashboard feature | `LOG.md` only |
-| CV or script change | `LOG.md` only |
+| Dashboard feature | `CHANGELOG.md` [Unreleased] |
+| CV or script change | `CHANGELOG.md` [Unreleased] |
 | Dependency bump | Neither (chore commit only) |
-| Infrastructure or workflow | `LOG.md` only |
+| Infrastructure or workflow | `CHANGELOG.md` [Unreleased] |
 
 ---
 
@@ -93,7 +91,7 @@ At the end of every session:
 - No Oxford commas: write `x, y and z` not `x, y and z`
 - No AI co-author credits anywhere
 - All inline code comments must be first-person: "I use..." or "I check..." not "This function..." or "The component..."
-- PR descriptions, LOG.md entries and WORKFLOW.md must all use first-person where applicable ("I'll run this in Supabase...", "I changed X because...")
+- PR descriptions, CHANGELOG.md entries and WORKFLOW.md must all use first-person where applicable ("I'll run this in Supabase...", "I changed X because...")
 
 ---
 

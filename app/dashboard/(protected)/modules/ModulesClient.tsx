@@ -53,7 +53,7 @@ const YEAR_SLUGS: Record<number, string> = {
 
 // I compute the weighted mark purely from the assessments array in local state
 // so any edits are reflected instantly without a DB round trip
-export function calcMark(assessments: Assessment[]): number | null {
+export function calcMark(assessments: Pick<Assessment, "is_pass_fail" | "mark_achieved" | "weight_percent" | "mark_max">[]): number | null {
   // I exclude pass/fail assessments because they do not contribute to the module percentage mark
   const graded = assessments.filter((a) => !a.is_pass_fail && a.mark_achieved != null && a.weight_percent != null && a.mark_max != null)
   if (!graded.length) return null
@@ -158,7 +158,7 @@ export default function ModulesClient({ modules }: { modules: Module[] }) {
   const totalCredits = modules.reduce((s, m) => s + (m.credits ?? 0), 0)
 
   return (
-    <div className="flex flex-col gap-6 max-w-3xl">
+    <div className="flex flex-col gap-6 max-w-5xl">
       <h1 className="text-xl font-semibold">Modules</h1>
 
       {/* I only show the master stats bar when there is at least one completed module with a mark */}

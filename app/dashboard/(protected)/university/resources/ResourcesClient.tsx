@@ -41,7 +41,7 @@ export default function ResourcesClient({ resources, modules }: { resources: Res
   const filtered = moduleFilter === "all" ? resources : resources.filter((r) => r.uni_modules?.code === moduleFilter)
 
   return (
-    <div className="p-6 space-y-6 max-w-3xl">
+    <div className="p-6 space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Resources</h1>

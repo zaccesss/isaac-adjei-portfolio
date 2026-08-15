@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, BookOpen, Cross, Church, Heart, Star, Pencil, Check, Clock } from "lucide-react"
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
-import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod } from "@/components/analytics"
+import { AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod, CalendarHeatmap } from "@/components/analytics"
 
 type FaithEntry = {
   id: string
@@ -115,6 +115,12 @@ function FaithClientInner({ entries, today }: { entries: FaithEntry[]; today: st
   }
 
   const { period } = useAnalyticsPeriod()
+  const heatmapData = (() => {
+    const byDay = new Map<string, number>()
+    for (const e of entries) byDay.set(e.date, (byDay.get(e.date) ?? 0) + 1)
+    return [...byDay.entries()].map(([date, value]) => ({ date, value }))
+  })()
+
   const todayEntries = entries.filter((e) => e.date === today)
   const streak = calcStreak(entries, today)
   // Stats and charts follow the period selector; the entries list below stays complete.
@@ -141,7 +147,7 @@ function FaithClientInner({ entries, today }: { entries: FaithEntry[]; today: st
   })).filter((ft) => ft.count > 0)
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl">
+    <div className="p-6 space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Faith</h1>
@@ -297,6 +303,13 @@ function FaithClientInner({ entries, today }: { entries: FaithEntry[]; today: st
           )}
         </div>
       </div>
+
+      {heatmapData.length > 0 && (
+        <div className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
+          <p className="text-sm font-medium">Activity over the last year</p>
+          <CalendarHeatmap data={heatmapData} valueLabel="entries" />
+        </div>
+      )}
 
       {/* Entry list */}
       <div className="space-y-2">

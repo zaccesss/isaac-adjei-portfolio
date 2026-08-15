@@ -358,7 +358,7 @@ export default function HealthSectionClient({
   if (activeSection === "gym" && selectedSection) {
     const sectionWorkouts = workouts.filter((w) => w.section_id === selectedSection.id)
     return (
-      <motion.div className="flex flex-col gap-5 max-w-3xl" variants={dashboardPage} initial="hidden" animate="visible">
+      <motion.div className="flex flex-col gap-5 max-w-5xl" variants={dashboardPage} initial="hidden" animate="visible">
         <DashboardBreadcrumb
           crumbs={[
             { label: "Health and Fitness", href: "/dashboard/health" },
@@ -462,7 +462,7 @@ export default function HealthSectionClient({
 
   return (
     <motion.div
-      className="flex flex-col gap-6 max-w-3xl"
+      className="flex flex-col gap-6 max-w-5xl"
       variants={dashboardPage}
       initial="hidden"
       animate="visible"

@@ -492,8 +492,7 @@ Create `.env.local` in the project root for local development. All variables are
 - **Weather card shows country only** - never the city name.
 - **Sitemap lists only public routes** - never `/dashboard` or any private path.
 - **Do not replace the GitHub Lucide icon** with any other icon.
-- **Private dashboard changes** go in `docs/LOG.md` only - never in `CHANGELOG.md`.
-- **Public changes** go in `CHANGELOG.md` and the session log.
+- **Every change**, public or dashboard, goes in `CHANGELOG.md` - `docs/LOG.md` is archived, no longer where anything new goes.
 - **Never commit directly to main** - always branch, then PR, then squash merge.
 - **Every PR must pass CI (Lint and Build)** before merge.
 - **Supabase anon key format** - use the `eyJ...` JWT format in GitHub Actions secrets; the newer `sb_publishable_` format is not yet supported by PostgREST upserts.
@@ -581,7 +580,7 @@ Both routes verify `Authorization: Bearer <CRON_SECRET>` before executing.
 │   └── societies.ts
 │
 ├── docs/                   # Internal session docs (not served)
-│   ├── LOG.md              # Private session log - newest first
+│   ├── LOG.md              # Archived private session log - superseded by CHANGELOG.md
 │   ├── RULES.md            # Per-session rules
 │   ├── WORKFLOW.md         # Dev workflow reference
 │   ├── DASHBOARD.md        # Dashboard current state reference
@@ -635,3 +634,7 @@ Both routes verify `Authorization: Bearer <CRON_SECRET>` before executing.
 | `recharts` | Dashboard charts (streak heatmap, mood bar chart, application funnel) |
 | `sonner` | Toast notifications in the dashboard |
 | `@hello-pangea/dnd` | Drag-and-drop for the Applications Kanban board |
+| `echarts` + `echarts-for-react` | Canvas-based dashboard charts (calendar heatmaps, radial clock, gauges) needing colour/layout recharts cannot do natively |
+| `d3-array` | Real quantile/bin statistics backing the dashboard's Box plot and Histogram charts |
+| `@visx/wordcloud` | Collision-avoidance word cloud layout on the Music analytics page |
+| `maplibre-gl` + `react-map-gl` | The Applications analytics page's geocoded location map (OpenFreeMap tiles, no account or key needed) |

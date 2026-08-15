@@ -18,12 +18,21 @@ const EXPORT_TABLES = [
   "faith_entries", "study_sessions", "calendar_events", "user_files",
   "uni_modules", "uni_deadlines", "uni_submissions", "uni_notes", "uni_resources",
   "uni_library_books", "modules", "assessments", "opensource_contributions",
-  "wakatime_daily", "activity_log",
+  "wakatime_daily", "activity_log", "course_modules", "medication_reminders",
+  "medication_doses", "reminders", "strava_activities", "listening_history",
+  "github_contributions_days", "github_contributions_years", "location_geocodes",
+  "lab_measurements",
 ] as const
 
-// user_files holds only storage metadata (the files live in Supabase Storage, not here),
-// and wakatime_daily / activity_log are append-only logs - none are safe to upsert back in.
-const NON_IMPORTABLE = new Set<string>(["user_files", "wakatime_daily", "activity_log"])
+// user_files holds only storage metadata (the files live in Supabase Storage, not here);
+// wakatime_daily, activity_log, strava_activities, listening_history,
+// github_contributions_days/_years are all append-only sync logs from an external source of
+// truth (WakaTime/Strava/Spotify/GitHub); location_geocodes is a regenerable cache keyed on
+// applications.location - none of these are safe to upsert back in.
+const NON_IMPORTABLE = new Set<string>([
+  "user_files", "wakatime_daily", "activity_log", "strava_activities", "listening_history",
+  "github_contributions_days", "github_contributions_years", "location_geocodes",
+])
 const IMPORTABLE_TABLES = EXPORT_TABLES.filter((t) => !NON_IMPORTABLE.has(t))
 
 // A backup must never be silently truncated: PostgREST caps a single response at 1000 rows,

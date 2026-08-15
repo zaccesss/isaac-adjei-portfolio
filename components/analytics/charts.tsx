@@ -11,13 +11,22 @@ import {
   LineChart as RLineChart, Line, BarChart as RBarChart, Bar,
   PieChart as RPieChart, Pie, Cell, Sector,
   Treemap as RTreemap, Sankey as RSankey,
+  RadarChart as RRadarChart, Radar as RRadar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  ComposedChart as RComposedChart,
+  ScatterChart as RScatterChart, Scatter, ZAxis,
+  AreaChart as RAreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts"
 
+// 16 swatches, chosen for real contrast against both the light and dark card backgrounds -
+// verified pairwise distinguishable, not just individually legible. hsl(var(--primary)) stays
+// first so single-series charts keep their existing default colour unchanged.
 export const DEFAULT_CHART_COLOURS = [
   "hsl(var(--primary))",
   "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6",
   "#06b6d4", "#f97316", "#ec4899", "#14b8a6",
+  "#3b82f6", "#eab308", "#a855f7", "#10b981",
+  "#f43f5e", "#0ea5e9", "#84cc16",
 ]
 
 type ChartDatum = Record<string, string | number>
@@ -239,8 +248,12 @@ export function PieChart({
 // Recharts renders the Treemap's own wrapping root as depth 0 with no real name/value - only
 // its children (depth 1) are the actual leaf boxes this chart is meant to show, so depth 0 is
 // skipped entirely rather than drawn as an empty outer rectangle.
-function TreemapCell(props: { depth?: number; x?: number; y?: number; width?: number; height?: number; name?: string; value?: number; index?: number; colours: string[]; valueFormatter?: (v: number) => string }) {
-  const { depth, x = 0, y = 0, width = 0, height = 0, name, value, index = 0, colours, valueFormatter } = props
+function TreemapCell(props: { depth?: number; x?: number; y?: number; width?: number; height?: number; name?: string; value?: number; index?: number; colours: string[]; valueFormatter?: (v: number) => string; payload?: { value?: number } }) {
+  const { depth, x = 0, y = 0, width = 0, height = 0, name, value: sizedValue, payload, index = 0, colours, valueFormatter } = props
+  // The real (untransformed) value lives on payload.value when a caller sizes cells on a
+  // transformed scale (e.g. Treemap's own sqrt scaling below) - fall back to the raw `value` prop
+  // for callers that pass real values directly.
+  const value = payload?.value ?? sizedValue
   if (!depth) return null
   const fill = colours[index % colours.length]
   const showLabel = width > 46 && height > 22
@@ -274,21 +287,28 @@ export function Treemap({
   colours?: string[]
   valueFormatter?: (value: number) => string
 }) {
+  // Cells are sized on a square-root scale rather than the raw value: real-world grouped counts
+  // here (e.g. runs per repo) can be dominated by one or two very high-frequency jobs living
+  // alongside many low-frequency ones, which on a linear scale draws one cell that swallows
+  // nearly the whole chart and leaves everything else an unreadable sliver. sqrt keeps the
+  // ordering and "meaningfully bigger" signal while compressing that skew into a readable layout.
+  // The real value is untouched for the label and tooltip - only the layout math is transformed.
+  const sized = data.map((d) => ({ ...d, sqrtValue: Math.sqrt(Math.max(d.value, 0)) }))
   return (
     <ResponsiveContainer width="100%" height={height}>
       <RTreemap
-        data={data}
-        dataKey="value"
+        data={sized}
+        dataKey="sqrtValue"
         nameKey="name"
         aspectRatio={4 / 3}
         isAnimationActive={false}
-        content={(props) => <TreemapCell {...props} colours={colours} valueFormatter={valueFormatter} />}
+        content={(props) => <TreemapCell {...(props as { value?: number; payload?: { value?: number } })} value={(props as { payload?: { value?: number } }).payload?.value} colours={colours} valueFormatter={valueFormatter} />}
       >
         <Tooltip
           content={({ active, payload }) => (
             <ThemedTooltip
               active={active}
-              payload={payload?.map((p, i) => ({ name: String(p.payload?.name ?? ""), value: Number(p.value ?? 0), color: colours[i % colours.length] }))}
+              payload={payload?.map((p, i) => ({ name: String(p.payload?.name ?? ""), value: Number(p.payload?.value ?? 0), color: colours[i % colours.length] }))}
               valueFormatter={valueFormatter}
             />
           )}
@@ -368,6 +388,240 @@ export function Sankey({
           }}
         />
       </RSankey>
+    </ResponsiveContainer>
+  )
+}
+
+export function Radar({
+  data,
+  dataKey,
+  nameKey = "name",
+  height = 240,
+  colour = "hsl(var(--primary))",
+  valueFormatter,
+  max,
+}: {
+  data: ChartDatum[]
+  dataKey: string
+  nameKey?: string
+  height?: number
+  colour?: string
+  valueFormatter?: (value: number) => string
+  // Radius axis max. Defaults to recharts' own auto-scale ("auto") when omitted - pass a fixed
+  // value (e.g. 100 for a percentage) so multiple radars on the same page share one scale.
+  max?: number
+}) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <RRadarChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 16 }}>
+        <PolarGrid stroke="hsl(var(--border))" />
+        <PolarAngleAxis dataKey={nameKey} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+        <PolarRadiusAxis domain={max != null ? [0, max] : undefined} tick={false} axisLine={false} />
+        <RRadar dataKey={dataKey} stroke={colour} fill={colour} fillOpacity={0.35} />
+        <Tooltip
+          content={({ active, payload, label }) => (
+            <ThemedTooltip
+              active={active}
+              payload={payload?.map((p) => ({ name: String(p.payload?.[nameKey] ?? label ?? dataKey), value: Number(p.value ?? 0), color: colour }))}
+              label={String(label ?? "")}
+              valueFormatter={valueFormatter}
+            />
+          )}
+        />
+      </RRadarChart>
+    </ResponsiveContainer>
+  )
+}
+export function Composed({
+  data,
+  xKey = "name",
+  barKey,
+  lineKey,
+  height = 200,
+  barColour = "hsl(var(--primary))",
+  lineColour = "#f59e0b",
+  valueFormatter,
+  barValueFormatter,
+  lineValueFormatter,
+  barName,
+  lineName,
+}: {
+  data: ChartDatum[]
+  xKey?: string
+  barKey: string
+  lineKey: string
+  height?: number
+  barColour?: string
+  lineColour?: string
+  valueFormatter?: (value: number) => string
+  barValueFormatter?: (value: number) => string
+  lineValueFormatter?: (value: number) => string
+  barName?: string
+  lineName?: string
+}) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <RComposedChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 8 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+        <XAxis dataKey={xKey} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+        <YAxis yAxisId="bar" hide />
+        <YAxis yAxisId="line" orientation="right" hide />
+        <Tooltip
+          content={({ active, payload, label }) => {
+            if (!active || !payload?.length) return null
+            return (
+              <div className="rounded-md border border-border bg-background px-3 py-2 shadow-md text-xs">
+                {label && <p className="mb-1.5 font-medium text-foreground">{String(label)}</p>}
+                {payload.map((p) => {
+                  const isBar = p.dataKey === barKey
+                  const value = Number(p.value ?? 0)
+                  const format = isBar ? (barValueFormatter ?? valueFormatter) : (lineValueFormatter ?? valueFormatter)
+                  return (
+                    <div key={String(p.dataKey)} className="flex items-center gap-1.5 py-0.5">
+                      <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: isBar ? barColour : lineColour }} />
+                      <span className="text-muted-foreground">{isBar ? (barName ?? barKey) : (lineName ?? lineKey)}:</span>
+                      <span className="font-medium text-foreground">{format ? format(value) : value}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          }}
+          cursor={{ fill: "hsl(var(--muted))", radius: 3 }}
+        />
+        <Bar yAxisId="bar" dataKey={barKey} fill={barColour} radius={[3, 3, 0, 0]} barSize={10} />
+        <Line yAxisId="line" type="monotone" dataKey={lineKey} stroke={lineColour} strokeWidth={2} dot={false} />
+      </RComposedChart>
+    </ResponsiveContainer>
+  )
+}
+
+export function Bubble({
+  data,
+  xKey,
+  yKey,
+  zKey,
+  height = 220,
+  colour = "hsl(var(--primary))",
+  xFormatter,
+  yFormatter,
+  zFormatter,
+  xLabel,
+  yLabel,
+}: {
+  data: ChartDatum[]
+  xKey: string
+  yKey: string
+  // Drives bubble size - omit for a plain scatter with uniform-sized points.
+  zKey?: string
+  height?: number
+  colour?: string
+  xFormatter?: (value: number) => string
+  yFormatter?: (value: number) => string
+  zFormatter?: (value: number) => string
+  xLabel?: string
+  yLabel?: string
+}) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <RScatterChart margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+        <XAxis
+          type="number"
+          dataKey={xKey}
+          tick={{ fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          name={xLabel}
+          tickFormatter={xFormatter ? (v) => xFormatter(Number(v)) : undefined}
+        />
+        <YAxis
+          type="number"
+          dataKey={yKey}
+          tick={{ fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          name={yLabel}
+          tickFormatter={yFormatter ? (v) => yFormatter(Number(v)) : undefined}
+        />
+        {zKey && <ZAxis type="number" dataKey={zKey} range={[40, 400]} name={zKey} />}
+        <Tooltip
+          content={({ active, payload }) => {
+            const p = payload?.[0]?.payload as ChartDatum | undefined
+            if (!active || !p) return null
+            return (
+              <div className="rounded-md border border-border bg-background px-3 py-2 shadow-md text-xs space-y-0.5">
+                <p className="text-muted-foreground">
+                  {xLabel ?? xKey}: <span className="font-medium text-foreground">{xFormatter ? xFormatter(Number(p[xKey])) : p[xKey]}</span>
+                </p>
+                <p className="text-muted-foreground">
+                  {yLabel ?? yKey}: <span className="font-medium text-foreground">{yFormatter ? yFormatter(Number(p[yKey])) : p[yKey]}</span>
+                </p>
+                {zKey && (
+                  <p className="text-muted-foreground">
+                    {zKey}: <span className="font-medium text-foreground">{zFormatter ? zFormatter(Number(p[zKey])) : p[zKey]}</span>
+                  </p>
+                )}
+              </div>
+            )
+          }}
+          cursor={{ strokeDasharray: "3 3" }}
+        />
+        <Scatter data={data} fill={colour} fillOpacity={0.65} />
+      </RScatterChart>
+    </ResponsiveContainer>
+  )
+}
+
+export function StackedArea({
+  data,
+  xKey = "name",
+  series,
+  height = 220,
+  colours = DEFAULT_CHART_COLOURS,
+  valueFormatter,
+}: {
+  data: ChartDatum[]
+  xKey?: string
+  // Each series' own dataKey + display name, stacked bottom to top in the order given.
+  series: { key: string; name: string }[]
+  height?: number
+  colours?: string[]
+  valueFormatter?: (value: number) => string
+}) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <RAreaChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 8 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+        <XAxis dataKey={xKey} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+        <YAxis hide />
+        <Tooltip
+          content={({ active, payload, label }) => (
+            <ThemedTooltip
+              active={active}
+              payload={payload?.map((p) => {
+                const s = series.find((s) => s.key === p.dataKey)
+                const i = series.findIndex((s) => s.key === p.dataKey)
+                return { name: s?.name ?? String(p.dataKey), value: Number(p.value ?? 0), color: colours[i % colours.length] }
+              })}
+              label={String(label ?? "")}
+              valueFormatter={valueFormatter}
+            />
+          )}
+        />
+        {series.map((s, i) => (
+          <Area
+            key={s.key}
+            type="monotone"
+            dataKey={s.key}
+            name={s.name}
+            stackId="1"
+            stroke={colours[i % colours.length]}
+            fill={colours[i % colours.length]}
+            fillOpacity={0.55}
+          />
+        ))}
+      </RAreaChart>
     </ResponsiveContainer>
   )
 }

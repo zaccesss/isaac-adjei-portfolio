@@ -21,6 +21,7 @@ import {
   allTimeChartDays,
   StatCard,
   DEFAULT_CHART_COLOURS,
+  Gauge,
   type AnalyticsPeriod,
 } from "@/components/analytics"
 
@@ -218,6 +219,12 @@ function StreakActivityChart({ streaks, logs, today }: { streaks: Streak[]; logs
         <StatCard label="Checked in today" value={`${checkedInToday} / ${streaks.length}`} scope="current" />
         <StatCard label="Best current streak" value={bestCurrent} scope="current" />
         <StatCard label="Compliance" value={`${compliancePct}%`} />
+      </div>
+
+      {/* Compliance gauge */}
+      <div className="border border-border rounded-xl p-4">
+        <p className="text-sm font-medium mb-1 text-center">Compliance</p>
+        {totalCheckIns > 0 ? <Gauge value={compliancePct} height={160} /> : <p className="text-xs text-muted-foreground py-8 text-center">No check-ins in this period yet.</p>}
       </div>
 
       {/* Daily check-ins bar */}
@@ -603,7 +610,7 @@ function StreaksContent({ streaks: initial, logs: initialLogs, today }: {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl">
+    <div className="flex flex-col gap-6 max-w-5xl">
       {confirmDialog}
       <div className="flex items-center justify-between">
         <div>

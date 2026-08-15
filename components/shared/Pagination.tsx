@@ -45,7 +45,7 @@ export function Pagination({ page, totalPages, onChange, baseHref, totalItems, p
   }
 
   const numBtn = (p: number) => {
-    const cls = `min-w-[2rem] h-8 px-2 rounded-lg border text-sm font-medium transition-colors ${p === page ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"}`
+    const cls = `min-w-[2rem] h-8 px-2 inline-flex items-center justify-center rounded-lg border text-sm font-medium transition-colors ${p === page ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40"}`
     return hrefFor ? (
       <Link key={p} href={hrefFor(p)} className={cls}>{p}</Link>
     ) : (

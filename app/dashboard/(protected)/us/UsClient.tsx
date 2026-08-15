@@ -178,7 +178,7 @@ export default function UsClient({ data: initial }: { data: UsData }) {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-3xl">
+    <div className="flex flex-col gap-6 max-w-5xl">
       <div>
         <h1 className="text-xl font-semibold">Us</h1>
         <p className="text-xs text-muted-foreground mt-0.5">Our relationship covenant - click any field to edit</p>

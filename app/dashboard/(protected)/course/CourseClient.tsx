@@ -179,7 +179,7 @@ export default function CourseClient({ modules: initial, config: initialConfig }
   const totalCredits = modules.reduce((s, m) => s + (m.credits ?? 0), 0)
 
   return (
-    <div className="flex flex-col gap-8 max-w-4xl">
+    <div className="flex flex-col gap-8 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Course</h1>

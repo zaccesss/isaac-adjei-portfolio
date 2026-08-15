@@ -1335,6 +1335,7 @@ export async function deleteInventoryItem(id: string) {
 // round trip rather than 8 sequential ones. Each query only fetches the minimum columns needed.
 export async function getDashboardSummary() {
   await requireAuth()
+  const timeAllocation = await getTimeAllocation(14)
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const today = new Date().toISOString().split("T")[0]
   const weekAgoDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
@@ -1374,7 +1375,7 @@ export async function getDashboardSummary() {
     supabase.from("vault").select("id", { count: "exact", head: true }),
     supabase.from("notes").select("id", { count: "exact", head: true }),
     supabase.from("notes").select("updated_at").order("updated_at", { ascending: false }).limit(1),
-    supabase.from("study_sessions").select("id,duration_minutes").gte("date", weekAgoDate),
+    supabase.from("study_sessions").select("id,duration_m").gte("date", weekAgoDate),
     supabase.from("faith_entries").select("id,date").order("date", { ascending: false }).limit(1),
     supabase.from("uni_deadlines").select("id", { count: "exact", head: true })
       .gte("due_date", today).lte("due_date", next7Days).neq("status", "graded"),
@@ -1404,7 +1405,7 @@ export async function getDashboardSummary() {
   const goalsInProgress = (goals ?? []).filter((g) => g.status === "in_progress").length
   const goalsTotal = (goals ?? []).length
 
-  const studyMinutesThisWeek = (studySessions ?? []).reduce((s, r) => s + (r.duration_minutes ?? 0), 0)
+  const studyMinutesThisWeek = (studySessions ?? []).reduce((s, r) => s + (r.duration_m ?? 0), 0)
   const studySessionsThisWeek = (studySessions ?? []).length
 
   return {
@@ -1422,8 +1423,109 @@ export async function getDashboardSummary() {
     study: { sessionsThisWeek: studySessionsThisWeek, minutesThisWeek: studyMinutesThisWeek },
     faith: { lastEntry: faithEntries?.[0]?.date ?? null },
     university: { upcomingDeadlines: uniDeadlines ?? 0, activeModules: uniModules ?? 0 },
+    timeAllocation,
     updatedAt: new Date().toISOString(),
   }
+}
+
+// ─── Cross-domain time allocation ──────────────────────────────────────────────
+
+export type TimeAllocationDay = { date: string; studyMinutes: number; codingMinutes: number; stravaMinutes: number }
+
+// Joins study_sessions.duration_m, wakatime_daily.total_seconds and strava_activities'
+// moving_time_s by date - three domains that already collect duration independently, none of
+// which know about the others, combined here into one "where did the day actually go" picture.
+export async function getTimeAllocation(days = 30): Promise<TimeAllocationDay[]> {
+  await requireAuth()
+  const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+
+  const [{ data: study }, { data: coding }, { data: strava }] = await Promise.all([
+    supabase.from("study_sessions").select("date, duration_m").gte("date", start),
+    supabase.from("wakatime_daily").select("date, total_seconds").gte("date", start),
+    supabase.from("strava_activities").select("start_date, moving_time_s").gte("start_date", start),
+  ])
+
+  const studyByDay = new Map<string, number>()
+  for (const s of study ?? []) studyByDay.set(s.date, (studyByDay.get(s.date) ?? 0) + (s.duration_m ?? 0))
+
+  const codingByDay = new Map<string, number>()
+  for (const c of coding ?? []) codingByDay.set(c.date, Math.round((c.total_seconds ?? 0) / 60))
+
+  const stravaByDay = new Map<string, number>()
+  for (const a of strava ?? []) {
+    if (!a.start_date) continue
+    const day = a.start_date.slice(0, 10)
+    stravaByDay.set(day, (stravaByDay.get(day) ?? 0) + Math.round((a.moving_time_s ?? 0) / 60))
+  }
+
+  const out: TimeAllocationDay[] = []
+  const cursor = new Date(start)
+  const todayKey = new Date().toISOString().slice(0, 10)
+  for (let i = 0; i < days + 1; i++) {
+    const key = cursor.toISOString().slice(0, 10)
+    out.push({
+      date: key,
+      studyMinutes: studyByDay.get(key) ?? 0,
+      codingMinutes: codingByDay.get(key) ?? 0,
+      stravaMinutes: stravaByDay.get(key) ?? 0,
+    })
+    if (key >= todayKey) break
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return out
+}
+
+// ─── Lab measurements (Bode plot) ──────────────────────────────────────────────
+// Hand-logged frequency-response readings - no sensor pipeline exists, this is manual entry from
+// EECS lab work. See sql/migrations/051_lab_measurements.sql.
+
+export type LabMeasurement = {
+  id: string
+  project_label: string
+  measurement_set: string
+  frequency_hz: number
+  magnitude_db: number | null
+  phase_deg: number | null
+  created_at: string
+}
+
+export async function getLabMeasurements(): Promise<LabMeasurement[]> {
+  await requireAuth()
+  const { data } = await supabase.from("lab_measurements").select("*").order("frequency_hz", { ascending: true })
+  return data ?? []
+}
+
+export async function createLabMeasurement(data: {
+  project_label: string
+  measurement_set: string
+  frequency_hz: number
+  magnitude_db?: number
+  phase_deg?: number
+}) {
+  await requireAuth()
+  if (!validStr(data.project_label) || !validStr(data.measurement_set)) return INVALID
+  if (!validNum(data.frequency_hz, 0.001, 1_000_000_000)) return INVALID
+  if (data.magnitude_db !== undefined && !validNum(data.magnitude_db, -1000, 1000)) return INVALID
+  if (data.phase_deg !== undefined && !validNum(data.phase_deg, -3600, 3600)) return INVALID
+  const { error } = await supabase.from("lab_measurements").insert({
+    project_label: data.project_label.trim(),
+    measurement_set: data.measurement_set.trim(),
+    frequency_hz: data.frequency_hz,
+    magnitude_db: data.magnitude_db ?? null,
+    phase_deg: data.phase_deg ?? null,
+  })
+  if (error) return { error: error.message }
+  void logActivity("lab.create", `${data.project_label} - ${data.measurement_set} @ ${data.frequency_hz}Hz`)
+  revalidatePath("/dashboard/analytics/lab-measurements")
+}
+
+export async function deleteLabMeasurement(id: string) {
+  await requireAuth()
+  if (!validId(id)) return INVALID
+  const { error } = await supabase.from("lab_measurements").delete().eq("id", id)
+  if (error) return { error: error.message }
+  void logActivity("lab.delete", id)
+  revalidatePath("/dashboard/analytics/lab-measurements")
 }
 
 // ─── Global Search ────────────────────────────────────────────────────────────
@@ -1474,15 +1576,19 @@ export async function getActivityLog(limit = 50) {
 
 // Server-side paginated activity so I can page through the whole history (not just the last N) while only
 // one page ever crosses the wire. Returns the requested page of rows plus the exact total for the pager.
-export async function getActivityLogPage(page = 1, pageSize = 50) {
+// The activity log page only ever shows the most recent slice - every action is still logged and
+// kept in the database in full, nothing here prunes or deletes history. Skips the count query
+// getActivityLogPage's own pagination needs, since there is no page count to show any more - just
+// the latest N rows, which is a meaningfully faster single query as the table has grown into the
+// thousands of rows.
+export async function getRecentActivityLog(limit = 200) {
   await requireAuth()
-  const from = (Math.max(1, page) - 1) * pageSize
-  const { data, count } = await supabase
+  const { data } = await supabase
     .from("activity_log")
-    .select("id, action, detail, created_at", { count: "exact" })
+    .select("id, action, detail, created_at")
     .order("created_at", { ascending: false })
-    .range(from, from + pageSize - 1)
-  return { rows: data ?? [], total: count ?? 0 }
+    .limit(limit)
+  return data ?? []
 }
 
 // ─── Diary toggles ────────────────────────────────────────────────────────────
@@ -2603,11 +2709,12 @@ export async function createStudySession(data: {
   notes?: string
   technique?: string
   productive?: boolean
+  module_id?: string
 }) {
   await requireAuth()
   if (!validStr(data.date) || !validStr(data.subject)) return INVALID
   if (!validNum(data.duration_m, 0, 1440)) return INVALID
-  if (!optStr(data.notes) || !optStr(data.technique)) return INVALID
+  if (!optStr(data.notes) || !optStr(data.technique) || !optStr(data.module_id)) return INVALID
   const { error } = await supabase.from("study_sessions").insert({
     date: data.date,
     subject: data.subject.trim(),
@@ -2615,6 +2722,7 @@ export async function createStudySession(data: {
     notes: data.notes?.trim() || null,
     technique: data.technique?.trim() || null,
     productive: data.productive ?? true,
+    module_id: data.module_id || null,
   })
   if (error) return { error: error.message }
   revalidatePath("/dashboard/study")
@@ -2637,10 +2745,11 @@ export async function updateStudySession(id: string, data: {
   notes?: string
   technique?: string
   productive?: boolean
+  module_id?: string
 }) {
   await requireAuth()
   if (!validId(id)) return INVALID
-  if (!optStr(data.subject) || !optStr(data.notes) || !optStr(data.technique)) return INVALID
+  if (!optStr(data.subject) || !optStr(data.notes) || !optStr(data.technique) || !optStr(data.module_id)) return INVALID
   if (data.duration_m !== undefined && !validNum(data.duration_m, 0, 1440)) return INVALID
   const { error } = await supabase.from("study_sessions").update({
     ...(data.subject !== undefined && { subject: data.subject.trim() }),
@@ -2648,6 +2757,7 @@ export async function updateStudySession(id: string, data: {
     ...(data.notes !== undefined && { notes: data.notes.trim() || null }),
     ...(data.technique !== undefined && { technique: data.technique.trim() || null }),
     ...(data.productive !== undefined && { productive: data.productive }),
+    ...(data.module_id !== undefined && { module_id: data.module_id || null }),
   }).eq("id", id)
   if (error) return { error: error.message }
   revalidatePath("/dashboard/study")
