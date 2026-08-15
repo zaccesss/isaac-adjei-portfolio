@@ -334,7 +334,7 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
   // ── Not connected: hero ──
   if (!connected && activities.length === 0) {
     return (
-      <div className="flex flex-col gap-6 max-w-5xl">
+      <div className="flex flex-col gap-6 max-w-6xl">
         <Header connected={connected} />
         <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
           <Activity className="h-8 w-8 text-[#FC4C02]" />
@@ -357,7 +357,7 @@ function Inner({ activities, connected }: { activities: StravaActivity[]; connec
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl">
+    <div className="flex flex-col gap-6 max-w-6xl">
       <Header connected={connected} />
 
       {justConnected && (

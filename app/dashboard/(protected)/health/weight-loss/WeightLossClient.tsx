@@ -148,7 +148,7 @@ export default function WeightLossClient({
   const todaysFood = nutrition.filter((n) => n.date === today)
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl">
+    <div className="p-6 space-y-6 max-w-6xl">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <Link href="/dashboard/health" className="text-muted-foreground hover:text-foreground">

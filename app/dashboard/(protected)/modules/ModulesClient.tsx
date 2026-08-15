@@ -158,7 +158,7 @@ export default function ModulesClient({ modules }: { modules: Module[] }) {
   const totalCredits = modules.reduce((s, m) => s + (m.credits ?? 0), 0)
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl">
+    <div className="flex flex-col gap-6 max-w-6xl">
       <h1 className="text-xl font-semibold">Modules</h1>
 
       {/* I only show the master stats bar when there is at least one completed module with a mark */}

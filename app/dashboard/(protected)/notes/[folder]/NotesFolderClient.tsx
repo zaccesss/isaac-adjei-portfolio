@@ -171,7 +171,7 @@ export default function NotesFolderClient({
         ]}
       />
 
-      <div className="flex gap-4 h-[calc(100vh-10rem)] max-w-5xl">
+      <div className="flex gap-4 h-[calc(100vh-10rem)] max-w-6xl">
         {/* Sidebar */}
         <aside className="w-56 shrink-0 flex flex-col gap-3 border-r border-border pr-4">
           <Button size="sm" className="gap-1 w-full" onClick={startNew}>

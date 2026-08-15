@@ -152,7 +152,7 @@ export default async function ActivityPage() {
   const logs = await getRecentActivityLog(RECENT_LIMIT)
 
   return (
-    <div className="p-6 max-w-5xl">
+    <div className="p-6 max-w-6xl">
       <h1 className="text-xl font-semibold mb-1">Activity log</h1>
       <p className="text-sm text-muted-foreground mb-6">
         The last {RECENT_LIMIT} actions taken on the dashboard. Everything is still recorded in full - this is just the recent slice.

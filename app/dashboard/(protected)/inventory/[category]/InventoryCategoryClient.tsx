@@ -292,7 +292,7 @@ export default function InventoryCategoryClient({
 
   return (
     <motion.div
-      className="flex flex-col gap-6 max-w-5xl"
+      className="flex flex-col gap-6 max-w-6xl"
       variants={dashboardPage}
       initial="hidden"
       animate="visible"

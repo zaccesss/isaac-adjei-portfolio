@@ -643,7 +643,7 @@ export default function TimetableClient({
   }
 
   return (
-    <div className="p-6 space-y-5 max-w-5xl">
+    <div className="p-6 space-y-5 max-w-6xl">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>

@@ -416,7 +416,7 @@ export default function VaultTypeClient({
 
   return (
     <motion.div
-      className="flex flex-col gap-5 max-w-5xl"
+      className="flex flex-col gap-5 max-w-6xl"
       variants={dashboardPage}
       initial="hidden"
       animate="visible"

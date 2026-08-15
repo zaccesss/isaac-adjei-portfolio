@@ -178,7 +178,7 @@ export default function AssistantClient({ configured, initialChats, providers }:
         </aside>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0 max-w-5xl mx-auto">
+      <div className="flex-1 flex flex-col min-w-0 max-w-6xl mx-auto">
         <div className="flex items-center justify-between gap-3 pb-3 border-b border-border">
           <div className="flex items-center gap-2 min-w-0">
             <button type="button" onClick={() => setShowChats((s) => !s)} aria-label="Toggle saved chats" title="Toggle saved chats" className="hidden sm:flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted shrink-0">
