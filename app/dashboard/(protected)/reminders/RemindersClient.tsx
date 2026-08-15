@@ -21,7 +21,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { useConfirmDialog } from "@/components/ui/confirm-dialog"
-import { Plus, Pencil, Trash2, CalendarClock, Power, Mail, MessageSquare, Phone, MapPin, Check } from "lucide-react"
+import { Plus, Pencil, Trash2, CalendarClock, Power, Mail, MessageSquare, Phone, MapPin, Check, BarChart3 } from "lucide-react"
+import { StatCard, PieChart, DEFAULT_CHART_COLOURS } from "@/components/analytics"
 
 export type Reminder = {
   id: string
@@ -227,6 +228,41 @@ export default function RemindersClient({ reminders }: { reminders: Reminder[] }
           </Button>
         </div>
       </header>
+
+      {reminders.length > 0 && (
+        <div className="flex flex-col gap-4 border-t border-border pt-6">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm font-semibold">Reminders analytics</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard label="Total" value={reminders.length} scope="current" />
+            <StatCard label="Upcoming" value={reminders.filter((r) => new Date(r.event_at).getTime() >= now).length} scope="current" />
+            <StatCard label="Active" value={reminders.filter((r) => r.active).length} scope="current" />
+            <StatCard label="Sent" value={reminders.filter((r) => r.reminded_at).length} scope="current" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="border border-border rounded-xl p-4">
+              <p className="text-sm font-medium mb-3 text-center">By kind</p>
+              <PieChart
+                data={["appointment", "meeting", "other"].map((k) => ({ name: k, value: reminders.filter((r) => r.kind === k).length })).filter((d) => d.value > 0)}
+                colours={DEFAULT_CHART_COLOURS}
+                height={180}
+              />
+            </div>
+            <div className="border border-border rounded-xl p-4">
+              <p className="text-sm font-medium mb-3 text-center">By channel</p>
+              <PieChart
+                data={Object.entries(
+                  reminders.flatMap((r) => r.channels).reduce<Record<string, number>>((acc, c) => { acc[c] = (acc[c] ?? 0) + 1; return acc }, {}),
+                ).map(([name, value]) => ({ name, value }))}
+                colours={DEFAULT_CHART_COLOURS}
+                height={180}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {reminders.length === 0 ? (
         <div className="border border-dashed border-border rounded-lg p-10 text-center text-muted-foreground">

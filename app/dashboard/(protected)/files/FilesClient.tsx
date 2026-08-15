@@ -12,6 +12,7 @@ import type { UserFile } from "@/app/dashboard/actions"
 import { deleteFile, renameFile, moveFile, createDownloadSignedUrl } from "@/app/dashboard/actions"
 import { savedOk } from "@/lib/save-result"
 import { toast } from "sonner"
+import { PieChart, DEFAULT_CHART_COLOURS } from "@/components/analytics"
 
 function formatBytes(b: number): string {
   if (b < 1024) return `${b} B`
@@ -522,6 +523,15 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
     )
   }
 
+  const totalBytes = files.reduce((s, f) => s + f.size_bytes, 0)
+  const storageByType = Object.entries(
+    files.reduce<Record<string, number>>((acc, f) => {
+      const cat = f.mime_type.split("/")[0] || "other"
+      acc[cat] = (acc[cat] ?? 0) + f.size_bytes
+      return acc
+    }, {}),
+  ).map(([name, value]) => ({ name, value })).filter((d) => d.value > 0)
+
   return (
     <motion.div variants={dashboardPage} initial="hidden" animate="visible" className="flex flex-col gap-4 max-w-6xl"
       onClick={() => { if (openMenuPath) setOpenMenuPath(null) }}>
@@ -531,7 +541,7 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
       <div className="flex items-center gap-3 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold">File Manager</h1>
-          <p className="text-xs text-muted-foreground">{files.length} file{files.length !== 1 ? "s" : ""} across {allFolderPaths.length} folder{allFolderPaths.length !== 1 ? "s" : ""}</p>
+          <p className="text-xs text-muted-foreground">{files.length} file{files.length !== 1 ? "s" : ""} across {allFolderPaths.length} folder{allFolderPaths.length !== 1 ? "s" : ""} - {formatBytes(totalBytes)} total</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <input ref={inputRef} type="file" multiple className="hidden" onChange={handleUpload} aria-label="Upload files" />
@@ -541,6 +551,13 @@ export default function FilesClient({ initial }: { initial: UserFile[] }) {
           </Button>
         </div>
       </div>
+
+      {storageByType.length > 1 && (
+        <div className="border border-border rounded-xl p-4 max-w-xs">
+          <p className="text-sm font-medium mb-3 text-center">Storage by file type</p>
+          <PieChart data={storageByType} colours={DEFAULT_CHART_COLOURS} height={160} valueFormatter={formatBytes} />
+        </div>
+      )}
 
       {uploadError && (
         <div className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2 flex items-center justify-between">
