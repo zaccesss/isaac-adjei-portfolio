@@ -8,7 +8,7 @@
 import Link from "next/link"
 import { useMemo } from "react"
 import {
-  StatCard, StackedArea, BarChart, PieChart, Bubble, DEFAULT_CHART_COLOURS,
+  StatCard, StackedArea, BarChart, Treemap, Bubble, DEFAULT_CHART_COLOURS,
   AnalyticsPeriodProvider, PeriodSelector, useAnalyticsPeriod, filterByPeriod,
 } from "@/components/analytics"
 import type { TimeAllocationDay } from "@/app/dashboard/actions"
@@ -148,7 +148,7 @@ function Inner({ data }: { data: Overview }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Section icon={Target} title="Goals & Projects" href="/dashboard/projects">
           {projects.byStatus.length > 0
-            ? <PieChart data={projects.byStatus} colours={DEFAULT_CHART_COLOURS} height={180} />
+            ? <Treemap data={projects.byStatus} height={180} />
             : <p className="text-xs text-muted-foreground">No projects logged yet.</p>}
         </Section>
 
@@ -160,12 +160,8 @@ function Inner({ data }: { data: Overview }) {
         </Section>
 
         <Section icon={Package} title="Inventory" href="/dashboard/inventory">
-          <div className="flex items-center gap-4">
-            <StatCard label="Total items" value={inventory.total} scope="current" />
-            {inventory.byCategory.length > 0 && (
-              <div className="flex-1"><PieChart data={inventory.byCategory} colours={DEFAULT_CHART_COLOURS} height={160} /></div>
-            )}
-          </div>
+          <StatCard label="Total items" value={inventory.total} scope="current" />
+          {inventory.byCategory.length > 0 && <Treemap data={inventory.byCategory} height={160} />}
         </Section>
 
         <Section icon={Dumbbell} title="Fitness & Health" href="/dashboard/health/analytics">
@@ -227,21 +223,15 @@ function Inner({ data }: { data: Overview }) {
         </Section>
 
         <Section icon={Lock} title="Vault" href="/dashboard/vault">
-          <div className="flex items-center gap-4">
-            <StatCard label="Total entries" value={vault.total} scope="current" />
-            {vault.byType.length > 0 && (
-              <div className="flex-1"><PieChart data={vault.byType} colours={DEFAULT_CHART_COLOURS} height={160} /></div>
-            )}
-          </div>
+          <StatCard label="Total entries" value={vault.total} scope="current" />
+          {vault.byType.length > 0 && (
+            <BarChart data={vault.byType} dataKey="value" xKey="name" colours={DEFAULT_CHART_COLOURS} height={160} />
+          )}
         </Section>
 
         <Section icon={Gift} title="Wishlist" href="/dashboard/wishlist">
-          <div className="flex items-center gap-4">
-            <StatCard label="Obtained" value={`${wishlist.got}/${wishlist.total}`} scope="current" />
-            {wishlist.byCategory.length > 0 && (
-              <div className="flex-1"><PieChart data={wishlist.byCategory} colours={DEFAULT_CHART_COLOURS} height={160} /></div>
-            )}
-          </div>
+          <StatCard label="Obtained" value={`${wishlist.got}/${wishlist.total}`} scope="current" />
+          {wishlist.byCategory.length > 0 && <Treemap data={wishlist.byCategory} height={160} />}
         </Section>
       </div>
 
