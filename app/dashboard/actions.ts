@@ -191,6 +191,262 @@ export async function deleteGoal(id: string) {
   revalidatePath("/dashboard/goals")
 }
 
+// ─── Projects ───────────────────────────────────────────────
+
+// Distinct from Goals (personal aspirations) and University/Study/Modules (coursework marks and
+// time) - this tracks the projects themselves: hardware builds, personal software, coursework
+// projects like the audio amplifier, what they are, their status and a link back to their own
+// repo or report. Each project can carry its own project_tasks, backing a Gantt chart per project.
+
+export type Project = {
+  id: string
+  created_at: string
+  updated_at: string
+  name: string
+  description: string | null
+  category: string
+  status: string
+  repo_url: string | null
+  start_date: string | null
+  end_date: string | null
+}
+
+export type ProjectTask = {
+  id: string
+  created_at: string
+  project_id: string
+  name: string
+  start_date: string
+  end_date: string
+  status: string
+}
+
+export async function getProjects(): Promise<Project[]> {
+  await requireAuth()
+  const { data } = await supabase.from("projects").select("*").order("created_at", { ascending: false })
+  return data ?? []
+}
+
+export async function getProject(id: string): Promise<Project | null> {
+  await requireAuth()
+  if (!validId(id)) return null
+  const { data } = await supabase.from("projects").select("*").eq("id", id).maybeSingle()
+  return data ?? null
+}
+
+export async function getProjectTasks(projectId: string): Promise<ProjectTask[]> {
+  await requireAuth()
+  if (!validId(projectId)) return []
+  const { data } = await supabase
+    .from("project_tasks")
+    .select("*")
+    .eq("project_id", projectId)
+    .order("start_date", { ascending: true })
+  return data ?? []
+}
+
+export async function createProject(data: {
+  name: string
+  description?: string
+  category: string
+  status: string
+  repo_url?: string
+  start_date?: string
+  end_date?: string
+}) {
+  await requireAuth()
+  if (
+    !validStr(data.name) ||
+    !optStr(data.description, MAX_LONG_TEXT) ||
+    !validStr(data.category) ||
+    !validStr(data.status) ||
+    !optStr(data.repo_url) ||
+    !optStr(data.start_date) ||
+    !optStr(data.end_date)
+  ) return INVALID
+  const { data: row, error } = await supabase
+    .from("projects")
+    .insert({
+      ...data,
+      repo_url: data.repo_url || null,
+      start_date: data.start_date || null,
+      end_date: data.end_date || null,
+    })
+    .select("id")
+    .single()
+  if (error) return { error: error.message }
+  void logActivity("project.create", data.name)
+  revalidatePath("/dashboard/projects")
+  return { id: row.id }
+}
+
+export async function updateProject(id: string, data: Partial<{
+  name: string
+  description: string
+  category: string
+  status: string
+  repo_url: string
+  start_date: string
+  end_date: string
+}>) {
+  await requireAuth()
+  if (
+    !validId(id) ||
+    !optStr(data.name) ||
+    !optStr(data.description, MAX_LONG_TEXT) ||
+    !optStr(data.category) ||
+    !optStr(data.status) ||
+    !optStr(data.repo_url) ||
+    !optStr(data.start_date) ||
+    !optStr(data.end_date)
+  ) return INVALID
+  if (data.repo_url === "") data.repo_url = null as unknown as string
+  if (data.start_date === "") data.start_date = null as unknown as string
+  if (data.end_date === "") data.end_date = null as unknown as string
+  const { error } = await supabase.from("projects").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  if (error) return { error: error.message }
+  void logActivity("project.update", data.name)
+  revalidatePath("/dashboard/projects")
+  revalidatePath(`/dashboard/projects/${id}`)
+}
+
+export async function deleteProject(id: string) {
+  await requireAuth()
+  if (!validId(id)) return INVALID
+  await moveToTrash("projects", id, undefined, [{ table: "project_tasks", fk: "project_id" }])
+  const { error } = await supabase.from("projects").delete().eq("id", id)
+  if (error) return { error: error.message }
+  void logActivity("project.delete", id)
+  revalidatePath("/dashboard/projects")
+}
+
+export async function createProjectTask(data: {
+  project_id: string
+  name: string
+  start_date: string
+  end_date: string
+  status: string
+}) {
+  await requireAuth()
+  if (
+    !validId(data.project_id) ||
+    !validStr(data.name) ||
+    !validStr(data.start_date) ||
+    !validStr(data.end_date) ||
+    !validStr(data.status)
+  ) return INVALID
+  const { error } = await supabase.from("project_tasks").insert(data)
+  if (error) return { error: error.message }
+  void logActivity("project.task.create", data.name)
+  revalidatePath(`/dashboard/projects/${data.project_id}`)
+}
+
+export async function updateProjectTask(id: string, data: Partial<{
+  name: string
+  start_date: string
+  end_date: string
+  status: string
+}> & { project_id: string }) {
+  await requireAuth()
+  if (
+    !validId(id) ||
+    !validId(data.project_id) ||
+    !optStr(data.name) ||
+    !optStr(data.start_date) ||
+    !optStr(data.end_date) ||
+    !optStr(data.status)
+  ) return INVALID
+  const { project_id, ...patch } = data
+  const { error } = await supabase.from("project_tasks").update(patch).eq("id", id)
+  if (error) return { error: error.message }
+  void logActivity("project.task.update", id)
+  revalidatePath(`/dashboard/projects/${project_id}`)
+}
+
+export async function deleteProjectTask(id: string, projectId: string) {
+  await requireAuth()
+  if (!validId(id) || !validId(projectId)) return INVALID
+  const { error } = await supabase.from("project_tasks").delete().eq("id", id)
+  if (error) return { error: error.message }
+  void logActivity("project.task.delete", id)
+  revalidatePath(`/dashboard/projects/${projectId}`)
+}
+
+// ─── Finance ────────────────────────────────────────────────
+
+// Personal savings/spending tracker - income and expense transactions, each tagged with a
+// category. Mini-analytics live inline on the same page (running balance, income vs expense,
+// category breakdown) rather than a separate analytics page, same pattern as Goals/Projects.
+
+export type FinanceTransaction = {
+  id: string
+  created_at: string
+  date: string
+  type: string
+  category: string
+  amount: number
+  description: string | null
+}
+
+export async function getFinanceTransactions(): Promise<FinanceTransaction[]> {
+  await requireAuth()
+  const { data } = await supabase.from("finance_transactions").select("*").order("date", { ascending: false })
+  return data ?? []
+}
+
+export async function createFinanceTransaction(data: {
+  date: string
+  type: string
+  category: string
+  amount: number
+  description?: string
+}) {
+  await requireAuth()
+  if (
+    !validStr(data.date) ||
+    !validStr(data.type) ||
+    !validStr(data.category) ||
+    !validNum(data.amount, 0, 10_000_000) ||
+    !optStr(data.description, MAX_LONG_TEXT)
+  ) return INVALID
+  const { error } = await supabase.from("finance_transactions").insert({ ...data, description: data.description || null })
+  if (error) return { error: error.message }
+  void logActivity("finance.create", `${data.type} - ${data.category} - ${data.amount}`)
+  revalidatePath("/dashboard/finance")
+}
+
+export async function updateFinanceTransaction(id: string, data: Partial<{
+  date: string
+  type: string
+  category: string
+  amount: number
+  description: string
+}>) {
+  await requireAuth()
+  if (
+    !validId(id) ||
+    !optStr(data.date) ||
+    !optStr(data.type) ||
+    !optStr(data.category) ||
+    !optNum(data.amount, 0, 10_000_000) ||
+    !optStr(data.description, MAX_LONG_TEXT)
+  ) return INVALID
+  const { error } = await supabase.from("finance_transactions").update(data).eq("id", id)
+  if (error) return { error: error.message }
+  void logActivity("finance.update", id)
+  revalidatePath("/dashboard/finance")
+}
+
+export async function deleteFinanceTransaction(id: string) {
+  await requireAuth()
+  if (!validId(id)) return INVALID
+  await moveToTrash("finance_transactions", id)
+  const { error } = await supabase.from("finance_transactions").delete().eq("id", id)
+  if (error) return { error: error.message }
+  void logActivity("finance.delete", id)
+  revalidatePath("/dashboard/finance")
+}
+
 // ─── Modules ────────────────────────────────────────────────
 
 export async function createModule(data: {
@@ -1430,19 +1686,34 @@ export async function getDashboardSummary() {
 
 // ─── Cross-domain time allocation ──────────────────────────────────────────────
 
-export type TimeAllocationDay = { date: string; studyMinutes: number; codingMinutes: number; stravaMinutes: number }
+export type TimeAllocationDay = {
+  date: string
+  studyMinutes: number
+  codingMinutes: number
+  stravaMinutes: number
+  musicMinutes: number
+  faithMinutes: number
+  // Applications has no duration field anywhere in its schema, so it is a count, not a time -
+  // tracked alongside the real time domains rather than stacked into the same area as them.
+  applicationsCount: number
+}
 
-// Joins study_sessions.duration_m, wakatime_daily.total_seconds and strava_activities'
-// moving_time_s by date - three domains that already collect duration independently, none of
-// which know about the others, combined here into one "where did the day actually go" picture.
+// Joins study_sessions.duration_m, wakatime_daily.total_seconds, strava_activities.moving_time_s,
+// listening_history.duration_ms and faith_entries.duration_m by date - five domains that already
+// collect real duration independently, none of which know about the others, combined here into
+// one "where did the day actually go" picture. Applications' daily count rides alongside for the
+// same date range, since it has no duration of its own to stack with the rest.
 export async function getTimeAllocation(days = 30): Promise<TimeAllocationDay[]> {
   await requireAuth()
   const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
 
-  const [{ data: study }, { data: coding }, { data: strava }] = await Promise.all([
+  const [{ data: study }, { data: coding }, { data: strava }, { data: music }, { data: faith }, { data: apps }] = await Promise.all([
     supabase.from("study_sessions").select("date, duration_m").gte("date", start),
     supabase.from("wakatime_daily").select("date, total_seconds").gte("date", start),
     supabase.from("strava_activities").select("start_date, moving_time_s").gte("start_date", start),
+    supabase.from("listening_history").select("played_at, duration_ms").gte("played_at", start),
+    supabase.from("faith_entries").select("date, duration_m").gte("date", start),
+    supabase.from("applications").select("applied_date, created_at").gte("created_at", start),
   ])
 
   const studyByDay = new Map<string, number>()
@@ -1458,6 +1729,21 @@ export async function getTimeAllocation(days = 30): Promise<TimeAllocationDay[]>
     stravaByDay.set(day, (stravaByDay.get(day) ?? 0) + Math.round((a.moving_time_s ?? 0) / 60))
   }
 
+  const musicByDay = new Map<string, number>()
+  for (const m of music ?? []) {
+    const day = m.played_at.slice(0, 10)
+    musicByDay.set(day, (musicByDay.get(day) ?? 0) + Math.round((m.duration_ms ?? 0) / 60000))
+  }
+
+  const faithByDay = new Map<string, number>()
+  for (const f of faith ?? []) faithByDay.set(f.date, (faithByDay.get(f.date) ?? 0) + (f.duration_m ?? 0))
+
+  const appsByDay = new Map<string, number>()
+  for (const a of apps ?? []) {
+    const day = a.applied_date ?? a.created_at.slice(0, 10)
+    appsByDay.set(day, (appsByDay.get(day) ?? 0) + 1)
+  }
+
   const out: TimeAllocationDay[] = []
   const cursor = new Date(start)
   const todayKey = new Date().toISOString().slice(0, 10)
@@ -1468,11 +1754,95 @@ export async function getTimeAllocation(days = 30): Promise<TimeAllocationDay[]>
       studyMinutes: studyByDay.get(key) ?? 0,
       codingMinutes: codingByDay.get(key) ?? 0,
       stravaMinutes: stravaByDay.get(key) ?? 0,
+      musicMinutes: musicByDay.get(key) ?? 0,
+      faithMinutes: faithByDay.get(key) ?? 0,
+      applicationsCount: appsByDay.get(key) ?? 0,
     })
     if (key >= todayKey) break
     cursor.setDate(cursor.getDate() + 1)
   }
   return out
+}
+
+// ─── All Analytics (combined overview) ─────────────────────────────────────────
+// A single hub pulling a headline slice from every domain that already has its own analytics
+// page or mini-analytics section (Applications, Music, Ops, Fitness, Coding, Lab, Time
+// Allocation, plus the CRUD pages that only ever show mini-analytics inline - Goals, Projects,
+// Inventory). Reuses getDashboardSummary/getTimeAllocation/getProjects/getLabMeasurements rather
+// than re-deriving the same numbers a second way, and adds the handful of domain counts none of
+// those already cover.
+
+export async function getAllAnalyticsOverview() {
+  await requireAuth()
+  const start30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+
+  const [
+    summary,
+    timeAllocation30,
+    projects,
+    labMeasurements,
+    { count: inventoryCount },
+    { data: inventoryRows },
+    { data: coding30 },
+    { data: strava30 },
+    { data: medDoses30 },
+    { data: applicationsByStatus },
+  ] = await Promise.all([
+    getDashboardSummary(),
+    getTimeAllocation(30),
+    getProjects(),
+    getLabMeasurements(),
+    supabase.from("inventory_items").select("id", { count: "exact", head: true }),
+    supabase.from("inventory_items").select("category"),
+    supabase.from("wakatime_daily").select("total_seconds").gte("date", start30),
+    supabase.from("strava_activities").select("distance_m, moving_time_s").gte("start_date", start30),
+    supabase.from("medication_doses").select("taken").gte("scheduled_at", start30),
+    supabase.from("applications").select("status"),
+  ])
+
+  const codingHours30 = Math.round(((coding30 ?? []).reduce((s, r) => s + (r.total_seconds ?? 0), 0) / 3600) * 10) / 10
+  const stravaDistanceKm30 = Math.round(((strava30 ?? []).reduce((s, r) => s + (r.distance_m ?? 0), 0) / 1000) * 10) / 10
+  const stravaHours30 = Math.round(((strava30 ?? []).reduce((s, r) => s + (r.moving_time_s ?? 0), 0) / 3600) * 10) / 10
+  const medAdherence30 = (medDoses30 ?? []).length > 0
+    ? Math.round(((medDoses30 ?? []).filter((d) => d.taken).length / (medDoses30 ?? []).length) * 100)
+    : null
+
+  const inventoryByCategory = Object.entries(
+    (inventoryRows ?? []).reduce<Record<string, number>>((acc, r) => {
+      const cat = r.category ?? "Uncategorised"
+      acc[cat] = (acc[cat] ?? 0) + 1
+      return acc
+    }, {}),
+  ).map(([name, value]) => ({ name, value }))
+
+  const projectsByStatus = Object.entries(
+    projects.reduce<Record<string, number>>((acc, p) => {
+      acc[p.status] = (acc[p.status] ?? 0) + 1
+      return acc
+    }, {}),
+  ).map(([name, value]) => ({ name, value }))
+
+  const applicationsStatusCounts = Object.entries(
+    (applicationsByStatus ?? []).reduce<Record<string, number>>((acc, a) => {
+      acc[a.status] = (acc[a.status] ?? 0) + 1
+      return acc
+    }, {}),
+  ).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8)
+
+  const labMeasurementSets = [...new Set(labMeasurements.map((m) => m.measurement_set))].length
+
+  return {
+    summary,
+    timeAllocation30,
+    projects: { total: projects.length, byStatus: projectsByStatus },
+    lab: { totalReadings: labMeasurements.length, sets: labMeasurementSets },
+    inventory: { total: inventoryCount ?? 0, byCategory: inventoryByCategory },
+    coding: { hours30: codingHours30 },
+    strava: { distanceKm30: stravaDistanceKm30, hours30: stravaHours30 },
+    medication: { adherence30: medAdherence30 },
+    applications: { byStatus: applicationsStatusCounts },
+    updatedAt: new Date().toISOString(),
+  }
 }
 
 // ─── Lab measurements (Bode plot) ──────────────────────────────────────────────
