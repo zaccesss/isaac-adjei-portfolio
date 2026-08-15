@@ -6,19 +6,34 @@
 // genuinely free forever, no account, no API key, no card. Only ever reads lat/lng from
 // location_geocodes, which isaac-adjei-automations' geocode-locations.mjs job populates - this
 // component never geocodes anything itself.
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import Link from "next/link"
-import MapGL, { Marker, NavigationControl, Popup } from "react-map-gl/maplibre"
+import MapGL, { Marker, NavigationControl, Popup, type MapRef } from "react-map-gl/maplibre"
 import "maplibre-gl/dist/maplibre-gl.css"
 import { STATUS_COLOURS, normaliseStatus } from "@/lib/application-status"
-import { Globe2, Map as MapIcon, ExternalLink } from "lucide-react"
+import { Globe2, Map as MapIcon, ExternalLink, Box, Square } from "lucide-react"
 
-// OpenFreeMap ships a handful of free vector styles - no satellite/aerial imagery exists in its
-// free tier (that needs real aerial photography, which no genuinely free tile source hosts), so
-// the toggle switches between its own styles rather than faking a satellite option.
+// Esri's World Imagery REST tile service is a genuinely free, no-key, no-card raster tile source
+// (used by plenty of open-source map projects for exactly this) - a raw MapLibre raster style
+// rather than a hosted vector style URL like OpenFreeMap's other two.
+const SATELLITE_STYLE = {
+  version: 8 as const,
+  sources: {
+    esri: {
+      type: "raster" as const,
+      tiles: ["https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+      tileSize: 256,
+      attribution: "Esri, Maxar, Earthstar Geographics",
+    },
+  },
+  layers: [{ id: "esri-satellite", type: "raster" as const, source: "esri" }],
+}
+
 const STYLES = {
+  bright: { label: "Bright", url: "https://tiles.openfreemap.org/styles/bright" },
   streets: { label: "Streets", url: "https://tiles.openfreemap.org/styles/liberty" },
   light: { label: "Light", url: "https://tiles.openfreemap.org/styles/positron" },
+  satellite: { label: "Satellite", url: SATELLITE_STYLE },
 } as const
 
 const RECENT_DAYS = 14
@@ -41,11 +56,19 @@ interface Geocode {
 export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; geocodes: Geocode[] }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
-  // "light" (positron) is the default rather than "streets" (liberty) since liberty renders full
-  // 3D building extrusions on every pan/zoom, which is genuinely GPU-heavy with many pins on
-  // screen - positron is flat vector tiles with no extrusion layer, real work over cosmetics.
-  const [style, setStyle] = useState<keyof typeof STYLES>("light")
+  // "bright" is the default: unlike "streets" (liberty) it has no 3D building extrusion layer
+  // (genuinely GPU-heavy with many pins on screen), and unlike "light" (positron) it colours
+  // country/land-use areas and shows place labels clearly rather than a near-monochrome base.
+  const [style, setStyle] = useState<keyof typeof STYLES>("bright")
   const [globe, setGlobe] = useState(false)
+  const [is3D, setIs3D] = useState(false)
+  const mapRef = useRef<MapRef>(null)
+
+  function toggle3D() {
+    const next = !is3D
+    setIs3D(next)
+    mapRef.current?.easeTo({ pitch: next ? 45 : 0, duration: 400 })
+  }
   // Lazy useState initialiser, not a bare Date.now() call in render - computed once on mount so
   // "recent" stays stable for the component's lifetime rather than shifting on every re-render.
   const [nowMs] = useState(() => Date.now())
@@ -110,9 +133,19 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
           {globe ? <Globe2 className="h-3 w-3" /> : <MapIcon className="h-3 w-3" />}
           {globe ? "Globe" : "Flat"}
         </button>
+        <button
+          type="button"
+          onClick={toggle3D}
+          title="Toggle 2D/3D tilt"
+          className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded border transition-colors ${is3D ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+        >
+          {is3D ? <Box className="h-3 w-3" /> : <Square className="h-3 w-3" />}
+          {is3D ? "3D" : "2D"}
+        </button>
       </div>
       <div className="h-[420px] w-full overflow-hidden rounded-lg border border-border">
         <MapGL
+          ref={mapRef}
           initialViewState={{ latitude: avgLat, longitude: avgLng, zoom: 3.5 }}
           mapStyle={STYLES[style].url}
           projection={globe ? "globe" : "mercator"}
