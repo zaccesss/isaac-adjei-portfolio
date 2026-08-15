@@ -14,5 +14,5 @@ Internal documentation for the portfolio project. Not published to the site.
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Known issues, root causes and fixes |
 | [WORKFLOW.md](WORKFLOW.md) | Branching, PR, deploy and environment-variable workflow |
 | [verification.md](verification.md) | Manual verification checklist for new features |
-| [LOG.md](LOG.md) | Running log of decisions and notable events |
+| [LOG.md](LOG.md) | Archived running log, superseded by CHANGELOG.md - kept for its historical entries, no longer updated |
 | [session-logs/](session-logs/) | Per-session detailed technical logs (git-ignored - local only) |

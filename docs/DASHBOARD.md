@@ -48,6 +48,8 @@ Private section at `/dashboard` - not linked from public nav, sitemap or command
 | `/dashboard/opensource` | Open source contributions tracker - add, edit and delete merged PRs submitted to external repos |
 | `/dashboard/blog-analytics` | Blog read funnel - scroll depth stats per post (25/50/75/100% reached) |
 | `/dashboard/coding` | WakaTime heatmap - daily coding activity from the wakatime-sync GitHub Actions workflow |
+| `/dashboard/analytics/time-allocation` | Cross-domain daily time-allocation view - study/coding/Strava duration stacked by day, last 30 days |
+| `/dashboard/analytics/lab-measurements` | Manual EECS frequency-response logging plus a Bode plot (magnitude and phase vs log-scale frequency), no sensor pipeline behind it |
 
 ---
 

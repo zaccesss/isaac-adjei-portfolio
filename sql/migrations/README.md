@@ -56,6 +56,9 @@ All files use `IF NOT EXISTS`, `CREATE OR REPLACE` or `DO` blocks so they are sa
 | 046 | `046_revoke_public_grants.sql` | revokes anon/authenticated grants on schema public + default privileges | Both |
 | 047 | `047_github_contributions.sql` | github_contributions_days + github_contributions_years tables (real per-day contribution history) | Both |
 | 048 | `048_control_history.sql` | control_job_runs + control_check_snapshots tables (historical job/check status, fed by automations' control-status-sync) | Both |
+| 049 | `049_location_geocodes.sql` | location_geocodes cache table (lat/lng per applications.location string, fed by automations' geocode-locations job, feeds the Applications map) | Both |
+| 050 | `050_study_sessions_module_link.sql` | nullable study_sessions.module_id FK to modules, backing the study-hours-vs-module-mark scatter | Both |
+| 051 | `051_lab_measurements.sql` | lab_measurements table (hand-logged EECS frequency-response readings, backing the Bode plot on the new Lab Measurements analytics page) | Both |
 
 ## The 2026-07-12 renumbering
 

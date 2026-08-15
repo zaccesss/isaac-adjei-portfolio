@@ -28,8 +28,7 @@ All rules that apply to every session. No exceptions.
 ## Workflow
 
 1. Always branch from latest main: `git checkout main && git pull`
-2. Update CHANGELOG.md under `[Unreleased]` BEFORE committing (public changes only)
-3. Private dashboard changes go in `docs/LOG.md` only, never CHANGELOG.md
+2. Update CHANGELOG.md under `[Unreleased]` BEFORE committing (every change, public or dashboard - `docs/LOG.md` is archived, no longer actively updated)
 4. Branch naming: `feat/description`, `fix/description`, `chore/description`, `content/description`
 5. Push branch, create PR and enable auto-merge:
    ```
@@ -45,10 +44,7 @@ All rules that apply to every session. No exceptions.
 
 ## CHANGELOG rules
 
-- CHANGELOG.md is strictly PUBLIC facing. It covers what changes for a visitor to isaacadjei.me.
-- NEVER add to CHANGELOG.md: dashboard features, CV changes, scripts, workflows, infrastructure, dependencies, migrations, refactors or internal tooling.
-- All private and internal changes go in LOG.md only.
-- If in doubt: if a visitor would not notice the change from the public site, it belongs in LOG.md not CHANGELOG.md.
+- CHANGELOG.md now covers every change, public or dashboard. The old public-only / `docs/LOG.md`-only split stopped being followed a while back - `docs/LOG.md` is archived, kept for its historical entries, no longer where anything new goes.
 - "Last updated" dates on public pages use month and year only - never include the day.
 
 ## Session end cleanup
@@ -102,14 +98,12 @@ git branch -r | grep -v main | grep -v HEAD | sed 's/origin\///' | xargs -I {} g
 - Do not push without a PR
 - Do not add error handling for impossible scenarios
 - Do not over-abstract
-- Do not skip updating LOG.md at session end
+- Do not skip updating CHANGELOG.md at session end (`docs/LOG.md` is archived)
 - Do not touch public pages when working on dashboard tasks
 - Do not add "Generated with Claude Code", "Made with Claude" or any AI tool attribution to commits, PRs or any file
 - Do not add Co-Authored-By lines to commits - the `.githooks/commit-msg` hook will hard-reject them
 - Do not use `git add .` or `git add -A` - always stage specific files by name
 - Do not use `--no-verify` to bypass hooks - fix the underlying issue instead
-- Do not add dashboard changes to CHANGELOG.md - those go in LOG.md only
-- Do not add CV changes, script changes or workflow changes to CHANGELOG.md
 - Do not mention Isaac's age, year at university or any other sensitive personal detail in any file
 - Do not mention the job scraper or dashboard in any public-facing content
 - Do not give clues that a dashboard exists - visitors should not know it is there

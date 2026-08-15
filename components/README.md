@@ -6,6 +6,7 @@ Shared React components. Organised by concern - import from the most specific su
 
 | Directory | Description |
 | --- | --- |
+| `analytics/` | Shared themed chart set for the dashboard's analytics pages: recharts wrappers (`charts.tsx` - LineChart/BarChart/PieChart/Treemap/Sankey/Radar/Composed/Bubble/StackedArea), bespoke primitives with no library equivalent (`Funnel.tsx`, `Waterfall.tsx`, `Bullet.tsx`, `BoxPlot.tsx`), ECharts-backed views (`echarts-theme.ts`, `CalendarHeatmap.tsx`, `GridHeatmap.tsx`, `RadialClock.tsx`, `Gauge.tsx`), `WordCloud.tsx` (`@visx/wordcloud`), `ApplicationsMap.tsx` (MapLibre GL JS + OpenFreeMap), plus `StatCard.tsx`, `ProgressBar.tsx`, `TrendIndicator.tsx` and the shared `AnalyticsPeriod` context/selector. `index.ts` re-exports the full public surface |
 | `blog/` | Blog-specific components: `PostCard.tsx` (post listing card), `ScrollDepthTracker.tsx` (fires scroll-depth events to `/api/blog/read-event`) |
 | `cv/` | CV viewer component used on the `/cv` page |
 | `dashboard/` | Dashboard widgets, stat cards and data display components |
