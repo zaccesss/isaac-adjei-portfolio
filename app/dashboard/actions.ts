@@ -1617,6 +1617,7 @@ export async function getDashboardSummary() {
   ] = await Promise.all([
     supabase.from("goals").select("id,status"),
     supabase.from("applications").select("id", { count: "exact", head: true })
+      .neq("status", "scraped")
       .not("status", "in", '("Not Applied","Not Interested","Rejected")'),
     supabase.from("applications").select("id", { count: "exact", head: true })
       .eq("status", "Offer Received"),
@@ -1691,6 +1692,7 @@ export type TimeAllocationDay = {
   studyMinutes: number
   codingMinutes: number
   stravaMinutes: number
+  stravaDistanceM: number
   musicMinutes: number
   faithMinutes: number
   // Applications has no duration field anywhere in its schema, so it is a count, not a time -
@@ -1710,10 +1712,13 @@ export async function getTimeAllocation(days = 30): Promise<TimeAllocationDay[]>
   const [{ data: study }, { data: coding }, { data: strava }, { data: music }, { data: faith }, { data: apps }] = await Promise.all([
     supabase.from("study_sessions").select("date, duration_m").gte("date", start),
     supabase.from("wakatime_daily").select("date, total_seconds").gte("date", start),
-    supabase.from("strava_activities").select("start_date, moving_time_s").gte("start_date", start),
+    supabase.from("strava_activities").select("start_date, moving_time_s, distance_m").gte("start_date", start),
     supabase.from("listening_history").select("played_at, duration_ms").gte("played_at", start),
     supabase.from("faith_entries").select("date, duration_m").gte("date", start),
-    supabase.from("applications").select("applied_date, created_at").gte("created_at", start),
+    // Excludes scraped rows - the applications table has thousands of scraper-imported rows
+    // (status "scraped") that were never real applications I submitted, and would otherwise
+    // dominate this count.
+    supabase.from("applications").select("applied_date, created_at").neq("status", "scraped").gte("created_at", start),
   ])
 
   const studyByDay = new Map<string, number>()
@@ -1723,10 +1728,12 @@ export async function getTimeAllocation(days = 30): Promise<TimeAllocationDay[]>
   for (const c of coding ?? []) codingByDay.set(c.date, Math.round((c.total_seconds ?? 0) / 60))
 
   const stravaByDay = new Map<string, number>()
+  const stravaDistanceByDay = new Map<string, number>()
   for (const a of strava ?? []) {
     if (!a.start_date) continue
     const day = a.start_date.slice(0, 10)
     stravaByDay.set(day, (stravaByDay.get(day) ?? 0) + Math.round((a.moving_time_s ?? 0) / 60))
+    stravaDistanceByDay.set(day, (stravaDistanceByDay.get(day) ?? 0) + (a.distance_m ?? 0))
   }
 
   const musicByDay = new Map<string, number>()
@@ -1754,6 +1761,7 @@ export async function getTimeAllocation(days = 30): Promise<TimeAllocationDay[]>
       studyMinutes: studyByDay.get(key) ?? 0,
       codingMinutes: codingByDay.get(key) ?? 0,
       stravaMinutes: stravaByDay.get(key) ?? 0,
+      stravaDistanceM: stravaDistanceByDay.get(key) ?? 0,
       musicMinutes: musicByDay.get(key) ?? 0,
       faithMinutes: faithByDay.get(key) ?? 0,
       applicationsCount: appsByDay.get(key) ?? 0,
@@ -1774,37 +1782,54 @@ export async function getTimeAllocation(days = 30): Promise<TimeAllocationDay[]>
 
 export async function getAllAnalyticsOverview() {
   await requireAuth()
-  const start30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  // Medication adherence and inventory/projects breakdowns are current-state snapshots, not
+  // activity-over-time - a "period" has no real meaning for them (a project's status right now
+  // is not something that happened "in the last 7 days"), so they stay all-time/current-snapshot
+  // reads. Everything that genuinely IS activity-over-time (coding, Strava, applications) instead
+  // rides on the same wide time-allocation window the client can filter by the period selector,
+  // rather than a second, separately-fixed 30-day server read.
+  const start90 = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
 
   const [
     summary,
-    timeAllocation30,
+    timeAllocation365,
     projects,
     labMeasurements,
     { count: inventoryCount },
     { data: inventoryRows },
-    { data: coding30 },
-    { data: strava30 },
-    { data: medDoses30 },
+    { data: medDoses90 },
     { data: applicationsByStatus },
   ] = await Promise.all([
     getDashboardSummary(),
-    getTimeAllocation(30),
+    getTimeAllocation(365),
     getProjects(),
     getLabMeasurements(),
     supabase.from("inventory_items").select("id", { count: "exact", head: true }),
     supabase.from("inventory_items").select("category"),
-    supabase.from("wakatime_daily").select("total_seconds").gte("date", start30),
-    supabase.from("strava_activities").select("distance_m, moving_time_s").gte("start_date", start30),
-    supabase.from("medication_doses").select("taken").gte("scheduled_at", start30),
-    supabase.from("applications").select("status"),
+    supabase.from("medication_doses").select("taken").gte("scheduled_at", start90),
+    // Same scraped-row exclusion as getTimeAllocation above.
+    supabase.from("applications").select("status").neq("status", "scraped"),
   ])
 
-  const codingHours30 = Math.round(((coding30 ?? []).reduce((s, r) => s + (r.total_seconds ?? 0), 0) / 3600) * 10) / 10
-  const stravaDistanceKm30 = Math.round(((strava30 ?? []).reduce((s, r) => s + (r.distance_m ?? 0), 0) / 1000) * 10) / 10
-  const stravaHours30 = Math.round(((strava30 ?? []).reduce((s, r) => s + (r.moving_time_s ?? 0), 0) / 3600) * 10) / 10
-  const medAdherence30 = (medDoses30 ?? []).length > 0
-    ? Math.round(((medDoses30 ?? []).filter((d) => d.taken).length / (medDoses30 ?? []).length) * 100)
+  const today = new Date().toISOString().slice(0, 10)
+  const [
+    { count: habitsTotal },
+    { data: habitLogsToday },
+    { data: weightRows },
+  ] = await Promise.all([
+    supabase.from("habits").select("id", { count: "exact", head: true }).eq("active", true),
+    supabase.from("habit_logs").select("habit_id").eq("date", today).eq("completed", true),
+    supabase.from("body_metrics").select("date, value").eq("metric", "weight_kg").order("date", { ascending: false }).limit(2),
+  ])
+  const [{ data: vaultRows }, { data: wishlistRows }] = await Promise.all([
+    supabase.from("vault").select("type"),
+    supabase.from("wishlist").select("category, status"),
+  ])
+  const latestWeightKg = weightRows?.[0]?.value ?? null
+  const weightDeltaKg = weightRows?.length === 2 ? Math.round((weightRows[0].value - weightRows[1].value) * 10) / 10 : null
+
+  const medAdherence90 = (medDoses90 ?? []).length > 0
+    ? Math.round(((medDoses90 ?? []).filter((d) => d.taken).length / (medDoses90 ?? []).length) * 100)
     : null
 
   const inventoryByCategory = Object.entries(
@@ -1831,16 +1856,33 @@ export async function getAllAnalyticsOverview() {
 
   const labMeasurementSets = [...new Set(labMeasurements.map((m) => m.measurement_set))].length
 
+  const vaultByType = Object.entries(
+    (vaultRows ?? []).reduce<Record<string, number>>((acc, r) => {
+      acc[r.type] = (acc[r.type] ?? 0) + 1
+      return acc
+    }, {}),
+  ).map(([name, value]) => ({ name, value }))
+
+  const wishlistByCategory = Object.entries(
+    (wishlistRows ?? []).reduce<Record<string, number>>((acc, r) => {
+      acc[r.category] = (acc[r.category] ?? 0) + 1
+      return acc
+    }, {}),
+  ).map(([name, value]) => ({ name, value }))
+  const wishlistGot = (wishlistRows ?? []).filter((r) => r.status === "got_it").length
+
   return {
     summary,
-    timeAllocation30,
+    timeAllocation365,
     projects: { total: projects.length, byStatus: projectsByStatus },
     lab: { totalReadings: labMeasurements.length, sets: labMeasurementSets },
     inventory: { total: inventoryCount ?? 0, byCategory: inventoryByCategory },
-    coding: { hours30: codingHours30 },
-    strava: { distanceKm30: stravaDistanceKm30, hours30: stravaHours30 },
-    medication: { adherence30: medAdherence30 },
+    medication: { adherence90: medAdherence90 },
     applications: { byStatus: applicationsStatusCounts },
+    habits: { total: habitsTotal ?? 0, completedToday: habitLogsToday?.length ?? 0 },
+    weightLoss: { latestKg: latestWeightKg, deltaKg: weightDeltaKg },
+    vault: { total: (vaultRows ?? []).length, byType: vaultByType },
+    wishlist: { total: (wishlistRows ?? []).length, got: wishlistGot, byCategory: wishlistByCategory },
     updatedAt: new Date().toISOString(),
   }
 }
