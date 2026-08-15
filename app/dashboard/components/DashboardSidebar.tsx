@@ -9,7 +9,7 @@ import {
   User, Heart, Target, Dumbbell, BookMarked, StickyNote,
   Gift, Package, GraduationCap, BookOpen, Briefcase, Lock,
   Flame, LogOut, ChevronLeft, ChevronRight, Menu, X, Settings, Activity, Github, BarChart2, Code2, Trash2, Users, SlidersHorizontal, Gauge,
-  Brain, Church, School, CheckSquare, CalendarDays, ChevronDown, FolderOpen, Sparkles, CalendarClock, Music, Clock, Waves
+  Brain, Church, School, CheckSquare, CalendarDays, ChevronDown, FolderOpen, Sparkles, CalendarClock, Music, Clock, Waves, FolderKanban, LayoutGrid, Wallet
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import DashboardSearch from "@/components/dashboard/DashboardSearch"
@@ -21,6 +21,8 @@ const nav: (NavItem | NavGroup)[] = [
   { href: "/dashboard/me", label: "Me", icon: User },
   { href: "/dashboard/us", label: "Us", icon: Heart },
   { href: "/dashboard/goals", label: "Goals", icon: Target },
+  { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
+  { href: "/dashboard/finance", label: "Finance", icon: Wallet },
   { href: "/dashboard/applications", label: "Applications", icon: Briefcase },
   { href: "/dashboard/opensource", label: "Open Source", icon: Github },
   {
@@ -68,6 +70,7 @@ const nav: (NavItem | NavGroup)[] = [
   {
     group: "Analytics",
     items: [
+      { href: "/dashboard/analytics", label: "All Analytics", icon: LayoutGrid },
       { href: "/dashboard/coding", label: "Coding", icon: Code2 },
       { href: "/dashboard/post-analytics", label: "Posts", icon: BarChart2 },
       { href: "/dashboard/analytics/applications", label: "Applications", icon: Briefcase },
