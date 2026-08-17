@@ -41,7 +41,7 @@
     "@radix-ui/react-tooltip": "^1.2.11",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.6.1",
-    "@sentry/nextjs": "^10.69.0",
+    "@sentry/nextjs": "^10.70.0",
     "@sparticuz/chromium": "^147.0.2",
     "@supabase/supabase-js": "^2.112.2",
     "@tiptap/extension-code-block-lowlight": "^2.27.2",
