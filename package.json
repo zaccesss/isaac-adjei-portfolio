@@ -22,7 +22,7 @@
     "@ai-sdk/anthropic": "^3.0.110",
     "@ai-sdk/google": "^3.0.104",
     "@ai-sdk/groq": "^3.0.59",
-    "@ai-sdk/openai": "^3.0.91",
+    "@ai-sdk/openai": "^3.0.96",
     "@ai-sdk/openai-compatible": "^2.0.67",
     "@ai-sdk/react": "^3.0.248",
     "@giscus/react": "^3.1.0",
