@@ -43,7 +43,7 @@
     "@react-three/fiber": "^9.6.1",
     "@sentry/nextjs": "^10.69.0",
     "@sparticuz/chromium": "^147.0.2",
-    "@supabase/supabase-js": "^2.112.2",
+    "@supabase/supabase-js": "^2.112.3",
     "@tiptap/extension-code-block-lowlight": "^2.27.2",
     "@tiptap/extension-image": "^2.27.2",
     "@tiptap/extension-link": "^2.27.2",
