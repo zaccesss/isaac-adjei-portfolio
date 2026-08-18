@@ -74,12 +74,13 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
   const appDate = (a: Application) => a.applied_date ?? a.created_at.slice(0, 10)
   const cutoff = periodStartDate(period)
 
-  // apps includes scraped listings (status "scraped") - real applications I actually submitted.
-  // The header line and the "Total" StatCard are meant to show everything I have ever tracked,
-  // scraped included, so they read from rawFiltered. Every actual chart or rate below (funnel,
-  // Pareto, by-location, monthly/weekly trends, the map, applied/rejected/offer counts) reads
-  // from `filtered`, which excludes scraped rows first - those numbers should only ever reflect
-  // real activity, never scraper-import volume.
+  // apps includes scraped listings (status "scraped") alongside real applications I actually
+  // submitted. The header line, the "Total" StatCard and the map are meant to show everything I
+  // have ever tracked, scraped included, so they all read from rawFiltered - a location is a
+  // location whether or not I ever applied to it. Every actual chart/rate below (funnel, Pareto,
+  // by-location, monthly/weekly trends, applied/rejected/offer counts) reads from `filtered`,
+  // which excludes scraped rows first - those numbers should only ever reflect real activity,
+  // never scraper-import volume.
   const rawFiltered = cutoff
     ? apps.filter((a) => appDate(a) >= cutoff.toISOString().slice(0, 10))
     : apps
@@ -220,7 +221,7 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
       <div className="border border-border rounded-lg p-4 bg-card">
         <p className="text-sm font-semibold mb-3">Application locations</p>
         <ApplicationsMap
-          apps={filtered.map((a) => ({ id: a.id, company: a.company, role: a.role, status: a.status, location: a.location, created_at: a.created_at, url: a.url }))}
+          apps={rawFiltered.map((a) => ({ id: a.id, company: a.company, role: a.role, status: a.status, location: a.location, created_at: a.created_at, url: a.url }))}
           geocodes={geocodes}
         />
       </div>
