@@ -6,9 +6,9 @@ const isDev = process.env.NODE_ENV === "development"
 // frame and the pusher websocket) is the Vercel Toolbar, which Vercel injects for me as a
 // logged-in team member - visitors never load it, but blocking it spams my own console.
 const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com", "https://www.googletagmanager.com", "https://static.cloudflareinsights.com", "https://vercel.live"]
-// tiles.openfreemap.org serves the Applications map's vector tiles, sprite, glyphs and style JSON -
-// all fetched by MapLibre GL JS via connect-src, not img-src (they are not plain <img> requests).
-const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io", "https://*.google-analytics.com", "https://analytics.google.com", "https://api.lanyard.rest", "https://cloudflareinsights.com", "https://vercel.live", "wss://ws-us3.pusher.com", "https://tiles.openfreemap.org"]
+// api.maptiler.com serves the Applications map's vector tiles, glyphs and style JSON - all
+// fetched by MapLibre GL JS via connect-src, not img-src (they are not plain <img> requests).
+const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io", "https://*.google-analytics.com", "https://analytics.google.com", "https://api.lanyard.rest", "https://cloudflareinsights.com", "https://vercel.live", "wss://ws-us3.pusher.com", "https://api.maptiler.com"]
 
 if (isDev) {
   scriptSrc.push("'unsafe-eval'")
