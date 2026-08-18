@@ -12,7 +12,7 @@ import { useTheme } from "next-themes"
 import MapGL, { Marker, NavigationControl, Popup, type MapRef } from "react-map-gl/maplibre"
 import "maplibre-gl/dist/maplibre-gl.css"
 import { STATUS_COLOURS, normaliseStatus } from "@/lib/application-status"
-import { Globe2, Map as MapIcon, ExternalLink, Box, Square } from "lucide-react"
+import { Globe2, Map as MapIcon, ExternalLink, Box, Square, X } from "lucide-react"
 
 // Esri's World Imagery REST tile service is a genuinely free, no-key, no-card raster tile source
 // (used by plenty of open-source map projects for exactly this) - a raw MapLibre raster style
@@ -183,8 +183,17 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
           projection={globe ? "globe" : "mercator"}
           style={{ width: "100%", height: "100%" }}
           onMove={(e) => setZoom(e.viewState.zoom)}
+          dragPan
+          dragRotate
+          scrollZoom
+          doubleClickZoom
+          touchZoomRotate
+          touchPitch
+          keyboard
         >
-          <NavigationControl position="top-right" />
+          {/* visualizePitch shows a compass/tilt indicator so rotate and pitch are discoverable,
+              not just draggable with no visible affordance - click it to reset to north/flat. */}
+          <NavigationControl position="top-right" visualizePitch showCompass showZoom />
           {clusters.map((cluster) => {
             if (cluster.items.length === 1) {
               const pin = cluster.items[0]
@@ -240,12 +249,22 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
               latitude={activePin.lat}
               longitude={activePin.lng}
               onClose={() => { setSelected(null); setHovered(null) }}
-              closeButton={selected === activePin.id}
+              closeButton={false}
               closeOnClick={false}
               offset={12}
             >
-              <div className="text-xs space-y-1 text-black min-w-[140px]">
-                <p className="font-semibold">{activePin.company}</p>
+              <div className="text-xs space-y-1 text-black min-w-[140px] relative">
+                {selected === activePin.id && (
+                  <button
+                    type="button"
+                    onClick={() => { setSelected(null); setHovered(null) }}
+                    aria-label="Close"
+                    className="absolute -top-1 -right-1 p-1 text-gray-400 hover:text-gray-700 cursor-pointer"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                <p className="font-semibold pr-4">{activePin.company}</p>
                 <p>{activePin.role}</p>
                 <p className="flex items-center gap-1">
                   <span className="inline-block h-2 w-2 rounded-full" style={{ background: STATUS_COLOURS[normaliseStatus(activePin.status)] ?? "hsl(var(--primary))" }} />
@@ -276,13 +295,27 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
           )}
         </MapGL>
       </div>
-      <p className="text-[10px] text-muted-foreground">
-        {pins.length} geocoded application{pins.length !== 1 ? "s" : ""} shown
-        {ungeocodedCount > 0 ? ` - ${ungeocodedCount} more waiting on the next geocoding run` : ""}.
-        Pulsing pins mark applications from the last {RECENT_DAYS} days. Hover a pin for a quick
-        preview, click it to open the full popup with a link back to the application. Numbered
-        badges are clusters of nearby applications - click one to zoom in.
-      </p>
+      <div className="flex flex-col gap-1.5 text-[10px] text-muted-foreground">
+        <p>
+          {pins.length} geocoded application{pins.length !== 1 ? "s" : ""} shown
+          {ungeocodedCount > 0 && ` · ${ungeocodedCount} more waiting on the next geocoding run`}
+        </p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
+          <span className="flex items-center gap-1.5">
+            <span className="relative inline-flex h-2 w-2">
+              <span className="absolute inset-0 rounded-full bg-primary/50 animate-ping" />
+              <span className="relative block h-2 w-2 rounded-full bg-primary" />
+            </span>
+            Pulsing = applied in the last {RECENT_DAYS} days
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-primary text-primary-foreground text-[8px] font-semibold">N</span>
+            Numbered badge = a cluster, click to zoom in
+          </span>
+          <span>Hover a pin for a quick preview</span>
+          <span>Click a pin for the full popup and a link back to it</span>
+        </div>
+      </div>
     </div>
   )
 }
