@@ -15,7 +15,7 @@ import {
   Funnel,
   Composed,
 } from "@/components/analytics"
-import { normaliseStatus as normalise, STATUS_COLOURS, computeFunnelCounts } from "@/lib/application-status"
+import { normaliseStatus as normalise, STATUS_COLOURS, computeFunnelCounts, isTrackedApplication } from "@/lib/application-status"
 import { ApplicationsMap } from "@/components/analytics/ApplicationsMap"
 import { BarChart2 } from "lucide-react"
 
@@ -73,9 +73,20 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
   // otherwise every period except "All" would filter down to nothing.
   const appDate = (a: Application) => a.applied_date ?? a.created_at.slice(0, 10)
   const cutoff = periodStartDate(period)
-  const filtered = cutoff
+
+  // apps includes scraped listings (status "scraped") - real applications I actually submitted.
+  // The header line and the "Total" StatCard are meant to show everything I have ever tracked,
+  // scraped included, so they read from rawFiltered. Every actual chart or rate below (funnel,
+  // Pareto, by-location, monthly/weekly trends, the map, applied/rejected/offer counts) reads
+  // from `filtered`, which excludes scraped rows first - those numbers should only ever reflect
+  // real activity, never scraper-import volume.
+  const rawFiltered = cutoff
     ? apps.filter((a) => appDate(a) >= cutoff.toISOString().slice(0, 10))
     : apps
+  const trackedApps = apps.filter(isTrackedApplication)
+  const filtered = cutoff
+    ? trackedApps.filter((a) => appDate(a) >= cutoff.toISOString().slice(0, 10))
+    : trackedApps
 
   // Status breakdown
   const statusCounts: Record<string, number> = {}
@@ -136,8 +147,9 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
       value,
     }))
 
-  // Summary stats (period-filtered)
-  const total = filtered.length
+  // Summary stats (period-filtered). Total is deliberately the raw (scraped-included) count -
+  // every other figure here is real-activity only.
+  const total = rawFiltered.length
   const { applied, assessment: atOA, interview: atInterview } = computeFunnelCounts(filtered.map((a) => a.status))
   const offers = filtered.filter((a) => normalise(a.status) === "Offer Received").length
   const rejected = filtered.filter((a) => normalise(a.status) === "Rejected").length
@@ -151,9 +163,11 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
     const span = today.getTime() - cutoff.getTime()
     const prevStartIso = new Date(cutoff.getTime() - span).toISOString().slice(0, 10)
     const prevEndIso = cutoff.toISOString().slice(0, 10)
-    const prev = apps.filter((a) => appDate(a) >= prevStartIso && appDate(a) < prevEndIso)
-    prevTotal = prev.length
-    prevApplied = computeFunnelCounts(prev.map((a) => a.status)).applied
+    // Total's trend compares raw counts (matching Total itself); Applied's compares tracked
+    // counts (matching Applied itself) - each delta stays consistent with what it is a delta of.
+    prevTotal = apps.filter((a) => appDate(a) >= prevStartIso && appDate(a) < prevEndIso).length
+    const prevTracked = trackedApps.filter((a) => appDate(a) >= prevStartIso && appDate(a) < prevEndIso)
+    prevApplied = computeFunnelCounts(prevTracked.map((a) => a.status)).applied
   }
   const pctDelta = (cur: number, prev: number) => (prev > 0 ? Math.round(((cur - prev) / prev) * 100) : null)
   const totalDelta = pctDelta(total, prevTotal)
@@ -195,7 +209,7 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
           <div>
             <h2 className="text-base font-semibold leading-tight">Applications Analytics</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {filtered.length} application{filtered.length !== 1 ? "s" : ""} in view - {periodLabel}
+              {rawFiltered.length} application{rawFiltered.length !== 1 ? "s" : ""} in view - {periodLabel}
             </p>
           </div>
         </div>
