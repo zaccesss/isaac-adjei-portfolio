@@ -11,13 +11,29 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import {
+  LineChart as RLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+} from "recharts"
 import { type Project } from "@/data/projects"
 import { staggerContainer, fadeUp } from "@/lib/animations"
 import ShareButton from "@/components/shared/ShareButton"
 
+export type LabMeasurementPoint = {
+  measurement_set: string
+  frequency_hz: number
+  magnitude_db: number | null
+  phase_deg: number | null
+}
+
 interface Props {
   project: Project
+  // Real hand-logged frequency-response readings for this project only, currently only wired up
+  // for the audio amplifier - a Bode plot is genuinely project documentation, not a live/private
+  // dashboard stat, so it belongs on the public write-up rather than a dashboard-only chart.
+  measurements?: LabMeasurementPoint[]
 }
+
+const BODE_COLOURS = ["#8b5cf6", "#22c55e", "#f59e0b", "#ef4444", "#06b6d4", "#ec4899"]
 
 function renderWithCode(text: string) {
   const parts = text.split(/(`[^`]+`)/)
@@ -28,7 +44,27 @@ function renderWithCode(text: string) {
   )
 }
 
-export default function ProjectDetail({ project }: Props) {
+export default function ProjectDetail({ project, measurements }: Props) {
+  const sets = measurements?.length ? [...new Set(measurements.map((m) => m.measurement_set))] : []
+  const frequencies = measurements?.length ? [...new Set(measurements.map((m) => m.frequency_hz))].sort((a, b) => a - b) : []
+  const magnitudeData = frequencies.map((f) => {
+    const row: Record<string, number> = { frequency_hz: f }
+    for (const s of sets) {
+      const p = measurements?.find((m) => m.measurement_set === s && m.frequency_hz === f)
+      if (p?.magnitude_db != null) row[s] = p.magnitude_db
+    }
+    return row
+  })
+  const phaseData = frequencies.map((f) => {
+    const row: Record<string, number> = { frequency_hz: f }
+    for (const s of sets) {
+      const p = measurements?.find((m) => m.measurement_set === s && m.frequency_hz === f)
+      if (p?.phase_deg != null) row[s] = p.phase_deg
+    }
+    return row
+  })
+  const hasPhaseData = phaseData.some((row) => Object.keys(row).length > 1)
+
   return (
     <motion.div
       variants={staggerContainer}
@@ -116,6 +152,52 @@ export default function ProjectDetail({ project }: Props) {
           </div>
         </div>
       </motion.div>
+
+      {frequencies.length > 0 && (
+        <>
+          <Separator />
+          <motion.div variants={fadeUp} className="space-y-4">
+            <h2 className="text-xl font-semibold">Frequency response</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Real hand-logged readings across breadboard and PCB builds, plus a theoretical curve
+              calculated from the reported component values - the standard Bode plot shape for
+              this kind of analogue design.
+            </p>
+            <div className="border border-border rounded-lg p-4 bg-card">
+              <p className="text-sm font-semibold mb-3">Magnitude (dB) vs frequency</p>
+              <ResponsiveContainer width="100%" height={260}>
+                <RLineChart data={magnitudeData} margin={{ top: 6, right: 8, bottom: 0, left: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="frequency_hz" scale="log" domain={["auto", "auto"]} type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6 }} labelFormatter={(v) => `${v} Hz`} />
+                  <Legend wrapperStyle={{ fontSize: "11px" }} />
+                  {sets.map((s, i) => (
+                    <Line key={s} type="monotone" dataKey={s} stroke={BODE_COLOURS[i % BODE_COLOURS.length]} strokeWidth={2} dot={{ r: 2 }} connectNulls />
+                  ))}
+                </RLineChart>
+              </ResponsiveContainer>
+            </div>
+            {hasPhaseData && (
+              <div className="border border-border rounded-lg p-4 bg-card">
+                <p className="text-sm font-semibold mb-3">Phase (deg) vs frequency</p>
+                <ResponsiveContainer width="100%" height={260}>
+                  <RLineChart data={phaseData} margin={{ top: 6, right: 8, bottom: 0, left: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis dataKey="frequency_hz" scale="log" domain={["auto", "auto"]} type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6 }} labelFormatter={(v) => `${v} Hz`} />
+                    <Legend wrapperStyle={{ fontSize: "11px" }} />
+                    {sets.map((s, i) => (
+                      <Line key={s} type="monotone" dataKey={s} stroke={BODE_COLOURS[i % BODE_COLOURS.length]} strokeWidth={2} dot={{ r: 2 }} connectNulls />
+                    ))}
+                  </RLineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </motion.div>
+        </>
+      )}
 
       {project.images.length > 0 && (
         <>
