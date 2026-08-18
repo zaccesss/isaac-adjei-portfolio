@@ -7,25 +7,23 @@ export const dynamic = "force-dynamic"
 export const metadata = { title: "Applications Analytics", robots: "noindex, nofollow" }
 
 export default async function ApplicationsAnalyticsPage() {
-  // Excludes scraped rows - the table holds thousands of scraper-imported listings (status
-  // "scraped") that I never actually applied to, and this page's own charts were built on the
-  // unfiltered set, so every one of them (funnel, Pareto, by-location, monthly totals, the map)
-  // was showing scraped-job-board volume as if it were my own real application activity. This
-  // matches the same status <> "scraped" filter I already apply to Time Allocation, All Analytics
-  // and the homepage summary - this page was the one place I had missed it.
+  // I fetch every row, scraped included - the headline "Total" figure on this page is meant to
+  // show everything I have ever tracked, scraped listings included. ApplicationsAnalytics itself
+  // filters status <> "scraped" out before computing any actual chart (funnel, Pareto, by-location,
+  // monthly totals, the map, every StatCard below the header) - only the raw header count includes
+  // scraped rows, nothing analytical does.
   //
   // PostgREST caps a single select at 1000 rows. I page through in 1000-row batches and combine
-  // them so nothing is silently truncated if the real (now much smaller) tracked total ever grows
-  // past that, fetched in parallel rather than one page at a time.
+  // them so a growing table (thousands of scraped roles) is never silently truncated, fetched in
+  // parallel rather than one page at a time.
   const cols = "id, company, role, type, status, applied_date, location, category, created_at, url"
   const q = () =>
-    supabase.from("applications").select(cols).eq("archived", false).neq("status", "scraped").order("created_at", { ascending: false })
+    supabase.from("applications").select(cols).eq("archived", false).order("created_at", { ascending: false })
 
   const { count } = await supabase
     .from("applications")
     .select("id", { count: "exact", head: true })
     .eq("archived", false)
-    .neq("status", "scraped")
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / 1000))
   const pages = await Promise.all(
     Array.from({ length: totalPages }, (_, i) => q().range(i * 1000, i * 1000 + 999))
