@@ -6,7 +6,7 @@
 // genuinely free forever, no account, no API key, no card. Only ever reads lat/lng from
 // location_geocodes, which isaac-adjei-automations' geocode-locations.mjs job populates - this
 // component never geocodes anything itself.
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import MapGL, { Marker, NavigationControl, Popup, type MapRef } from "react-map-gl/maplibre"
@@ -62,16 +62,34 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
   // "bright" is the default: unlike "streets" (liberty) it has no 3D building extrusion layer
   // (genuinely GPU-heavy with many pins on screen), and unlike "light" (positron) it colours
   // country/land-use areas and shows place labels clearly rather than a near-monochrome base.
-  // Auto-switches to "dark" if the site is in dark mode - none of the light styles play well
-  // against a dark dashboard - but only until the user picks a style themselves, same "site
-  // theme sets the default, manual choice always wins" pattern the isometric calendar uses.
+  // Defaults to "dark" if the site is in dark mode - none of the light styles play well against
+  // a dark dashboard - but only until the user picks a style themselves, same "site theme sets
+  // the default, manual choice always wins" pattern the isometric calendar uses.
+  //
+  // The map itself does not mount until `mounted` is true (below), specifically so the very
+  // first style MapGL ever receives is already the correct one. useTheme()'s resolvedTheme is
+  // intentionally undefined for one tick after mount (next-themes' own hydration-mismatch guard);
+  // rendering the map immediately and then correcting the style once resolvedTheme resolved fed
+  // MapGL a changed mapStyle prop moments after its first style had already started loading,
+  // forcing a second internal setStyle() call. MapLibre's glyph manager does not reliably recover
+  // from a style swap that fast, which was silently breaking every place label on the map -
+  // confirmed against a real, freshly-fetched OpenFreeMap style JSON: its country/city label
+  // layers have no meaningful minzoom floor, so they should have been visible immediately. Gating
+  // the whole map behind mount means there is only ever one style load, ever, with no SSR/
+  // hydration mismatch either since nothing theme-dependent renders before the client knows.
   const { resolvedTheme } = useTheme()
-  // null means "no manual choice yet" - the theme-derived default is computed in render rather
-  // than synced via an effect, so a style pick never fights a subsequent theme-driven re-render.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    // Deferred rather than called synchronously in the effect body, matching
+    // useEChartsColours' own established pattern for this exact class of lint constraint.
+    const raf = requestAnimationFrame(() => setMounted(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
   const [userStyle, setUserStyle] = useState<keyof typeof STYLES | null>(null)
   const style = userStyle ?? (resolvedTheme === "dark" ? "dark" : "bright")
   const [globe, setGlobe] = useState(false)
   const [is3D, setIs3D] = useState(false)
+  const [clustering, setClustering] = useState(true)
   const [zoom, setZoom] = useState(3.5)
   const mapRef = useRef<MapRef>(null)
 
@@ -114,6 +132,7 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
   // exist. Cell size shrinks as zoom increases, so clusters split apart naturally on zoom-in
   // rather than needing a second clustering pass.
   const clusters = useMemo(() => {
+    if (!clustering) return pins.map((p) => ({ lat: p.lat, lng: p.lng, items: [p] }))
     const cellDegrees = 50 / 2 ** zoom
     const cells = new Map<string, typeof pins>()
     for (const p of pins) {
@@ -127,7 +146,7 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
       lng: items.reduce((s, p) => s + p.lng, 0) / items.length,
       items,
     }))
-  }, [pins, zoom])
+  }, [pins, zoom, clustering])
 
   const ungeocodedCount = apps.filter((a) => a.location && !geocodeByLocation.has(a.location)).length
 
@@ -137,6 +156,13 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
         No geocoded locations yet. {ungeocodedCount > 0 ? `${ungeocodedCount} location${ungeocodedCount !== 1 ? "s" : ""} waiting on the next geocoding run.` : "Add a location to an application to see it here."}
       </p>
     )
+  }
+
+  // MapGL only ever mounts once the client is known and the real theme resolved - see the note
+  // above on `mounted`. This is the same shape server and client agree on before that point, so
+  // there is no hydration mismatch either.
+  if (!mounted) {
+    return <div className="h-[420px] w-full rounded-lg border border-border bg-muted/30 animate-pulse" />
   }
 
   const activePin = pins.find((p) => p.id === (selected ?? hovered)) ?? null
@@ -159,7 +185,7 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
         <button
           type="button"
           onClick={() => setGlobe((g) => !g)}
-          title="Toggle globe projection"
+          title="Globe projection has a known MapLibre limitation where country/place labels can fail to render (github.com/maplibre/maplibre-gl-js#5025) - Flat is the reliable choice for readable labels"
           className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded border transition-colors ${globe ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
         >
           {globe ? <Globe2 className="h-3 w-3" /> : <MapIcon className="h-3 w-3" />}
@@ -173,6 +199,14 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
         >
           {is3D ? <Box className="h-3 w-3" /> : <Square className="h-3 w-3" />}
           {is3D ? "3D" : "2D"}
+        </button>
+        <button
+          type="button"
+          onClick={() => setClustering((c) => !c)}
+          title={clustering ? "Show every individual pin, unclustered" : "Group nearby pins into clusters"}
+          className={`text-[10px] px-2 py-1 rounded border transition-colors ${clustering ? "border-border text-muted-foreground hover:text-foreground" : "bg-primary text-primary-foreground border-primary"}`}
+        >
+          {clustering ? "Clustered" : "All pins"}
         </button>
       </div>
       <div className="h-[420px] w-full overflow-hidden rounded-lg border border-border">
@@ -314,6 +348,7 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
           </span>
           <span>Hover a pin for a quick preview</span>
           <span>Click a pin for the full popup and a link back to it</span>
+          <span>Toggle &quot;All pins&quot; above to turn off clustering entirely</span>
         </div>
       </div>
     </div>
