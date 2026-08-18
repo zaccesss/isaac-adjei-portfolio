@@ -7,19 +7,25 @@ export const dynamic = "force-dynamic"
 export const metadata = { title: "Applications Analytics", robots: "noindex, nofollow" }
 
 export default async function ApplicationsAnalyticsPage() {
-  // PostgREST caps a single select at 1000 rows, so with thousands of scraped roles the analytics
-  // only ever saw the first 1000 (that is why "Total" stuck at 1000). I page through in 1000-row
-  // batches and combine them so every application is counted. The batches are fetched in parallel -
-  // a count query plus one parallel burst - rather than one at a time, so a growing table (thousands
-  // of scraped roles) adds barely any wall-clock time instead of another sequential round trip.
+  // Excludes scraped rows - the table holds thousands of scraper-imported listings (status
+  // "scraped") that I never actually applied to, and this page's own charts were built on the
+  // unfiltered set, so every one of them (funnel, Pareto, by-location, monthly totals, the map)
+  // was showing scraped-job-board volume as if it were my own real application activity. This
+  // matches the same status <> "scraped" filter I already apply to Time Allocation, All Analytics
+  // and the homepage summary - this page was the one place I had missed it.
+  //
+  // PostgREST caps a single select at 1000 rows. I page through in 1000-row batches and combine
+  // them so nothing is silently truncated if the real (now much smaller) tracked total ever grows
+  // past that, fetched in parallel rather than one page at a time.
   const cols = "id, company, role, type, status, applied_date, location, category, created_at, url"
   const q = () =>
-    supabase.from("applications").select(cols).eq("archived", false).order("created_at", { ascending: false })
+    supabase.from("applications").select(cols).eq("archived", false).neq("status", "scraped").order("created_at", { ascending: false })
 
   const { count } = await supabase
     .from("applications")
     .select("id", { count: "exact", head: true })
     .eq("archived", false)
+    .neq("status", "scraped")
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / 1000))
   const pages = await Promise.all(
     Array.from({ length: totalPages }, (_, i) => q().range(i * 1000, i * 1000 + 999))

@@ -27,7 +27,7 @@ import ApplicationsAnalytics from "./ApplicationsAnalytics"
 import InterviewPrepDialog, { type InterviewPrep } from "./InterviewPrepDialog"
 import MarkdownContent from "@/components/shared/MarkdownContent"
 import { Pagination } from "@/components/shared/Pagination"
-import { APPLICATION_STATUSES, normaliseStatus, statusTextClass, computeFunnelCounts, isInPipeline, classifyFunnelStage } from "@/lib/application-status"
+import { APPLICATION_STATUSES, normaliseStatus, statusTextClass, computeFunnelCounts, isInPipeline, classifyFunnelStage, isTrackedApplication } from "@/lib/application-status"
 import { ProgressBar } from "@/components/analytics"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1571,7 +1571,7 @@ export default function ApplicationsClient({ applications: initial, geocodes }: 
       {view === "analytics" && (
         <div className="flex-1 overflow-auto min-h-0 px-4 pb-4 pt-3">
           <ApplicationsAnalytics
-            apps={apps.filter((a) => appBelongsToTab(a, activeTab) && !a.archived)}
+            apps={apps.filter((a) => appBelongsToTab(a, activeTab) && !a.archived && isTrackedApplication(a))}
             geocodes={geocodes}
           />
         </div>
