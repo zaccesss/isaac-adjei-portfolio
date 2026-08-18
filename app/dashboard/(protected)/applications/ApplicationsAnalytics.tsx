@@ -66,7 +66,7 @@ function ThemedTooltip({ active, payload, label }: { active?: boolean; payload?:
   )
 }
 
-function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; geocodes: Geocode[] }) {
+function ApplicationsAnalyticsInner({ apps, geocodes, mapApiKey }: { apps: Application[]; geocodes: Geocode[]; mapApiKey: string }) {
   const { period } = useAnalyticsPeriod()
 
   // applied_date is unset on almost every row, so I fall back to created_at as the date basis -
@@ -228,6 +228,7 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
         <ApplicationsMap
           apps={rawFiltered.map((a) => ({ id: a.id, company: a.company, role: a.role, status: a.status, location: a.location, created_at: a.created_at, url: a.url }))}
           geocodes={geocodes}
+          apiKey={mapApiKey}
         />
       </div>
 
@@ -415,10 +416,10 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
   )
 }
 
-export default function ApplicationsAnalytics({ apps, geocodes }: { apps: Application[]; geocodes: Geocode[] }) {
+export default function ApplicationsAnalytics({ apps, geocodes, mapApiKey }: { apps: Application[]; geocodes: Geocode[]; mapApiKey: string }) {
   return (
     <AnalyticsPeriodProvider defaultPeriod="all">
-      <ApplicationsAnalyticsInner apps={apps} geocodes={geocodes} />
+      <ApplicationsAnalyticsInner apps={apps} geocodes={geocodes} mapApiKey={mapApiKey} />
     </AnalyticsPeriodProvider>
   )
 }

@@ -26,5 +26,5 @@ export default async function ApplicationsPage() {
   ])
   const data = pages.flatMap((p) => p.data ?? [])
 
-  return <ApplicationsClient applications={data} geocodes={geocodes ?? []} />
+  return <ApplicationsClient applications={data} geocodes={geocodes ?? []} mapApiKey={process.env.MAPTILER_API_KEY ?? ""} />
 }
