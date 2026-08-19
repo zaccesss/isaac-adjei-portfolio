@@ -2,41 +2,47 @@
 
 // A real interactive map of application locations - pan/zoom/rotate/click, pulsing markers for
 // recent applications (mirroring LiveStatusCards' own pulsing dots elsewhere on the dashboard).
-// MapLibre GL JS (the open-source Mapbox GL fork) for the engine, OpenFreeMap for tiles - both
-// genuinely free forever, no account, no API key, no card. Only ever reads lat/lng from
+// MapLibre GL JS for the engine, MapTiler Cloud for tiles/styles/labels/glyphs - free (no card,
+// 100k map loads/month), key-gated and origin-restricted. Switched from OpenFreeMap after 3 days
+// chasing a reproducible bug where MapLibre never issued a single vector tile (.pbf) request
+// against it (confirmed via a real network capture, not a style/zoom-threshold assumption) -
+// MapTiler is a professional commercial product where the tile/glyph pipeline is a core, heavily
+// used deliverable, not a hobby project's edge case. Only ever reads lat/lng from
 // location_geocodes, which isaac-adjei-automations' geocode-locations.mjs job populates - this
 // component never geocodes anything itself.
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import MapGL, { Marker, NavigationControl, Popup, type MapRef } from "react-map-gl/maplibre"
+import { setWorkerUrl } from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
 import { STATUS_COLOURS, normaliseStatus } from "@/lib/application-status"
 import { Globe2, Map as MapIcon, ExternalLink, Box, Square, X } from "lucide-react"
 
-// Esri's World Imagery REST tile service is a genuinely free, no-key, no-card raster tile source
-// (used by plenty of open-source map projects for exactly this) - a raw MapLibre raster style
-// rather than a hosted vector style URL like OpenFreeMap's other two.
-const SATELLITE_STYLE = {
-  version: 8 as const,
-  sources: {
-    esri: {
-      type: "raster" as const,
-      tiles: ["https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
-      tileSize: 256,
-      attribution: "Esri, Maxar, Earthstar Geographics",
-    },
-  },
-  layers: [{ id: "esri-satellite", type: "raster" as const, source: "esri" }],
-}
+// Confirmed root cause of a 3-day bug (a real network capture showed zero .pbf tile requests
+// ever fired, against two different tile providers): Turbopack (Next.js' default dev/build
+// bundler) silently drops MapLibre's own inline worker, so the dedicated thread that parses
+// vector tiles never starts - polygons/labels/everything data-driven stayed blank while raster
+// tiles (no worker needed) rendered fine, which is what actually pointed at the worker. The
+// worker's own .mjs file imports a sibling maplibre-gl-shared.mjs by relative path, so both are
+// copied into public/ (same-origin, no bundler transform needed) rather than trying to get
+// Turbopack to bundle them correctly - self-hosting sidesteps the bug entirely. Re-copy both
+// from node_modules/maplibre-gl/dist/ if maplibre-gl is ever upgraded to a new major version.
+setWorkerUrl("/maplibre-gl-worker.mjs")
 
-const STYLES = {
-  bright: { label: "Bright", url: "https://tiles.openfreemap.org/styles/bright" },
-  streets: { label: "Streets", url: "https://tiles.openfreemap.org/styles/liberty" },
-  light: { label: "Light", url: "https://tiles.openfreemap.org/styles/positron" },
-  dark: { label: "Dark", url: "https://tiles.openfreemap.org/styles/dark" },
-  satellite: { label: "Satellite", url: SATELLITE_STYLE },
-} as const
+function maptilerStyles(key: string) {
+  const url = (id: string) => `https://api.maptiler.com/maps/${id}/style.json?key=${key}`
+  return {
+    streets: { label: "Streets", url: url("streets-v2") },
+    base: { label: "Base", url: url("basic-v2") },
+    dataviz: { label: "Dataviz", url: url("dataviz") },
+    dark: { label: "Dark", url: url("dataviz-dark") },
+    satellite: { label: "Satellite", url: url("hybrid") },
+    toner: { label: "Toner", url: url("toner-v2") },
+    outdoor: { label: "Outdoor", url: url("outdoor-v2") },
+    uk: { label: "UK Ordnance Survey", url: url("uk-openzoomstack-light") },
+  } as const
+}
 
 const RECENT_DAYS = 14
 
@@ -56,27 +62,20 @@ interface Geocode {
   lng: number | null
 }
 
-export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; geocodes: Geocode[] }) {
+export function ApplicationsMap({ apps, geocodes, apiKey }: { apps: MapApplication[]; geocodes: Geocode[]; apiKey: string }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
-  // "bright" is the default: unlike "streets" (liberty) it has no 3D building extrusion layer
-  // (genuinely GPU-heavy with many pins on screen), and unlike "light" (positron) it colours
-  // country/land-use areas and shows place labels clearly rather than a near-monochrome base.
-  // Defaults to "dark" if the site is in dark mode - none of the light styles play well against
-  // a dark dashboard - but only until the user picks a style themselves, same "site theme sets
-  // the default, manual choice always wins" pattern the isometric calendar uses.
+  const STYLES = useMemo(() => maptilerStyles(apiKey), [apiKey])
+  // "dataviz" is the default - MapTiler's own description is a clean style "designed to plug
+  // effortlessly into dashboards", exactly this use case. Defaults to "dark" (dataviz-dark) if
+  // the site is in dark mode - only until the user picks a style themselves, same "site theme
+  // sets the default, manual choice always wins" pattern the isometric calendar uses.
   //
-  // The map itself does not mount until `mounted` is true (below), specifically so the very
-  // first style MapGL ever receives is already the correct one. useTheme()'s resolvedTheme is
-  // intentionally undefined for one tick after mount (next-themes' own hydration-mismatch guard);
-  // rendering the map immediately and then correcting the style once resolvedTheme resolved fed
-  // MapGL a changed mapStyle prop moments after its first style had already started loading,
-  // forcing a second internal setStyle() call. MapLibre's glyph manager does not reliably recover
-  // from a style swap that fast, which was silently breaking every place label on the map -
-  // confirmed against a real, freshly-fetched OpenFreeMap style JSON: its country/city label
-  // layers have no meaningful minzoom floor, so they should have been visible immediately. Gating
-  // the whole map behind mount means there is only ever one style load, ever, with no SSR/
-  // hydration mismatch either since nothing theme-dependent renders before the client knows.
+  // The map does not mount until `mounted` is true (below), so the very first style MapGL ever
+  // receives is already the correct one rather than swapping moments after mount once
+  // useTheme()'s resolvedTheme resolves (it is undefined for one tick after mount by design,
+  // next-themes' own hydration-mismatch guard) - avoids a second internal setStyle() call this
+  // early in the map's life, regardless of tile provider.
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
@@ -85,8 +84,8 @@ export function ApplicationsMap({ apps, geocodes }: { apps: MapApplication[]; ge
     const raf = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(raf)
   }, [])
-  const [userStyle, setUserStyle] = useState<keyof typeof STYLES | null>(null)
-  const style = userStyle ?? (resolvedTheme === "dark" ? "dark" : "bright")
+  const [userStyle, setUserStyle] = useState<keyof ReturnType<typeof maptilerStyles> | null>(null)
+  const style = userStyle ?? (resolvedTheme === "dark" ? "dark" : "dataviz")
   const [globe, setGlobe] = useState(false)
   const [is3D, setIs3D] = useState(false)
   const [clustering, setClustering] = useState(true)

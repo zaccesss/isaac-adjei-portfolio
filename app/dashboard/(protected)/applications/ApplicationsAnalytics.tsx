@@ -66,7 +66,7 @@ function ThemedTooltip({ active, payload, label }: { active?: boolean; payload?:
   )
 }
 
-function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; geocodes: Geocode[] }) {
+function ApplicationsAnalyticsInner({ apps, geocodes, mapApiKey }: { apps: Application[]; geocodes: Geocode[]; mapApiKey: string }) {
   const { period } = useAnalyticsPeriod()
 
   // applied_date is unset on almost every row, so I fall back to created_at as the date basis -
@@ -119,10 +119,14 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
   }
   const locBar = Object.entries(locCounts).filter(([, v]) => v > 0).map(([name, value]) => ({ name, value }))
 
-  // Weekly trend - number of weeks driven by period
+  // Weekly trend - number of weeks driven by period. weeklyBar (the standalone chart) is
+  // real-activity-only, matching every other chart on the page - rawWeeklySparkline is the
+  // separate raw series feeding only the Total StatCard's own sparkline, since that stays
+  // consistent with Total itself being the raw scraped-included count.
   const today = new Date()
   const numWeeks = period === "7d" ? 4 : period === "30d" ? 8 : period === "90d" ? 13 : period === "1y" ? 26 : period === "24h" ? 1 : 52
   const weeklyBar: { name: string; value: number }[] = []
+  const rawWeeklySparkline: number[] = []
   for (let w = numWeeks - 1; w >= 0; w--) {
     const end = new Date(today)
     end.setDate(today.getDate() - w * 7)
@@ -130,8 +134,9 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
     start.setDate(end.getDate() - 6)
     const startIso = start.toISOString().slice(0, 10)
     const endIso = end.toISOString().slice(0, 10)
-    const count = apps.filter((a) => appDate(a) >= startIso && appDate(a) <= endIso).length
+    const count = trackedApps.filter((a) => appDate(a) >= startIso && appDate(a) <= endIso).length
     weeklyBar.push({ name: end.toLocaleDateString("en-GB", { day: "numeric", month: "short" }), value: count })
+    rawWeeklySparkline.push(apps.filter((a) => appDate(a) >= startIso && appDate(a) <= endIso).length)
   }
 
   // Monthly trend, following the selected period (capped to the last 12 months on wider spans)
@@ -223,12 +228,13 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
         <ApplicationsMap
           apps={rawFiltered.map((a) => ({ id: a.id, company: a.company, role: a.role, status: a.status, location: a.location, created_at: a.created_at, url: a.url }))}
           geocodes={geocodes}
+          apiKey={mapApiKey}
         />
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard label="Total" value={total} trend={totalDelta !== null ? { delta: totalDelta } : undefined} sparkline={weeklyBar.map((w) => w.value)} />
+        <StatCard label="Total" value={total} trend={totalDelta !== null ? { delta: totalDelta } : undefined} sparkline={rawWeeklySparkline} />
         <StatCard label="Applied" value={applied} trend={appliedDelta !== null ? { delta: appliedDelta } : undefined} />
         <StatCard label="Rejected" value={rejected} />
         <StatCard label="Offers" value={offers} />
@@ -410,10 +416,10 @@ function ApplicationsAnalyticsInner({ apps, geocodes }: { apps: Application[]; g
   )
 }
 
-export default function ApplicationsAnalytics({ apps, geocodes }: { apps: Application[]; geocodes: Geocode[] }) {
+export default function ApplicationsAnalytics({ apps, geocodes, mapApiKey }: { apps: Application[]; geocodes: Geocode[]; mapApiKey: string }) {
   return (
     <AnalyticsPeriodProvider defaultPeriod="all">
-      <ApplicationsAnalyticsInner apps={apps} geocodes={geocodes} />
+      <ApplicationsAnalyticsInner apps={apps} geocodes={geocodes} mapApiKey={mapApiKey} />
     </AnalyticsPeriodProvider>
   )
 }

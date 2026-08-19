@@ -50,7 +50,7 @@ export default async function ApplicationsAnalyticsPage() {
         <span className="ml-auto text-[10px] font-mono text-muted-foreground/60">all types combined</span>
       </div>
       <div className="flex-1 overflow-auto px-4 pb-4">
-        <ApplicationsAnalytics apps={data} geocodes={geocodes ?? []} />
+        <ApplicationsAnalytics apps={data} geocodes={geocodes ?? []} mapApiKey={process.env.MAPTILER_API_KEY ?? ""} />
       </div>
     </div>
   )
