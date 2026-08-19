@@ -275,8 +275,16 @@ export function ApplicationsMap({ apps, geocodes, apiKey }: { apps: MapApplicati
           ref={mapRef}
           initialViewState={{ latitude: avgLat, longitude: avgLng, zoom: 3.5 }}
           mapStyle={STYLES[style].url}
+          // Forces a full style reload on every switch instead of MapLibre's default incremental
+          // diff - the style picker switches between genuinely unrelated style documents (different
+          // providers, different source URLs), and repeated diffed switches against ~10k markers
+          // left the map on a stale style that never visually updated, worsening into a fully blank
+          // canvas after several switches. A full reload costs a brief flash per switch but is
+          // reliable, unlike the diff path.
+          styleDiffing={false}
           projection={globe ? "globe" : "mercator"}
           style={{ width: "100%", height: "100%" }}
+          renderWorldCopies={false}
           onMove={(e) => setZoom(e.viewState.zoom)}
           dragPan
           dragRotate
