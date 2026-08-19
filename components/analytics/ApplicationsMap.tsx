@@ -44,12 +44,48 @@ function maptilerStyles(key: string) {
   } as const
 }
 
+// Esri's World Imagery REST tile service is a genuinely free, no-key, no-card raster tile source
+// - a raw MapLibre raster style rather than a hosted vector style URL, used only for OpenFreeMap's
+// own satellite option since OpenFreeMap itself has no satellite imagery.
+const ESRI_SATELLITE_STYLE = {
+  version: 8 as const,
+  sources: {
+    esri: {
+      type: "raster" as const,
+      tiles: ["https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+      tileSize: 256,
+      attribution: "Esri, Maxar, Earthstar Geographics",
+    },
+  },
+  layers: [{ id: "esri-satellite", type: "raster" as const, source: "esri" }],
+}
+
+// A second, independent tile provider kept as a real manual fallback - no key, no card, nothing
+// to run out. The worker fix that actually resolved the 3-day label bug is provider-agnostic, so
+// this works exactly as well as MapTiler; it exists purely so MapTiler being unavailable for any
+// reason (quota, an outage) is never a single point of failure for the whole map.
+function openFreeMapStyles() {
+  return {
+    bright: { label: "Bright", url: "https://tiles.openfreemap.org/styles/bright" },
+    streets: { label: "Streets", url: "https://tiles.openfreemap.org/styles/liberty" },
+    light: { label: "Light", url: "https://tiles.openfreemap.org/styles/positron" },
+    dark: { label: "Dark", url: "https://tiles.openfreemap.org/styles/dark" },
+    satellite: { label: "Satellite", url: ESRI_SATELLITE_STYLE },
+  } as const
+}
+
+const PROVIDERS = { maptiler: "MapTiler", openfreemap: "OpenFreeMap" } as const
+
+type StyleEntry = { label: string; url: string | typeof ESRI_SATELLITE_STYLE }
+type StyleMap = Record<string, StyleEntry>
+
 const RECENT_DAYS = 14
 
 export interface MapApplication {
   id: string
   company: string
   role: string
+  type: string
   status: string
   location: string | null
   created_at: string
@@ -65,11 +101,17 @@ interface Geocode {
 export function ApplicationsMap({ apps, geocodes, apiKey }: { apps: MapApplication[]; geocodes: Geocode[]; apiKey: string }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
-  const STYLES = useMemo(() => maptilerStyles(apiKey), [apiKey])
-  // "dataviz" is the default - MapTiler's own description is a clean style "designed to plug
-  // effortlessly into dashboards", exactly this use case. Defaults to "dark" (dataviz-dark) if
-  // the site is in dark mode - only until the user picks a style themselves, same "site theme
-  // sets the default, manual choice always wins" pattern the isometric calendar uses.
+  const [provider, setProvider] = useState<keyof typeof PROVIDERS>("maptiler")
+  const maptilerStylesMemo = useMemo(() => maptilerStyles(apiKey), [apiKey])
+  const openFreeMapStylesMemo = useMemo(() => openFreeMapStyles(), [])
+  // Both factories return an `as const` literal of a different shape (8 keys vs 5) - widened to
+  // a shared StyleMap here since the provider toggle means this is now a genuine runtime union,
+  // not a single fixed shape the compiler can narrow on its own.
+  const STYLES: StyleMap = provider === "maptiler" ? maptilerStylesMemo : openFreeMapStylesMemo
+  // The default style within whichever provider is active is its own "designed for dashboards"
+  // clean option (MapTiler's "dataviz", OpenFreeMap's "bright") - defaults to that provider's own
+  // dark style if the site is in dark mode, only until the user picks a style themselves, same
+  // "site theme sets the default, manual choice always wins" pattern the isometric calendar uses.
   //
   // The map does not mount until `mounted` is true (below), so the very first style MapGL ever
   // receives is already the correct one rather than swapping moments after mount once
@@ -84,8 +126,9 @@ export function ApplicationsMap({ apps, geocodes, apiKey }: { apps: MapApplicati
     const raf = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(raf)
   }, [])
-  const [userStyle, setUserStyle] = useState<keyof ReturnType<typeof maptilerStyles> | null>(null)
-  const style = userStyle ?? (resolvedTheme === "dark" ? "dark" : "dataviz")
+  const [userStyle, setUserStyle] = useState<string | null>(null)
+  const defaultStyleKey = provider === "maptiler" ? "dataviz" : "bright"
+  const style = (userStyle && userStyle in STYLES ? userStyle : null) ?? (resolvedTheme === "dark" ? "dark" : defaultStyleKey)
   const [globe, setGlobe] = useState(false)
   const [is3D, setIs3D] = useState(false)
   const [clustering, setClustering] = useState(true)
@@ -170,8 +213,26 @@ export function ApplicationsMap({ apps, geocodes, apiKey }: { apps: MapApplicati
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-end gap-1">
-        {(Object.entries(STYLES) as [keyof typeof STYLES, (typeof STYLES)[keyof typeof STYLES]][]).map(([key, s]) => (
+      <div className="flex items-center justify-between gap-1 flex-wrap">
+        {/* Provider on the left, its own style row on the right - MapTiler is the primary
+            provider, OpenFreeMap is a real independent fallback (no key, nothing to run out) if
+            MapTiler is ever unavailable. Switching provider resets to that provider's own default
+            style rather than trying to carry a style key across two unrelated style sets. */}
+        <div className="flex items-center gap-1">
+          {(Object.entries(PROVIDERS) as [keyof typeof PROVIDERS, string][]).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => { setProvider(key); setUserStyle(null) }}
+              title={key === "openfreemap" ? "Independent fallback provider - no key, no card, nothing to run out" : undefined}
+              className={`text-[10px] px-2 py-1 rounded border transition-colors ${provider === key ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1">
+        {Object.entries(STYLES).map(([key, s]) => (
           <button
             key={key}
             type="button"
@@ -207,6 +268,7 @@ export function ApplicationsMap({ apps, geocodes, apiKey }: { apps: MapApplicati
         >
           {clustering ? "Clustered" : "All pins"}
         </button>
+        </div>
       </div>
       <div className="h-[420px] w-full overflow-hidden rounded-lg border border-border">
         <MapGL
@@ -299,6 +361,7 @@ export function ApplicationsMap({ apps, geocodes, apiKey }: { apps: MapApplicati
                 )}
                 <p className="font-semibold pr-4">{activePin.company}</p>
                 <p>{activePin.role}</p>
+                {activePin.type && <p className="text-muted-foreground capitalize">{activePin.type}</p>}
                 <p className="flex items-center gap-1">
                   <span className="inline-block h-2 w-2 rounded-full" style={{ background: STATUS_COLOURS[normaliseStatus(activePin.status)] ?? "hsl(var(--primary))" }} />
                   {activePin.status}

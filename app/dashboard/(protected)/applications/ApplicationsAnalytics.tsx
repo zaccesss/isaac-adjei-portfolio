@@ -226,7 +226,7 @@ function ApplicationsAnalyticsInner({ apps, geocodes, mapApiKey }: { apps: Appli
       <div className="border border-border rounded-lg p-4 bg-card">
         <p className="text-sm font-semibold mb-3">Application locations</p>
         <ApplicationsMap
-          apps={rawFiltered.map((a) => ({ id: a.id, company: a.company, role: a.role, status: a.status, location: a.location, created_at: a.created_at, url: a.url }))}
+          apps={rawFiltered.map((a) => ({ id: a.id, company: a.company, role: a.role, type: a.type, status: a.status, location: a.location, created_at: a.created_at, url: a.url }))}
           geocodes={geocodes}
           apiKey={mapApiKey}
         />
