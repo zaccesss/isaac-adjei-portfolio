@@ -29,11 +29,13 @@ type ChangeEntry = {
 const releases: ChangeEntry[] = [
   {
     version: "Unreleased",
-    date: "2026-07-10",
+    date: "2026-08-19",
     security: [
       "Patched a dependency vulnerability flagged across three separate alerts, all the same underlying issue in a shared transitive package",
     ],
     added: [
+      "A new /stats section: a public hub page linking into GitHub, coding, music, applications and gaming stats, each on its own page. GitHub, coding and gaming stats moved here from /lab, which now just has the terminal and PCB viewer. GitHub gained a year-by-year contributions bar chart alongside its usual calendar. Music gained real listening history - a calendar of daily play counts, a radial clock of listening by hour of day and a genre treemap, all filterable by period - alongside the existing top tracks, artists and genres. Applications gained a genuine map of where my job search has reached, one pin per city sized by count, count-only with no company, status, role or date behind it, plus an always-on total application count - hover a pin for a quick number, nothing to click through to",
+      "/projects/audio-amplifier: a real Bode plot from hand-logged breadboard and PCB readings, alongside a theoretical curve calculated from the reported component values",
       "/lab: the GitHub contributions calendar now has a second, circuit-board-styled isometric view underneath the usual flat one - one extruded block per day lit up like an LED on the busiest days, defaulting to a fixed isometric angle but now with drag to rotate, scroll to zoom and a flat top-down view too",
       "/contribute: a full contributing guide covering the range of what I build - software, hardware, images and design, writing and courses and this site; sections on ways to help, pull requests, using AI, patience and getting in touch, each cross-linked to its GitHub repo",
       "/code-of-conduct: a short personal intro followed by the Contributor Covenant 2.1 in full",

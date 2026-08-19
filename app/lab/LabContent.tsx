@@ -5,11 +5,8 @@ import Image from "next/image"
 import { posts } from "@/data/blog"
 import { getPublishedTILEntries } from "@/data/til"
 import { publications } from "@/data/respub"
+import Link from "next/link"
 import { useModKey } from "@/hooks/useModKey"
-import GitHubStats from "@/components/shared/GitHubStats"
-import WakatimeStats from "@/components/lab/WakatimeStats"
-import SpotifyAnalytics from "@/components/lab/SpotifyAnalytics"
-import GamingPanel from "@/components/lab/GamingPanel"
 import BrailleDivider from "@/components/shared/marks/BrailleDivider"
 import dynamic from "next/dynamic"
 
@@ -1248,7 +1245,7 @@ export default function LabPage() {
               ⚠️ lab // work in progress ⚠️
             </p>
             <p className="font-mono text-xs text-muted-foreground">
-              terminal, github stats, live coding stats, gaming panel, PCB viewer and hardware · more experiments incoming
+              terminal, PCB viewer and hardware · more experiments incoming
             </p>
           </div>
           <div className="flex justify-center">
@@ -1372,11 +1369,16 @@ export default function LabPage() {
         </div>
       )}
 
-      {!isMaximized && <GitHubStats />}
-      {!isMaximized && <WakatimeStats />}
       {!isMaximized && <PCBViewer />}
-      {!isMaximized && <GamingPanel />}
-      {!isMaximized && <SpotifyAnalytics />}
+
+      {!isMaximized && (
+        <p className="text-center text-xs text-muted-foreground font-mono">
+          GitHub, coding, music and gaming stats moved to{" "}
+          <Link href="/stats" className="text-primary hover:underline">
+            /stats
+          </Link>
+        </p>
+      )}
 
       {!isMaximized && <BrailleDivider className="max-w-md mx-auto pt-2" />}
 
