@@ -84,7 +84,7 @@
     "react-is": "^19.2.8",
     "react-map-gl": "^8.1.2",
     "react-markdown": "^10.1.0",
-    "react-phone-number-input": "^3.4.17",
+    "react-phone-number-input": "^3.4.18",
     "recharts": "^3.10.1",
     "remark-gfm": "^4.0.1",
     "sonner": "^2.0.8",
