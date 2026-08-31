@@ -7,7 +7,7 @@
     "dev": "wrangler dev --config wrangler.toml"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260821.1",
+    "@cloudflare/workers-types": "^5.20260828.1",
     "wrangler": "^4.127.0"
   },
   "overrides": {
