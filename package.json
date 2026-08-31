@@ -54,7 +54,7 @@
     "@tiptap/react": "^2.27.2",
     "@tiptap/starter-kit": "^2.27.2",
     "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.38.2",
+    "@upstash/redis": "^1.38.3",
     "@vercel/analytics": "^2.0.1",
     "@visx/wordcloud": "^4.0.0",
     "ai": "^6.0.261",
