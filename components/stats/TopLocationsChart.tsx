@@ -1,8 +1,10 @@
 "use client"
 
-// Top 10 cities by application count for /stats/applications, from the same public, count-only
+// Top 10 cities by opportunity count for /stats/applications, from the same public, count-only
 // endpoint PublicApplicationsMap already reads - no new backend work, no privacy concern (this
-// route never returns anything more specific than a location string and a count).
+// route never returns anything more specific than a location string and a count). "Opportunity"
+// rather than "application" throughout, since most rows are scraped listings tracked, not places
+// actually applied to.
 import { useEffect, useState } from "react"
 import { BarChart } from "@/components/analytics"
 import { BarChart3 } from "lucide-react"
@@ -38,7 +40,7 @@ export default function TopLocationsChart() {
         xKey="name"
         height={200}
         legend
-        valueFormatter={(v) => `${v} application${v === 1 ? "" : "s"}`}
+        valueFormatter={(v) => `${v} opportunit${v === 1 ? "y" : "ies"} tracked`}
       />
     </div>
   )

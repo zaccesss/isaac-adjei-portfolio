@@ -19,7 +19,7 @@ export default function StatsApplicationsPage() {
     <div className="container max-w-3xl py-24 space-y-8">
       <StatsPageHeader
         title="Applications"
-        description="Every city my job search has reached, sized by how many applications I have sent there. Hover a pin for a count - nothing more specific than that ever leaves the database for this page."
+        description="Every city my job search has reached, sized by how many job opportunities I have tracked there - most are listings I found and logged, not places I have necessarily applied. Hover a pin for a count, nothing more specific than that ever leaves the database for this page."
       />
       <PublicApplicationsMap />
       <TopLocationsChart />
