@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
 import GitHubStats from "@/components/shared/GitHubStats"
 import GitHubYearlyChart from "@/components/stats/GitHubYearlyChart"
+import GitHubActivityChart from "@/components/stats/GitHubActivityChart"
 import { StatsPageHeader } from "@/components/stats/StatsPageHeader"
+import { AnalyticsPeriodProvider, PeriodSelector } from "@/components/analytics"
 
 export const metadata: Metadata = {
   title: "GitHub Stats",
@@ -16,13 +18,19 @@ export const metadata: Metadata = {
 
 export default function StatsGitHubPage() {
   return (
-    <div className="container max-w-3xl py-24 space-y-8">
-      <StatsPageHeader
-        title="GitHub"
-        description="A full year of contribution history, top languages and top repos, straight from my GitHub profile."
-      />
-      <GitHubYearlyChart />
-      <GitHubStats />
-    </div>
+    <AnalyticsPeriodProvider defaultPeriod="90d">
+      <div className="container max-w-3xl py-24 space-y-8">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <StatsPageHeader
+            title="GitHub"
+            description="A full year of contribution history, top languages and top repos, straight from my GitHub profile."
+          />
+          <PeriodSelector />
+        </div>
+        <GitHubActivityChart />
+        <GitHubYearlyChart />
+        <GitHubStats />
+      </div>
+    </AnalyticsPeriodProvider>
   )
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { PublicApplicationsMap } from "@/components/stats/PublicApplicationsMap"
+import TopLocationsChart from "@/components/stats/TopLocationsChart"
 import { StatsPageHeader } from "@/components/stats/StatsPageHeader"
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function StatsApplicationsPage() {
         description="Every city my job search has reached, sized by how many applications I have sent there. Hover a pin for a count - nothing more specific than that ever leaves the database for this page."
       />
       <PublicApplicationsMap />
+      <TopLocationsChart />
     </div>
   )
 }

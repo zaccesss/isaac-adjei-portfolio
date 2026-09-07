@@ -4,11 +4,13 @@
 // count calendar and an hour-of-day radial clock. Sits above SpotifyAnalytics' own top tracks,
 // artists and genres, which already covers the top-picks side of the story.
 import { useEffect, useState } from "react"
-import { CalendarHeatmap, RadialClock, Treemap, useAnalyticsPeriod } from "@/components/analytics"
+import { CalendarHeatmap, RadialClock, Treemap, BarChart, WordCloud, useAnalyticsPeriod } from "@/components/analytics"
 import { Music2 } from "lucide-react"
 
 type MusicHistoryData = { totalPlays: number; daily: { date: string; count: number }[]; hourly: number[] }
 type GenreDatum = { genre: string; value: number }
+type EraDatum = { decade: string; count: number }
+type ArtistDatum = { rank: number; name: string }
 
 export default function MusicHistory() {
   const { period } = useAnalyticsPeriod()
@@ -18,6 +20,8 @@ export default function MusicHistory() {
   const loading = result === null || result.period !== period
   const data = result?.period === period ? result.data : null
   const [genres, setGenres] = useState<GenreDatum[] | null>(null)
+  const [eras, setEras] = useState<EraDatum[] | null>(null)
+  const [artists, setArtists] = useState<ArtistDatum[] | null>(null)
 
   useEffect(() => {
     const ctrl = new AbortController()
@@ -30,9 +34,13 @@ export default function MusicHistory() {
 
   useEffect(() => {
     fetch("/api/spotify-top")
-      .then((r) => (r.ok ? r.json() : { genres: [] }))
-      .then((d) => setGenres(d.genres ?? []))
-      .catch(() => setGenres([]))
+      .then((r) => (r.ok ? r.json() : { genres: [], eras: [], artists: [] }))
+      .then((d) => {
+        setGenres(d.genres ?? [])
+        setEras(d.eras ?? [])
+        setArtists(d.artists ?? [])
+      })
+      .catch(() => { setGenres([]); setEras([]); setArtists([]) })
   }, [])
 
   return (
@@ -72,11 +80,33 @@ export default function MusicHistory() {
           </div>
           {genres && genres.length > 0 && (
             <div className="space-y-2">
-              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">genres, rank-weighted across my top artists</p>
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">genres, rank-weighted across my top artists (not period-filtered)</p>
               <Treemap
                 data={genres.map((g) => ({ name: g.genre, value: g.value }))}
                 height={220}
                 valueFormatter={(v) => Math.round(v).toString()}
+              />
+            </div>
+          )}
+          {artists && artists.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">top artists, Spotify&apos;s own ranking (not period-filtered)</p>
+              <WordCloud
+                words={artists.map((a) => ({ text: a.name, value: artists.length - a.rank + 1 }))}
+                height={220}
+                valueLabel="rank weight"
+              />
+            </div>
+          )}
+          {eras && eras.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">top tracks by release decade (not period-filtered)</p>
+              <BarChart
+                data={eras.map((e) => ({ name: e.decade, value: e.count }))}
+                dataKey="value"
+                xKey="name"
+                height={160}
+                valueFormatter={(v) => `${v} track${v === 1 ? "" : "s"}`}
               />
             </div>
           )}
