@@ -57,7 +57,7 @@
     "@upstash/redis": "^1.38.3",
     "@vercel/analytics": "^2.0.1",
     "@visx/wordcloud": "^4.0.0",
-    "ai": "^6.0.261",
+    "ai": "^6.0.276",
     "bcryptjs": "^3.0.3",
     "chokidar": "^3.5.3",
     "class-variance-authority": "^0.7.0",
