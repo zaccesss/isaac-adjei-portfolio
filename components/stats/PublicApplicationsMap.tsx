@@ -271,7 +271,7 @@ export function PublicApplicationsMap() {
                   </>
                 ) : (
                   <>
-                    <p className="font-semibold">{hoveredCluster.items.length} cities</p>
+                    <p className="font-semibold">{hoveredCluster.items.length} cities, opportunities tracked</p>
                     {hoveredCluster.items.slice(0, 5).map((i) => (
                       <p key={i.location} className="text-muted-foreground">{i.location} - {i.count}</p>
                     ))}
