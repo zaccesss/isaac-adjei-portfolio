@@ -13,7 +13,7 @@ import TaskList from "@tiptap/extension-task-list"
 import TaskItem from "@tiptap/extension-task-item"
 import Placeholder from "@tiptap/extension-placeholder"
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight"
-import { Markdown } from "tiptap-markdown"
+import { Markdown, type MarkdownStorage } from "tiptap-markdown"
 import { common, createLowlight } from "lowlight"
 import {
   Bold, Italic, Strikethrough, Heading1, Heading2, Heading3,
@@ -70,7 +70,10 @@ export default function RichTextEditor({ value, onChange, placeholder }: {
       },
     },
     onUpdate: ({ editor }) => {
-      const md = editor.storage.markdown.getMarkdown()
+      // tiptap-markdown declares no @tiptap/core Storage augmentation of its own (Storage is an
+      // empty interface as of Tiptap 3), so the extension's own exported MarkdownStorage type is
+      // asserted here instead of an untyped/any access.
+      const md = (editor.storage as unknown as { markdown: MarkdownStorage }).markdown.getMarkdown()
       lastSynced.current = md
       onChange(md)
     },
@@ -78,12 +81,12 @@ export default function RichTextEditor({ value, onChange, placeholder }: {
 
   // I sync an external value change (switching to a different note) without disturbing the caret while
   // typing: my own keystrokes set lastSynced in onUpdate, so value already matches and nothing resets.
-  // false = do not emit an update, so this external sync never re-triggers onChange.
+  // emitUpdate: false so this external sync never re-triggers onChange.
   useEffect(() => {
     if (!editor) return
     if (value !== lastSynced.current) {
       lastSynced.current = value
-      editor.commands.setContent(value || "", false)
+      editor.commands.setContent(value || "", { emitUpdate: false })
     }
   }, [value, editor])
 
