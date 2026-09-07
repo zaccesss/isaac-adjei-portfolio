@@ -27,7 +27,7 @@
     "@ai-sdk/react": "^3.0.264",
     "@giscus/react": "^3.1.0",
     "@marsidev/react-turnstile": "^1.5.5",
-    "@opennextjs/cloudflare": "^1.20.2",
+    "@opennextjs/cloudflare": "^1.20.6",
     "@openrouter/ai-sdk-provider": "^2.10.0",
     "@radix-ui/react-checkbox": "^1.3.11",
     "@radix-ui/react-dialog": "^1.1.23",
