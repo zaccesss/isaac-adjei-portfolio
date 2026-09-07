@@ -17,6 +17,7 @@ import {
 } from "@/components/analytics"
 import { normaliseStatus as normalise, STATUS_COLOURS, computeFunnelCounts, isTrackedApplication } from "@/lib/application-status"
 import { ApplicationsMap } from "@/components/analytics/ApplicationsMap"
+import { cityLabel, mergeByLabel } from "@/lib/location-labels"
 import { BarChart2 } from "lucide-react"
 
 type Application = {
@@ -32,7 +33,7 @@ type Application = {
   url: string | null
 }
 
-type Geocode = { location: string; lat: number | null; lng: number | null }
+type Geocode = { location: string; lat: number | null; lng: number | null; city?: string | null; country_code?: string | null }
 
 // Fallback for the rare row with no stored category. Returns the same full names the scraper and the
 // re-categorise backfill use, so the breakdown never fragments into short synonyms.
@@ -118,6 +119,27 @@ function ApplicationsAnalyticsInner({ apps, geocodes, mapApiKey }: { apps: Appli
     else if (l) locCounts["Other"]++
   }
   const locBar = Object.entries(locCounts).filter(([, v]) => v > 0).map(([name, value]) => ({ name, value }))
+
+  // Top 10 cities - a real "City, Country code" breakdown, matching the public /stats/applications
+  // page's own chart, built off the geocode cache's resolved city/country_code rather than the raw
+  // scraped location string (fab/site codes and job-board "N Locations" placeholders are common
+  // enough in the source data that showing them verbatim was actively misleading). Reads from
+  // rawFiltered (scraped included) to match the map and Total StatCard above, which show everything
+  // ever tracked, not just real applications.
+  const geocodeByLocation = new Map(geocodes.map((g) => [g.location, g]))
+  const rawLocationCounts = new Map<string, number>()
+  for (const a of rawFiltered) {
+    if (!a.location) continue
+    rawLocationCounts.set(a.location, (rawLocationCounts.get(a.location) ?? 0) + 1)
+  }
+  const cityRawPoints = Array.from(rawLocationCounts.entries())
+    .map(([location, count]) => {
+      const g = geocodeByLocation.get(location)
+      if (!g || g.lat == null || g.lng == null) return null
+      return { location: cityLabel(location, g), lat: g.lat, lng: g.lng, count }
+    })
+    .filter((p): p is { location: string; lat: number; lng: number; count: number } => p !== null)
+  const top10Cities = mergeByLabel(cityRawPoints).sort((a, b) => b.count - a.count).slice(0, 10)
 
   // Weekly trend - number of weeks driven by period. weeklyBar (the standalone chart) is
   // real-activity-only, matching every other chart on the page - rawWeeklySparkline is the
@@ -405,6 +427,34 @@ function ApplicationsAnalyticsInner({ apps, geocodes, mapApiKey }: { apps: Appli
                 <Bar dataKey="value" radius={[3, 3, 0, 0]}>
                   {locBar.map((entry, i) => (
                     <Cell key={entry.name} fill={DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {top10Cities.length > 0 && (
+          <div className="border border-border rounded-lg p-4 bg-card">
+            <p className="text-sm font-semibold mb-3">Top 10 cities</p>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={top10Cities.map((p) => ({ name: p.location, value: p.count }))} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 9 }} tickLine={false} interval={0} angle={-25} textAnchor="end" height={50} />
+                <YAxis tick={{ fontSize: 10 }} tickLine={false} allowDecimals={false} />
+                <Tooltip content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null
+                  const v = payload[0].value as number
+                  return (
+                    <div className="rounded-md border border-border bg-background px-3 py-2 shadow-md text-xs">
+                      <p className="font-medium">{String(label)}</p>
+                      <p className="text-muted-foreground">{v} opportunit{v !== 1 ? "ies" : "y"} tracked</p>
+                    </div>
+                  )
+                }} cursor={{ fill: "hsl(var(--muted))" }} />
+                <Bar dataKey="value" radius={[3, 3, 0, 0]}>
+                  {top10Cities.map((entry, i) => (
+                    <Cell key={entry.location} fill={DEFAULT_CHART_COLOURS[i % DEFAULT_CHART_COLOURS.length]} />
                   ))}
                 </Bar>
               </BarChart>

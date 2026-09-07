@@ -94,6 +94,33 @@ export const ESRI_SATELLITE_STYLE = {
 // to run out. The worker fix that actually resolved the 3-day label bug is provider-agnostic, so
 // this works exactly as well as MapTiler; it exists purely so MapTiler being unavailable for any
 // reason (quota, an outage) is never a single point of failure for the whole map.
+// Neither globe nor pitched-3D view had any sky/space styling configured, so the area beyond the
+// globe's edge or above a tilted horizon just showed the container's own plain background colour
+// (white) instead of a real backdrop - looked unfinished rather than like an actual globe or a
+// tilted terrain view. MapLibre only renders anything there once a sky is explicitly set via
+// setSky(); a dark space gradient for the globe (matching real globe demos, deliberately theme-
+// independent since it represents outer space, not the site) and a lighter sky-blue gradient for a
+// pitched flat view (matching an ordinary daytime sky) fill it in properly.
+export function skyForView(isGlobe: boolean) {
+  return isGlobe
+    ? {
+        "sky-color": "#0b1120",
+        "sky-horizon-blend": 0.6,
+        "horizon-color": "#1e293b",
+        "horizon-fog-blend": 0.6,
+        "fog-color": "#1e293b",
+        "fog-ground-blend": 0.6,
+      }
+    : {
+        "sky-color": "#88c6fc",
+        "sky-horizon-blend": 0.8,
+        "horizon-color": "#ffffff",
+        "horizon-fog-blend": 0.8,
+        "fog-color": "#ffffff",
+        "fog-ground-blend": 0.5,
+      }
+}
+
 export function openFreeMapStyles() {
   return {
     bright: { label: "Bright", url: "https://tiles.openfreemap.org/styles/bright" },

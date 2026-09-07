@@ -61,6 +61,7 @@ All files use `IF NOT EXISTS`, `CREATE OR REPLACE` or `DO` blocks so they are sa
 | 051 | `051_lab_measurements.sql` | lab_measurements table (hand-logged EECS frequency-response readings, backing the Bode plot on the new Lab Measurements analytics page) | Both |
 | 052 | `052_projects.sql` | projects table (hardware, software and coursework projects, distinct from University/Study/Modules) + project_tasks table (start/end-dated tasks per project, backing a Gantt chart per project) | Both |
 | 053 | `053_finance.sql` | finance_transactions table (income/expense transactions with category, backing the Finance page's savings/spending mini-analytics) | Both |
+| 054 | `054_location_geocodes_city_country.sql` | city + country_code columns on location_geocodes, fed by automations' geocode-locations job, backing a real "City, Country code" label instead of the raw scraped location string | Both |
 
 ## The 2026-07-12 renumbering
 

@@ -22,7 +22,7 @@ export default async function ApplicationsPage() {
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / 1000))
   const [pages, { data: geocodes }] = await Promise.all([
     Promise.all(Array.from({ length: totalPages }, (_, i) => q().range(i * 1000, i * 1000 + 999))),
-    supabase.from("location_geocodes").select("location, lat, lng"),
+    supabase.from("location_geocodes").select("location, lat, lng, city, country_code"),
   ])
   const data = pages.flatMap((p) => p.data ?? [])
 
