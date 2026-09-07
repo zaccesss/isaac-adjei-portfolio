@@ -919,7 +919,7 @@ function ApplicationsFunnel({ apps }: { apps: Application[] }) {
 
 // ─── Main client ──────────────────────────────────────────────────────────────
 
-type Geocode = { location: string; lat: number | null; lng: number | null }
+type Geocode = { location: string; lat: number | null; lng: number | null; city?: string | null; country_code?: string | null }
 
 export default function ApplicationsClient({ applications: initial, geocodes, mapApiKey }: { applications: Application[]; geocodes: Geocode[]; mapApiKey: string }) {
   const [apps, setApps] = useState<Application[]>(initial)

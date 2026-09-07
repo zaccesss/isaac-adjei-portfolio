@@ -8,6 +8,7 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
+import { cityLabel, mergeByLabel } from "@/lib/location-labels"
 
 export const dynamic = "force-dynamic"
 
@@ -32,16 +33,22 @@ export async function GET(req: Request) {
     counts.set(location, (counts.get(location) ?? 0) + 1)
   }
 
-  const { data: geocodes } = await supabase.from("location_geocodes").select("location, lat, lng")
+  const { data: geocodes } = await supabase.from("location_geocodes").select("location, lat, lng, city, country_code")
   const geocodeByLocation = new Map((geocodes ?? []).map((g) => [g.location, g]))
 
-  const points = Array.from(counts.entries())
+  // The raw scraped location string is sometimes genuinely uninformative (a fab/site code, a job
+  // board's own "N Locations" placeholder for a multi-site listing) rather than just inconsistently
+  // formatted, so the display label comes from the geocode's own resolved city/country wherever
+  // available, falling back to the raw string only for rows not yet geocoded with that data.
+  // mergeByLabel then collapses multiple raw strings that resolved to the same city into one point.
+  const rawPoints = Array.from(counts.entries())
     .map(([location, count]) => {
       const g = geocodeByLocation.get(location)
       if (!g || g.lat == null || g.lng == null) return null
-      return { location, lat: g.lat, lng: g.lng, count }
+      return { location: cityLabel(location, g), lat: g.lat, lng: g.lng, count }
     })
     .filter((p): p is { location: string; lat: number; lng: number; count: number } => p !== null)
+  const points = mergeByLabel(rawPoints)
 
   return NextResponse.json(
     { total, points },

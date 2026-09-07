@@ -24,7 +24,7 @@ import { useTheme } from "next-themes"
 import MapGL, { Marker, NavigationControl, Popup, type MapRef } from "react-map-gl/maplibre"
 import { setWorkerUrl } from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
-import { openFreeMapStyles } from "@/lib/map-styles"
+import { openFreeMapStyles, skyForView } from "@/lib/map-styles"
 import { Globe2, Map as MapIcon, Box, Square } from "lucide-react"
 
 // Same Turbopack worker-drop fix as the dashboard's ApplicationsMap - see that component for the
@@ -85,10 +85,56 @@ export function PublicApplicationsMap() {
     mapRef.current?.easeTo({ pitch: next ? 45 : 0, duration: 400 })
   }
 
+  // Globe mode at the same zoom used for the flat view left a small sphere floating in a lot of
+  // empty space, since a landscape box does not naturally fit a full circle - nudging the zoom in
+  // when entering globe mode (and back out when leaving) makes it fill the box properly.
+  function setGlobeAndFit(next: boolean) {
+    setGlobe(next)
+    mapRef.current?.setSky(skyForView(next))
+    mapRef.current?.easeTo({ zoom: zoom + (next ? 1.2 : -1.2), duration: 400 })
+  }
+
   useEffect(() => {
     const raf = requestAnimationFrame(() => setMounted(true))
     return () => cancelAnimationFrame(raf)
   }, [])
+
+  // A style switch fully reloads the style (styleDiffing={false} below), which wipes any sky
+  // previously set via setSky() - re-applies it after every style load so switching from, say,
+  // Bright to Dark while in globe mode does not silently drop back to a plain white void. Reads
+  // globe from a ref rather than the effect's own closure since this listener is attached once
+  // (on mount) and must still see whichever globe/flat state is current whenever it later fires.
+  const globeRef = useRef(globe)
+  useEffect(() => { globeRef.current = globe }, [globe])
+  useEffect(() => {
+    const map = mapRef.current?.getMap()
+    if (!map) return
+    const applySky = () => map.setSky(skyForView(globeRef.current))
+    map.on("style.load", applySky)
+    applySky()
+    return () => { map.off("style.load", applySky) }
+  }, [mounted])
+
+  // The site's own light/dark toggle should carry the map along with it whenever the visitor is on
+  // one of the two theme-linked styles (Light/Dark) - a creative pick like Bright/Streets/Satellite
+  // is a deliberate departure from the theme and stays put. The unpinned default already reacts to
+  // resolvedTheme via the `style` expression below with no extra code; this only handles the case
+  // where a visitor has explicitly clicked Light or Dark and then flips the site's own toggle.
+  const prevThemeRef = useRef<string | undefined>(undefined)
+  useEffect(() => {
+    const prev = prevThemeRef.current
+    prevThemeRef.current = resolvedTheme
+    if (prev === undefined || prev === resolvedTheme) return
+    if (userStyle === "light" || userStyle === "dark") {
+      // Reacting to an external system's own state (the site-wide theme) genuinely changing is
+      // the legitimate external-sync case the rule allows for - this only ever runs after a real
+      // theme flip, never on mount or on the map's own local state changing.
+      /* eslint-disable react-hooks/set-state-in-effect */
+      setStyleAndPersist(resolvedTheme === "dark" ? "dark" : "light")
+      /* eslint-enable react-hooks/set-state-in-effect */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvedTheme])
 
   useEffect(() => {
     fetch("/api/stats/applications-locations")
@@ -176,7 +222,7 @@ export function PublicApplicationsMap() {
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => setGlobe((g) => !g)}
+            onClick={() => setGlobeAndFit(!globe)}
             title="Globe projection has a known MapLibre limitation where country/place labels can fail to render (github.com/maplibre/maplibre-gl-js#5025) - Flat is the reliable choice for readable labels"
             className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded border transition-colors ${globe ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
           >

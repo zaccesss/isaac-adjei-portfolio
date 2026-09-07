@@ -17,7 +17,7 @@ import MapGL, { Marker, NavigationControl, Popup, type MapRef } from "react-map-
 import { setWorkerUrl } from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
 import { STATUS_COLOURS, normaliseStatus } from "@/lib/application-status"
-import { openFreeMapStyles, ESRI_SATELLITE_STYLE } from "@/lib/map-styles"
+import { openFreeMapStyles, ESRI_SATELLITE_STYLE, skyForView } from "@/lib/map-styles"
 import { Globe2, Map as MapIcon, ExternalLink, Box, Square, X } from "lucide-react"
 
 // Confirmed root cause of a 3-day bug (a real network capture showed zero .pbf tile requests
@@ -143,6 +143,54 @@ export function ApplicationsMap({ apps, geocodes, apiKey }: { apps: MapApplicati
     setIs3D(next)
     mapRef.current?.easeTo({ pitch: next ? 45 : 0, duration: 400 })
   }
+
+  // Globe mode at the same zoom used for the flat view left a small sphere floating in a lot of
+  // empty space, since a landscape box does not naturally fit a full circle - nudging the zoom in
+  // when entering globe mode (and back out when leaving) makes it fill the box properly.
+  function setGlobeAndFit(next: boolean) {
+    setGlobe(next)
+    mapRef.current?.setSky(skyForView(next))
+    mapRef.current?.easeTo({ zoom: zoom + (next ? 1.2 : -1.2), duration: 400 })
+  }
+
+  // A style or provider switch fully reloads the style (styleDiffing={false} below), which wipes
+  // any sky previously set via setSky() - re-applies it after every style load so switching styles
+  // while in globe mode does not silently drop back to a plain white void. Reads globe from a ref
+  // rather than the effect's own closure since this listener is attached once (on mount) and must
+  // still see whichever globe/flat state is current whenever it later fires.
+  const globeRef = useRef(globe)
+  useEffect(() => { globeRef.current = globe }, [globe])
+  useEffect(() => {
+    const map = mapRef.current?.getMap()
+    if (!map) return
+    const applySky = () => map.setSky(skyForView(globeRef.current))
+    map.on("style.load", applySky)
+    applySky()
+    return () => { map.off("style.load", applySky) }
+  }, [mounted])
+
+  // The site's own light/dark toggle should carry the map along with it whenever the visitor is on
+  // the current provider's theme-linked style (its light default, or "dark") - a creative pick like
+  // Satellite or a named style (Streets, Toner, Outdoor) is a deliberate departure from the theme
+  // and stays put. The unpinned default already reacts to resolvedTheme via the `style` expression
+  // above with no extra code; this only handles the case where dark/the light default was clicked
+  // explicitly and the site's own toggle is flipped afterwards.
+  const prevThemeRef = useRef<string | undefined>(undefined)
+  useEffect(() => {
+    const prev = prevThemeRef.current
+    prevThemeRef.current = resolvedTheme
+    if (prev === undefined || prev === resolvedTheme) return
+    if (userStyle === defaultStyleKey || userStyle === "dark") {
+      // Reacting to an external system's own state (the site-wide theme) genuinely changing is
+      // the legitimate external-sync case the rule allows for - this only ever runs after a real
+      // theme flip, never on mount or on the map's own local state changing.
+      /* eslint-disable react-hooks/set-state-in-effect */
+      setStyleAndPersist(resolvedTheme === "dark" ? "dark" : defaultStyleKey)
+      /* eslint-enable react-hooks/set-state-in-effect */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvedTheme])
+
   // Lazy useState initialiser, not a bare Date.now() call in render - computed once on mount so
   // "recent" stays stable for the component's lifetime rather than shifting on every re-render.
   const [nowMs] = useState(() => Date.now())
@@ -257,7 +305,7 @@ export function ApplicationsMap({ apps, geocodes, apiKey }: { apps: MapApplicati
         ))}
         <button
           type="button"
-          onClick={() => setGlobe((g) => !g)}
+          onClick={() => setGlobeAndFit(!globe)}
           title="Globe projection has a known MapLibre limitation where country/place labels can fail to render (github.com/maplibre/maplibre-gl-js#5025) - Flat is the reliable choice for readable labels"
           className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded border transition-colors ${globe ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
         >
