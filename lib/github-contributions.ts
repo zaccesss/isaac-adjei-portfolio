@@ -107,6 +107,7 @@ export interface GithubContributionsData {
   days: { date: string; count: number }[] // trailing ~365 days
   currentYear: { commits: number; pullRequests: number; reviews: number; issues: number; total: number }
   allTimeTotal: number
+  years: { year: number; total: number }[]
 }
 
 const EMPTY_YEAR = { commits: 0, pullRequests: 0, reviews: 0, issues: 0, total: 0 }
@@ -145,6 +146,7 @@ export async function getStoredGithubContributions(): Promise<GithubContribution
         }
       : EMPTY_YEAR,
     allTimeTotal,
+    years: (years ?? []).map((y) => ({ year: y.year, total: y.total })).sort((a, b) => a.year - b.year),
   }
 }
 

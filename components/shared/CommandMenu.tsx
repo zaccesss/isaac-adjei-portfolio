@@ -19,7 +19,7 @@ import {
 import {
   Home, User, Briefcase, Code, Mail, Cpu, BookOpen, Link2, NotebookPen,
   FlaskConical, Clock, Wrench, Info, ScrollText, Trophy, LayoutList, Shield, Rss,
-  GraduationCap, Lightbulb, Tag, SearchIcon, Activity,
+  GraduationCap, Lightbulb, Tag, SearchIcon, Activity, BarChart3,
   HeartHandshake, Users, LifeBuoy,
 } from "lucide-react"
 import { DialogTitle } from "@/components/ui/dialog"
@@ -95,6 +95,7 @@ export default function CommandMenu() {
         j: "/lab",
         c: "/contact",
         l: "/links",
+        y: "/stats",
       }
       const path = shortcuts[e.key.toLowerCase()]
       if (path) {
@@ -210,6 +211,11 @@ export default function CommandMenu() {
             <BookOpen className="mr-2 h-4 w-4" />
             Consumed
             <CommandShortcut>{shiftShortcut("D")}</CommandShortcut>
+          </CommandItem>
+          <CommandItem value="stats github coding music applications gaming" onSelect={() => go("/stats")}>
+            <BarChart3 className="mr-2 h-4 w-4" />
+            Stats
+            <CommandShortcut>{shortcut("Y")}</CommandShortcut>
           </CommandItem>
           <CommandItem value="lab experiments" onSelect={() => go("/lab")}>
             <FlaskConical className="mr-2 h-4 w-4" />

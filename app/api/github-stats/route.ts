@@ -10,7 +10,7 @@ import { GH_OWNER } from "@/lib/site-config"
 import { getStoredGithubContributions } from "@/lib/github-contributions"
 
 const GITHUB_USER = GH_OWNER
-const CACHE_KEY = "github:stats:v5"
+const CACHE_KEY = "github:stats:v6"
 const CACHE_TTL = 600
 
 interface GitHubRepo {
@@ -39,6 +39,7 @@ export interface GitHubStats {
     pullRequests: number
     issues: number
     days: ContributionDay[]
+    years: { year: number; total: number }[]
   } | null
 }
 
@@ -115,6 +116,7 @@ export async function GET(req: Request) {
           pullRequests: stored.currentYear.pullRequests,
           issues: stored.currentYear.issues,
           days: stored.days,
+          years: stored.years,
         }
       : null
 

@@ -38,7 +38,8 @@ const PAGE_GROUPS = [
     heading: "Explore",
     pages: [
       { href: "/now",      label: "Now",                    description: "What I am doing right now" },
-      { href: "/lab",      label: "Lab",                    description: "Interactive terminal and GitHub stats" },
+      { href: "/lab",      label: "Lab",                    description: "Interactive terminal and hardware experiments" },
+      { href: "/stats",    label: "Stats",                  description: "GitHub, coding, music, applications and gaming stats" },
       { href: "/notes",    label: "Notes",                  description: "What I am thinking" },
       { href: "/consumed", label: "Consumed",               description: "Books, videos and podcasts I am working through" },
       { href: "/respub",   label: "Research & Publications", description: "Academic publications and research contributions" },

@@ -18,6 +18,8 @@ export default function Footer() {
           <span aria-hidden="true">·</span>
           <Link href="/lab" className="hover:text-foreground transition-colors">Lab</Link>
           <span aria-hidden="true">·</span>
+          <Link href="/stats" className="hover:text-foreground transition-colors">Stats</Link>
+          <span aria-hidden="true">·</span>
           <Link href="/notes" className="hover:text-foreground transition-colors">Notes</Link>
           <span aria-hidden="true">·</span>
           <Link href="/consumed" className="hover:text-foreground transition-colors">Consumed</Link>

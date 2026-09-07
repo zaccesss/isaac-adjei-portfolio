@@ -6,15 +6,17 @@ const isDev = process.env.NODE_ENV === "development"
 // frame and the pusher websocket) is the Vercel Toolbar, which Vercel injects for me as a
 // logged-in team member - visitors never load it, but blocking it spams my own console.
 const scriptSrc = ["'self'", "'unsafe-inline'", "https://challenges.cloudflare.com", "https://www.googletagmanager.com", "https://static.cloudflareinsights.com", "https://vercel.live"]
-// api.maptiler.com serves the Applications map's vector tiles, glyphs and style JSON - all
-// fetched by MapLibre GL JS via connect-src, not img-src (they are not plain <img> requests).
-// tiles.openfreemap.org backs the same map's manual OpenFreeMap fallback provider and the public
-// /stats map; services.arcgisonline.com is OpenFreeMap's own satellite style, a raster source on a
-// third, separate domain. All three were needed here but only api.maptiler.com was ever listed -
-// an earlier PR swapped tiles.openfreemap.org out for api.maptiler.com when the dashboard map
-// briefly went MapTiler-only, then a later PR reintroduced the OpenFreeMap toggle without
-// restoring its own connect-src entry, so every OpenFreeMap style has been silently CSP-blocked
-// since (confirmed via real console CSP-violation errors, not a guess).
+// api.maptiler.com serves the private dashboard Applications map's vector tiles, glyphs and style
+// JSON - all fetched by MapLibre GL JS via connect-src, not img-src (they are not plain <img>
+// requests). tiles.openfreemap.org backs the same map's manual OpenFreeMap fallback provider and
+// the public /stats map, kept on a separate no-key provider so a traffic spike on the public page
+// can never exhaust the private dashboard's shared MapTiler quota; services.arcgisonline.com is
+// OpenFreeMap's own satellite style, a raster source on a third, separate domain. All three were
+// needed here but only api.maptiler.com was ever listed for a while - an earlier PR swapped
+// tiles.openfreemap.org out for api.maptiler.com when the dashboard map briefly went MapTiler-only,
+// then a later PR reintroduced the OpenFreeMap toggle without restoring its own connect-src entry,
+// so every OpenFreeMap style was silently CSP-blocked until this was fixed (confirmed via real
+// console CSP-violation errors, not a guess).
 const connectSrc = ["'self'", "https://challenges.cloudflare.com", "https://zenquotes.io", "https://*.google-analytics.com", "https://analytics.google.com", "https://api.lanyard.rest", "https://cloudflareinsights.com", "https://vercel.live", "wss://ws-us3.pusher.com", "https://api.maptiler.com", "https://tiles.openfreemap.org", "https://services.arcgisonline.com"]
 
 if (isDev) {
