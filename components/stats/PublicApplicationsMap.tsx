@@ -99,6 +99,11 @@ export function PublicApplicationsMap() {
         <MapGL
           initialViewState={{ latitude: avgLat, longitude: avgLng, zoom: 3 }}
           mapStyle={style}
+          // A full reload rather than an incremental diff on every theme-driven style switch - see
+          // ApplicationsMap.tsx (the private dashboard map) for the full rationale. This map has far
+          // fewer markers (one per city, not per application) so is lower risk, but the fix is cheap
+          // and keeps both maps behaving the same way.
+          styleDiffing={false}
           style={{ width: "100%", height: "100%" }}
           renderWorldCopies={false}
           dragPan

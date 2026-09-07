@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Gamepad2 } from "lucide-react"
 
 type PS5Data = { online: boolean; lastSeen: string | null; game: string | null; gameImage: string | null; lastGame: string | null; lastGameImage: string | null }
-type GPCData = { online: boolean; lastSeen: string | null; cpu: number | null; gpu: number | null; game: string | null; game_image?: string | null }
+type GPCData = { online: boolean; lastSeen: string | null; cpu: number | null; gpu: number | null; game: string | null; gameImage: string | null }
 
 function timeSince(ts: string | null) {
   if (!ts) return null
@@ -20,20 +20,28 @@ export default function GamingPanel() {
   const [gpc, setGPC] = useState<GPCData | null>(null)
 
   useEffect(() => {
+    // Reads the same combined, CDN-cached snapshot LiveStatusCards already polls (one Redis mget
+    // behind the cache, shared across however many tabs are open) instead of two separate direct
+    // polls of /api/ps5 and /api/gpc - live_status.ts's ps5/gpc fields are the identical shape
+    // those routes return individually, so this loses no detail. 45s to match LiveStatusCards'
+    // own interval, comfortably above the route's 60s edge-cache TTL either way.
     const load = async () => {
-      const [r1, r2] = await Promise.all([fetch("/api/ps5"), fetch("/api/gpc")])
-      if (r1.ok) setPS5(await r1.json())
-      if (r2.ok) setGPC(await r2.json())
+      const r = await fetch("/api/live-status")
+      if (r.ok) {
+        const snapshot = await r.json()
+        setPS5(snapshot.ps5)
+        setGPC(snapshot.gpc)
+      }
     }
     load()
-    const iv = setInterval(load, 30_000)
+    const iv = setInterval(load, 45_000)
     return () => clearInterval(iv)
   }, [])
 
   const ps5Game = ps5?.game || ps5?.lastGame || null
   const ps5Art  = ps5?.game ? ps5.gameImage : ps5?.lastGameImage
   const gpcGame = gpc?.game || null
-  const gpcArt  = (gpc as any)?.game_image ?? null
+  const gpcArt  = gpc?.gameImage ?? null
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-5 space-y-4">
