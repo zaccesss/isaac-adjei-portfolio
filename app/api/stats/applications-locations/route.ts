@@ -8,7 +8,7 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import { publicApiLimiter, checkRateLimit, getIp } from "@/lib/ratelimit"
-import { cityLabel, mergeByLabel } from "@/lib/location-labels"
+import { cityLabel, mergeByLabel, isRemoteLocation } from "@/lib/location-labels"
 
 export const dynamic = "force-dynamic"
 
@@ -50,8 +50,17 @@ export async function GET(req: Request) {
     .filter((p): p is { location: string; lat: number; lng: number; count: number } => p !== null)
   const points = mergeByLabel(rawPoints)
 
+  // "Remote" carries real meaning even without a coordinate to plot - counted straight from the
+  // raw text rather than through location_geocodes, since a remote-work role is never geocoded to
+  // begin with. Returned separately so the map (which needs a real lat/lng for every point) never
+  // sees it, while the count-only Top 10 cities charts can still show it as its own bucket.
+  let remoteCount = 0
+  for (const [location, count] of counts) {
+    if (isRemoteLocation(location)) remoteCount += count
+  }
+
   return NextResponse.json(
-    { total, points },
+    { total, points, remoteCount },
     { headers: { "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600" } },
   )
 }
