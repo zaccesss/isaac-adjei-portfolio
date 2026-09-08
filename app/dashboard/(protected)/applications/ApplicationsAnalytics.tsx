@@ -17,7 +17,7 @@ import {
 } from "@/components/analytics"
 import { normaliseStatus as normalise, STATUS_COLOURS, computeFunnelCounts, isTrackedApplication } from "@/lib/application-status"
 import { ApplicationsMap } from "@/components/analytics/ApplicationsMap"
-import { cityLabel, mergeByLabel } from "@/lib/location-labels"
+import { cityLabel, mergeByLabel, isRemoteLocation } from "@/lib/location-labels"
 import { BarChart2 } from "lucide-react"
 
 type Application = {
@@ -139,7 +139,17 @@ function ApplicationsAnalyticsInner({ apps, geocodes, mapApiKey }: { apps: Appli
       return { location: cityLabel(location, g), lat: g.lat, lng: g.lng, count }
     })
     .filter((p): p is { location: string; lat: number; lng: number; count: number } => p !== null)
-  const top10Cities = mergeByLabel(cityRawPoints).sort((a, b) => b.count - a.count).slice(0, 10)
+  // "Remote" carries real meaning even without a coordinate to plot - counted straight from the raw
+  // text since a remote-work role is never geocoded to begin with, folded in as its own bucket
+  // rather than silently vanishing now that geocode-locations.mjs deliberately leaves it unresolved.
+  let remoteCount = 0
+  for (const [location, count] of rawLocationCounts) {
+    if (isRemoteLocation(location)) remoteCount += count
+  }
+  const top10Cities = [
+    ...mergeByLabel(cityRawPoints),
+    ...(remoteCount > 0 ? [{ location: "Remote", lat: 0, lng: 0, count: remoteCount }] : []),
+  ].sort((a, b) => b.count - a.count).slice(0, 10)
 
   // Weekly trend - number of weeks driven by period. weeklyBar (the standalone chart) is
   // real-activity-only, matching every other chart on the page - rawWeeklySparkline is the

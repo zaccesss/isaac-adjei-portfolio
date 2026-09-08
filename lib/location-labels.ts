@@ -17,6 +17,17 @@ export function cityLabel(raw: string, g: Pick<GeocodeRow, "city" | "country_cod
   return raw
 }
 
+// A "Remote" location genuinely means something (a real remote-work role) even though it has no
+// coordinate to plot - isaac-adjei-automations' geocode-locations.mjs now deliberately leaves these
+// unresolved rather than let them land on a coincidentally-matching real place (previously "Remote"
+// variants had all landed on an actual unincorporated place literally named Remote, Oregon). Rather
+// than let that count silently vanish from the Top 10 cities charts, both charts fold it back in as
+// its own explicit, non-geocoded "Remote" bucket - the map itself still cannot plot it, since it
+// has no real coordinate, only the count-only charts can show it.
+export function isRemoteLocation(raw: string): boolean {
+  return /\bremote\b/i.test(raw)
+}
+
 export interface LocationPoint {
   location: string
   lat: number

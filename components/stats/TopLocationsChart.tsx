@@ -16,8 +16,8 @@ export default function TopLocationsChart() {
 
   useEffect(() => {
     fetch("/api/stats/applications-locations")
-      .then((r) => (r.ok ? r.json() : { points: [] }))
-      .then((d) => setPoints(d.points ?? []))
+      .then((r) => (r.ok ? r.json() : { points: [], remoteCount: 0 }))
+      .then((d) => setPoints([...(d.points ?? []), ...(d.remoteCount ? [{ location: "Remote", count: d.remoteCount }] : [])]))
       .catch(() => setPoints([]))
   }, [])
 
@@ -40,6 +40,11 @@ export default function TopLocationsChart() {
         xKey="name"
         height={200}
         legend
+        // The default "preserveStartEnd" tick strategy only guarantees the first and last of 10
+        // category labels render, silently dropping whichever middle ones do not fit - looked like
+        // a rendering bug rather than a deliberate choice. The legend below already names every bar
+        // with a matching colour swatch, so the x-axis labels were redundant anyway once cut.
+        hideXAxisTicks
         valueFormatter={(v) => `${v} opportunit${v === 1 ? "y" : "ies"} tracked`}
       />
     </div>
