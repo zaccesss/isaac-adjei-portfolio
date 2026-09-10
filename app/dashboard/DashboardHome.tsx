@@ -233,7 +233,7 @@ export default function DashboardHome({ summary }: { summary: Summary }) {
         </Link>
       </div>
 
-      {/* Cross-domain summary: where the last 14 days went, and how goals are tracking overall -
+      {/* Cross-domain summary: where the last 14 days went and how goals are tracking overall -
           the one place on the dashboard that reads across topics rather than per-topic. */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link

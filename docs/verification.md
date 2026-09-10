@@ -250,7 +250,7 @@ Tick each box in GitHub once verified (these are GitHub-flavoured markdown check
 - [ ] Tags link in footer secondary nav row - visible and navigates to `/tags`
 - [ ] Dual PWA install - on mobile, public site install prompt uses "Isaac Adjei" name and correct icon
 - [ ] Mobile Safari GPU fix - on iOS Safari, visit `/`, `/projects`, `/skills` and `/links`; confirm no black-screen crash; no hover-scale animations fire on touch
-- [ ] AI bot blocking - visit `/robots.txt`; GPTBot, anthropic-ai and Claude-Web each have `User-agent` blocks with `Disallow: /`
+- [ ] AI bot blocking - visit `/robots.txt`; `GPTBot`, `anthropic-ai` and `Claude-Web` each have `User-agent` blocks with `Disallow: /`
 - [ ] Links page - 10 sections visible; quick icon row under bio; stagger entrance animation on page load
 - [ ] Projects pagination - 9 cards on first page; prev/next navigation works; AI/ML filter pill visible
 

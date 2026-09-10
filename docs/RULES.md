@@ -20,7 +20,7 @@ All rules that apply to every session. No exceptions.
 - Format: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`
 - No em dashes or en dashes in commit messages - use hyphens
 - No Oxford comma in commit messages
-- No AI attribution lines, Co-Authored-By lines or Cursor footers (e.g. Made with Cursor) anywhere
+- No AI attribution lines, `Co-Authored-By` lines or Cursor footers (e.g. `Made with Cursor`) anywhere
 - The `.githooks/commit-msg` hook enforces all of the above and hard-rejects violations
 
 ---
@@ -100,8 +100,8 @@ git branch -r | grep -v main | grep -v HEAD | sed 's/origin\///' | xargs -I {} g
 - Do not over-abstract
 - Do not skip updating CHANGELOG.md at session end (`docs/LOG.md` is archived)
 - Do not touch public pages when working on dashboard tasks
-- Do not add "Generated with Claude Code", "Made with Claude" or any AI tool attribution to commits, PRs or any file
-- Do not add Co-Authored-By lines to commits - the `.githooks/commit-msg` hook will hard-reject them
+- Do not add `Generated with Claude Code`, `Made with Claude` or any AI tool attribution to commits, PRs or any file
+- Do not add `Co-Authored-By` lines to commits - the `.githooks/commit-msg` hook will hard-reject them
 - Do not use `git add .` or `git add -A` - always stage specific files by name
 - Do not use `--no-verify` to bypass hooks - fix the underlying issue instead
 - Do not mention Isaac's age, year at university or any other sensitive personal detail in any file

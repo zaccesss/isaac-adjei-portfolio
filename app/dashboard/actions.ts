@@ -1716,7 +1716,7 @@ export async function getTimeAllocation(days = 30): Promise<TimeAllocationDay[]>
     supabase.from("listening_history").select("played_at, duration_ms").gte("played_at", start),
     supabase.from("faith_entries").select("date, duration_m").gte("date", start),
     // Excludes scraped rows - the applications table has thousands of scraper-imported rows
-    // (status "scraped") that were never real applications I submitted, and would otherwise
+    // (status "scraped") that were never real applications I submitted and would otherwise
     // dominate this count.
     supabase.from("applications").select("applied_date, created_at").neq("status", "scraped").gte("created_at", start),
   ])
@@ -1777,7 +1777,7 @@ export async function getTimeAllocation(days = 30): Promise<TimeAllocationDay[]>
 // page or mini-analytics section (Applications, Music, Ops, Fitness, Coding, Lab, Time
 // Allocation, plus the CRUD pages that only ever show mini-analytics inline - Goals, Projects,
 // Inventory). Reuses getDashboardSummary/getTimeAllocation/getProjects/getLabMeasurements rather
-// than re-deriving the same numbers a second way, and adds the handful of domain counts none of
+// than re-deriving the same numbers a second way and adds the handful of domain counts none of
 // those already cover.
 
 export async function getAllAnalyticsOverview() {

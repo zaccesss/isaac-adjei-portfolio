@@ -85,7 +85,7 @@ const nextConfig = {
               `connect-src ${connectSrc.join(" ")}`,
               // MapLibre GL JS (the Applications map) parses vector tiles in a Web Worker created
               // from a blob: URL - worker-src falls back to script-src, not default-src, per the
-              // CSP spec, and 'self' alone does not implicitly cover a blob: worker.
+              // CSP spec and 'self' alone does not implicitly cover a blob: worker.
               "worker-src 'self' blob:",
               // I include 'self' so the /cv page can embed /resume/cv.html in an iframe
               // giscus.app is required for the blog comments iframe

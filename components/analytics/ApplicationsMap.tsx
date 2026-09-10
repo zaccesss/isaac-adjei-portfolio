@@ -170,7 +170,7 @@ export function ApplicationsMap({ apps, geocodes, apiKey }: { apps: MapApplicati
   }, [mounted])
 
   // The site's own light/dark toggle should carry the map along with it whenever the visitor is on
-  // the current provider's theme-linked style (its light default, or "dark") - a creative pick like
+  // the current provider's theme-linked style (its light default or "dark") - a creative pick like
   // Satellite or a named style (Streets, Toner, Outdoor) is a deliberate departure from the theme
   // and stays put. The unpinned default already reacts to resolvedTheme via the `style` expression
   // above with no extra code; this only handles the case where dark/the light default was clicked
@@ -342,7 +342,7 @@ export function ApplicationsMap({ apps, geocodes, apiKey }: { apps: MapApplicati
           mapStyle={STYLES[style].url}
           // Forces a full style reload on every switch instead of MapLibre's default incremental
           // diff - the style picker switches between genuinely unrelated style documents (different
-          // providers, different source URLs), and repeated diffed switches against ~10k markers
+          // providers, different source URLs) and repeated diffed switches against ~10k markers
           // left the map on a stale style that never visually updated, worsening into a fully blank
           // canvas after several switches. A full reload costs a brief flash per switch but is
           // reliable, unlike the diff path.
