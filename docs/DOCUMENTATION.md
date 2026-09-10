@@ -71,7 +71,7 @@ Full reference for the Isaac Adjei portfolio and private dashboard. For a high-l
 
 `app/sitemap.ts` generates `/sitemap.xml` at build time. It lists only public routes - never `/dashboard` or any private path.
 
-`app/robots.ts` generates `/robots.txt`. Crawlers are allowed on `/` and disallowed on `/dashboard/` and `/api/dashboard/`. 19 AI crawlers are explicitly blocked (GPTBot, anthropic-ai, Claude-Web and others).
+`app/robots.ts` generates `/robots.txt`. Crawlers are allowed on `/` and disallowed on `/dashboard/` and `/api/dashboard/`. 19 AI crawlers are explicitly blocked (`GPTBot`, `anthropic-ai`, `Claude-Web` and others).
 
 ---
 

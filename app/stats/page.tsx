@@ -1,6 +1,6 @@
 // The /stats hub - a public, no-auth landing page linking into each domain's dedicated stats
 // sub-page. Everything here is either already public (GitHub activity), my own explicit choice to
-// publish (listening history, coding stats), or reduced to a genuinely anonymous aggregate first
+// publish (listening history, coding stats) or reduced to a genuinely anonymous aggregate first
 // (applications by city, never a company, status, role or date).
 import type { Metadata } from "next"
 import Link from "next/link"

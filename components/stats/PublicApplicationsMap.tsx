@@ -151,7 +151,7 @@ export function PublicApplicationsMap() {
   // Groups nearby CITIES together at low zoom, same grid-cell technique the dashboard's own
   // ApplicationsMap uses for individual pins - there is no per-application data here to cluster
   // (this endpoint only ever returns one row per city), so "unclustered" still means one pin per
-  // city, and "clustered" merges cities that are close together on screen into a single combined
+  // city and "clustered" merges cities that are close together on screen into a single combined
   // circle. Still count-only either way, nothing more specific than a summed number.
   const clusters = useMemo(() => {
     const pts = points ?? []

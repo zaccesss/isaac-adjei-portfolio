@@ -4,7 +4,7 @@ import { StatsPageHeader } from "@/components/stats/StatsPageHeader"
 
 export const metadata: Metadata = {
   title: "Gaming Status",
-  description: "Live PS5 and gaming PC status - what I am playing right now, or last played.",
+  description: "Live PS5 and gaming PC status - what I am playing right now or last played.",
   alternates: {
     canonical: "https://www.isaacadjei.me/stats/gaming",
   },
