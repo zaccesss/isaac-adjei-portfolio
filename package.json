@@ -73,7 +73,7 @@
     "lowlight": "^3.3.0",
     "lucide-react": "^0.577.0",
     "maplibre-gl": "^6.7.0",
-    "next": "^16.3.1",
+    "next": "^16.3.3",
     "next-auth": "^5.0.0-beta.32",
     "next-themes": "^0.3.0",
     "puppeteer-core": "^25.10.0",
@@ -104,7 +104,7 @@
     "@sentry/bundler-plugin-core": {
       "brace-expansion": "5.0.9"
     },
-    "sharp": ">=0.35.0",
+    "sharp": ">=0.35.4",
     "next": {
       "postcss": ">=8.5.18"
     },
