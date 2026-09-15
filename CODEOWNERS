@@ -1,0 +1,5 @@
+# CODEOWNERS
+# All files in this repository are owned by @zaccesss.
+# This file exists so that any pull request automatically requests a review.
+
+* @zaccesss
